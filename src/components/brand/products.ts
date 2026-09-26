@@ -30,7 +30,7 @@ export interface LoonaProduct {
 }
 
 export const LOONA_PRODUCTS: Record<LoonaProductKey, LoonaProduct> = {
-  ld: { key: 'ld', name: 'Loona! Designs', width: 44, color: '#FF7816', deep: '#C2410C', tagline: 'plattform · beyond' },
+  ld: { key: 'ld', name: 'Loona! Designs', width: 44, color: '#FF7816', deep: '#C2410C', tagline: 'designs' },
   flow: { key: 'flow', name: 'LD Flow.', width: 49, color: '#A78BFA', deep: '#6D28D9', tagline: 'cms · loona! designs' },
   nova: { key: 'nova', name: 'LD Nova.', width: 40, color: '#38BDF8', deep: '#0369A1', tagline: 'design system · loona! designs' },
   buddy: { key: 'buddy', name: 'LD Buddy.', width: 24, color: '#F472B6', deep: '#BE185D', tagline: 'app · loona! designs' },

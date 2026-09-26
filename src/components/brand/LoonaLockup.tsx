@@ -14,8 +14,9 @@ export interface LoonaLockupProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 /**
- * Zeichen + Wortmarke. Proportionen aus assets/family/<key>/lockup-*.svg (Mark 40 → 22 px / 10 px, Abstand 16 px):
- * gap 0.4·m, Zeile 1 0.55·m, Zeile 2 0.25·m.
+ * Zeichen + Wortmarke, Proportionen 1:1 aus den Lockup-Assets (m = Zeichenhöhe):
+ * - ld (assets/lockup-*.svg): „loona!“ / „designs“ — Abstand 0.5·m, Zeile 1 0.75·m, Zeile 2 0.275·m.
+ * - Produkte (assets/family/<key>/lockup-*.svg): „LD Flow.“ / „cms · loona! designs“ — 0.4·m, 0.55·m, 0.25·m.
  */
 export function LoonaLockup({
   product = 'ld',
@@ -39,6 +40,7 @@ export function LoonaLockup({
       {...rest}
       className={[styles.lockup, className].filter(Boolean).join(' ')}
       data-theme={theme}
+      data-core={product === 'ld' ? '' : undefined}
       style={{ '--loona-m': `${markSize}px`, '--loona-accent': accent, ...style } as CSSProperties}
     >
       {/* overflow visible wie in lockup-*.svg: das gedrehte Ivy-Blatt ragt über seine 40er-Box hinaus. */}
@@ -54,7 +56,7 @@ export function LoonaLockup({
         <span className={styles.wordmark}>
           {product === 'ld' ? (
             <>
-              loona<span className={styles.accent}>!</span> designs
+              loona<span className={styles.accent}>!</span>
             </>
           ) : (
             <>

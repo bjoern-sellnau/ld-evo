@@ -36,9 +36,11 @@ describe('LoonaMark — Props', () => {
 });
 
 describe('LoonaLockup — Wortmarke', () => {
-  it('ld: "loona" + "!" + " designs", Unterzeile "plattform · beyond"', () => {
-    const text = renderToStaticMarkup(<LoonaLockup />).replace(/<[^>]+>/g, '');
-    expect(text).toBe('loona! designsplattform · beyond');
+  it('ld wie assets/lockup-*.svg: "loona" + "!" / "designs", Deep-Farbe auf hell', () => {
+    expect(renderToStaticMarkup(<LoonaLockup />).replace(/<[^>]+>/g, '')).toBe('loona!designs');
+    const light = renderToStaticMarkup(<LoonaLockup theme="light" />);
+    expect(light).toContain('--loona-accent:#C2410C');
+    expect(light).toContain('data-core=""');
   });
 
   it('Produkte: Name ohne Punkt + Punkt als Akzent, Deep-Farbe auf hell', () => {
