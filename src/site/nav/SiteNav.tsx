@@ -1,0 +1,238 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import type { CSSProperties, MouseEvent } from 'react';
+import { GlassSurface } from '../glass/GlassSurface';
+import { useSite } from '../settings/SiteProvider';
+import styles from './SiteNav.module.css';
+import { SITE_PAGES, pageForPath } from './pages';
+
+const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
+
+const iconBtn: CSSProperties = {
+  width: 34,
+  height: 34,
+  borderRadius: 999,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  color: 'var(--muted)',
+  background: 'transparent',
+  transition: 'transform 0.25s,background 0.25s',
+};
+
+/** Liquid-Glass-Nav: Top-Pille (Desktop) bzw. Glas-Sidebar (Wide). Markup/Werte aus dem Prototyp, Zeile 328 ff. */
+export function SiteNav() {
+  const { settings, mob, sideActive, isWide, frame, toggleTheme, toggleAnim, setOverlay, navigate, set } = useSiteNav();
+  const pathname = usePathname();
+  const active = pageForPath(pathname);
+
+  if (mob && settings.mobModern) return null;
+
+  const navRad = settings.styleMode === 'fluent' ? (sideActive ? '16px' : '14px') : sideActive ? '28px' : '999px';
+  const divider: CSSProperties = sideActive
+    ? { alignSelf: 'stretch', height: 1, margin: '7px 4px', background: 'var(--hair)' }
+    : { width: 1, height: 20, margin: '0 3px', background: 'var(--hair)' };
+
+  const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    navigate(href);
+  };
+
+  return (
+    <nav
+      aria-label="Hauptnavigation"
+      className="ldnavvt"
+      style={{
+        position: 'fixed',
+        zIndex: 60,
+        pointerEvents: 'none',
+        display: 'flex',
+        ...(sideActive
+          ? { top: 0, bottom: 0, left: 18, justifyContent: 'flex-start', alignItems: 'center' }
+          : { top: mob && frame ? 58 : 16, left: 0, right: 0, justifyContent: 'center', transition: 'top 0.35s ease' }),
+      }}
+    >
+      <GlassSurface
+        radius={navRad}
+        sheen
+        style={
+          {
+            pointerEvents: 'auto',
+            display: 'flex',
+            gap: 3,
+            padding: sideActive ? '14px 12px' : '7px 8px',
+            '--ld-item-scale': sideActive ? '1.02' : '1.07',
+            ...(sideActive
+              ? { flexDirection: 'column', alignItems: 'stretch', width: 224, boxSizing: 'border-box', maxHeight: 'calc(100vh - 32px)', overflowY: 'auto' }
+              : { flexDirection: 'row', alignItems: 'center' }),
+          } as unknown as CSSProperties
+        }
+      >
+        <Link
+          href="/"
+          onClick={go('/')}
+          className={cx(styles.reset, styles.logo)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 12px 8px 9px',
+            borderRadius: 999,
+            fontWeight: 700,
+            fontSize: 14,
+            color: 'var(--ink)',
+            transition: 'transform 0.25s,color 0.25s',
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 8,
+              background: 'linear-gradient(135deg,#FFB224,#FF7A2F)',
+              color: '#241400',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 11,
+              fontWeight: 800,
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)',
+            }}
+          >
+            L!
+          </span>
+          <span>
+            Loona<span style={{ color: 'var(--accent)' }}>!</span>
+          </span>
+        </Link>
+
+        {!mob && (
+          <>
+            <span aria-hidden style={divider} />
+            {SITE_PAGES.map((p) => {
+              const on = active === p.id;
+              return (
+                <Link
+                  key={p.id}
+                  href={p.href}
+                  onClick={go(p.href)}
+                  aria-current={on ? 'page' : undefined}
+                  data-navactive={on}
+                  className={cx(styles.reset, styles.item)}
+                  style={{
+                    padding: sideActive ? '11px 14px' : '9px 15px',
+                    borderRadius: sideActive ? 12 : 999,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    background: on ? 'var(--pill)' : 'transparent',
+                    color: on ? 'var(--ink)' : 'var(--muted)',
+                    transition: 'transform 0.25s,background 0.25s,color 0.25s',
+                    whiteSpace: 'nowrap',
+                    display: sideActive ? 'flex' : 'inline-block',
+                    alignItems: 'center',
+                  }}
+                >
+                  {p.label}
+                </Link>
+              );
+            })}
+            <span aria-hidden style={divider} />
+            <span style={{ display: 'flex', gap: 3, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                title="Light/Dark"
+                aria-label={settings.theme === 'light' ? 'Dunkles Design' : 'Helles Design'}
+                className={cx(styles.reset, styles.icon)}
+                style={{ ...iconBtn, fontSize: 14 }}
+              >
+                {settings.theme === 'light' ? '☾' : '☀'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setOverlay('search')}
+                title="Suche (⌘K)"
+                aria-label="Suche"
+                className={cx(styles.reset, styles.icon)}
+                style={{ ...iconBtn, fontSize: 15 }}
+              >
+                ⌕
+              </button>
+              <button
+                type="button"
+                onClick={toggleAnim}
+                title="Animationen an/aus"
+                aria-label={settings.anim ? 'Animationen pausieren' : 'Animationen starten'}
+                aria-pressed={!settings.anim}
+                className={cx(styles.reset, styles.icon)}
+                style={{ ...iconBtn, fontSize: 12 }}
+              >
+                {settings.anim ? '⏸' : '▶'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setOverlay('settings')}
+                title="Einstellungen"
+                aria-label="Einstellungen"
+                className={cx(styles.reset, styles.icon)}
+                style={{ ...iconBtn, fontSize: 15 }}
+              >
+                ⚙
+              </button>
+              {isWide && (
+                <button
+                  type="button"
+                  onClick={() => set('navSide', !settings.navSide)}
+                  title="Menü an die Seite"
+                  aria-label={sideActive ? 'Menü nach oben' : 'Menü an die Seite'}
+                  aria-pressed={settings.navSide}
+                  className={cx(styles.reset, styles.icon)}
+                  style={{ ...iconBtn, fontSize: 14 }}
+                >
+                  {sideActive ? '⇥' : '⇤'}
+                </button>
+              )}
+            </span>
+          </>
+        )}
+
+        {!mob && (
+          <button
+            type="button"
+            onClick={() => setOverlay('kontakt')}
+            className={cx(styles.reset, styles.kontakt)}
+            style={{
+              display: 'inline-block',
+              textAlign: 'center',
+              textShadow: 'none',
+              padding: '9px 17px',
+              borderRadius: 999,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              background: 'var(--accent)',
+              color: 'var(--on-accent)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
+              transition: 'transform 0.25s',
+            }}
+          >
+            Kontakt
+          </button>
+        )}
+      </GlassSurface>
+    </nav>
+  );
+}
+
+function useSiteNav() {
+  const site = useSite();
+  const s = site.settings;
+  // Telefon-Hardware (Island/Hole/Notch) nur in der Desktop-Simulation → Top-Nav rückt auf 58 px.
+  const frame = site.mob && !site.isMobile && s.frame !== 'clear';
+  return { ...site, frame };
+}

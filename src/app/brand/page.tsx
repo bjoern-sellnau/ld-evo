@@ -11,6 +11,7 @@ export default function BrandPage() {
   const pairs = brandTextPairs();
 
   return (
+    <div className={styles.shell}>
     <main className={styles.page}>
       <header className={styles.header}>
         <LoonaLockup markSize={56} />
@@ -98,5 +99,6 @@ export default function BrandPage() {
         </table>
       </section>
     </main>
+    </div>
   );
 }
