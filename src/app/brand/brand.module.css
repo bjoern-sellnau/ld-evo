@@ -1,0 +1,135 @@
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 48px 16px 96px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid color-mix(in srgb, var(--loona-cream) 12%, transparent);
+}
+
+.kicker {
+  margin: 0;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  text-transform: lowercase;
+  color: var(--loona-muted-dark);
+}
+
+.product {
+  padding-top: 40px;
+}
+
+.title {
+  margin: 0 0 16px;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.meta {
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--loona-muted-dark);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.panel {
+  /* Schutzraum ≥ 0.25 × Zeichenhöhe (120 px → 30 px) */
+  padding: 32px;
+  border-radius: 16px;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.dark {
+  background: var(--loona-ink);
+  color: var(--loona-cream);
+  border: 1px solid color-mix(in srgb, var(--loona-cream) 12%, transparent);
+}
+
+.light {
+  background: var(--loona-paper);
+  color: var(--loona-ink);
+}
+
+.neutral {
+  background: color-mix(in srgb, var(--loona-cream) 6%, var(--loona-ink));
+}
+
+.label {
+  margin: 0 0 20px;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: lowercase;
+  color: var(--loona-muted-dark);
+}
+
+.light .label {
+  color: var(--loona-muted-light);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 32px;
+}
+
+.fig {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 8px 12px 8px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--loona-cream) 12%, transparent);
+}
+
+.table th {
+  font-weight: 500;
+  color: var(--loona-muted-dark);
+}
+
+.swatch {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.pass {
+  color: var(--loona-cream);
+}
+
+.fail {
+  color: var(--loona-orange);
+  font-weight: 700;
+}

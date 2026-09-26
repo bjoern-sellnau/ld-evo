@@ -1,0 +1,32 @@
+{
+  "name": "ld-evo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:visual": "vitest run --config vitest.visual.config.ts",
+    "brand:sync": "node scripts/sync-brand-assets.mjs",
+    "brand:ico": "node scripts/make-favicon-ico.mjs"
+  },
+  "dependencies": {
+    "next": "^16.3.6",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.3",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.2"
+  }
+}

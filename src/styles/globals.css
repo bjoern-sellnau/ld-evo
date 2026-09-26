@@ -1,0 +1,19 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  background: var(--loona-ink);
+  color: var(--loona-cream);
+  font-family: var(--loona-font-sans);
+  -webkit-font-smoothing: antialiased;
+}

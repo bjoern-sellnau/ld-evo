@@ -1,0 +1,49 @@
+/*
+ * Baselines wie in assets/family/<key>/lockup-*.svg: Zeile 1 bei 0.5·m, Zeile 2 bei 0.9·m unter Zeichen-Oberkante.
+ * Bei line-height 1 liegt die Baseline von Space Grotesk bei 0.846·font-size
+ * ((1 + ascent 0.984 − descent 0.292) / 2, hhea-Metriken der Google-Fonts-Datei).
+ */
+.lockup {
+  --loona-baseline: 0.846;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(0.4 * var(--loona-m));
+  font-family: var(--loona-font-sans, system-ui, sans-serif);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.lockup[data-theme='dark'] {
+  color: var(--loona-cream);
+  --loona-lockup-muted: var(--loona-muted-dark);
+}
+
+.lockup[data-theme='light'] {
+  color: var(--loona-ink);
+  --loona-lockup-muted: var(--loona-muted-light);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  height: var(--loona-m);
+}
+
+.wordmark {
+  font-weight: 700;
+  font-size: calc(0.55 * var(--loona-m));
+  letter-spacing: -0.03em;
+  margin-top: calc(0.5 * var(--loona-m) - var(--loona-baseline) * 0.55 * var(--loona-m));
+}
+
+.accent {
+  color: var(--loona-accent);
+}
+
+.tagline {
+  font-weight: 500;
+  font-size: calc(0.25 * var(--loona-m));
+  letter-spacing: 0.32em;
+  color: var(--loona-lockup-muted);
+  margin-top: calc(0.4 * var(--loona-m) - var(--loona-baseline) * 0.25 * var(--loona-m) + var(--loona-baseline) * 0.55 * var(--loona-m) - 0.55 * var(--loona-m));
+}
