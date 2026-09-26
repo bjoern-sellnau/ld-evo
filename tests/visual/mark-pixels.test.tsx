@@ -5,7 +5,15 @@ import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import { LOONA_NEUTRALS, LOONA_PRODUCT_KEYS, LoonaMark, LoonaTile, type LoonaProductKey, type LoonaTone } from '@/components/brand';
+import {
+  LOONA_NEUTRALS,
+  LOONA_PRODUCT_KEYS,
+  LOONA_PRODUCTS,
+  LoonaMark,
+  LoonaTile,
+  type LoonaProductKey,
+  type LoonaTone,
+} from '@/components/brand';
 
 /**
  * Pixel-Vergleich Komponente ↔ finale Handoff-Assets (Prompt §6: Toleranz 0.1 %), gerendert in Chromium via Playwright.
@@ -49,39 +57,39 @@ async function diffRatio(ours: string, reference: string, width: number, height:
 
 const img = (src: string, style = '') => `<img src="${src}" alt="" style="display:block;${style}">`;
 
+const TONES = ['color', 'ink', 'cream'] as const;
+const markFile = (key: LoonaProductKey, tone: LoonaTone, ext: 'svg' | '512.png') => {
+  const suffix = tone === 'color' ? '' : `-${tone}`;
+  const name = ext === 'svg' ? `mark${suffix}.svg` : `mark${suffix}-512.png`;
+  return key === 'ld' ? `ld-${name}` : `family/${key}/${name}`;
+};
+// PNG-Breite = aufgerundete Zeichenbreite (z. B. Buddy 24/40·512 = 307.2 → 308).
+const widthAt = (key: LoonaProductKey, h: number) => Math.ceil((LOONA_PRODUCTS[key].width * h) / 40);
+
 describe('LoonaMark size=400 vs. Asset-SVG', () => {
-  const cases: [LoonaProductKey, LoonaTone, string][] = [
-    ['ld', 'color', 'ld-mark.svg'],
-    ['ld', 'ink', 'ld-mark-ink.svg'],
-    ['ld', 'cream', 'ld-mark-cream.svg'],
-    ['ivy', 'color', 'family/ivy/mark.svg'],
-    ['ivy', 'ink', 'family/ivy/mark-ink.svg'],
-    ['ivy', 'cream', 'family/ivy/mark-cream.svg'],
-  ];
-  for (const [product, tone, file] of cases) {
-    test(`${product}/${tone} ↔ ${file}`, async () => {
-      const w = product === 'ld' ? 440 : 400;
-      const ours = renderToStaticMarkup(<LoonaMark product={product} tone={tone} size={400} decorative />);
-      const ref = img(dataUri(file, 'image/svg+xml'), `width:${w}px;height:400px`);
-      expect(await diffRatio(ours, ref, w, 400, bgFor(tone))).toBeLessThanOrEqual(TOLERANCE);
-    });
+  for (const key of LOONA_PRODUCT_KEYS) {
+    for (const tone of TONES) {
+      const file = markFile(key, tone, 'svg');
+      test(`${key}/${tone} ↔ ${file}`, async () => {
+        const w = widthAt(key, 400);
+        const ours = renderToStaticMarkup(<LoonaMark product={key} tone={tone} size={400} decorative />);
+        const ref = img(dataUri(file, 'image/svg+xml'), `width:${(LOONA_PRODUCTS[key].width * 400) / 40}px;height:400px`);
+        expect(await diffRatio(ours, ref, w, 400, bgFor(tone))).toBeLessThanOrEqual(TOLERANCE);
+      });
+    }
   }
 });
 
 describe('LoonaMark size=512 vs. Asset-PNG (transparent, 512 px hoch)', () => {
-  const cases: [LoonaProductKey, LoonaTone, string, number][] = [
-    ['ld', 'color', 'ld-mark-512.png', 564],
-    ['ld', 'ink', 'ld-mark-ink-512.png', 564],
-    ['ld', 'cream', 'ld-mark-cream-512.png', 564],
-    ['ivy', 'color', 'family/ivy/mark-512.png', 512],
-    ['ivy', 'ink', 'family/ivy/mark-ink-512.png', 512],
-    ['nova', 'cream', 'family/nova/mark-cream-512.png', 512],
-  ];
-  for (const [product, tone, file, w] of cases) {
-    test(`${product}/${tone} ↔ ${file}`, async () => {
-      const ours = renderToStaticMarkup(<LoonaMark product={product} tone={tone} size={512} decorative />);
-      expect(await diffRatio(ours, img(dataUri(file, 'image/png')), w, 512, bgFor(tone))).toBeLessThanOrEqual(TOLERANCE);
-    });
+  for (const key of LOONA_PRODUCT_KEYS) {
+    for (const tone of TONES) {
+      const file = markFile(key, tone, '512.png');
+      test(`${key}/${tone} ↔ ${file}`, async () => {
+        const ours = renderToStaticMarkup(<LoonaMark product={key} tone={tone} size={512} decorative />);
+        const ref = img(dataUri(file, 'image/png'));
+        expect(await diffRatio(ours, ref, widthAt(key, 512), 512, bgFor(tone))).toBeLessThanOrEqual(TOLERANCE);
+      });
+    }
   }
 });
 
