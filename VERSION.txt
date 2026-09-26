@@ -1,0 +1,3 @@
+Loona! Designs — Logo-System · Handoff v1.0 · 2026-09-20
+Kern: Monogramm 20a (Orange #FF7816). Produktfamilie: LD Flow. · LD Nova. · LD Buddy. · LD Ivy.
+Inhalt: README.md (Spezifikation), PROMPTS.md (Claude-Code-Prompts 1–8), assets/ (SVG/PNG final), design/ (HTML-Referenzen).

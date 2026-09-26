@@ -1,0 +1,2546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>ORBIT OS · Wallpapers</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --ink: #e8ecf2;
+    --ink-dim: rgba(232,236,242,0.55);
+    --ink-faint: rgba(232,236,242,0.28);
+    --glass: rgba(14,16,22,0.55);
+    --glass-stroke: rgba(255,255,255,0.10);
+    --glass-stroke-strong: rgba(255,255,255,0.22);
+    --accent: #b9d6ff;
+  }
+  *,*::before,*::after{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; background:#000; overflow:hidden;
+    color:var(--ink); font-family: "Inter", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings:"ss01","cv11";
+  }
+  canvas#stage{ position:fixed; inset:0; width:100%; height:100%; display:block; cursor:crosshair; }
+
+  /* Top OS chrome */
+  .os-top{
+    position:fixed; top:18px; left:0; right:0;
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 0 22px;
+    pointer-events:none;
+    font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
+    color: var(--ink-dim);
+    z-index: 5;
+  }
+  .os-top .brand{ display:flex; align-items:center; gap:10px; }
+  .os-top .brand .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, #fff, #6aa3ff 60%, #1a3a7a);
+    box-shadow: 0 0 12px rgba(120,170,255,0.7);
+  }
+  .os-top .meta{ display:flex; gap:18px; }
+  .os-top .meta span{ font-variant-numeric: tabular-nums; }
+
+  /* Hint */
+  .hint{
+    position:fixed; left:50%; top:50%;
+    transform: translate(-50%, -50%);
+    color: var(--ink-dim);
+    font-size:13px; letter-spacing:0.18em; text-transform:uppercase;
+    pointer-events:none;
+    text-align:center;
+    transition: opacity 1.2s ease;
+    z-index: 4;
+    mix-blend-mode: plus-lighter;
+  }
+  .hint .big{
+    display:block;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top:8px;
+    letter-spacing:0.24em;
+  }
+  .hint.dim{ opacity:0; }
+
+  /* Wallpaper title (current shader name) */
+  .wp-title{
+    position:fixed; left:24px; bottom: 120px;
+    z-index: 5; pointer-events:none;
+    color: var(--ink);
+    mix-blend-mode: plus-lighter;
+  }
+  .wp-title .num{
+    font-family: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 0.22em; color: var(--ink-faint);
+    text-transform:uppercase;
+  }
+  .wp-title .name{
+    font-size: 44px; font-weight: 300; letter-spacing: -0.02em;
+    line-height:1.05; margin-top: 6px;
+    text-wrap: balance;
+  }
+  .wp-title .desc{
+    margin-top: 10px;
+    max-width: 360px;
+    font-size: 13px; line-height: 1.5;
+    color: var(--ink-dim);
+    font-weight: 300;
+  }
+
+  /* Combobox */
+  .picker{
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    min-width: 280px;
+  }
+  .picker .control{
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px 10px 12px;
+    background: var(--glass);
+    border: 1px solid var(--glass-stroke);
+    border-radius: 14px;
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    cursor: pointer;
+    color: var(--ink);
+    font: inherit; font-size: 13px;
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    transition: border-color 200ms ease, background 200ms ease;
+    user-select: none;
+  }
+  .picker .control:hover{ border-color: var(--glass-stroke-strong); }
+  .picker[aria-expanded="true"] .control{
+    border-color: var(--glass-stroke-strong);
+    background: rgba(20,22,30,0.7);
+  }
+  .picker .control .swatch{
+    width: 24px; height: 24px; border-radius: 8px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14), 0 4px 10px rgba(0,0,0,0.4);
+    flex: 0 0 auto;
+  }
+  .picker .control .lbl{
+    flex: 1 1 auto; display:flex; align-items:baseline; gap: 10px;
+    min-width: 0;
+  }
+  .picker .control .lbl .name{
+    color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .picker .control .lbl .num{
+    font-family:"JetBrains Mono","SF Mono",ui-monospace,monospace;
+    font-size:10px; color: var(--ink-faint); letter-spacing: 0.12em;
+  }
+  .picker .control .caret{
+    width: 12px; height: 12px; flex: 0 0 auto;
+    color: var(--ink-dim);
+    transition: transform 200ms ease;
+  }
+  .picker[aria-expanded="true"] .control .caret{ transform: rotate(180deg); }
+
+  .picker .menu{
+    position: absolute; left: 0; right: 0; bottom: calc(100% + 8px);
+    background: rgba(14,16,22,0.78);
+    border: 1px solid var(--glass-stroke);
+    border-radius: 14px;
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    padding: 6px;
+    max-height: 60vh;
+    overflow-y: auto;
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    opacity: 0; transform: translateY(6px); pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+  .picker[aria-expanded="true"] .menu{
+    opacity: 1; transform: translateY(0); pointer-events: auto;
+  }
+  .picker .menu .opt{
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--ink-dim);
+    font-size: 13px;
+    transition: background 140ms ease, color 140ms ease;
+  }
+  .picker .menu .opt:hover,
+  .picker .menu .opt[data-focus="true"]{
+    background: rgba(255,255,255,0.05);
+    color: var(--ink);
+  }
+  .picker .menu .opt[aria-selected="true"]{
+    color: var(--ink);
+    background: rgba(255,255,255,0.07);
+    box-shadow: inset 0 0 0 1px var(--glass-stroke-strong);
+  }
+  .picker .menu .opt .swatch{
+    width: 20px; height: 20px; border-radius: 6px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 3px 8px rgba(0,0,0,0.4);
+    flex: 0 0 auto;
+  }
+  .picker .menu .opt .name{ flex: 1 1 auto; }
+  .picker .menu .opt .num{
+    font-family:"JetBrains Mono","SF Mono",ui-monospace,monospace;
+    font-size:10px; color: var(--ink-faint); letter-spacing: 0.12em;
+  }
+  .picker .menu .opt[aria-selected="true"] .num{ color: var(--accent); }
+
+  /* native fallback select, hidden visually */
+  .picker .native{
+    position: absolute; inset: 0; opacity: 0; pointer-events: none;
+  }
+
+  /* swatch palettes per shader */
+  .sw-1{ background: linear-gradient(135deg,#dfe4ff 0%,#9fb1ff 35%,#6e57b5 70%,#1c1138 100%); }
+  .sw-2{ background: radial-gradient(circle at 30% 30%, #ffe3a3, #ff5dc8 40%, #4b1ea8 80%, #050018); }
+  .sw-3{ background: conic-gradient(from 220deg at 60% 40%, #0f3b4d, #1d6c7e, #79e0c8, #0c2230, #0f3b4d); }
+  .sw-4{ background: radial-gradient(circle at 50% 60%, #f3c98a 0%, #b9645a 30%, #2a3a55 70%, #07101e 100%); }
+  .sw-5{ background: radial-gradient(circle at 50% 50%, #fff 0%, #ffd58c 8%, #c83a8a 24%, #2a0a4a 55%, #000 100%); }
+  .sw-6{ background:
+    radial-gradient(circle at 20% 30%, #ff8ab9 0%, transparent 45%),
+    radial-gradient(circle at 80% 25%, #8ad8ff 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, #ffd98a 0%, transparent 55%),
+    linear-gradient(135deg, #5b3a9a, #1a2660); }
+  .sw-7{ background:
+    radial-gradient(circle at 50% 50%, #fff 0%, #7df0ff 8%, #5a2bd1 30%, #1b0848 60%, #000 100%); }
+  .sw-8{ background:
+    linear-gradient(180deg, #050818 0%, #0a1230 50%, #02040a 100%),
+    radial-gradient(circle at 50% 60%, #6affc8 0%, transparent 60%); }
+  .sw-9{ background:
+    radial-gradient(ellipse at 30% 70%, #ff5a2e 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 30%, #ffb84a 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, #c41a4a 0%, transparent 70%),
+    #1a0408; }
+  .sw-10{ background:
+    repeating-linear-gradient(45deg,
+      #e74c3c 0 6px, #f2c94c 6px 12px, #2e6cff 12px 18px,
+      #111418 18px 24px, #efe8d8 24px 30px); }
+  .sw-11{ background:
+    linear-gradient(110deg,
+      #1a0d3a 0%, #6c4cff 24%, #ff5fb3 48%, #ffce6a 70%, #1d2a4f 100%); }
+  .sw-12{ background:
+    radial-gradient(ellipse at 50% 25%, #7df0ff 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 70%, #b86aff 0%, transparent 55%),
+    linear-gradient(180deg, #0a1230 0%, #04081a 100%); }
+  .sw-13{ background:
+    linear-gradient(120deg,
+      #4f46e5 0%, #06b6d4 35%, #22c55e 65%, #eab308 100%); }
+
+  /* Typewriter overlay (Lava Lamp 2.0) */
+  .typewriter{
+    position: fixed;
+    left: 50%; top: 70%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 5;
+    color: #ffffff;
+    font-family: "Inter", system-ui, sans-serif;
+    font-weight: 200;
+    font-size: 56px;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    text-align: center;
+    text-wrap: balance;
+    max-width: 80vw;
+    opacity: 0;
+    transition: opacity 600ms ease;
+    mix-blend-mode: plus-lighter;
+    text-shadow: 0 6px 30px rgba(0,0,0,0.55);
+    white-space: pre-wrap;
+  }
+  .typewriter.visible{ opacity: 1; }
+  .typewriter .cursor{
+    display: inline-block;
+    width: 0.06em; height: 1em;
+    background: currentColor;
+    vertical-align: -0.12em;
+    margin-left: 0.06em;
+    animation: tw-blink 1s steps(1) infinite;
+    border-radius: 1px;
+  }
+  @keyframes tw-blink{ 50%{ opacity: 0; } }
+
+  /* color swatch in tweaks */
+  .settings-panel input[type="color"]{
+    width: 36px; height: 22px; padding: 0; border: 1px solid var(--glass-stroke);
+    border-radius: 6px; background: transparent; cursor: pointer;
+  }
+  .settings-panel .row.inline{ flex-direction: row; justify-content: space-between; align-items: center; }
+  .settings-panel .section-title{
+    display: block; margin: 10px 0 4px;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .settings-panel .row .toggle{
+    appearance: none; -webkit-appearance: none;
+    width: 30px; height: 18px; border-radius: 10px;
+    background: rgba(255,255,255,0.10);
+    position: relative; cursor: pointer; outline: none;
+    transition: background 200ms ease;
+  }
+  .settings-panel .row .toggle::after{
+    content:''; position:absolute; top:2px; left:2px;
+    width:14px; height:14px; border-radius:50%;
+    background: var(--ink-dim);
+    transition: transform 200ms ease, background 200ms ease;
+  }
+  .settings-panel .row .toggle:checked{ background: rgba(185,214,255,0.25); }
+  .settings-panel .row .toggle:checked::after{ transform: translateX(12px); background: var(--accent); }
+
+  /* Settings button + panel */
+  .settings-btn{
+    position: fixed; left: 50%; bottom: -10px;
+    transform: translate(-50%, 0);
+    margin-bottom: -6px;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--glass);
+    border: 1px solid var(--glass-stroke);
+    color: var(--ink-dim);
+    display: flex; align-items:center; justify-content:center;
+    cursor: pointer;
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    z-index: 6;
+    transition: color 200ms ease, border-color 200ms ease, transform 200ms ease;
+    box-shadow: 0 10px 24px -10px rgba(0,0,0,0.6);
+  }
+  /* place it just below the picker */
+  .settings-btn{ bottom: -10px; }
+  .picker-wrap{
+    position: fixed; left: 50%; bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 6;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .picker-wrap .picker{ position: relative; left: auto; bottom: auto; transform: none; }
+  .picker-wrap .settings-btn{ position: relative; left: auto; bottom: auto; transform: none; margin: 0; }
+  .settings-btn:hover{ color: var(--ink); border-color: var(--glass-stroke-strong); }
+  .settings-btn[aria-pressed="true"]{ color: var(--accent); border-color: var(--glass-stroke-strong); }
+  .settings-btn svg{ width:16px; height:16px; }
+
+  .settings-panel{
+    position: fixed; right: 22px; bottom: 22px;
+    width: 300px;
+    max-height: calc(100vh - 44px);
+    display: flex; flex-direction: column;
+    background: rgba(14,16,22,0.78);
+    border: 1px solid var(--glass-stroke);
+    border-radius: 16px;
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    color: var(--ink);
+    padding: 14px 4px 12px 16px; /* right padding small; scrollbar lives in body */
+    z-index: 7;
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+  .settings-panel .head{ flex: 0 0 auto; padding-right: 12px; }
+  .settings-panel .body{
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 12px;
+    margin-right: -2px;
+    /* let scroll show but stay subtle */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.18) transparent;
+  }
+  .settings-panel .body::-webkit-scrollbar{ width: 8px; }
+  .settings-panel .body::-webkit-scrollbar-track{ background: transparent; }
+  .settings-panel .body::-webkit-scrollbar-thumb{
+    background: rgba(255,255,255,0.14);
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  .settings-panel .body::-webkit-scrollbar-thumb:hover{
+    background: rgba(255,255,255,0.24);
+    background-clip: padding-box;
+  }
+  .settings-panel.open{
+    opacity: 1; transform: translateY(0); pointer-events: auto;
+  }
+  .settings-panel .head{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom: 12px;
+  }
+  .settings-panel .head .title{
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .settings-panel .head .close{
+    appearance:none; background:transparent; border:0; color: var(--ink-dim);
+    cursor:pointer; padding:4px; line-height:0; border-radius:6px;
+  }
+  .settings-panel .head .close:hover{ color: var(--ink); background: rgba(255,255,255,0.04); }
+  .settings-panel .row{
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 8px 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .settings-panel .row:first-of-type{ border-top: 0; }
+  .settings-panel .row .lbl{
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 12px;
+  }
+  .settings-panel .row .lbl .name{ color: var(--ink); }
+  .settings-panel .row .lbl .val{
+    font-family:"JetBrains Mono","SF Mono",ui-monospace,monospace;
+    font-size: 11px; color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .settings-panel input[type="range"]{
+    appearance: none; -webkit-appearance: none;
+    width: 100%; height: 18px; background: transparent; cursor: pointer;
+  }
+  .settings-panel input[type="range"]::-webkit-slider-runnable-track{
+    height: 2px; background: rgba(255,255,255,0.12); border-radius: 2px;
+  }
+  .settings-panel input[type="range"]::-moz-range-track{
+    height: 2px; background: rgba(255,255,255,0.12); border-radius: 2px;
+  }
+  .settings-panel input[type="range"]::-webkit-slider-thumb{
+    appearance: none; -webkit-appearance: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--ink); margin-top: -6px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.4);
+    transition: transform 120ms ease;
+  }
+  .settings-panel input[type="range"]::-moz-range-thumb{
+    width: 14px; height: 14px; border: 0; border-radius: 50%;
+    background: var(--ink); box-shadow: 0 0 0 1px rgba(0,0,0,0.4);
+  }
+  .settings-panel input[type="range"]:hover::-webkit-slider-thumb{ transform: scale(1.15); }
+  .settings-panel .reset{
+    margin-top: 10px;
+    appearance:none; border: 1px solid var(--glass-stroke);
+    background: transparent; color: var(--ink-dim);
+    padding: 8px 10px; border-radius: 10px; cursor: pointer;
+    font: inherit; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    width: 100%;
+    transition: color 200ms ease, border-color 200ms ease, background 200ms ease;
+  }
+  .settings-panel .reset:hover{ color: var(--ink); border-color: var(--glass-stroke-strong); background: rgba(255,255,255,0.04); }
+
+  .settings-panel textarea{
+    width: 100%;
+    min-height: 56px;
+    max-height: 140px;
+    resize: vertical;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-stroke);
+    border-radius: 8px;
+    color: var(--ink);
+    font: inherit; font-size: 12px; line-height: 1.4;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 200ms ease, background 200ms ease;
+  }
+  .settings-panel textarea:focus{
+    border-color: var(--glass-stroke-strong);
+    background: rgba(255,255,255,0.06);
+  }
+  .settings-panel textarea::placeholder{ color: var(--ink-faint); }
+  .settings-panel .row.text-row{ gap: 8px; }
+  .settings-panel .row.text-row .hint-small{
+    font-size: 10px; color: var(--ink-faint); letter-spacing: 0.06em;
+  }
+
+  @media (max-width: 720px){
+    .settings-panel{ left: 16px; right: 16px; width: auto; bottom: 130px; }
+  }
+
+  /* fade for shader-name swap */
+  .fade-swap{ transition: opacity 240ms ease; }
+  .fade-swap.hidden{ opacity: 0; }
+
+  /* corner crosshairs */
+  .corner{
+    position:fixed; width:18px; height:18px;
+    border-color: var(--ink-faint);
+    z-index: 4; pointer-events:none;
+  }
+  .corner.tl{ top:14px; left:14px; border-top:1px solid; border-left:1px solid; }
+  .corner.tr{ top:14px; right:14px; border-top:1px solid; border-right:1px solid; }
+  .corner.bl{ bottom:14px; left:14px; border-bottom:1px solid; border-left:1px solid; }
+  .corner.br{ bottom:14px; right:14px; border-bottom:1px solid; border-right:1px solid; }
+
+  @media (max-width: 720px){
+    .picker{ min-width: 220px; }
+    .wp-title .name{ font-size: 30px; }
+    .wp-title{ bottom: 110px; }
+  }
+</style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+
+  <span class="corner tl"></span>
+  <span class="corner tr"></span>
+  <span class="corner bl"></span>
+  <span class="corner br"></span>
+
+  <div class="os-top">
+    <div class="brand"><span class="dot"></span><span>ORBIT OS · Wallpaper</span></div>
+    <div class="meta">
+      <span id="clock">--:--</span>
+      <span id="resolution">—</span>
+      <span>v0.1</span>
+    </div>
+  </div>
+
+  <div class="hint" id="hint">
+    Move the cursor · Click to disturb
+    <span class="big">five interactive surfaces</span>
+  </div>
+
+  <div class="wp-title">
+    <div class="num" id="wpNum">01 / 09</div>
+    <div class="name fade-swap" id="wpName">Liquid Chrome</div>
+    <div class="desc fade-swap" id="wpDesc">An iridescent flow-map. Cursor pulls the metal; clicks tear shimmering folds through the surface.</div>
+  </div>
+
+  <div class="picker-wrap">
+    <div class="picker" id="picker" aria-expanded="false">
+      <div class="control" id="pickerControl" role="combobox" tabindex="0"
+           aria-haspopup="listbox" aria-controls="pickerMenu" aria-label="Wallpaper effect">
+        <span class="swatch" id="pickerSwatch"></span>
+        <span class="lbl">
+          <span class="name" id="pickerName">Liquid Chrome</span>
+          <span class="num" id="pickerNum">01</span>
+        </span>
+        <svg class="caret" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <ul class="menu" id="pickerMenu" role="listbox" aria-label="Effects"></ul>
+    </div>
+    <button class="settings-btn" id="settingsBtn" type="button"
+            aria-pressed="false" aria-controls="settingsPanel" aria-label="Open settings" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9 1.65 1.65 0 0 0 4.27 7.18l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.16.36.25.74.25 1.13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+    </button>
+  </div>
+
+  <aside class="settings-panel" id="settingsPanel" role="dialog" aria-label="Wallpaper settings">
+    <div class="head">
+      <span class="title">Tweaks</span>
+      <button class="close" id="settingsClose" type="button" aria-label="Close settings">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M3 3L11 11M11 3L3 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="body">
+    <div class="row">
+      <div class="lbl"><span class="name">Speed</span><span class="val" id="valSpeed">1.00×</span></div>
+      <input id="tSpeed" type="range" min="0" max="3" step="0.01" value="1" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Mouse influence</span><span class="val" id="valMouse">1.00</span></div>
+      <input id="tMouse" type="range" min="0" max="1.5" step="0.01" value="1" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Brightness</span><span class="val" id="valBright">1.00</span></div>
+      <input id="tBright" type="range" min="0.4" max="1.6" step="0.01" value="1" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Saturation</span><span class="val" id="valSat">1.00</span></div>
+      <input id="tSat" type="range" min="0" max="2" step="0.01" value="1" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Contrast</span><span class="val" id="valContrast">1.00</span></div>
+      <input id="tContrast" type="range" min="0.5" max="1.6" step="0.01" value="1" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Hue shift</span><span class="val" id="valHue">0°</span></div>
+      <input id="tHue" type="range" min="0" max="360" step="1" value="0" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Blur</span><span class="val" id="valBlur">0px</span></div>
+      <input id="tBlur" type="range" min="0" max="24" step="0.5" value="0" />
+    </div>
+    <button class="reset" id="settingsReset" type="button">Reset to defaults</button>
+
+    <div class="row text-row">
+      <div class="lbl"><span class="name">Text blobs</span><span class="hint-small">Lava Lamp only</span></div>
+      <textarea id="tText" placeholder="Type here…&#10;One line per blob" spellcheck="false"></textarea>
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Spawn interval</span><span class="val" id="valTextInterval">4.0s</span></div>
+      <input id="tTextInterval" type="range" min="0.5" max="15" step="0.1" value="4" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Text size</span><span class="val" id="valTextSize">1.00</span></div>
+      <input id="tTextSize" type="range" min="0.4" max="2.2" step="0.01" value="1" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Text depth</span><span class="val" id="valTextDepth">0.50</span></div>
+      <input id="tTextDepth" type="range" min="0" max="1" step="0.01" value="0.5" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Text strength</span><span class="val" id="valTextStrength">1.00</span></div>
+      <input id="tTextStrength" type="range" min="0" max="2" step="0.01" value="1" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Blob wobble</span><span class="val" id="valTextWobble">1.00</span></div>
+      <input id="tTextWobble" type="range" min="0" max="2.5" step="0.01" value="1" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Text merge</span><span class="val" id="valTextMerge">0.10</span></div>
+      <input id="tTextMerge" type="range" min="0.02" max="0.5" step="0.01" value="0.10" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Perspective X</span><span class="val" id="valPerspX">0.00</span></div>
+      <input id="tPerspX" type="range" min="-1" max="1" step="0.01" value="0" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Perspective Y</span><span class="val" id="valPerspY">0.00</span></div>
+      <input id="tPerspY" type="range" min="-1" max="1" step="0.01" value="0" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Perspective Z (rot)</span><span class="val" id="valPerspZ">0.00</span></div>
+      <input id="tPerspZ" type="range" min="-1" max="1" step="0.01" value="0" />
+    </div>
+    <div class="row" style="flex-direction:row;justify-content:space-between;align-items:center;">
+      <span class="name" style="font-size:12px;">Random per blob</span>
+      <input id="tPerspRandom" class="toggle" type="checkbox" />
+    </div>
+
+    <span class="section-title">Lava Lamp 2.0</span>
+    <div class="row inline">
+      <span class="name" style="font-size:12px;">Lava color</span>
+      <input id="tLavaColor" type="color" value="#ff8c4d" />
+    </div>
+    <div class="row inline">
+      <span class="name" style="font-size:12px;">Heating element</span>
+      <input id="tHeater" class="toggle" type="checkbox" />
+    </div>
+    <div class="row text-row">
+      <div class="lbl"><span class="name">Caption text</span><span class="hint-small">one line per slide</span></div>
+      <textarea id="tCaption" placeholder="Type a caption…&#10;Multiple lines fade through" spellcheck="false"></textarea>
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Type speed</span><span class="val" id="valTwSpeed">22 cps</span></div>
+      <input id="tTwSpeed" type="range" min="3" max="80" step="1" value="22" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Hold time</span><span class="val" id="valTwHold">2.0s</span></div>
+      <input id="tTwHold" type="range" min="0.2" max="10" step="0.1" value="2" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Caption size</span><span class="val" id="valTwSize">56px</span></div>
+      <input id="tTwSize" type="range" min="18" max="160" step="1" value="56" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Position X</span><span class="val" id="valTwX">50%</span></div>
+      <input id="tTwX" type="range" min="0" max="100" step="1" value="50" />
+    </div>
+    <div class="row">
+      <div class="lbl"><span class="name">Position Y</span><span class="val" id="valTwY">70%</span></div>
+      <input id="tTwY" type="range" min="0" max="100" step="1" value="70" />
+    </div>
+    <div class="row inline">
+      <span class="name" style="font-size:12px;">Caption color</span>
+      <input id="tTwColor" type="color" value="#ffffff" />
+    </div>
+    </div>
+  </aside>
+
+  <div class="typewriter" id="typewriter" aria-hidden="true"><span id="twText"></span><span class="cursor" id="twCursor"></span></div>
+
+<!-- ===================== Vertex shader (shared) ===================== -->
+<script id="vs" type="x-shader/x-vertex">
+attribute vec2 a_position;
+void main(){ gl_Position = vec4(a_position, 0.0, 1.0); }
+</script>
+
+<!-- ===================== Common header for all fragment shaders ===================== -->
+<script id="fs-common" type="x-shader/x-fragment">
+precision highp float;
+uniform vec2  u_resolution;
+uniform vec2  u_mouse;       // pixels
+uniform vec2  u_mouseSmooth; // pixels, eased
+uniform float u_time;
+uniform vec4  u_clicks[8];   // xy=pixels, z=birthTime, w=strength
+uniform sampler2D u_text;    // text mask (R = mask)
+uniform float u_textStrength;// 0 = disabled
+uniform vec2  u_textAspect;  // (resAspect, 1.0) to map square texture
+uniform float u_textMerge;   // smin k for text-into-field (0.04 sharp .. 0.5 melty)
+#define CLICK_COUNT 8
+
+float hash11(float p){ p=fract(p*.1031); p*=p+33.33; p*=p+p; return fract(p); }
+float hash21(vec2 p){ p=fract(p*vec2(123.34,345.45)); p+=dot(p,p+34.345); return fract(p.x*p.y); }
+vec2  hash22(vec2 p){
+  p = vec2(dot(p,vec2(127.1,311.7)), dot(p,vec2(269.5,183.3)));
+  return -1.0 + 2.0*fract(sin(p)*43758.5453);
+}
+float vnoise(vec2 p){
+  vec2 i=floor(p), f=fract(p);
+  float a=hash21(i), b=hash21(i+vec2(1,0)), c=hash21(i+vec2(0,1)), d=hash21(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x) + (c-a)*u.y*(1.0-u.x) + (d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0, a=0.5;
+  for(int i=0;i<5;i++){ v += a*vnoise(p); p *= 2.02; a *= 0.5; }
+  return v;
+}
+// gradient noise (smoother)
+float gnoise(vec2 p){
+  vec2 i=floor(p), f=fract(p);
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(mix(dot(hash22(i+vec2(0,0)),f-vec2(0,0)),
+                 dot(hash22(i+vec2(1,0)),f-vec2(1,0)),u.x),
+             mix(dot(hash22(i+vec2(0,1)),f-vec2(0,1)),
+                 dot(hash22(i+vec2(1,1)),f-vec2(1,1)),u.x), u.y);
+}
+
+// palette helper
+vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d){
+  return a + b*cos(6.2831853*(c*t + d));
+}
+
+// Sum click ripples; returns scalar disturbance and direction
+struct ClickInfo { float amp; vec2 dir; float wave; };
+ClickInfo sampleClicks(vec2 px, float maxRadius){
+  ClickInfo ci; ci.amp=0.0; ci.dir=vec2(0); ci.wave=0.0;
+  for(int i=0;i<CLICK_COUNT;i++){
+    vec4 c = u_clicks[i];
+    if(c.w <= 0.0) continue;
+    float age = u_time - c.z;
+    if(age < 0.0 || age > 3.0) continue;
+    vec2 d = px - c.xy;
+    float r = length(d);
+    float life = exp(-age*1.4);
+    // expanding wavefront
+    float front = age * maxRadius * 0.6;
+    float ring = exp(-pow((r - front)/ (maxRadius*0.18), 2.0));
+    ci.wave += ring * life * c.w;
+    // soft puff
+    float puff = exp(-pow(r/(maxRadius*0.35), 2.0)) * exp(-age*2.4);
+    ci.amp += puff * c.w;
+    ci.dir += (d / max(r,1.0)) * puff * c.w;
+  }
+  return ci;
+}
+</script>
+
+<!-- ===================== Shader 1 · Liquid Chrome ===================== -->
+<script id="fs-1" type="x-shader/x-fragment">
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / res.y;
+  vec2 m  = (u_mouseSmooth - 0.5*res) / res.y;
+
+  float t = u_time*0.18;
+
+  // domain warp influenced by mouse
+  vec2 q = uv;
+  vec2 toM = m - uv;
+  float dM = length(toM);
+  q += 0.35 * toM / (0.15 + dM*dM*4.0);
+
+  vec2 w1 = vec2(fbm(q*1.6 + vec2(t, -t)), fbm(q*1.6 + vec2(-t, t) + 5.2));
+  vec2 w2 = vec2(fbm(q*3.0 + w1*1.2 - t*1.3), fbm(q*3.0 + w1*1.2 + t*1.1 + 7.0));
+  float n = fbm(q*2.0 + w2*1.4 + t*0.6);
+
+  // click ripples warp the field
+  ClickInfo ci = sampleClicks(frag, res.y*1.1);
+  n += ci.wave * 0.25;
+
+  // iridescent stripes
+  float bands = sin(n*7.0 + dM*5.0 - u_time*0.7 + ci.amp*4.0);
+  float bands2 = sin(n*4.5 - u_time*0.2);
+
+  vec3 col = palette(
+    n + bands*0.12 + ci.wave*0.1,
+    vec3(0.55,0.55,0.62),
+    vec3(0.45,0.45,0.55),
+    vec3(1.0,1.0,1.0),
+    vec3(0.10,0.22,0.55)
+  );
+
+  // metallic highlights
+  float spec = pow(smoothstep(0.55,1.0,n), 6.0);
+  col += spec * vec3(1.0, 0.95, 1.05);
+
+  // rim around mouse
+  float halo = exp(-dM*4.5);
+  col += halo * vec3(0.35,0.45,0.7);
+
+  // click flash
+  col += ci.amp * vec3(0.9, 0.85, 1.0) * 0.6;
+  col += abs(ci.wave) * vec3(0.7, 0.85, 1.2) * 0.35;
+
+  // vignette + tone
+  float vig = smoothstep(1.4, 0.2, length(uv));
+  col *= mix(0.55, 1.0, vig);
+  col = pow(col, vec3(0.92));
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 2 · Plasma Bloom ===================== -->
+<script id="fs-2" type="x-shader/x-fragment">
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / min(res.x,res.y);
+  vec2 m  = (u_mouseSmooth - 0.5*res) / min(res.x,res.y);
+
+  float t = u_time*0.45;
+
+  // plasma sums
+  float p = 0.0;
+  p += sin( (uv.x + m.x*0.5)*3.0 + t*1.2);
+  p += sin( (uv.y - m.y*0.5)*3.4 - t*0.9);
+  p += sin( (uv.x + uv.y + length(uv-m)*1.8)*2.6 + t*1.1);
+  p += sin( length(uv*1.4 - m*0.8)*5.0 - t*1.7);
+  p *= 0.25;
+
+  // mouse bloom — warm core with cool aura
+  float dM = length(uv - m);
+  float bloom = exp(-dM*2.6);
+  float aura  = exp(-dM*0.9) * 0.5;
+
+  // click bursts
+  ClickInfo ci = sampleClicks(frag, min(res.x,res.y)*1.0);
+  p += ci.wave*0.6 + ci.amp*0.4;
+
+  // colorful palette
+  vec3 col = palette(
+    p*0.5 + 0.3 + dM*0.2 + u_time*0.04,
+    vec3(0.50,0.30,0.55),
+    vec3(0.55,0.55,0.55),
+    vec3(1.0,1.0,1.0),
+    vec3(0.00,0.33,0.67)
+  );
+
+  // hot core under cursor
+  vec3 hot = mix(vec3(1.0,0.55,0.85), vec3(1.0,0.95,0.7), 0.5+0.5*sin(u_time*1.3));
+  col = mix(col, hot, bloom*0.85);
+  col += aura * vec3(0.3,0.15,0.45);
+
+  // click ring color punch
+  col += abs(ci.wave) * vec3(1.3, 0.7, 1.6) * 0.5;
+  col += ci.amp * vec3(1.0, 0.6, 1.2) * 0.4;
+
+  // dark backdrop
+  col *= 0.85;
+  col = mix(vec3(0.04,0.02,0.10), col, 0.96);
+
+  // soft grain
+  float g = (hash21(frag + u_time) - 0.5) * 0.03;
+  col += g;
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 3 · Voronoi Crystals ===================== -->
+<script id="fs-3" type="x-shader/x-fragment">
+// Voronoi returning F1, F2, and cell id
+vec3 voronoi(vec2 x){
+  vec2 ip = floor(x), fp = fract(x);
+  float F1 = 8.0, F2 = 8.0;
+  vec2 id = vec2(0);
+  for(int j=-1;j<=1;j++){
+    for(int i=-1;i<=1;i++){
+      vec2 g = vec2(float(i),float(j));
+      vec2 o = 0.5 + 0.5*sin(u_time*0.4 + 6.2831*hash22(ip+g));
+      vec2 r = g + o - fp;
+      float d = dot(r,r);
+      if(d<F1){ F2=F1; F1=d; id=ip+g; }
+      else if(d<F2){ F2=d; }
+    }
+  }
+  return vec3(sqrt(F1), sqrt(F2), hash21(id));
+}
+
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / res.y;
+  vec2 m  = (u_mouseSmooth - 0.5*res) / res.y;
+
+  // gravitational warp toward mouse
+  vec2 d = uv - m;
+  float r = length(d);
+  vec2 warp = -d * 0.45 / (0.10 + r*r*5.0);
+  vec2 q = uv + warp;
+
+  // click warps too
+  ClickInfo ci = sampleClicks(frag, res.y*1.0);
+  q += normalize(ci.dir + 1e-4) * ci.amp * 0.25;
+
+  vec3 v = voronoi(q*4.0 + vec2(u_time*0.05, -u_time*0.05));
+  float edge = smoothstep(0.02, 0.0, v.y - v.x); // bright cell edges
+
+  // base teal palette
+  vec3 a = vec3(0.06, 0.10, 0.14);
+  vec3 b = vec3(0.10, 0.32, 0.42);
+  vec3 c = vec3(0.45, 0.85, 0.78);
+  vec3 col = mix(a, b, smoothstep(0.0, 0.7, v.x));
+  col = mix(col, c, smoothstep(0.6, 0.0, v.x) * 0.5);
+
+  // per-cell tint variation
+  vec3 tint = palette(v.z, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.10,0.40,0.70));
+  col = mix(col, col*tint*1.6, 0.35);
+
+  // glowing edges, brighter near mouse and on click waves
+  float nearMouse = exp(-r*3.0);
+  float edgeBoost = 0.6 + 1.6*nearMouse + abs(ci.wave)*1.4;
+  col += edge * edgeBoost * vec3(0.55, 0.95, 1.0);
+
+  // cell-center sparkle when waves hit
+  float spark = smoothstep(0.08, 0.0, v.x) * (0.5 + abs(ci.wave)*1.2 + nearMouse*0.6);
+  col += spark * vec3(0.6, 1.0, 1.0) * 0.25;
+
+  // vignette
+  col *= smoothstep(1.6, 0.3, length(uv));
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 4 · Ripple Pond ===================== -->
+<script id="fs-4" type="x-shader/x-fragment">
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / res.y;
+  vec2 m  = (u_mouseSmooth - 0.5*res) / res.y;
+
+  float t = u_time*0.5;
+
+  // ambient ripple field (sum of moving sources)
+  float h = 0.0;
+  for(int i=0;i<5;i++){
+    float fi = float(i);
+    vec2 src = 0.6*vec2(sin(t*0.31+fi*1.7), cos(t*0.27+fi*2.3));
+    float r = length(uv - src);
+    h += sin(r*14.0 - t*2.0 - fi)/(1.0 + r*6.0);
+  }
+  h *= 0.18;
+
+  // mouse trail ripple
+  float dM = length(uv - m);
+  h += sin(dM*22.0 - u_time*4.0) * exp(-dM*3.0) * 0.15;
+
+  // click ripples (use shared helper, larger radius)
+  ClickInfo ci = sampleClicks(frag, res.y*1.5);
+  h += ci.wave * 0.6;
+
+  // derive normal-ish gradient via finite differences in screen space
+  // (cheap fake: just use h to drive shading + offset color sample)
+  vec2 grad = vec2(
+    sin(uv.x*30.0 + h*8.0) - sin((uv.x+0.01)*30.0 + h*8.0),
+    sin(uv.y*30.0 + h*8.0) - sin((uv.y+0.01)*30.0 + h*8.0)
+  );
+
+  // deep water gradient
+  float depth = smoothstep(-0.7, 0.7, uv.y);
+  vec3 deep = vec3(0.02, 0.06, 0.14);
+  vec3 mid  = vec3(0.04, 0.18, 0.28);
+  vec3 surf = vec3(0.10, 0.42, 0.55);
+  vec3 col = mix(deep, mid, depth);
+  col = mix(col, surf, smoothstep(-0.2, 0.4, h));
+
+  // warm sky reflection where waves crest
+  float crest = smoothstep(0.05, 0.30, h);
+  vec3 warm = vec3(0.95, 0.65, 0.45);
+  col = mix(col, col + warm*0.6, crest*0.7);
+
+  // bright specular at peak gradients
+  float spec = pow(smoothstep(0.0, 0.18, abs(h)), 2.0);
+  col += spec * vec3(1.0, 0.85, 0.7) * 0.5;
+
+  // click light flash
+  col += ci.amp * vec3(1.0, 0.85, 0.6) * 0.3;
+  col += abs(ci.wave) * vec3(1.0, 0.95, 0.85) * 0.45;
+
+  // mouse glow
+  col += exp(-dM*5.0) * vec3(0.6, 0.5, 0.4) * 0.4;
+
+  // soft vignette
+  col *= smoothstep(1.7, 0.4, length(uv));
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 5 · Black Hole ===================== -->
+<script id="fs-5" type="x-shader/x-fragment">
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / res.y;
+  vec2 m  = (u_mouseSmooth - 0.5*res) / res.y;
+
+  // gravitational lens around mouse
+  vec2 d = uv - m;
+  float r = length(d);
+  float schwarz = 0.07;
+  float lens = schwarz / max(r*r, 0.0008);
+  vec2 warped = uv - normalize(d + 1e-5) * min(lens, 0.6);
+
+  // accretion disk: spiral noise around the center
+  vec2 p = warped - m;
+  float angle = atan(p.y, p.x);
+  float rr = length(p);
+
+  // spiral coords
+  float spiral = angle*1.5 + log(rr+0.02)*4.0 - u_time*0.6;
+  float disk = fbm(vec2(spiral, rr*5.0));
+
+  // disk falloff (ring shape)
+  float ring = smoothstep(0.08, 0.18, rr) * smoothstep(1.4, 0.4, rr);
+
+  // hot color
+  vec3 hot = palette(
+    disk*0.9 + rr*0.6 - u_time*0.05,
+    vec3(0.55,0.40,0.30),
+    vec3(0.55,0.45,0.40),
+    vec3(1.0,1.0,1.0),
+    vec3(0.0,0.10,0.20)
+  );
+  hot *= 1.3 + 1.5*disk;
+  hot = mix(hot, vec3(1.6,1.2,0.7), smoothstep(0.18, 0.10, rr));
+
+  // black core
+  float core = smoothstep(0.10, 0.07, rr);
+
+  // starfield background (warped) - faint
+  vec2 sp = warped*60.0;
+  float stars = pow(hash21(floor(sp)), 60.0);
+  vec3 bg = vec3(0.02,0.02,0.05) + stars*vec3(0.9,0.9,1.0)*0.6;
+
+  // distant nebula
+  bg += fbm(warped*2.0 + 3.0) * vec3(0.10,0.05,0.20)*0.6;
+
+  vec3 col = mix(bg, hot, ring);
+  col = mix(col, vec3(0.0), core);
+
+  // photon ring at the very edge
+  float photon = exp(-pow((rr - 0.085)/0.012, 2.0));
+  col += photon * vec3(1.4, 1.1, 0.8) * 0.9;
+
+  // click bursts: throw matter into the disk
+  ClickInfo ci = sampleClicks(frag, res.y*1.1);
+  col += abs(ci.wave) * vec3(1.4, 0.9, 0.6) * 0.5;
+  col += ci.amp * vec3(1.0, 0.7, 0.5) * 0.4;
+
+  // overall vignette
+  col *= smoothstep(1.7, 0.3, length(uv));
+
+  // gentle gamma
+  col = pow(max(col,0.0), vec3(0.92));
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 6 · Mesh Gradient ===================== -->
+<script id="fs-6" type="x-shader/x-fragment">
+// Smooth multi-point gradient with soft falloff. Mouse drags the nearest blob.
+vec3 blobColor(int i){
+  if(i==0) return vec3(1.00, 0.55, 0.78);   // pink
+  if(i==1) return vec3(0.55, 0.82, 1.00);   // sky
+  if(i==2) return vec3(1.00, 0.85, 0.55);   // amber
+  if(i==3) return vec3(0.65, 0.55, 1.00);   // violet
+  if(i==4) return vec3(0.55, 1.00, 0.85);   // mint
+  return vec3(1.00, 0.70, 0.55);            // peach
+}
+vec2 blobPos(int i, float t){
+  float fi = float(i);
+  float a = 0.55 + 0.10*sin(t*0.31+fi*1.7);
+  return a * vec2(sin(t*0.23+fi*1.91), cos(t*0.27+fi*2.41));
+}
+
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / min(res.x,res.y);
+  vec2 m  = (u_mouseSmooth - 0.5*res) / min(res.x,res.y);
+
+  float t = u_time;
+
+  // 6 control points; each drifts. The one nearest the mouse is pulled toward it.
+  vec2 pts[6];
+  vec3 cols[6];
+  pts[0] = blobPos(0,t); cols[0] = blobColor(0);
+  pts[1] = blobPos(1,t); cols[1] = blobColor(1);
+  pts[2] = blobPos(2,t); cols[2] = blobColor(2);
+  pts[3] = blobPos(3,t); cols[3] = blobColor(3);
+  pts[4] = blobPos(4,t); cols[4] = blobColor(4);
+  pts[5] = blobPos(5,t); cols[5] = blobColor(5);
+
+  // find nearest to mouse, pull it
+  int near = 0; float nd = 9.0;
+  for(int i=0;i<6;i++){ float d = distance(pts[i], m); if(d<nd){ nd=d; near=i; } }
+  for(int i=0;i<6;i++){
+    if(i==near){
+      pts[i] = mix(pts[i], m, 0.75);
+    }
+  }
+
+  // gaussian blend
+  vec3 col = vec3(0.0);
+  float wsum = 0.0;
+  for(int i=0;i<6;i++){
+    float d = distance(uv, pts[i]);
+    float w = exp(-d*d*7.0);
+    col += cols[i]*w;
+    wsum += w;
+  }
+  col /= max(wsum, 0.0001);
+
+  // click ripples shimmer the gradient
+  ClickInfo ci = sampleClicks(frag, min(res.x,res.y)*1.0);
+  float shimmer = sin(uv.x*12.0 + uv.y*9.0 + u_time*0.6 + ci.wave*5.0) * 0.04;
+  col += shimmer + abs(ci.wave)*0.2;
+  col += ci.amp * vec3(1.0, 0.9, 1.0) * 0.25;
+
+  // soft contrast lift
+  col = pow(col, vec3(0.92));
+  col *= 0.96;
+
+  // gentle grain
+  float g = (hash21(frag + u_time*60.0) - 0.5) * 0.018;
+  col += g;
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 7 · Portal ===================== -->
+<script id="fs-7" type="x-shader/x-fragment">
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / res.y;
+  vec2 m  = (u_mouseSmooth - 0.5*res) / res.y;
+
+  // tunnel centered on mouse
+  vec2 p = uv - m;
+  float r = length(p);
+  float a = atan(p.y, p.x);
+
+  // log-polar tunnel coords; depth scrolls inward, swirl with click waves
+  ClickInfo ci = sampleClicks(frag, res.y*1.2);
+  float depth = 1.0/max(r, 0.06);
+  float swirl = a * 1.2 + log(r+0.05)*1.5 + ci.amp*1.5;
+
+  // moving rings down the throat
+  float rings = sin(depth*1.6 - u_time*1.6 + ci.wave*3.0);
+  float bands = sin(swirl*5.0 + depth*0.8 + u_time*0.4);
+
+  // base color: deep violet to cyan core
+  vec3 col = palette(
+    rings*0.4 + bands*0.2 + depth*0.05,
+    vec3(0.30, 0.20, 0.50),
+    vec3(0.55, 0.55, 0.55),
+    vec3(1.0, 1.0, 1.0),
+    vec3(0.10, 0.30, 0.65)
+  );
+
+  // bright core glow
+  float core = exp(-r*4.5);
+  vec3 coreCol = mix(vec3(0.5,0.95,1.0), vec3(1.0,0.95,1.2), 0.5+0.5*sin(u_time*1.2));
+  col = mix(col, coreCol*1.4, core);
+
+  // event-ring of light at the portal mouth
+  float ring = exp(-pow((r - 0.22)/0.05, 2.0));
+  col += ring * vec3(0.7, 0.95, 1.2) * 0.9;
+
+  // streaks pulled toward the center
+  float streak = pow(abs(sin(swirl*8.0 - u_time*2.0)), 24.0);
+  col += streak * vec3(0.9, 0.7, 1.0) * smoothstep(0.04, 0.4, r) * smoothstep(1.4, 0.4, r);
+
+  // outer cosmic background
+  vec3 bg = vec3(0.03, 0.02, 0.07) + fbm(uv*1.6 + 5.0)*vec3(0.10, 0.05, 0.18);
+  col = mix(bg, col, smoothstep(1.4, 0.05, r));
+
+  // sparkles around mouth
+  float sp = pow(hash21(floor((uv-m)*120.0)), 80.0);
+  col += sp * vec3(0.9,0.95,1.1) * smoothstep(0.7, 0.15, r);
+
+  // click pulse
+  col += abs(ci.wave) * vec3(0.7, 1.0, 1.4) * 0.6;
+  col += ci.amp * vec3(0.6, 0.9, 1.3) * 0.3;
+
+  // vignette + gamma
+  col *= smoothstep(1.7, 0.3, length(uv));
+  col = pow(max(col,0.0), vec3(0.92));
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 8 · Aurora ===================== -->
+<script id="fs-8" type="x-shader/x-fragment">
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / res.y;
+  vec2 m  = (u_mouseSmooth - 0.5*res) / res.y;
+
+  float t = u_time*0.3;
+
+  // sky gradient backdrop
+  float sky = smoothstep(-0.7, 0.9, uv.y);
+  vec3 col = mix(vec3(0.02,0.04,0.10), vec3(0.04,0.05,0.18), sky);
+  col = mix(col, vec3(0.01,0.02,0.06), smoothstep(-0.2, -0.7, uv.y));
+
+  // stars (faint, only above horizon)
+  float stars = pow(hash21(floor(uv*180.0)), 90.0);
+  col += stars * vec3(0.85,0.9,1.0) * smoothstep(-0.1, 0.5, uv.y) * 0.7;
+
+  // horizon glow
+  col += exp(-pow(uv.y+0.1, 2.0)*22.0) * vec3(0.10, 0.18, 0.28);
+
+  // aurora curtains: layered bands warped by fbm and the cursor
+  ClickInfo ci = sampleClicks(frag, res.y*1.3);
+  float aurora = 0.0;
+  vec3 aColor = vec3(0.0);
+  for(int i=0;i<3;i++){
+    float fi = float(i);
+    // base height of curtain
+    float base = 0.15 + fi*0.14 + 0.05*sin(t*0.7+fi);
+    // wavy displacement
+    float warp = fbm(vec2(uv.x*1.4 + t*(0.4+fi*0.2), fi*3.7 + t*0.2)) * 0.5;
+    // mouse pushes curtain
+    float push = (uv.x - m.x);
+    warp += exp(-push*push*4.0) * (m.y - base) * 0.5;
+    // click ripples ripple curtain
+    warp += ci.wave * 0.05;
+
+    float y = base + warp;
+    float thickness = 0.08 + 0.04*sin(t*1.1+fi*1.7);
+    float band = exp(-pow((uv.y - y)/thickness, 2.0));
+
+    // streaky vertical fall
+    float streaks = 0.5 + 0.5*sin(uv.x*30.0 + warp*8.0 + t*2.0 + fi);
+    band *= mix(0.6, 1.0, streaks);
+
+    // color per layer
+    vec3 c;
+    if(i==0) c = vec3(0.30, 1.00, 0.65);   // green
+    else if(i==1) c = vec3(0.55, 0.75, 1.00); // blue
+    else c = vec3(0.95, 0.55, 0.95);          // magenta
+    aColor += c * band;
+    aurora += band;
+  }
+
+  // additive aurora
+  col += aColor * 1.1;
+
+  // subtle light pillar where mouse is on the horizon
+  float pillar = exp(-pow((uv.x - m.x), 2.0)*8.0) * smoothstep(-0.3, 0.4, uv.y) * smoothstep(0.7, 0.0, uv.y);
+  col += pillar * vec3(0.15, 0.45, 0.30);
+
+  // click flash brightens the sky briefly
+  col += ci.amp * vec3(0.4, 0.9, 0.6) * 0.4;
+  col += abs(ci.wave) * vec3(0.5, 1.0, 0.8) * 0.35;
+
+  // ground silhouette
+  float ground = smoothstep(-0.55, -0.45, uv.y);
+  vec3 groundCol = mix(vec3(0.01,0.02,0.04), vec3(0.0), 0.5);
+  col = mix(groundCol, col, ground);
+  // ground reflection of aurora (very faint)
+  if(uv.y < -0.45){
+    float refl = exp(-(-0.45 - uv.y)*4.0);
+    col += aColor * 0.10 * refl;
+  }
+
+  // vignette
+  col *= smoothstep(1.7, 0.5, length(uv));
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 9 · Lava Lamp ===================== -->
+<script id="fs-9" type="x-shader/x-fragment">
+// Smooth metaball field with rising blobs. Cursor attracts; clicks split blobs into bursts.
+float smin(float a, float b, float k){
+  float h = clamp(0.5 + 0.5*(b-a)/k, 0.0, 1.0);
+  return mix(b, a, h) - k*h*(1.0-h);
+}
+
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  // portrait-ish aspect for the lamp body
+  vec2 uv = (frag - 0.5*res) / res.y;
+  vec2 m  = (u_mouseSmooth - 0.5*res) / res.y;
+
+  float t = u_time*0.35;
+
+  // 7 blobs rising slowly, wobbling
+  float field = 1e3;
+  // pre-compute text field contribution
+  float textField = 1e3;
+  if(u_textStrength > 0.0){
+    float texSize = 1.6;
+    vec2 tcoord = (uv / texSize) + 0.5;
+    float mask = 0.0;
+    if(all(greaterThan(tcoord, vec2(0.0))) && all(lessThan(tcoord, vec2(1.0)))){
+      mask = texture2D(u_text, tcoord).r;
+    }
+    // mask in [0,1]; convert to signed distance-ish: high mask -> very negative
+    textField = (0.45 - mask*0.9) - (u_textStrength - 1.0)*0.12;
+    // gentle breathing
+    textField += 0.010 * sin(u_time*1.3 + uv.x*5.0 + uv.y*3.0);
+  }
+  for(int i=0;i<7;i++){
+    float fi = float(i);
+    // base x oscillation per blob
+    float x = 0.55 * sin(t*0.6 + fi*1.71) * (0.4 + 0.4*sin(t*0.2+fi));
+    // y rises and resets (looped)
+    float speed = 0.18 + 0.05*fract(fi*0.37);
+    float y = mod(t*speed + fi*0.41, 1.6) - 0.8;
+    // size pulsing
+    float rad = 0.16 + 0.05*sin(t*1.1 + fi*2.3);
+
+    vec2 pos = vec2(x, y);
+    // mouse attraction (nearest blobs feel it more)
+    float toM = length(pos - m);
+    pos = mix(pos, m, exp(-toM*toM*4.0) * 0.55);
+
+    float d = length(uv - pos) - rad;
+    field = smin(field, d, 0.18);
+  }
+
+  // merge text field into the metaball field with smooth blending
+  if(u_textStrength > 0.0){
+    field = smin(field, textField, max(u_textMerge, 0.02));
+  }
+
+  // click bursts: add small expanding blobs at click sites
+  ClickInfo ci = sampleClicks(frag, res.y*1.0);
+  // also fold click waves into the field directly
+  field -= ci.amp * 0.18;
+  field -= max(ci.wave, 0.0) * 0.06;
+
+  // metaball mask (inside = blob, outside = background)
+  float blob = smoothstep(0.01, -0.02, field);
+
+  // background: warm glass with vertical gradient & subtle vignette
+  float vGrad = smoothstep(-0.9, 0.9, uv.y);
+  vec3 bg = mix(vec3(0.42, 0.06, 0.10), vec3(0.18, 0.02, 0.06), vGrad);
+  bg += fbm(uv*3.0 + t*0.2) * vec3(0.12, 0.04, 0.06) * 0.4;
+  // warm bottom glow (lamp bulb)
+  float bulb = exp(-pow(uv.y+0.55, 2.0)*8.0);
+  bg += bulb * vec3(1.0, 0.55, 0.30) * 0.7;
+
+  // blob coloring: hot orange-yellow core, deep red rim
+  // use distance-inside (-field) for depth shading
+  float depth = clamp(-field*4.0, 0.0, 1.0);
+  vec3 hot   = vec3(1.0, 0.85, 0.45);
+  vec3 mid   = vec3(1.0, 0.45, 0.20);
+  vec3 cool  = vec3(0.85, 0.18, 0.18);
+  vec3 lavaCol = mix(cool, mid, smoothstep(0.05, 0.45, depth));
+  lavaCol = mix(lavaCol, hot, smoothstep(0.45, 0.95, depth));
+
+  // soft inner highlight
+  float hi = smoothstep(0.55, 1.0, depth);
+  lavaCol += hi * vec3(1.0, 0.95, 0.7) * 0.4;
+
+  // outer glow halo around blobs
+  float halo = smoothstep(0.18, -0.02, field) - blob;
+  halo = max(halo, 0.0);
+
+  vec3 col = mix(bg, lavaCol, blob);
+  col += halo * vec3(1.0, 0.45, 0.25) * 0.9;
+
+  // mouse warmth highlight
+  float dM = length(uv - m);
+  col += exp(-dM*3.5) * vec3(1.0, 0.7, 0.4) * 0.18;
+
+  // click flashes
+  col += ci.amp * vec3(1.0, 0.7, 0.4) * 0.5;
+  col += abs(ci.wave) * vec3(1.0, 0.6, 0.3) * 0.35;
+
+  // subtle bubbles rising in the glass (sparse small dots)
+  vec2 bp = uv*vec2(6.0, 5.0) + vec2(0.0, -u_time*0.6);
+  vec2 bi = floor(bp);
+  vec2 bf = fract(bp) - 0.5;
+  float br = 0.06 + 0.05*hash21(bi);
+  float bub = smoothstep(br, br-0.02, length(bf)) * step(0.85, hash21(bi+11.0));
+  col += bub * vec3(1.0, 0.7, 0.5) * 0.25;
+
+  // glass vignette (rounded vertical lamp shape)
+  float lampMask = smoothstep(0.95, 0.55, abs(uv.x) + abs(uv.y)*0.05);
+  col *= mix(0.55, 1.0, lampMask);
+  col *= smoothstep(1.8, 0.4, length(uv));
+
+  // gentle film grain
+  col += (hash21(frag + u_time*60.0) - 0.5) * 0.02;
+
+  // gamma
+  col = pow(max(col, 0.0), vec3(0.92));
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 10 · Stripe Alt ===================== -->
+<script id="fs-10" type="x-shader/x-fragment">
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / res.y;
+  vec2 m  = (u_mouseSmooth - 0.5*res) / res.y;
+
+  // classic chunky diagonal stripes; angle bends toward mouse direction
+  float baseA = 0.65 + m.x * 0.4;
+  vec2 dir = vec2(cos(baseA), sin(baseA));
+  float p = dot(uv, dir) * 5.5;
+  p += u_time * 0.35;
+
+  // click waves shove stripes outward
+  ClickInfo ci = sampleClicks(frag, res.y*1.0);
+  p += ci.wave * 1.4 + ci.amp * 0.6;
+
+  // bands of 5 retro colors
+  float idx = mod(p, 5.0);
+  vec3 c;
+  if(idx < 1.0)      c = vec3(0.95, 0.30, 0.25);
+  else if(idx < 2.0) c = vec3(0.97, 0.78, 0.18);
+  else if(idx < 3.0) c = vec3(0.20, 0.50, 0.85);
+  else if(idx < 4.0) c = vec3(0.10, 0.10, 0.15);
+  else               c = vec3(0.93, 0.88, 0.78);
+
+  // soft sub-band shading
+  float f = fract(p);
+  c *= mix(0.92, 1.05, smoothstep(0.0, 0.5, f) * smoothstep(1.0, 0.5, f));
+
+  // halftone dots on top of stripes
+  vec2 g = uv*30.0;
+  float dot = smoothstep(0.42, 0.36, length(fract(g)-0.5));
+  c = mix(c, c*0.78, dot*0.18);
+
+  // mouse warmth
+  float dM = length(uv - m);
+  c += exp(-dM*4.0) * vec3(0.2, 0.15, 0.10) * 0.7;
+
+  // click white-flash
+  c += abs(ci.wave) * 0.5 + ci.amp * 0.35;
+
+  // tiny grain
+  c += (hash21(frag + u_time*60.0) - 0.5) * 0.02;
+  c *= smoothstep(1.7, 0.4, length(uv));
+
+  gl_FragColor = vec4(c, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 11 · Stripe Neu ===================== -->
+<script id="fs-11" type="x-shader/x-fragment">
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / res.y;
+  vec2 m  = (u_mouseSmooth - 0.5*res) / res.y;
+
+  // mouse bends the stripes (vanishing point shifts toward cursor)
+  vec2 d = uv - m;
+  float r = length(d);
+  float bend = exp(-r*r*2.0) * 1.4;
+  float p = uv.x*2.4 + uv.y*0.35
+          + bend * sin(u_time*0.9)
+          + fbm(uv*1.5 + u_time*0.15) * 0.7
+          - u_time*0.25;
+
+  // click ripples
+  ClickInfo ci = sampleClicks(frag, res.y*1.1);
+  p += ci.wave * 0.7;
+
+  // smooth sinusoidal stripes
+  float band = sin(p*4.2);
+  float bandT = smoothstep(-0.05, 0.05, band);
+
+  // iridescent palette across stripe phase
+  vec3 col = palette(
+    p*0.10 + u_time*0.03,
+    vec3(0.55, 0.45, 0.65),
+    vec3(0.45, 0.50, 0.55),
+    vec3(1.0, 1.0, 1.0),
+    vec3(0.0, 0.20, 0.55)
+  );
+  // alternate light/dark per stripe + soft contrast
+  col *= mix(0.55, 1.20, bandT);
+
+  // glossy specular edge at each band crossing
+  float edge = smoothstep(0.0, 0.08, abs(band));
+  col += (1.0 - edge) * vec3(0.7, 0.85, 1.0) * 0.5;
+
+  // soft inner glow following mouse
+  col += exp(-r*3.0) * vec3(0.35, 0.30, 0.55) * 0.5;
+  // click bloom
+  col += ci.amp * vec3(1.0, 0.7, 1.1) * 0.4;
+  col += abs(ci.wave) * vec3(0.8, 1.0, 1.3) * 0.35;
+
+  // background tint, vignette, gamma
+  col = mix(vec3(0.02, 0.02, 0.06), col, 0.95);
+  col *= smoothstep(1.7, 0.4, length(uv));
+  col = pow(max(col, 0.0), vec3(0.92));
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 12 · Lava Lamp 2.0 ===================== -->
+<script id="fs-12" type="x-shader/x-fragment">
+// Modern lava lamp: REAL convection cycle. Blobs heat at the bottom, expand,
+// rise, cool at the top, then sink back down. Tint via u_lavaColor.
+// Optional glowing heating element at the bottom via u_heater (0..1).
+uniform vec3  u_lavaColor;
+uniform float u_heater;
+
+float smin12(float a, float b, float k){
+  float h = clamp(0.5 + 0.5*(b-a)/k, 0.0, 1.0);
+  return mix(b, a, h) - k*h*(1.0-h);
+}
+
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = (frag - 0.5*res) / res.y;
+  vec2 m  = (u_mouseSmooth - 0.5*res) / res.y;
+
+  float t = u_time*0.35;
+
+  // pre-compute text field contribution (text rises from bottom like real lamp)
+  float textField = 1e3;
+  if(u_textStrength > 0.0){
+    float texSize = 1.6;
+    vec2 tcoord = (uv / texSize) + 0.5;
+    float mask = 0.0;
+    if(all(greaterThan(tcoord, vec2(0.0))) && all(lessThan(tcoord, vec2(1.0)))){
+      mask = texture2D(u_text, tcoord).r;
+    }
+    textField = (0.45 - mask*0.9) - (u_textStrength - 1.0)*0.12;
+    textField += 0.010 * sin(u_time*1.3 + uv.x*5.0 + uv.y*3.0);
+  }
+
+  // 9 cycling blobs: each oscillates vertically with a unique phase & frequency,
+  // so they spend time near the heater (hot, bright) and near the top (cool, slow).
+  float field = 1e3;
+  // accumulate a "temperature" weight per pixel (0=cold/top, 1=hot/bottom)
+  float tempSum = 0.0;
+  float tempWeight = 0.0;
+  for(int i=0;i<9;i++){
+    float fi = float(i);
+    float phase = fi*1.71 + 0.5*sin(t*0.13 + fi);
+    float freq  = 0.35 + 0.10*fract(fi*0.37);
+    // vertical convection: smooth oscillation between -0.7 (heater) and 0.7 (top)
+    // bias slightly: blobs linger longer at the extremes via easeInOutSine
+    float s = sin(t*freq + phase);
+    float y = s * 0.7;
+    // horizontal sway slows near the extremes
+    float x = 0.55 * sin(t*0.6 + fi*1.33) * (0.35 + 0.45*sin(t*0.2+fi));
+    // size pulsing — slightly larger when hot (near bottom)
+    float hot = 1.0 - clamp((y+0.7)/1.4, 0.0, 1.0); // 1 at heater, 0 at top
+    float rad = 0.13 + 0.06*hot + 0.04*sin(t*1.1 + fi*2.3);
+
+    vec2 pos = vec2(x, y);
+    float toM = length(pos - m);
+    pos = mix(pos, m, exp(-toM*toM*4.0) * 0.45);
+
+    float d = length(uv - pos) - rad;
+    field = smin12(field, d, 0.18);
+
+    // temperature contribution falls off with distance to blob
+    float w = exp(-(d+rad)*6.0);
+    tempSum    += w * hot;
+    tempWeight += w;
+  }
+  float temperature = tempWeight > 0.001 ? (tempSum / tempWeight) : 0.0;
+
+  // merge text field
+  if(u_textStrength > 0.0){
+    field = smin12(field, textField, max(u_textMerge, 0.02));
+  }
+
+  // click bursts
+  ClickInfo ci = sampleClicks(frag, res.y*1.0);
+  field -= ci.amp * 0.18;
+  field -= max(ci.wave, 0.0) * 0.06;
+
+  float blob = smoothstep(0.01, -0.02, field);
+
+  // background: cool dark gradient with subtle nebula
+  float vGrad = smoothstep(-0.9, 0.9, uv.y);
+  vec3 bg = mix(vec3(0.02, 0.04, 0.10), vec3(0.01, 0.01, 0.05), vGrad);
+  bg += fbm(uv*2.4 + t*0.18) * vec3(0.05, 0.08, 0.18) * 0.5;
+
+  // optional heating element glow at the bottom
+  if(u_heater > 0.01){
+    float heaterY = -0.78;
+    // wide warm glow rising from the bottom
+    float glow = exp(-pow((uv.y - heaterY), 2.0) * 6.0)
+               * exp(-uv.x*uv.x*1.8);
+    bg += glow * u_lavaColor * 1.2 * u_heater;
+    // bright filament strip
+    float filament = smoothstep(0.02, 0.0, abs(uv.y - heaterY) - 0.005)
+                   * smoothstep(0.6, 0.45, abs(uv.x));
+    bg += filament * mix(u_lavaColor, vec3(1.0), 0.6) * 1.5 * u_heater;
+    // gentle flicker
+    float flicker = 0.85 + 0.15 * sin(u_time*6.0) * sin(u_time*11.3);
+    bg *= mix(1.0, flicker, 0.15 * u_heater);
+  }
+
+  // blob coloring: depth + temperature (hot bottom = bright, cool top = darker tint)
+  float depth = clamp(-field*4.0, 0.0, 1.0);
+  vec3 cold   = u_lavaColor * 0.35;
+  vec3 mid    = u_lavaColor;
+  vec3 hotCol = mix(u_lavaColor, vec3(1.0, 1.0, 1.0), 0.55);
+  vec3 lavaCol = mix(cold, mid, smoothstep(0.05, 0.45, depth));
+  lavaCol = mix(lavaCol, hotCol, smoothstep(0.45, 0.95, depth));
+  // mix in temperature: hot blobs brighter/warmer, cold ones cooler
+  lavaCol = mix(lavaCol*0.75, lavaCol*1.25, temperature);
+
+  // inner highlight (rim of expanded blob)
+  float hi = smoothstep(0.55, 1.0, depth);
+  lavaCol += hi * vec3(1.0) * 0.35;
+
+  // halo
+  float halo = smoothstep(0.18, -0.02, field) - blob;
+  halo = max(halo, 0.0);
+
+  vec3 col = mix(bg, lavaCol, blob);
+  col += halo * u_lavaColor * (0.7 + 0.6*temperature);
+
+  // cursor proximity glow
+  float dM = length(uv - m);
+  col += exp(-dM*3.5) * u_lavaColor * 0.18;
+
+  // clicks
+  col += ci.amp * u_lavaColor * 0.5;
+  col += abs(ci.wave) * mix(u_lavaColor, vec3(1.0), 0.5) * 0.35;
+
+  // tiny rising bubbles in the fluid
+  vec2 bp = uv*vec2(6.0, 5.0) + vec2(0.0, -u_time*0.5);
+  vec2 bi = floor(bp);
+  vec2 bf = fract(bp) - 0.5;
+  float br = 0.05 + 0.04*hash21(bi);
+  float bub = smoothstep(br, br-0.02, length(bf)) * step(0.88, hash21(bi+11.0));
+  col += bub * mix(u_lavaColor, vec3(1.0), 0.4) * 0.18;
+
+  // soft lamp vignette
+  float lampMask = smoothstep(0.95, 0.55, abs(uv.x) + abs(uv.y)*0.05);
+  col *= mix(0.55, 1.0, lampMask);
+  col *= smoothstep(1.8, 0.4, length(uv));
+
+  // grain + gamma
+  col += (hash21(frag + u_time*60.0) - 0.5) * 0.018;
+  col = pow(max(col, 0.0), vec3(0.92));
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Shader 13 · Fabric Wave (Stripe-style) ===================== -->
+<script id="fs-13" type="x-shader/x-fragment">
+// Flowing 3D-feeling color sheet, à la stripe.com hero. Soft horizontal
+// "fabric" folds drift across the screen, with a color gradient over them.
+// Cursor pushes the sheet; clicks send shimmering ripples through the cloth.
+
+// height field for the fabric — a few stacked sines + low-freq noise
+float fabricH(vec2 p, float t, vec2 m){
+  // base diagonal swell, slowly drifting
+  float h  = sin(p.x*1.6 + t*0.30 + p.y*0.4) * 0.55;
+  h += sin(p.x*0.7 - t*0.18 + p.y*1.1) * 0.35;
+  h += sin(p.y*1.9 + t*0.22 + sin(p.x*0.5)*1.3) * 0.30;
+  // soft noise to break up symmetry
+  h += (fbm(p*0.55 + vec2(t*0.08, -t*0.05)) - 0.5) * 0.7;
+  // mouse pushes the sheet up around the cursor
+  float dM = length(p - m);
+  h += exp(-dM*dM*0.9) * 0.55;
+  return h;
+}
+
+void main(){
+  vec2 res = u_resolution;
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv  = (frag - 0.5*res) / res.y;
+  vec2 m   = (u_mouseSmooth - 0.5*res) / res.y;
+
+  // sample in a wider domain so folds feel large
+  vec2 p = uv * 2.4;
+  vec2 mm = m * 2.4;
+  float t = u_time;
+
+  // click ripples through the cloth
+  ClickInfo ci = sampleClicks(frag, res.y*1.2);
+  // approximate normal from finite differences of height field
+  float e = 0.04;
+  float h  = fabricH(p, t, mm) + ci.wave*0.6;
+  float hx = fabricH(p + vec2(e,0), t, mm) + ci.wave*0.6 - h;
+  float hy = fabricH(p + vec2(0,e), t, mm) + ci.wave*0.6 - h;
+  vec3 N = normalize(vec3(-hx, -hy, e*1.4));
+
+  // multi-stop gradient that drifts diagonally with the cloth
+  // gradient parameter is a function of position + height (parallax feel)
+  float g = 0.5 + 0.5*sin(p.x*0.45 + p.y*0.25 + t*0.18 + h*0.5);
+  // 4 color stops — Stripe-ish indigo/teal/green/amber
+  vec3 c1 = vec3(0.30, 0.27, 0.90); // indigo
+  vec3 c2 = vec3(0.04, 0.72, 0.83); // cyan
+  vec3 c3 = vec3(0.13, 0.77, 0.37); // green
+  vec3 c4 = vec3(0.93, 0.70, 0.13); // amber
+  vec3 a  = mix(c1, c2, smoothstep(0.0, 0.45, g));
+  vec3 b  = mix(c3, c4, smoothstep(0.55, 1.0, g));
+  vec3 base = mix(a, b, smoothstep(0.40, 0.60, g));
+
+  // simple Lambert-ish shading with a sky-key light from upper left
+  vec3 L = normalize(vec3(-0.4, -0.6, 0.7));
+  float diff = clamp(dot(N, L), 0.0, 1.0);
+  float fill = 0.45 + 0.55*diff;
+  // soft specular sheen — silk highlight
+  vec3 V = vec3(0.0, 0.0, 1.0);
+  vec3 H = normalize(L + V);
+  float spec = pow(clamp(dot(N, H), 0.0, 1.0), 28.0);
+
+  vec3 col = base * fill;
+  col += spec * vec3(1.0, 0.95, 0.9) * 0.55;
+
+  // gentle "fold lines" — high-frequency cross-hatch that follows the surface
+  float thread = sin(p.x*22.0 + h*4.0)*0.5 + sin(p.y*18.0 - h*3.0)*0.5;
+  col *= 1.0 + thread*0.018;
+
+  // cursor warmth / brighten near the bump
+  float dM = length(uv - m);
+  col += exp(-dM*2.5) * vec3(0.2, 0.18, 0.25) * 0.5;
+
+  // click flash
+  col += ci.amp * vec3(1.0) * 0.18;
+  col += abs(ci.wave) * vec3(1.0, 0.95, 0.85) * 0.25;
+
+  // very soft vignette + gentle tone
+  col *= smoothstep(1.9, 0.4, length(uv));
+  col = pow(max(col, 0.0), vec3(0.95));
+
+  // a touch of grain to feel like fabric
+  col += (hash21(frag + u_time*60.0) - 0.5) * 0.012;
+
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- ===================== Host script ===================== -->
+<script>
+(() => {
+  const canvas = document.getElementById('stage');
+  const gl = canvas.getContext('webgl', { antialias: false, premultipliedAlpha: false });
+  if(!gl){
+    document.body.innerHTML = '<div style="color:#fff;font-family:sans-serif;padding:40px">WebGL is required to view this wallpaper.</div>';
+    return;
+  }
+
+  const SHADERS = [
+    { id:1, name:'Liquid Chrome',    desc:'An iridescent flow-map. The cursor pulls the metal; clicks tear shimmering folds through the surface.' },
+    { id:2, name:'Plasma Bloom',     desc:'Stacked sine waves form a colorful field. A warm bloom follows the cursor; clicks burst pink and violet rings outward.' },
+    { id:3, name:'Voronoi Crystals', desc:'Cellular crystal lattice that bends toward the cursor. Edges glow brighter where you point; clicks send cracks of light through the cells.' },
+    { id:4, name:'Ripple Pond',      desc:'Calm water under a warm sky. Move slowly to leave a trail; click anywhere to drop a stone and watch the rings cross.' },
+    { id:5, name:'Event Horizon',    desc:'A small black hole bends light around your cursor. The accretion disk reacts to clicks, spitting matter into the spiral.' },
+    { id:6, name:'Mesh Gradient',    desc:'Six soft color blobs blended into a smooth gradient. The blob nearest your cursor follows it; clicks shimmer the whole field.' },
+    { id:7, name:'Portal',           desc:'A swirling tunnel opens at your cursor. Click to send a pulse down the throat — rings ripple inward, sparks streak across the mouth.' },
+    { id:8, name:'Aurora',           desc:'Northern lights drift over a starry sky. The cursor pushes the curtains; clicks send green and magenta pulses across the horizon.' },
+    { id:9, name:'Lava Lamp',        desc:'Molten blobs rise and merge inside warm glass. The cursor draws them toward you; clicks split off new bursts and shake the field.' },
+    { id:10, name:'Stripe Alt',      desc:'Chunky retro diagonal stripes with halftone dots. The cursor bends the angle; clicks shove waves across the field.' },
+    { id:11, name:'Stripe Neu',      desc:'Smooth iridescent stripes that bend around the cursor. Clicks send shimmering pulses through the bands.' },
+    { id:12, name:'Lava Lamp 2.0',   desc:'Modern lava lamp: blobs cascade downward in your chosen color. Adds a typewriter caption that fades through configurable lines.' },
+    { id:13, name:'Fabric Wave',     desc:'A flowing silk gradient, à la Stripe. Soft folds drift across the surface in cyan, green, and amber. The cursor lifts the cloth; clicks send ripples through it.' },
+  ];
+
+  // ---- compile helpers ----
+  function compile(src, type){
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    if(!gl.getShaderParameter(sh, gl.COMPILE_STATUS)){
+      console.error('Shader compile error', gl.getShaderInfoLog(sh), src);
+      throw new Error(gl.getShaderInfoLog(sh));
+    }
+    return sh;
+  }
+  function link(vs, fs){
+    const p = gl.createProgram();
+    gl.attachShader(p, vs); gl.attachShader(p, fs);
+    gl.linkProgram(p);
+    if(!gl.getProgramParameter(p, gl.LINK_STATUS)){
+      console.error('Link error', gl.getProgramInfoLog(p));
+      throw new Error(gl.getProgramInfoLog(p));
+    }
+    return p;
+  }
+
+  const vsSrc = document.getElementById('vs').textContent;
+  const commonSrc = document.getElementById('fs-common').textContent;
+
+  const vs = compile(vsSrc, gl.VERTEX_SHADER);
+
+  const programs = SHADERS.map(s => {
+    const fsSrc = commonSrc + '\n' + document.getElementById('fs-' + s.id).textContent;
+    const fs = compile(fsSrc, gl.FRAGMENT_SHADER);
+    const prog = link(vs, fs);
+    return {
+      ...s,
+      program: prog,
+      u_resolution:   gl.getUniformLocation(prog, 'u_resolution'),
+      u_mouse:        gl.getUniformLocation(prog, 'u_mouse'),
+      u_mouseSmooth:  gl.getUniformLocation(prog, 'u_mouseSmooth'),
+      u_time:         gl.getUniformLocation(prog, 'u_time'),
+      u_clicks:       gl.getUniformLocation(prog, 'u_clicks[0]'),
+      u_text:         gl.getUniformLocation(prog, 'u_text'),
+      u_textStrength: gl.getUniformLocation(prog, 'u_textStrength'),
+      u_textAspect:   gl.getUniformLocation(prog, 'u_textAspect'),
+      u_textMerge:    gl.getUniformLocation(prog, 'u_textMerge'),
+      u_lavaColor:    gl.getUniformLocation(prog, 'u_lavaColor'),
+      u_heater:       gl.getUniformLocation(prog, 'u_heater'),
+      a_position:     gl.getAttribLocation(prog, 'a_position'),
+    };
+  });
+
+  // fullscreen quad
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+
+  // ---- state ----
+  let dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+  let W=0, H=0;
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    W = Math.floor(window.innerWidth * dpr);
+    H = Math.floor(window.innerHeight * dpr);
+    canvas.width = W; canvas.height = H;
+    canvas.style.width = window.innerWidth+'px';
+    canvas.style.height = window.innerHeight+'px';
+    document.getElementById('resolution').textContent =
+      window.innerWidth + '×' + window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // mouse: raw and smoothed (in pixels, gl coord origin is bottom-left so we'll flip Y)
+  const mouse = { x: W*0.5, y: H*0.5 };
+  const mouseSmooth = { x: W*0.5, y: H*0.5 };
+
+  // hint dim
+  const hint = document.getElementById('hint');
+  let hinted = false;
+  function dimHint(){ if(!hinted){ hinted = true; hint.classList.add('dim'); } }
+
+  function setMouseFromEvent(e){
+    const rect = canvas.getBoundingClientRect();
+    const xCss = (e.clientX - rect.left);
+    const yCss = (e.clientY - rect.top);
+    mouse.x = xCss * dpr;
+    mouse.y = (rect.height - yCss) * dpr; // flip Y for gl
+    dimHint();
+  }
+  window.addEventListener('mousemove', setMouseFromEvent, { passive: true });
+  window.addEventListener('touchmove', e => {
+    if(e.touches[0]) setMouseFromEvent(e.touches[0]);
+  }, { passive: true });
+  window.addEventListener('touchstart', e => {
+    if(e.touches[0]){
+      setMouseFromEvent(e.touches[0]);
+      addClick(mouse.x, mouse.y, 1.0);
+    }
+  }, { passive: true });
+
+  // ---- click ripples ----
+  const MAX_CLICKS = 8;
+  // each entry is [x, y, birthTime, strength] in pixels and seconds
+  const clicks = new Float32Array(MAX_CLICKS * 4);
+  let clickCursor = 0;
+  function addClick(px, py, strength){
+    const idx = clickCursor % MAX_CLICKS;
+    clicks[idx*4 + 0] = px;
+    clicks[idx*4 + 1] = py;
+    clicks[idx*4 + 2] = scaledTime;
+    clicks[idx*4 + 3] = strength;
+    clickCursor++;
+  }
+
+  canvas.addEventListener('mousedown', (e) => {
+    setMouseFromEvent(e);
+    addClick(mouse.x, mouse.y, 1.0);
+  });
+  // gentle continuous trickle while dragging
+  let dragging = false;
+  canvas.addEventListener('mousedown', () => dragging = true);
+  window.addEventListener('mouseup',   () => dragging = false);
+
+  // keyboard nav 1..5
+  window.addEventListener('keydown', (e) => {
+    const n = parseInt(e.key, 10);
+    if(n >= 1 && n <= 9 && n <= SHADERS.length){ selectShader(n - 1); }
+    if(e.key === 'ArrowRight'){ selectShader((current+1) % SHADERS.length); }
+    if(e.key === 'ArrowLeft'){  selectShader((current+SHADERS.length-1) % SHADERS.length); }
+  });
+
+  // ---- combobox UI ----
+  const picker        = document.getElementById('picker');
+  const pickerControl = document.getElementById('pickerControl');
+  const pickerMenu    = document.getElementById('pickerMenu');
+  const pickerSwatch  = document.getElementById('pickerSwatch');
+  const pickerName    = document.getElementById('pickerName');
+  const pickerNum     = document.getElementById('pickerNum');
+  const wpName = document.getElementById('wpName');
+  const wpDesc = document.getElementById('wpDesc');
+  const wpNum  = document.getElementById('wpNum');
+  let current = 0;
+  let focusIdx = 0;
+
+  const pad = (n) => (n<10?'0':'') + n;
+
+  SHADERS.forEach((s, i) => {
+    const li = document.createElement('li');
+    li.className = 'opt';
+    li.setAttribute('role', 'option');
+    li.setAttribute('aria-selected', i===0 ? 'true' : 'false');
+    li.dataset.index = i;
+    li.innerHTML = `
+      <span class="swatch sw-${s.id}"></span>
+      <span class="name">${s.name}</span>
+      <span class="num">${pad(i+1)}</span>
+    `;
+    li.addEventListener('click', () => { selectShader(i); closeMenu(); });
+    li.addEventListener('mouseenter', () => setFocus(i));
+    pickerMenu.appendChild(li);
+  });
+
+  function openMenu(){
+    picker.setAttribute('aria-expanded', 'true');
+    setFocus(current);
+    // scroll focused into view
+    const el = pickerMenu.children[current];
+    if(el) el.scrollIntoView({ block: 'nearest' });
+  }
+  function closeMenu(){
+    picker.setAttribute('aria-expanded', 'false');
+  }
+  function toggleMenu(){
+    if(picker.getAttribute('aria-expanded') === 'true') closeMenu();
+    else openMenu();
+  }
+  function setFocus(i){
+    focusIdx = (i + SHADERS.length) % SHADERS.length;
+    [...pickerMenu.children].forEach((el, idx) => {
+      el.dataset.focus = idx === focusIdx ? 'true' : 'false';
+    });
+  }
+
+  pickerControl.addEventListener('click', toggleMenu);
+  pickerControl.addEventListener('keydown', (e) => {
+    const open = picker.getAttribute('aria-expanded') === 'true';
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      if(open){ selectShader(focusIdx); closeMenu(); }
+      else openMenu();
+    } else if(e.key === 'ArrowDown'){
+      e.preventDefault();
+      if(!open) openMenu(); else setFocus(focusIdx + 1);
+    } else if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      if(!open) openMenu(); else setFocus(focusIdx - 1);
+    } else if(e.key === 'Escape'){
+      closeMenu();
+    } else if(e.key === 'Home'){
+      if(open){ e.preventDefault(); setFocus(0); }
+    } else if(e.key === 'End'){
+      if(open){ e.preventDefault(); setFocus(SHADERS.length - 1); }
+    }
+  });
+  // close on outside click
+  document.addEventListener('mousedown', (e) => {
+    if(!picker.contains(e.target)) closeMenu();
+  });
+
+  function selectShader(i){
+    if(i === current){ return; }
+    current = i;
+    // update combobox visuals
+    [...pickerMenu.children].forEach((el, idx) => {
+      el.setAttribute('aria-selected', idx === i ? 'true' : 'false');
+    });
+    pickerSwatch.className = 'swatch sw-' + SHADERS[i].id;
+    pickerName.textContent = SHADERS[i].name;
+    pickerNum.textContent  = pad(i+1);
+
+    // typewriter visibility depends on shader
+    if(SHADERS[i].id === 12 && captionLines.length){
+      // reset to start cleanly on switch
+      twTyped = '';
+      twTextEl.textContent = '';
+      twPhase = 'typing';
+      twPhaseStart = performance.now()/1000;
+      twEl.classList.add('visible');
+    } else {
+      twEl.classList.remove('visible');
+    }
+
+    // fade swap title/desc
+    wpName.classList.add('hidden');
+    wpDesc.classList.add('hidden');
+    setTimeout(() => {
+      wpName.textContent = SHADERS[i].name;
+      wpDesc.textContent = SHADERS[i].desc;
+      wpNum.textContent  = `${pad(i+1)} / ${pad(SHADERS.length)}`;
+      wpName.classList.remove('hidden');
+      wpDesc.classList.remove('hidden');
+    }, 240);
+  }
+
+  // initialize swatch on first paint
+  pickerSwatch.className = 'swatch sw-' + SHADERS[0].id;
+
+  // ---- clock ----
+  const clockEl = document.getElementById('clock');
+  function tickClock(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    clockEl.textContent = `${hh}:${mm}:${ss}`;
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  // ---- settings / tweaks ----
+  const defaults = { speed: 1, mouse: 1, bright: 1, sat: 1, contrast: 1, hue: 0, blur: 0 };
+  const tweaks = { ...defaults };
+
+  const settingsBtn   = document.getElementById('settingsBtn');
+  const settingsPanel = document.getElementById('settingsPanel');
+  const settingsClose = document.getElementById('settingsClose');
+  const settingsReset = document.getElementById('settingsReset');
+
+  function applyFilter(){
+    canvas.style.filter =
+      `brightness(${tweaks.bright.toFixed(3)}) ` +
+      `saturate(${tweaks.sat.toFixed(3)}) ` +
+      `contrast(${tweaks.contrast.toFixed(3)}) ` +
+      `hue-rotate(${tweaks.hue.toFixed(0)}deg) ` +
+      `blur(${tweaks.blur.toFixed(1)}px)`;
+  }
+  applyFilter();
+
+  function openSettings(){
+    settingsPanel.classList.add('open');
+    settingsBtn.setAttribute('aria-pressed','true');
+  }
+  function closeSettings(){
+    settingsPanel.classList.remove('open');
+    settingsBtn.setAttribute('aria-pressed','false');
+  }
+  settingsBtn.addEventListener('click', () => {
+    if(settingsPanel.classList.contains('open')) closeSettings(); else openSettings();
+  });
+  settingsClose.addEventListener('click', closeSettings);
+
+  function bindSlider(id, key, fmt){
+    const el = document.getElementById(id);
+    const val = document.getElementById('val' + key.charAt(0).toUpperCase()+key.slice(1));
+    el.addEventListener('input', () => {
+      tweaks[key] = parseFloat(el.value);
+      if(val) val.textContent = fmt(tweaks[key]);
+      applyFilter();
+    });
+    // initial label
+    if(val) val.textContent = fmt(tweaks[key]);
+  }
+  bindSlider('tSpeed',    'speed',    v => v.toFixed(2)+'×');
+  bindSlider('tMouse',    'mouse',    v => v.toFixed(2));
+  bindSlider('tBright',   'bright',   v => v.toFixed(2));
+  bindSlider('tSat',      'sat',      v => v.toFixed(2));
+  bindSlider('tContrast', 'contrast', v => v.toFixed(2));
+  bindSlider('tHue',      'hue',      v => Math.round(v)+'°');
+  bindSlider('tBlur',     'blur',     v => v.toFixed(1)+'px');
+
+  // ---- text-as-blob (Lava Lamp): rising texts on a timer ----
+  const TEX_SIZE = 512;
+  // World-uv range that the text texture spans (must match shader's texSize)
+  const TEXT_WORLD = 1.6;
+  // World y where blobs spawn / despawn
+  const SPAWN_Y   = -0.95;
+  const DESPAWN_Y =  0.95;
+  // rise speed in world-uv per scaled-second (matches lava ambience)
+  const RISE_SPEED = 0.075;
+
+  const textCanvas = document.createElement('canvas');
+  textCanvas.width = textCanvas.height = TEX_SIZE;
+  const tctx = textCanvas.getContext('2d');
+
+  const textTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, textTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textCanvas);
+
+  let textQueue   = [];  // array of strings to cycle through
+  let queueCursor = 0;
+  let textSize     = 1.0;
+  let textDepth    = 0.5;
+  let textStrength = 1.0;
+  let textInterval = 4.0; // seconds (scaled)
+  let textWobble   = 1.0; // blob-like wobble multiplier
+  let textPersp    = 0.0; // legacy (unused; kept for safety)
+  let perspX       = 0.0;
+  let perspY       = 0.0;
+  let perspZ       = 0.0;
+  let perspRandom  = false;
+  let textMerge    = 0.10;
+
+  // Lava color (used by shader 12 — Lava Lamp 2.0)
+  let lavaColor = [1.0, 0.55, 0.30]; // warm peach by default
+  let heaterOn = false;
+  function hexToRgb01(hex){
+    const n = parseInt(hex.replace('#',''), 16);
+    return [(n>>16 & 0xff)/255, (n>>8 & 0xff)/255, (n & 0xff)/255];
+  }
+
+  // Active rising blobs: { text, spawnTime (scaledTime), xJit }
+  let activeBlobs = [];
+  let nextSpawnTime = 0;
+  let lastTexUpload = -1;
+
+  function setQueueFromText(raw){
+    const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const newQueue = lines;
+    // if list changed, reset cursor
+    if(newQueue.join('\u241F') !== textQueue.join('\u241F')){
+      textQueue = newQueue;
+      queueCursor = 0;
+    }
+  }
+
+  function spawnNext(now){
+    if(textQueue.length === 0) return;
+    const text = textQueue[queueCursor % textQueue.length];
+    queueCursor++;
+    const xJit = (Math.sin(queueCursor*1.7) * 0.5 + Math.cos(queueCursor*2.3)*0.5) * 0.18;
+    // pre-roll random perspective offsets per blob (used when perspRandom is on)
+    const rx = (Math.random()*2 - 1);
+    const ry = (Math.random()*2 - 1);
+    const rz = (Math.random()*2 - 1);
+    activeBlobs.push({ text, spawnTime: now, xJit, rx, ry, rz });
+  }
+
+  function updateBlobs(now){
+    activeBlobs = activeBlobs.filter(b => {
+      const y = SPAWN_Y + (now - b.spawnTime) * RISE_SPEED;
+      return y <= DESPAWN_Y + 0.2;
+    });
+    if(textQueue.length > 0 && now >= nextSpawnTime){
+      spawnNext(now);
+      nextSpawnTime = now + Math.max(0.4, textInterval);
+    } else if(textQueue.length === 0){
+      nextSpawnTime = now + 0.5;
+    }
+  }
+
+  function drawTextLayer(text, cx, cy, baseFs, alpha){
+    let fs = baseFs;
+    tctx.font = `900 ${fs}px "Inter", system-ui, sans-serif`;
+    const maxW = TEX_SIZE * 0.78;
+    let w = tctx.measureText(text).width;
+    if(w > maxW){
+      fs = fs * (maxW / w);
+      tctx.font = `900 ${fs}px "Inter", system-ui, sans-serif`;
+    }
+    tctx.globalAlpha = alpha;
+    tctx.fillText(text, cx, cy);
+    return fs;
+  }
+
+  function renderTextTexture(now){
+    tctx.fillStyle = '#000';
+    tctx.globalAlpha = 1;
+    tctx.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
+    if(activeBlobs.length === 0){
+      gl.bindTexture(gl.TEXTURE_2D, textTex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textCanvas);
+      return;
+    }
+    tctx.fillStyle = '#fff';
+    tctx.textAlign = 'center';
+    tctx.textBaseline = 'middle';
+    const baseFs = 160 * textSize;
+
+    for(const b of activeBlobs){
+      const age = now - b.spawnTime;
+      const worldY = SPAWN_Y + age * RISE_SPEED;
+      // blob-like behavior: sway + size pulse + slight rotation
+      const swayAmt = (0.05 + 0.06*textWobble);
+      const sway = Math.sin(age * (0.8 + b.xJit*2) + b.xJit*10) * swayAmt;
+      const worldX = b.xJit*0.6 + sway;
+      const pulse = 1.0 + textWobble * 0.10 * Math.sin(age*1.7 + b.xJit*8);
+      const rot   = textWobble * 0.06 * Math.sin(age*0.6 + b.xJit*5);
+
+      // Map world (uv) -> texture pixel space
+      const tx = (worldX / TEXT_WORLD + 0.5) * TEX_SIZE;
+      const ty = (1 - (worldY / TEXT_WORLD + 0.5)) * TEX_SIZE;
+
+      // 3D extrusion: draw stacked offset copies behind, then bright top
+      const depthLayers = Math.round(2 + textDepth * 16);
+      const depthOffset = (1 + textDepth * 3);
+      // perspective skew: vanishing point shift based on textPersp
+      const px = perspRandom ? b.rx : perspX;
+      const py = perspRandom ? b.ry : perspY;
+      const pz = perspRandom ? b.rz : perspZ;
+      // animated drift on the values so it feels alive
+      const driftX = px * 0.55 + (textWobble*0.05)*Math.sin(age*0.7 + b.xJit*4);
+      const driftY = py * 0.45 + (textWobble*0.04)*Math.cos(age*0.6 + b.xJit*5);
+      const driftZ = pz * 0.9  + rot;
+      tctx.save();
+      // anchor transform at the blob center
+      tctx.translate(tx, ty);
+      // perspective: combined skew-X (camera yaw) + skew-Y (camera pitch)
+      tctx.transform(1, driftY, driftX, 1, 0, 0);
+      // Z rotation (in-plane / camera roll)
+      tctx.rotate(driftZ);
+      tctx.scale(pulse, pulse);
+      const fs = baseFs;
+      tctx.shadowColor = 'rgba(255,255,255,0.9)';
+      tctx.shadowBlur = Math.max(6, fs * 0.14);
+      for(let i = depthLayers; i > 0; i--){
+        const ox = i * depthOffset * 0.35;
+        const oy = i * depthOffset * 0.55;
+        const a = 0.18 + 0.5*(1 - i/depthLayers);
+        drawTextLayer(b.text, ox, oy, fs, a);
+      }
+      tctx.shadowBlur = Math.max(4, fs * 0.08);
+      drawTextLayer(b.text, 0, 0, fs, 1.0);
+      tctx.shadowBlur = 0;
+      tctx.globalAlpha = 0.6;
+      drawTextLayer(b.text, -0.6, -1.2, fs, 0.6);
+      tctx.restore();
+    }
+    tctx.globalAlpha = 1;
+    tctx.shadowBlur = 0;
+
+    gl.bindTexture(gl.TEXTURE_2D, textTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textCanvas);
+  }
+
+  function textStrengthEffective(){
+    if(activeBlobs.length === 0) return 0.0;
+    return textStrength;
+  }
+
+  const tText = document.getElementById('tText');
+  const tTextSize = document.getElementById('tTextSize');
+  const tTextStrength = document.getElementById('tTextStrength');
+  const tTextInterval = document.getElementById('tTextInterval');
+  const tTextDepth = document.getElementById('tTextDepth');
+  const tTextWobble = document.getElementById('tTextWobble');
+  const tTextPersp  = document.getElementById('tPerspX'); // legacy alias
+  const tPerspX = document.getElementById('tPerspX');
+  const tPerspY = document.getElementById('tPerspY');
+  const tPerspZ = document.getElementById('tPerspZ');
+  const tPerspRandom = document.getElementById('tPerspRandom');
+  const tTextMerge = document.getElementById('tTextMerge');
+  const valTextSize = document.getElementById('valTextSize');
+  const valTextStrength = document.getElementById('valTextStrength');
+  const valTextInterval = document.getElementById('valTextInterval');
+  const valTextDepth = document.getElementById('valTextDepth');
+  const valTextWobble = document.getElementById('valTextWobble');
+  const valPerspX = document.getElementById('valPerspX');
+  const valPerspY = document.getElementById('valPerspY');
+  const valPerspZ = document.getElementById('valPerspZ');
+  const valTextMerge = document.getElementById('valTextMerge');
+
+  tText.addEventListener('input', () => {
+    const prevEmpty = textQueue.length === 0;
+    setQueueFromText(tText.value);
+    // if we just got our first text, spawn immediately
+    if(prevEmpty && textQueue.length > 0){
+      nextSpawnTime = scaledTime; // spawn next tick
+    }
+  });
+  tTextSize.addEventListener('input', () => {
+    textSize = parseFloat(tTextSize.value);
+    valTextSize.textContent = textSize.toFixed(2);
+  });
+  tTextStrength.addEventListener('input', () => {
+    textStrength = parseFloat(tTextStrength.value);
+    valTextStrength.textContent = textStrength.toFixed(2);
+  });
+  tTextInterval.addEventListener('input', () => {
+    textInterval = parseFloat(tTextInterval.value);
+    valTextInterval.textContent = textInterval.toFixed(1) + 's';
+  });
+  tTextDepth.addEventListener('input', () => {
+    textDepth = parseFloat(tTextDepth.value);
+    valTextDepth.textContent = textDepth.toFixed(2);
+  });
+  tTextWobble.addEventListener('input', () => {
+    textWobble = parseFloat(tTextWobble.value);
+    valTextWobble.textContent = textWobble.toFixed(2);
+  });
+  tPerspX.addEventListener('input', () => {
+    perspX = parseFloat(tPerspX.value);
+    valPerspX.textContent = perspX.toFixed(2);
+  });
+  tPerspY.addEventListener('input', () => {
+    perspY = parseFloat(tPerspY.value);
+    valPerspY.textContent = perspY.toFixed(2);
+  });
+  tPerspZ.addEventListener('input', () => {
+    perspZ = parseFloat(tPerspZ.value);
+    valPerspZ.textContent = perspZ.toFixed(2);
+  });
+  tPerspRandom.addEventListener('change', () => {
+    perspRandom = tPerspRandom.checked;
+  });
+  tTextMerge.addEventListener('input', () => {
+    textMerge = parseFloat(tTextMerge.value);
+    valTextMerge.textContent = textMerge.toFixed(2);
+  });
+
+  // ---- Lava Lamp 2.0: color + typewriter caption ----
+  const tLavaColor = document.getElementById('tLavaColor');
+  lavaColor = hexToRgb01(tLavaColor.value);
+  tLavaColor.addEventListener('input', () => {
+    lavaColor = hexToRgb01(tLavaColor.value);
+  });
+  const tHeater = document.getElementById('tHeater');
+  tHeater.addEventListener('change', () => {
+    heaterOn = tHeater.checked;
+  });
+
+  const twEl     = document.getElementById('typewriter');
+  const twTextEl = document.getElementById('twText');
+  const twCursor = document.getElementById('twCursor');
+  const tCaption = document.getElementById('tCaption');
+  const tTwSpeed = document.getElementById('tTwSpeed');
+  const tTwHold  = document.getElementById('tTwHold');
+  const tTwSize  = document.getElementById('tTwSize');
+  const tTwX     = document.getElementById('tTwX');
+  const tTwY     = document.getElementById('tTwY');
+  const tTwColor = document.getElementById('tTwColor');
+  const valTwSpeed = document.getElementById('valTwSpeed');
+  const valTwHold  = document.getElementById('valTwHold');
+  const valTwSize  = document.getElementById('valTwSize');
+  const valTwX     = document.getElementById('valTwX');
+  const valTwY     = document.getElementById('valTwY');
+
+  let captionLines = [];
+  let twSpeed = 22;   // chars per second
+  let twHold  = 2.0;  // seconds after fully typed
+  let twIndex = 0;
+  let twPhase = 'idle'; // idle | typing | hold | fadeout
+  let twPhaseStart = 0; // performance.now()/1000
+  let twTyped = '';
+
+  function applyTwStyle(){
+    twEl.style.left     = tTwX.value + '%';
+    twEl.style.top      = tTwY.value + '%';
+    twEl.style.fontSize = tTwSize.value + 'px';
+    twEl.style.color    = tTwColor.value;
+  }
+  applyTwStyle();
+
+  function setCaption(){
+    captionLines = tCaption.value
+      .split('\n')
+      .map(l => l.replace(/\s+$/,''))
+      .filter(l => l.length > 0);
+    twIndex = 0;
+    twTyped = '';
+    twTextEl.textContent = '';
+    twPhase = captionLines.length ? 'typing' : 'idle';
+    twPhaseStart = performance.now()/1000;
+    twEl.classList.toggle('visible', captionLines.length > 0 && programs[current].id === 12);
+  }
+
+  tCaption.addEventListener('input', setCaption);
+  tTwSpeed.addEventListener('input', () => {
+    twSpeed = parseFloat(tTwSpeed.value);
+    valTwSpeed.textContent = Math.round(twSpeed) + ' cps';
+  });
+  tTwHold.addEventListener('input', () => {
+    twHold = parseFloat(tTwHold.value);
+    valTwHold.textContent = twHold.toFixed(1) + 's';
+  });
+  tTwSize.addEventListener('input', () => {
+    valTwSize.textContent = tTwSize.value + 'px';
+    applyTwStyle();
+  });
+  tTwX.addEventListener('input', () => {
+    valTwX.textContent = tTwX.value + '%';
+    applyTwStyle();
+  });
+  tTwY.addEventListener('input', () => {
+    valTwY.textContent = tTwY.value + '%';
+    applyTwStyle();
+  });
+  tTwColor.addEventListener('input', applyTwStyle);
+
+  function tickTypewriter(){
+    if(captionLines.length === 0 || programs[current].id !== 12){
+      twEl.classList.remove('visible');
+      return;
+    }
+    twEl.classList.add('visible');
+    const now = performance.now()/1000;
+    const dt  = now - twPhaseStart;
+    const cur = captionLines[twIndex % captionLines.length];
+
+    if(twPhase === 'typing'){
+      const total = Math.min(cur.length, Math.floor(dt * twSpeed));
+      if(total !== twTyped.length){
+        twTyped = cur.slice(0, total);
+        twTextEl.textContent = twTyped;
+      }
+      if(total >= cur.length){
+        twPhase = 'hold';
+        twPhaseStart = now;
+      }
+    } else if(twPhase === 'hold'){
+      if(dt >= twHold){
+        twPhase = 'fadeout';
+        twPhaseStart = now;
+        twEl.classList.remove('visible');
+      }
+    } else if(twPhase === 'fadeout'){
+      if(dt >= 0.6){ // matches CSS transition
+        twIndex = (twIndex + 1) % captionLines.length;
+        twTyped = '';
+        twTextEl.textContent = '';
+        twPhase = 'typing';
+        twPhaseStart = now;
+        // small delay before fade-in
+        setTimeout(() => twEl.classList.add('visible'), 50);
+      }
+    }
+  }
+
+  settingsReset.addEventListener('click', () => {
+    Object.assign(tweaks, defaults);
+    document.getElementById('tSpeed').value    = defaults.speed;
+    document.getElementById('tMouse').value    = defaults.mouse;
+    document.getElementById('tBright').value   = defaults.bright;
+    document.getElementById('tSat').value      = defaults.sat;
+    document.getElementById('tContrast').value = defaults.contrast;
+    document.getElementById('tHue').value      = defaults.hue;
+    document.getElementById('tBlur').value     = defaults.blur;
+    document.getElementById('valSpeed').textContent    = defaults.speed.toFixed(2)+'×';
+    document.getElementById('valMouse').textContent    = defaults.mouse.toFixed(2);
+    document.getElementById('valBright').textContent   = defaults.bright.toFixed(2);
+    document.getElementById('valSat').textContent      = defaults.sat.toFixed(2);
+    document.getElementById('valContrast').textContent = defaults.contrast.toFixed(2);
+    document.getElementById('valHue').textContent      = defaults.hue+'°';
+    document.getElementById('valBlur').textContent     = defaults.blur.toFixed(1)+'px';
+    applyFilter();
+  });
+
+  // ---- render loop ----
+  const startTime = performance.now() * 0.001;
+  let scaledTime = 0;
+  let lastFrameTs = performance.now() * 0.001;
+
+  function frame(){
+    const now = performance.now() * 0.001;
+    const dt = Math.min(now - lastFrameTs, 0.1);
+    lastFrameTs = now;
+    scaledTime += dt * tweaks.speed;
+
+    // update rising text blobs + re-render text texture (throttled)
+    if(programs[current].id === 9 || programs[current].id === 12){
+      updateBlobs(scaledTime);
+      if(scaledTime - lastTexUpload > 0.033){ // ~30fps
+        renderTextTexture(scaledTime);
+        lastTexUpload = scaledTime;
+      }
+    }
+
+    // typewriter (Lava Lamp 2.0)
+    tickTypewriter();
+
+    // ease mouse
+    mouseSmooth.x += (mouse.x - mouseSmooth.x) * 0.08;
+    mouseSmooth.y += (mouse.y - mouseSmooth.y) * 0.08;
+
+    // apply mouse-influence: lerp from screen center toward actual mouse
+    const cx = W*0.5, cy = H*0.5;
+    const mFx = cx + (mouse.x - cx) * tweaks.mouse;
+    const mFy = cy + (mouse.y - cy) * tweaks.mouse;
+    const sFx = cx + (mouseSmooth.x - cx) * tweaks.mouse;
+    const sFy = cy + (mouseSmooth.y - cy) * tweaks.mouse;
+
+    // continuous mini clicks while dragging — softer
+    if(dragging && Math.random() < 0.18){
+      addClick(mouse.x, mouse.y, 0.35);
+    }
+
+    gl.viewport(0, 0, W, H);
+
+    const sh = programs[current];
+    gl.useProgram(sh.program);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.enableVertexAttribArray(sh.a_position);
+    gl.vertexAttribPointer(sh.a_position, 2, gl.FLOAT, false, 0, 0);
+
+    gl.uniform2f(sh.u_resolution, W, H);
+    gl.uniform2f(sh.u_mouse, mFx, mFy);
+    gl.uniform2f(sh.u_mouseSmooth, sFx, sFy);
+    gl.uniform1f(sh.u_time, scaledTime);
+    gl.uniform4fv(sh.u_clicks, clicks);
+
+    // text texture binding (lava lamp uses it; others ignore via u_textStrength=0)
+    if(sh.u_text){
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, textTex);
+      gl.uniform1i(sh.u_text, 0);
+    }
+    if(sh.u_textStrength){
+      // only the lava lamps (id=9, 12) actually use text blobs
+      const isLava = (programs[current].id === 9 || programs[current].id === 12);
+      const enable = isLava ? textStrengthEffective() : 0.0;
+      gl.uniform1f(sh.u_textStrength, enable);
+    }
+    if(sh.u_textAspect){
+      gl.uniform2f(sh.u_textAspect, W/H, 1.0);
+    }
+    if(sh.u_textMerge){
+      gl.uniform1f(sh.u_textMerge, textMerge);
+    }
+    if(sh.u_lavaColor){
+      gl.uniform3f(sh.u_lavaColor, lavaColor[0], lavaColor[1], lavaColor[2]);
+    }
+    if(sh.u_heater){
+      gl.uniform1f(sh.u_heater, heaterOn ? 1.0 : 0.0);
+    }
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
