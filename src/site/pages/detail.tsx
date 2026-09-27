@@ -1,7 +1,10 @@
 'use client';
 
-import type { CSSProperties, ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
+import type { GalleryImage } from '@content/projects';
 import { mono } from '../cards/ProjectCard';
+import { Lightbox } from '../overlays/Lightbox';
+import overlayStyles from '../overlays/overlays.module.css';
 import styles from './detail.module.css';
 
 /** Kapitel-Kopf „01 DIE AUSGANGSLAGE“ (Prototyp: Detail, Zeile 556 ff.). */
@@ -24,40 +27,81 @@ export function GallerySlots({
   small,
   cols2,
   labels,
+  images = [],
 }: {
   wide: number;
   small: number;
   cols2: string;
   labels: [string, string, string];
+  images?: (GalleryImage | null)[];
 }) {
+  const [open, setOpen] = useState<number | null>(null);
+  // Durchblättern über alle gefüllten Slots (leere übersprungen, Wrap-around).
+  const filled = [0, 1, 2].map((i) => images[i]).filter((im): im is GalleryImage => !!im?.src);
+  const zoom = (i: number) => {
+    const im = images[i];
+    if (im?.src) setOpen(filled.indexOf(im));
+  };
   return (
     <>
-      <Slot height={wide} label={labels[0]} style={{ marginTop: 16 }} />
+      <Slot height={wide} label={labels[0]} image={images[0]} onZoom={() => zoom(0)} style={{ marginTop: 16 }} />
       <div style={{ display: 'grid', gridTemplateColumns: cols2, gap: 12, marginTop: 12 }}>
-        <Slot height={small} label={labels[1]} />
-        <Slot height={small} label={labels[2]} />
+        <Slot height={small} label={labels[1]} image={images[1]} onZoom={() => zoom(1)} />
+        <Slot height={small} label={labels[2]} image={images[2]} onZoom={() => zoom(2)} />
       </div>
+      {open !== null && filled.length > 0 && <Lightbox images={filled} start={open} onClose={() => setOpen(null)} />}
     </>
   );
 }
 
-function Slot({ height, label, style }: { height: number; label: string; style?: CSSProperties }) {
+function Slot({
+  height,
+  label,
+  image,
+  onZoom,
+  style,
+}: {
+  height: number;
+  label: string;
+  image?: GalleryImage | null;
+  onZoom: () => void;
+  style?: CSSProperties;
+}) {
+  const box: CSSProperties = {
+    position: 'relative',
+    height,
+    borderRadius: 18,
+    overflow: 'hidden',
+    border: '1px solid var(--border)',
+    background: 'var(--card)',
+    ...style,
+  };
+  if (image?.src) {
+    return (
+      <div style={box}>
+        <img
+          src={image.src}
+          alt={image.alt}
+          loading="lazy"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+        <button
+          type="button"
+          title="Vergrößern"
+          aria-label={`${image.alt || label} vergrößern`}
+          onClick={onZoom}
+          className={overlayStyles.zoom}
+        >
+          ⤢
+        </button>
+      </div>
+    );
+  }
   return (
     <div
       role="img"
       aria-label={`${label} (Bild folgt)`}
-      style={{
-        position: 'relative',
-        height,
-        borderRadius: 18,
-        overflow: 'hidden',
-        border: '1px solid var(--border)',
-        background: 'var(--card)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        ...style,
-      }}
+      style={{ ...box, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
       <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.12em', color: 'var(--soft)' }}>{label.toUpperCase()}</span>
     </div>

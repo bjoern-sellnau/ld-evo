@@ -955,3 +955,8 @@ html.ldvt.ldvt-nomorph .ldnavvt {
     stroke-dashoffset: 0;
   }
 }
+
+/* Splash per Boot-Script unterdrückt (ld-splash = off), bevor React hydriert. */
+body.ldnosplash [data-ldsplash] {
+  display: none !important;
+}

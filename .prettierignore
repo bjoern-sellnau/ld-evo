@@ -5,3 +5,4 @@ public/
 content/
 src/site/hero/engine/
 scripts/hero-engine-head.js
+src/site/splash/sketchMarkup.ts

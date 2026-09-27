@@ -133,3 +133,55 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* Lightbox (Prototyp Zeile 304–313) */
+.lbBtn,
+.zoom {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+  appearance: none;
+  transition: transform 0.2s;
+}
+
+.lbBtn:hover,
+.zoom:hover {
+  transform: scale(1.12);
+}
+
+.lbSide {
+  transform: translateY(-50%);
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+
+.lbSide:hover {
+  transform: translateY(-50%) scale(1.1);
+  background: rgba(255, 255, 255, 0.22) !important;
+}
+
+.zoom {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(10, 14, 22, 0.55);
+  color: #ffffff;
+  backdrop-filter: blur(8px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.lbBtn:focus-visible,
+.zoom:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

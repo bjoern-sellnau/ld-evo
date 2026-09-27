@@ -5,6 +5,8 @@
  * vom Site-Inhaber ersetzt (Site-README „Offene Inhalte“). Beim Finalisieren eines Artikels draft auf false setzen.
  */
 
+import type { GalleryImage } from './projects';
+
 export interface Article {
   id: string;
   kat: string;
@@ -15,6 +17,8 @@ export interface Article {
   body: string[];
   pinned: boolean;
   draft: boolean;
+  /** Galerie (bis zu 3 Slots: breit, klein, klein); leere Slots zeigen einen Platzhalter. Bilder kommen aus dem CMS. */
+  gallery?: (GalleryImage | null)[];
 }
 
 export const ARTICLES: Article[] = [

@@ -205,6 +205,7 @@ export function CaseStudyPage({ p }: { p: Project }) {
           wide={320}
           small={200}
           cols2={mob ? '1fr' : '1fr 1fr'}
+          images={p.gallery}
           labels={['Screenshot / Hero-Shot', 'Detail-Screenshot', 'Making-of / Skizze']}
         />
 

@@ -7,6 +7,11 @@
 /** 'archiv' = berufliche Projekte, die nur über Über mich/Suche-frei verlinkt werden (nicht in Katalog-Listen). */
 export type ProjectKind = 'projekte' | 'labs' | 'archiv';
 
+export interface GalleryImage {
+  src: string;
+  alt: string;
+}
+
 export interface Project {
   id: string;
   kind: ProjectKind;
@@ -37,6 +42,8 @@ export interface Project {
   zitat: string;
   /** Kapitel 05 GELERNT */
   learnings: string;
+  /** Galerie (bis zu 3 Slots: breit, klein, klein); leere Slots zeigen einen Platzhalter. Bilder kommen aus dem CMS. */
+  gallery?: (GalleryImage | null)[];
 }
 
 export const PROJECTS: Project[] = [

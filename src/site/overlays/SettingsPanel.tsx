@@ -4,6 +4,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { mono } from '../cards/ProjectCard';
 import { heroMode } from '../hero/heroInk';
 import { PALETTES, heroCfgOf, resolvePal, type HeroModeCfg, type PaletteName } from '../hero/palettes';
+import { SPLASH_REPLAY_EVENT } from '../splash/Splash';
 import { useSite } from '../settings/SiteProvider';
 import { ACCENTS, type Settings } from '../settings/schema';
 import { GlassLayers, panelGlass } from './GlassPanel';
@@ -301,7 +302,10 @@ export function SettingsPanel() {
                 ['sketch', 'Sketch'],
               ]}
               value={s.splashAnim}
-              onChange={(v) => set('splashAnim', v)}
+              onChange={(v) => {
+                set('splashAnim', v);
+                window.dispatchEvent(new Event(SPLASH_REPLAY_EVENT));
+              }}
               label="Splash-Animation"
             />
           </Row>

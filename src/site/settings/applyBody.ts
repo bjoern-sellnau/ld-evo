@@ -47,4 +47,4 @@ export function applyThemeColor(mode: Settings['themeColor'], body: HTMLElement 
  * Vor dem ersten Paint (inline im <head>): Theme-Klasse setzen, damit Light-Nutzer keinen Dark-Blitz sehen.
  * Der Rest synchronisiert sich nach der Hydration über den SettingsProvider.
  */
-export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem('ld-theme');if(t==='light')document.body.classList.add('light');if(localStorage.getItem('ld-anim')==='off')document.body.classList.add('still')}catch(e){}`;
+export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem('ld-theme');if(t==='light')document.body.classList.add('light');if(localStorage.getItem('ld-anim')==='off')document.body.classList.add('still');if(localStorage.getItem('ld-splash')==='off')document.body.classList.add('ldnosplash')}catch(e){}`;

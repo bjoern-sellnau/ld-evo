@@ -80,6 +80,7 @@ export function ArticlePage({ a }: { a: Article }) {
             wide={300}
             small={180}
             cols2={mob ? '1fr' : '1fr 1fr'}
+            images={a.gallery}
             labels={['Artikel-Bild', 'Screenshot / Diagramm', 'Code-Ausschnitt / Foto']}
           />
         </div>
