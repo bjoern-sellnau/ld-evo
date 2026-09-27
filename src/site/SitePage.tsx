@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { SiteFooter } from './chrome/SiteFooter';
 import { useSite } from './settings/SiteProvider';
 
 /** Seiten-Container (Prototyp Zeile 364: pageMaxW / pageMargin / padX / pageBotPad / pageClip). */
@@ -19,6 +20,7 @@ export function SitePage({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      <SiteFooter />
     </main>
   );
 }

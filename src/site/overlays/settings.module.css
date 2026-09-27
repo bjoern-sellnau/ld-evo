@@ -1,0 +1,138 @@
+/* Einstellungs-Panel: Bedienelemente als echte Buttons, Optik 1:1 aus dem Prototyp. */
+.seg,
+.close,
+.swatch,
+.step,
+.pal,
+.reset,
+.rowBtn,
+.toggleRow,
+.toggleSmall {
+  font: inherit;
+  appearance: none;
+  border: 0;
+  margin: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.seg {
+  border-radius: 999px;
+}
+
+.close {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  padding: 0;
+  transition: transform 0.2s;
+}
+
+.step {
+  width: 17px;
+  height: 17px;
+  border-radius: 6px;
+  padding: 0;
+  transition: transform 0.2s;
+}
+
+.swatch:hover,
+.step:hover {
+  transform: scale(1.15);
+}
+
+.pal {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: var(--pill);
+  transition: transform 0.2s;
+}
+
+.pal:hover {
+  transform: scale(1.06);
+}
+
+.color {
+  width: 36px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--pill);
+  padding: 2px;
+  cursor: pointer;
+}
+
+.text {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-family: var(--ld-font-sans), sans-serif;
+  font-size: 12.5px;
+  color: var(--ink);
+  outline: none;
+}
+
+.reset {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+}
+
+.reset:hover {
+  background: var(--pill);
+}
+
+.rowBtn,
+.toggleRow {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid var(--hair);
+  background: none;
+  text-align: left;
+}
+
+.toggleSmall {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0 0;
+  background: none;
+  text-align: left;
+}
+
+.seg:focus-visible,
+.close:focus-visible,
+.swatch:focus-visible,
+.step:focus-visible,
+.pal:focus-visible,
+.reset:focus-visible,
+.rowBtn:focus-visible,
+.toggleRow:focus-visible,
+.toggleSmall:focus-visible,
+.text:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
