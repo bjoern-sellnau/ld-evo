@@ -8,6 +8,7 @@ import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
 import { SITE_PAGES, pageForPath } from './pages';
+import { useBack } from './useBack';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -29,6 +30,7 @@ export function SiteNav() {
   const { settings, mob, sideActive, isWide, frame, narrow, toggleTheme, toggleAnim, setOverlay, navigate, set } = useSiteNav();
   const pathname = usePathname();
   const active = pageForPath(pathname);
+  const back = useBack();
 
   if (mob && settings.mobModern) return null;
 
@@ -68,11 +70,44 @@ export function SiteNav() {
             padding: sideActive ? '14px 12px' : '7px 8px',
             '--ld-item-scale': sideActive ? '1.02' : '1.07',
             ...(sideActive
-              ? { flexDirection: 'column', alignItems: 'stretch', width: 224, boxSizing: 'border-box', maxHeight: 'calc(100vh - 32px)', overflowY: 'auto' }
+              ? {
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
+                  width: 224,
+                  boxSizing: 'border-box',
+                  maxHeight: 'calc(100vh - 32px)',
+                  overflowY: 'auto',
+                }
               : { flexDirection: 'row', alignItems: 'center' }),
           } as unknown as CSSProperties
         }
       >
+        {back.show && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+            <button
+              type="button"
+              onClick={back.go}
+              aria-label="Zurück"
+              className={cx(styles.reset, styles.back)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '8px 13px',
+                borderRadius: 999,
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 700,
+                color: back.color,
+                background: 'var(--pill)',
+                transition: 'transform 0.25s,color 0.3s',
+                whiteSpace: 'pre',
+              }}
+            >
+              {back.text}
+            </button>
+            <span aria-hidden style={divider} />
+          </span>
+        )}
         <Link
           href="/"
           onClick={go('/')}

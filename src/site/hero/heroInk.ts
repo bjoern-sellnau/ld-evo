@@ -13,8 +13,21 @@ export interface Ink {
 
 // Mittlere Luminanz je Hero-Modus (nur für die Option „Kontr.“).
 const FX_LUM: Record<string, number> = {
-  lava: 0.14, aurora: 0.1, orbit: 0.06, blackhole: 0.05, nova: 0.09, matrix: 0.05, rain: 0.08, swarm: 0.06,
-  firefly: 0.05, shooting: 0.04, snow: 0.1, clouds: 0.58, storm: 0.07, ink: 0.75, grid: 0.06,
+  lava: 0.14,
+  aurora: 0.1,
+  orbit: 0.06,
+  blackhole: 0.05,
+  nova: 0.09,
+  matrix: 0.05,
+  rain: 0.08,
+  swarm: 0.06,
+  firefly: 0.05,
+  shooting: 0.04,
+  snow: 0.1,
+  clouds: 0.58,
+  storm: 0.07,
+  ink: 0.75,
+  grid: 0.06,
 };
 
 export function heroMode(s: Settings): string {

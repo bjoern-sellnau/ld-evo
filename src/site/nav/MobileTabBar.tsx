@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { LoonaTile } from '@/components/brand';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
+import { MobileBackPill } from './MobileBackPill';
 import styles from './SiteNav.module.css';
 import { SITE_PAGES, pageForPath, type SitePageId } from './pages';
 
@@ -82,92 +83,96 @@ export function MobileTabBar() {
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 18,
-        left: 0,
-        right: 0,
-        display: 'flex',
-        justifyContent: 'center',
-        zIndex: 75,
-        pointerEvents: 'none',
-        transform: hidden ? 'translateY(130px)' : 'translateY(0)',
-        transition: 'transform 0.55s cubic-bezier(0.32,1.2,0.35,1)',
-      }}
-    >
-      <GlassSurface
-        as="nav"
-        id="ld-tabbar"
-        aria-label="Hauptnavigation"
-        radius="28px"
-        lite
+    <>
+      <MobileBackPill tabBarHidden={hidden} />
+      <div
         style={{
-          pointerEvents: 'auto',
+          position: 'fixed',
+          bottom: 18,
+          left: 0,
+          right: 0,
           display: 'flex',
-          alignItems: 'stretch',
-          gap: 2,
-          padding: 6,
-          width: 'calc(100% - 44px)',
-          maxWidth: 386,
+          justifyContent: 'center',
+          zIndex: 75,
+          pointerEvents: 'none',
+          transform: hidden ? 'translateY(130px)' : 'translateY(0)',
+          transition: 'transform 0.55s cubic-bezier(0.32,1.2,0.35,1)',
         }}
       >
-        {tabs.map((t) => {
-          // Modern: Home bleibt auch auf .Tech/Artikel/Impressum aktiv (die liegen im Menü).
-          const on = !menuOpen && (page === t.id || (t.id === 'hallo' && settings.mobModern && (page === 'tech' || page === 'impressum')));
-          return (
-            <Link
-              key={t.id}
-              href={hrefOf(t.id)}
-              onClick={go(hrefOf(t.id))}
-              aria-current={page === t.id ? 'page' : undefined}
-              aria-label={t.logo ? 'Home' : undefined}
-              data-navactive={on}
-              className={styles.reset}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 3,
-                minHeight: 46,
-                borderRadius: 20,
-                cursor: 'pointer',
-                background: on && !t.logo ? 'var(--pill)' : 'transparent',
-                transition: 'background 0.25s',
-              }}
-            >
-              <TabIcon icon={t.icon} logo={t.logo} color={on ? 'var(--accent)' : 'var(--muted)'} />
-              {!t.logo && <TabLabel color={on ? 'var(--accent)' : 'var(--muted)'}>{t.label}</TabLabel>}
-            </Link>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => setOverlay(menuOpen ? null : 'mobileNav')}
-          aria-expanded={menuOpen}
-          aria-controls="ld-menu"
-          className={styles.reset}
+        <GlassSurface
+          as="nav"
+          id="ld-tabbar"
+          aria-label="Hauptnavigation"
+          radius="28px"
+          lite
           style={{
-            flex: 1,
+            pointerEvents: 'auto',
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 3,
-            minHeight: 46,
-            borderRadius: 20,
-            cursor: 'pointer',
-            background: menuOpen ? 'var(--pill)' : 'transparent',
-            transition: 'background 0.25s',
+            alignItems: 'stretch',
+            gap: 2,
+            padding: 6,
+            width: 'calc(100% - 44px)',
+            maxWidth: 386,
           }}
         >
-          <TabIcon icon={menuOpen ? '✕' : '☰'} color={menuOpen ? 'var(--accent)' : 'var(--muted)'} />
-          <TabLabel color={menuOpen ? 'var(--accent)' : 'var(--muted)'}>Menü</TabLabel>
-        </button>
-      </GlassSurface>
-    </div>
+          {tabs.map((t) => {
+            // Modern: Home bleibt auch auf .Tech/Artikel/Impressum aktiv (die liegen im Menü).
+            const on =
+              !menuOpen && (page === t.id || (t.id === 'hallo' && settings.mobModern && (page === 'tech' || page === 'impressum')));
+            return (
+              <Link
+                key={t.id}
+                href={hrefOf(t.id)}
+                onClick={go(hrefOf(t.id))}
+                aria-current={page === t.id ? 'page' : undefined}
+                aria-label={t.logo ? 'Home' : undefined}
+                data-navactive={on}
+                className={styles.reset}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 3,
+                  minHeight: 46,
+                  borderRadius: 20,
+                  cursor: 'pointer',
+                  background: on && !t.logo ? 'var(--pill)' : 'transparent',
+                  transition: 'background 0.25s',
+                }}
+              >
+                <TabIcon icon={t.icon} logo={t.logo} color={on ? 'var(--accent)' : 'var(--muted)'} />
+                {!t.logo && <TabLabel color={on ? 'var(--accent)' : 'var(--muted)'}>{t.label}</TabLabel>}
+              </Link>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setOverlay(menuOpen ? null : 'mobileNav')}
+            aria-expanded={menuOpen}
+            aria-controls="ld-menu"
+            className={styles.reset}
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 3,
+              minHeight: 46,
+              borderRadius: 20,
+              cursor: 'pointer',
+              background: menuOpen ? 'var(--pill)' : 'transparent',
+              transition: 'background 0.25s',
+            }}
+          >
+            <TabIcon icon={menuOpen ? '✕' : '☰'} color={menuOpen ? 'var(--accent)' : 'var(--muted)'} />
+            <TabLabel color={menuOpen ? 'var(--accent)' : 'var(--muted)'}>Menü</TabLabel>
+          </button>
+        </GlassSurface>
+      </div>
+    </>
   );
 }
 

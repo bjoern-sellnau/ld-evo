@@ -1,7 +1,6 @@
 import { inkOn } from '../lib/color';
 import { ACCENTS, type Settings } from './schema';
 
-
 export function isSafari(): boolean {
   const ua = navigator.userAgent;
   return /Safari/.test(ua) && !/Chrome|CriOS|FxiOS|Edg|Android/.test(ua);

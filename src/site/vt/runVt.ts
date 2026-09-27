@@ -100,19 +100,29 @@ export function fbVt(apply: Apply) {
     if (!scr) return;
     [...scr.children].slice(0, 8).forEach((k, i) => {
       try {
-        k.animate([{ opacity: 0, transform: 'translateY(18px)' }, { opacity: 1, transform: 'translateY(0)' }], {
-          duration: 520,
-          delay: 140 + i * 70,
-          easing: 'cubic-bezier(0.2,0.7,0.3,1)',
-          fill: 'backwards',
-        });
+        k.animate(
+          [
+            { opacity: 0, transform: 'translateY(18px)' },
+            { opacity: 1, transform: 'translateY(0)' },
+          ],
+          {
+            duration: 520,
+            delay: 140 + i * 70,
+            easing: 'cubic-bezier(0.2,0.7,0.3,1)',
+            fill: 'backwards',
+          },
+        );
       } catch {
         /* ignorieren */
       }
     });
   };
   try {
-    const a1 = ov.animate([{ transform: 'translateY(104%)' }, { transform: 'translateY(0)' }], { duration: 320, easing: ease, fill: 'forwards' });
+    const a1 = ov.animate([{ transform: 'translateY(104%)' }, { transform: 'translateY(0)' }], {
+      duration: 320,
+      easing: ease,
+      fill: 'forwards',
+    });
     a1.onfinish = async () => {
       await apply();
       ov.style.borderRadius = '0 0 26px 26px';
@@ -120,7 +130,11 @@ export function fbVt(apply: Apply) {
         requestAnimationFrame(() => {
           navFlip();
           reveal();
-          const a2 = ov.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-104%)' }], { duration: 380, easing: ease, fill: 'forwards' });
+          const a2 = ov.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-104%)' }], {
+            duration: 380,
+            easing: ease,
+            fill: 'forwards',
+          });
           a2.onfinish = done;
         }),
       );

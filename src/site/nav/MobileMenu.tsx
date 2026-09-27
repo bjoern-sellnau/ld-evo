@@ -87,7 +87,9 @@ export function MobileMenu() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, ...item('0.05s') }}>
             <LoonaTile product="ld" variant="color" size={26} decorative style={{ display: 'block' }} />
-            <span style={{ fontFamily: 'var(--ld-font-mono),monospace', fontSize: 10, letterSpacing: '0.2em', color: 'var(--soft)' }}>MENÜ</span>
+            <span style={{ fontFamily: 'var(--ld-font-mono),monospace', fontSize: 10, letterSpacing: '0.2em', color: 'var(--soft)' }}>
+              MENÜ
+            </span>
           </div>
 
           <div style={{ marginTop: 26 }}>
@@ -143,7 +145,19 @@ export function MobileMenu() {
   );
 }
 
-function Tile({ icon, iconSize, label, onClick, pressed }: { icon: ReactNode; iconSize: number; label: string; onClick: () => void; pressed?: boolean }) {
+function Tile({
+  icon,
+  iconSize,
+  label,
+  onClick,
+  pressed,
+}: {
+  icon: ReactNode;
+  iconSize: number;
+  label: string;
+  onClick: () => void;
+  pressed?: boolean;
+}) {
   return (
     <button type="button" onClick={onClick} aria-pressed={pressed} className={styles.tile}>
       <span aria-hidden style={{ fontSize: iconSize }}>

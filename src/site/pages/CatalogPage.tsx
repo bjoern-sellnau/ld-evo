@@ -89,7 +89,9 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
 
   return (
     <div data-screen-label="Katalog" style={{ paddingTop: mob && settings.mobModern ? 84 : 140 }}>
-      <h1 style={{ fontFamily: mono, fontSize: 11, fontWeight: 400, letterSpacing: '0.18em', color: 'var(--accent)', margin: 0 }}>{COPY[kind].kicker}</h1>
+      <h1 style={{ fontFamily: mono, fontSize: 11, fontWeight: 400, letterSpacing: '0.18em', color: 'var(--accent)', margin: 0 }}>
+        {COPY[kind].kicker}
+      </h1>
       <p style={{ fontSize: 15, color: 'var(--muted)', margin: '8px 0 0', maxWidth: 560, lineHeight: 1.6 }}>{COPY[kind].title}</p>
 
       {slides.length > 0 && (
@@ -164,7 +166,11 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
               aria-pressed={on}
               onClick={() => setFilter(k)}
               className={styles.chip}
-              style={{ border: `1px solid ${on ? 'var(--accent)' : 'var(--border)'}`, background: on ? 'var(--accent)' : 'transparent', color: on ? 'var(--on-accent)' : 'var(--muted)' }}
+              style={{
+                border: `1px solid ${on ? 'var(--accent)' : 'var(--border)'}`,
+                background: on ? 'var(--accent)' : 'transparent',
+                color: on ? 'var(--on-accent)' : 'var(--muted)',
+              }}
             >
               {k}
             </button>
@@ -192,7 +198,15 @@ function Slide({ p, mob, hidden }: { p: Project; mob: boolean; hidden: boolean }
       inert={hidden}
       style={{ minWidth: '100%', display: 'grid', gridTemplateColumns: mob ? '1fr' : '1.05fr 1fr', background: 'var(--card)' }}
     >
-      <div style={{ padding: mob ? '26px 20px' : '44px 40px 44px 80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 12 }}>
+      <div
+        style={{
+          padding: mob ? '26px 20px' : '44px 40px 44px 80px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          gap: 12,
+        }}
+      >
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', fontFamily: mono, fontSize: 10 }}>
           <span style={{ color: 'var(--accent)', letterSpacing: '0.14em' }}>{p.tag}</span>
           <span style={{ color: 'var(--soft)' }}>{p.datum}</span>
@@ -204,7 +218,12 @@ function Slide({ p, mob, hidden }: { p: Project; mob: boolean; hidden: boolean }
             Case ansehen ›
           </a>
           {p.link && (
-            <a href={p.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)', textDecoration: 'none' }}>
+            <a
+              href={p.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)', textDecoration: 'none' }}
+            >
               {p.linkLabel || 'Jetzt spielen ↗'}
             </a>
           )}
@@ -222,12 +241,18 @@ function Slide({ p, mob, hidden }: { p: Project; mob: boolean; hidden: boolean }
         }}
       >
         <div
-          style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(-45deg,rgba(255,255,255,0.06) 0 2px,transparent 2px 16px)' }}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'repeating-linear-gradient(-45deg,rgba(255,255,255,0.06) 0 2px,transparent 2px 16px)',
+          }}
         />
         <span aria-hidden style={{ position: 'relative', fontSize: 110, fontWeight: 800, letterSpacing: '-0.04em', opacity: 0.92 }}>
           {p.mono}
         </span>
-        <span style={{ position: 'absolute', bottom: 16, right: 20, fontFamily: mono, fontSize: 10, letterSpacing: '0.14em', opacity: 0.75 }}>
+        <span
+          style={{ position: 'absolute', bottom: 16, right: 20, fontFamily: mono, fontSize: 10, letterSpacing: '0.14em', opacity: 0.75 }}
+        >
           {p.tool}
         </span>
       </div>

@@ -161,7 +161,10 @@ export function HalloPage() {
               boxShadow: 'inset 0 1px 0 var(--glasshi)',
             }}
           >
-            <span aria-hidden style={{ width: 7, height: 7, borderRadius: '50%', background: '#28C840', animation: 'ldPulse 2s infinite' }} />
+            <span
+              aria-hidden
+              style={{ width: 7, height: 7, borderRadius: '50%', background: '#28C840', animation: 'ldPulse 2s infinite' }}
+            />
             #TeamMaterna — Public Sector | E-Government | Zoll
           </div>
           <h1
@@ -221,7 +224,8 @@ export function HalloPage() {
               ...txt,
             }}
           >
-            Senior Full-Stack / Software Engineer — React, TypeScript, Web &amp; Mobile. Seit 18+ Jahren baue ich Dinge fürs Web, die bleiben.
+            Senior Full-Stack / Software Engineer — React, TypeScript, Web &amp; Mobile. Seit 18+ Jahren baue ich Dinge fürs Web, die
+            bleiben.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 30 }}>
             <button
@@ -309,7 +313,13 @@ export function HalloPage() {
       </div>
 
       <section style={{ padding: '64px 0 8px' }} aria-labelledby="featured-title">
-        <SectionHead kicker="FEATURED" title="Ausgewählte Arbeiten" id="featured-title" link="Alle Projekte ›" onLink={() => navigate('/projekte')} />
+        <SectionHead
+          kicker="FEATURED"
+          title="Ausgewählte Arbeiten"
+          id="featured-title"
+          link="Alle Projekte ›"
+          onLink={() => navigate('/projekte')}
+        />
         <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: 14, marginTop: 26 }}>
           {FEATURED.map((p) => (
             <ProjectCard key={p.id} p={p} prefix="cf-" />
@@ -318,7 +328,13 @@ export function HalloPage() {
       </section>
 
       <section style={{ padding: '64px 0 80px' }} aria-labelledby="news-title">
-        <SectionHead kicker="NEWS — AUS DEM BLOG" title=".Tech, frisch gepinnt" id="news-title" link="Zum Blog ›" onLink={() => navigate('/tech')} />
+        <SectionHead
+          kicker="NEWS — AUS DEM BLOG"
+          title=".Tech, frisch gepinnt"
+          id="news-title"
+          link="Zum Blog ›"
+          onLink={() => navigate('/tech')}
+        />
         <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: 14, marginTop: 26 }}>
           {NEWS.map((a) => (
             <NewsCard key={a.id} a={a} />
@@ -329,7 +345,19 @@ export function HalloPage() {
   );
 }
 
-export function SectionHead({ kicker, title, id, link, onLink }: { kicker: string; title: string; id: string; link?: string; onLink?: () => void }) {
+export function SectionHead({
+  kicker,
+  title,
+  id,
+  link,
+  onLink,
+}: {
+  kicker: string;
+  title: string;
+  id: string;
+  link?: string;
+  onLink?: () => void;
+}) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16 }}>
       <div>
@@ -339,7 +367,12 @@ export function SectionHead({ kicker, title, id, link, onLink }: { kicker: strin
         </h2>
       </div>
       {link && (
-        <button type="button" onClick={onLink} className={styles.link} style={{ font: 'inherit', fontSize: 13.5, fontWeight: 600, background: 'none', border: 0, padding: 0, whiteSpace: 'nowrap' }}>
+        <button
+          type="button"
+          onClick={onLink}
+          className={styles.link}
+          style={{ font: 'inherit', fontSize: 13.5, fontWeight: 600, background: 'none', border: 0, padding: 0, whiteSpace: 'nowrap' }}
+        >
           {link}
         </button>
       )}
@@ -376,7 +409,9 @@ function ScrollIndicator({ hidden }: { hidden: boolean }) {
             boxSizing: 'border-box',
           }}
         >
-          <span style={{ width: 3, height: 8, borderRadius: 999, background: '#FFFFFF', animation: 'ldScrollBob 1.6s ease-in-out infinite' }} />
+          <span
+            style={{ width: 3, height: 8, borderRadius: 999, background: '#FFFFFF', animation: 'ldScrollBob 1.6s ease-in-out infinite' }}
+          />
         </div>
         <span style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.22em', color: 'rgba(255,255,255,0.7)' }}>SCROLL</span>
       </div>

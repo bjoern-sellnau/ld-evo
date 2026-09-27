@@ -18,7 +18,15 @@ export interface GlassSurfaceProps extends HTMLAttributes<HTMLElement> {
  * Wie im Prototyp bildet die Fläche selbst KEINEN Stacking-Context: Die Schichten mit negativem z-index liegen
  * unter dem getönten Hintergrund. Der Elternteil (z. B. die fixierte Nav) muss den Stacking-Context stellen.
  */
-export function GlassSurface({ as: Tag = 'div', radius = 'var(--radL,22px)', sheen = false, lite = false, style, children, ...rest }: GlassSurfaceProps) {
+export function GlassSurface({
+  as: Tag = 'div',
+  radius = 'var(--radL,22px)',
+  sheen = false,
+  lite = false,
+  style,
+  children,
+  ...rest
+}: GlassSurfaceProps) {
   const r: CSSProperties = { borderRadius: radius };
   return (
     <Tag

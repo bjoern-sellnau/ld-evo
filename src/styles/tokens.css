@@ -6,23 +6,23 @@
 :root {
   /* Neutrale */
   --loona-ink: #171310;
-  --loona-cream: #F7F2EA;
-  --loona-paper: #FAF7F2;
-  --loona-muted-dark: #B3A78F;
-  --loona-muted-light: #6E6455;
-  --loona-sand: #E8DCC4;
+  --loona-cream: #f7f2ea;
+  --loona-paper: #faf7f2;
+  --loona-muted-dark: #b3a78f;
+  --loona-muted-light: #6e6455;
+  --loona-sand: #e8dcc4;
 
   /* Produktfarben + Deep-Variante (auf hellem Grund) */
-  --loona-orange: #FF7816;
-  --loona-orange-deep: #C2410C;
-  --loona-violet: #A78BFA;
-  --loona-violet-deep: #6D28D9;
-  --loona-sky: #38BDF8;
-  --loona-sky-deep: #0369A1;
-  --loona-rose: #F472B6;
-  --loona-rose-deep: #BE185D;
-  --loona-green: #3DDC84;
-  --loona-green-deep: #15803D;
+  --loona-orange: #ff7816;
+  --loona-orange-deep: #c2410c;
+  --loona-violet: #a78bfa;
+  --loona-violet-deep: #6d28d9;
+  --loona-sky: #38bdf8;
+  --loona-sky-deep: #0369a1;
+  --loona-rose: #f472b6;
+  --loona-rose-deep: #be185d;
+  --loona-green: #3ddc84;
+  --loona-green-deep: #15803d;
 
   /* Produkt-Aliase */
   --loona-ld: var(--loona-orange);

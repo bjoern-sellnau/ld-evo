@@ -11,11 +11,7 @@ export function LoonaGlyph({ product, color }: { product: LoonaProductKey; color
       return (
         <>
           <path d="M0 3H8V35H19L22 43H0Z" fill={color} />
-          <path
-            d="M11 3H24A20 20 0 0 1 24 43H25L19 27H16V11H11ZM21 11H24A12 12 0 0 1 24 35L21 27Z"
-            fill={color}
-            fillRule="evenodd"
-          />
+          <path d="M11 3H24A20 20 0 0 1 24 43H25L19 27H16V11H11ZM21 11H24A12 12 0 0 1 24 35L21 27Z" fill={color} fillRule="evenodd" />
         </>
       );
     case 'flow':

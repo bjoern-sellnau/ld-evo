@@ -118,7 +118,7 @@ const int = (key: string, fallback: number): Codec<number> => ({
   read: (r) => (r ? parseInt(r, 10) || fallback : fallback),
   write: (v) => String(v),
 });
-const json = <T,>(key: string): Codec<T> => ({
+const json = <T>(key: string): Codec<T> => ({
   key,
   read: (r) => {
     try {

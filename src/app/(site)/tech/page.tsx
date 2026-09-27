@@ -1,5 +1,5 @@
-import { Placeholder } from '@/site/Placeholder';
+import { TechPage } from '@/site/pages/TechPage';
 
 export default function Page() {
-  return <Placeholder label=".Tech" title=".Tech" />;
+  return <TechPage />;
 }

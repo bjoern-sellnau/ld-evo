@@ -22,8 +22,32 @@ export function useOpenItem(href: string, id: string) {
 
 // Maße je Variante: Featured (Hallo, Zeile 427 ff.) vs. Katalog-Grid (Zeile 513 ff., mit Status-Zeile).
 const SIZES = {
-  featured: { h: 120, pad: '14px 18px', mono: 44, katTop: 12, katRight: 14, katFs: 9, katPad: '3px 9px', body: '16px 18px 18px', name: 17.5, nameMt: 8, descMt: 5 },
-  grid: { h: 110, pad: '12px 16px', mono: 38, katTop: 11, katRight: 13, katFs: 8.5, katPad: '3px 8px', body: '15px 17px 17px', name: 16.5, nameMt: 7, descMt: 4 },
+  featured: {
+    h: 120,
+    pad: '14px 18px',
+    mono: 44,
+    katTop: 12,
+    katRight: 14,
+    katFs: 9,
+    katPad: '3px 9px',
+    body: '16px 18px 18px',
+    name: 17.5,
+    nameMt: 8,
+    descMt: 5,
+  },
+  grid: {
+    h: 110,
+    pad: '12px 16px',
+    mono: 38,
+    katTop: 11,
+    katRight: 13,
+    katFs: 8.5,
+    katPad: '3px 8px',
+    body: '15px 17px 17px',
+    name: 16.5,
+    nameMt: 7,
+    descMt: 4,
+  },
 } as const;
 
 /**
@@ -41,7 +65,13 @@ export function ProjectCard({ p, prefix, variant = 'featured' }: { p: Project; p
       href={href}
       onClick={onClick}
       className={styles.card}
-      style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--cardShadow)' }}
+      style={{
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
+        borderRadius: 18,
+        overflow: 'hidden',
+        boxShadow: 'var(--cardShadow)',
+      }}
     >
       <div
         style={{
@@ -99,4 +129,3 @@ export function ProjectCard({ p, prefix, variant = 'featured' }: { p: Project; p
 export function projectStatus(p: Project): string {
   return p.status || (p.link ? '● spielbar im Browser' : 'Status: in Arbeit');
 }
-

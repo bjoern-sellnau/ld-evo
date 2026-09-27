@@ -28,15 +28,7 @@ export function toneColor(product: LoonaProductKey, tone: LoonaTone): string {
   }
 }
 
-export function LoonaMark({
-  product = 'ld',
-  size = 40,
-  tone = 'color',
-  title,
-  decorative = false,
-  style,
-  ...rest
-}: LoonaMarkProps) {
+export function LoonaMark({ product = 'ld', size = 40, tone = 'color', title, decorative = false, style, ...rest }: LoonaMarkProps) {
   const w = LOONA_PRODUCTS[product].width;
 
   if (process.env.NODE_ENV !== 'production' && typeof size === 'number' && size < LOONA_MIN_SIZE) {
@@ -48,18 +40,10 @@ export function LoonaMark({
       ? { width: (size * w) / LOONA_GRID_HEIGHT, height: size, style }
       : { height: size, style: { width: 'auto', aspectRatio: `${w} / ${LOONA_GRID_HEIGHT}`, ...style } };
 
-  const a11y = decorative
-    ? { 'aria-hidden': true as const, focusable: 'false' as const }
-    : { role: 'img' as const };
+  const a11y = decorative ? { 'aria-hidden': true as const, focusable: 'false' as const } : { role: 'img' as const };
 
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox={`0 0 ${w} ${LOONA_GRID_HEIGHT}`}
-      {...dims}
-      {...a11y}
-      {...rest}
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${w} ${LOONA_GRID_HEIGHT}`} {...dims} {...a11y} {...rest}>
       {!decorative && <title>{title ?? LOONA_PRODUCTS[product].name}</title>}
       <g transform="translate(0 -3)">
         <LoonaGlyph product={product} color={toneColor(product, tone)} />

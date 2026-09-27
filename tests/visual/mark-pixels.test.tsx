@@ -34,8 +34,7 @@ beforeAll(async () => {
 });
 afterAll(() => browser?.close());
 
-const dataUri = (file: string, mime: string) =>
-  `data:${mime};base64,${readFileSync(path.join(ASSETS, file)).toString('base64')}`;
+const dataUri = (file: string, mime: string) => `data:${mime};base64,${readFileSync(path.join(ASSETS, file)).toString('base64')}`;
 
 async function shoot(inner: string, width: number, height: number, bg: string): Promise<PNG> {
   await page.setViewportSize({ width, height });

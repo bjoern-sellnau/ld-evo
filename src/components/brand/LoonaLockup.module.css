@@ -71,7 +71,6 @@
   margin-left: calc(var(--l2-indent) * var(--loona-m));
   /* Abstand von Unterkante Zeile 1 bis Oberkante Zeile 2, sodass die Baselines auf l1-base / l2-base liegen */
   margin-top: calc(
-    (var(--l2-base) - var(--l1-base) - var(--loona-baseline) * var(--l2) + var(--loona-baseline) * var(--l1) - var(--l1)) *
-      var(--loona-m)
+    (var(--l2-base) - var(--l1-base) - var(--loona-baseline) * var(--l2) + var(--loona-baseline) * var(--l1) - var(--l1)) * var(--loona-m)
   );
 }

@@ -64,7 +64,8 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setSettings(readSettings(localStorage));
     setHydrated(true);
-    const onResize = () => setViewport({ isMobile: window.innerWidth < 1020, isWide: window.innerWidth >= 1600, isNarrow: window.innerWidth < 480 });
+    const onResize = () =>
+      setViewport({ isMobile: window.innerWidth < 1020, isWide: window.innerWidth >= 1600, isNarrow: window.innerWidth < 480 });
     onResize();
     window.addEventListener('resize', onResize);
     document.addEventListener('pointerdown', trackVtOrigin, { passive: true });
@@ -167,8 +168,21 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     const sideActive = !mob && (vm === 'wide' || (settings.navSide && viewport.isWide));
     const morphOk = !REVEAL_MODES.includes(settings.pageVt || 'fade');
     return {
-      settings, hydrated, set, ...viewport, mob, sideActive, overlay, setOverlay, toggleTheme, toggleAnim,
-      navigate, openItem, vtTarget, morphOk, from,
+      settings,
+      hydrated,
+      set,
+      ...viewport,
+      mob,
+      sideActive,
+      overlay,
+      setOverlay,
+      toggleTheme,
+      toggleAnim,
+      navigate,
+      openItem,
+      vtTarget,
+      morphOk,
+      from,
     };
   }, [settings, hydrated, set, viewport, overlay, toggleTheme, toggleAnim, navigate, openItem, vtTarget, from]);
 
