@@ -3,3 +3,5 @@ design/
 public/
 .next/
 content/
+src/site/hero/engine/
+scripts/hero-engine-head.js

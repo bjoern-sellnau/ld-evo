@@ -9,6 +9,7 @@ import styles from '../cards/cards.module.css';
 import { FlowHero } from '../hero/FlowHero';
 import { heroInk, heroMode } from '../hero/heroInk';
 import { HERO_MODES, heroFxBgOf, heroFxSampleOf } from '../hero/modes';
+import { useHeroShader } from '../hero/useHeroShader';
 import { useSite } from '../settings/SiteProvider';
 
 // Prototyp: renderVals → roles / featuredCards / newsCards.
@@ -76,10 +77,11 @@ export function HalloPage() {
   const { role, op: roleOp, y: roleY } = useRole(s.anim);
   const seconds = useCareerSeconds();
   const scrolled = useScrolled();
+  const cineDone = useHeroShader(s);
 
   const padX = mob ? 18 : 32;
-  // Cinematic (Matrix/Matrix v2) blendet den Hero-Text aus; „Hero-Text danach“ (mxLater) folgt mit dem Matrix-Renderer.
-  const heroTxtHidden = (hm === 'matrix' && s.mxCine) || hm === 'matrix2';
+  // Cinematic (Matrix/Matrix v2) blendet den Hero-Text aus; mit „Hero-Text danach“ kommt er nach dem Cinematic zurück.
+  const heroTxtHidden = ((hm === 'matrix' && s.mxCine) || hm === 'matrix2') && !(s.mxLater && cineDone);
   const heroPad = s.fullHero && !mob ? '140px 0 120px' : mob && s.mobModern ? '78px 0 56px' : mob ? '124px 0 64px' : '158px 0 92px';
   const heroMinH = s.fullHero ? (s.heroStats ? (mob ? 'calc(100vh - 132px)' : 'calc(100vh - 86px)') : '100vh') : 'auto';
   const heroFxH = s.fullHero ? (s.heroStats ? (mob ? 'calc(100vh + 8px)' : 'calc(100vh + 54px)') : 'calc(100vh + 140px)') : '720px';
@@ -123,7 +125,16 @@ export function HalloPage() {
               mask: 'linear-gradient(180deg,#000 68%,transparent)',
               background: heroFxBgOf(hm, s.heroCfg),
             }}
-          />
+          >
+            <canvas
+              id="ld-lava-canvas"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: def.renderer === 'webgl' ? 'block' : 'none' }}
+            />
+            <canvas
+              id="ld-orbit-canvas"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: def.renderer === 'canvas2d' ? 'block' : 'none' }}
+            />
+          </div>
         )}
         {def.renderer === 'css' && <FlowHero />}
         <div
