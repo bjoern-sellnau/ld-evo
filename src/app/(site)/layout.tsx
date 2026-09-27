@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { GlassDriver } from '@/site/glass/GlassDriver';
 import { ScrollChrome } from '@/site/chrome/ScrollChrome';
 import { MobileMenu } from '@/site/nav/MobileMenu';
 import { CookieBanner } from '@/site/overlays/CookieBanner';
@@ -22,6 +23,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       <SearchOverlay />
       <KontaktPanel />
       <SettingsPanel />
+      <GlassDriver />
     </SiteProvider>
   );
 }

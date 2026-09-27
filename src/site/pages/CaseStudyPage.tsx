@@ -14,7 +14,7 @@ import styles from './detail.module.css';
 export function CaseStudyPage({ p }: { p: Project }) {
   const { settings: s, mob, vtTarget, morphOk, from, navigate, setOverlay } = useSite();
   const coverFull = s.coverFull;
-  useCoverColor(p.color, coverFull);
+  useCoverColor(p.color, coverFull, s.themeColor);
   const ink = inkOn(p.color);
   const acc = coverFull ? ink : 'var(--accent)';
   const list = PROJECTS.filter((x) => x.kind === p.kind);

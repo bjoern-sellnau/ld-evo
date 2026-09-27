@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
+import type { Settings } from '../settings/schema';
+import { applyThemeColor } from '../settings/applyBody';
 import { inkOn } from './color';
 
 const VARS = ['--bg', '--ink', '--muted', '--soft', '--hair', '--card', '--border'] as const;
@@ -8,8 +10,9 @@ const VARS = ['--bg', '--ink', '--muted', '--soft', '--hair', '--card', '--borde
 /**
  * Cover-Farbe-Vollmodus (Prototyp: applyCoverColor): Die ganze Seite übernimmt die Cover-Farbe als --bg,
  * alle Ableitungen werden als rgba von Weiß bzw. Warm-Schwarz gesetzt. Beim Verlassen wird aufgeräumt.
+ * Browser-Farbe „Site“ folgt der Cover-Farbe.
  */
-export function useCoverColor(color: string, enabled: boolean) {
+export function useCoverColor(color: string, enabled: boolean, themeColor: Settings['themeColor']) {
   useEffect(() => {
     const bs = document.body.style;
     if (!enabled) return;
@@ -23,6 +26,10 @@ export function useCoverColor(color: string, enabled: boolean) {
     bs.setProperty('--hair', A(0.16));
     bs.setProperty('--card', A(0.08));
     bs.setProperty('--border', A(0.15));
-    return () => VARS.forEach((v) => bs.removeProperty(v));
-  }, [color, enabled]);
+    applyThemeColor(themeColor);
+    return () => {
+      VARS.forEach((v) => bs.removeProperty(v));
+      applyThemeColor(themeColor);
+    };
+  }, [color, enabled, themeColor]);
 }

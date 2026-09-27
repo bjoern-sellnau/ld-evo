@@ -14,7 +14,7 @@ import styles from './detail.module.css';
 export function ArticlePage({ a }: { a: Article }) {
   const { settings: s, mob, vtTarget, morphOk, from, navigate } = useSite();
   const coverFull = s.coverFull;
-  useCoverColor(a.color, coverFull);
+  useCoverColor(a.color, coverFull, s.themeColor);
   const ink = inkOn(a.color);
   const acc = coverFull ? ink : 'var(--accent)';
   const rel = related(ARTICLES, a);
