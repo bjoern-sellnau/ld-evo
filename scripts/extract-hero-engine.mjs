@@ -12,7 +12,8 @@ const src = readFileSync(path.join(root, 'design/design_handoff_loona_site/Loona
 const lines = (a, b) => src.slice(a - 1, b).join('\n');
 
 const body = lines(1611, 3802);
-if (!body.startsWith('  ensureLava() {') || src[3801].trim() !== '}') throw new Error('Prototyp-Zeilen verschoben: ensureLava/hex01 nicht gefunden');
+if (!body.startsWith('  ensureLava() {') || src[3801].trim() !== '}')
+  throw new Error('Prototyp-Zeilen verschoben: ensureLava/hex01 nicht gefunden');
 const extra = `${lines(3835, 3839)}\n\n${lines(3876, 3879)}`;
 if (!extra.trimStart().startsWith('resolvePal(cfg)')) throw new Error('Prototyp-Zeilen verschoben: resolvePal nicht gefunden');
 

@@ -128,11 +128,23 @@ export function HalloPage() {
           >
             <canvas
               id="ld-lava-canvas"
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: def.renderer === 'webgl' ? 'block' : 'none' }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                display: def.renderer === 'webgl' ? 'block' : 'none',
+              }}
             />
             <canvas
               id="ld-orbit-canvas"
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: def.renderer === 'canvas2d' ? 'block' : 'none' }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                display: def.renderer === 'canvas2d' ? 'block' : 'none',
+              }}
             />
           </div>
         )}
