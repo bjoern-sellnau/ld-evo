@@ -34,7 +34,8 @@ if (fontCount !== 2) throw new Error('Canvas-Schrift: erwartet 2 Stellen');
 engine = engine.replaceAll('"Inter", system-ui', '${INTER}, system-ui');
 
 mkdirSync(path.join(root, 'src/orbit'), { recursive: true });
-const gen = 'Generiert von scripts/extract-orbit.mjs aus design/design_handoff_shader_wallpapers/Shader Wallpapers.html — nicht von Hand editieren.';
+const gen =
+  'Generiert von scripts/extract-orbit.mjs aus design/design_handoff_shader_wallpapers/Shader Wallpapers.html — nicht von Hand editieren.';
 writeFileSync(path.join(root, 'src/orbit/orbit.css'), `/* ${gen} */\n${css}\n`);
 writeFileSync(path.join(root, 'src/orbit/markup.ts'), `// ${gen}\nexport const ORBIT_MARKUP = ${JSON.stringify(markup)};\n`);
 writeFileSync(
