@@ -4,8 +4,10 @@ export interface GlassSurfaceProps extends HTMLAttributes<HTMLElement> {
   as?: ElementType;
   /** border-radius aller Schichten, z. B. '999px' (Pille) oder 'var(--radL,22px)' (Panel). */
   radius?: string;
-  /** Sheen + Noise (nur Nav-Pille im Prototyp). */
+  /** Sheen + Noise + Kantenlicht-Linie (nur Nav-Pille im Prototyp). */
   sheen?: boolean;
+  /** Schlichtere Inset-Schatten wie Tab-Bar und Zurück-Pille. */
+  lite?: boolean;
   children?: ReactNode;
 }
 
@@ -16,7 +18,7 @@ export interface GlassSurfaceProps extends HTMLAttributes<HTMLElement> {
  * Wie im Prototyp bildet die Fläche selbst KEINEN Stacking-Context: Die Schichten mit negativem z-index liegen
  * unter dem getönten Hintergrund. Der Elternteil (z. B. die fixierte Nav) muss den Stacking-Context stellen.
  */
-export function GlassSurface({ as: Tag = 'div', radius = 'var(--radL,22px)', sheen = false, style, children, ...rest }: GlassSurfaceProps) {
+export function GlassSurface({ as: Tag = 'div', radius = 'var(--radL,22px)', sheen = false, lite = false, style, children, ...rest }: GlassSurfaceProps) {
   const r: CSSProperties = { borderRadius: radius };
   return (
     <Tag
@@ -26,8 +28,9 @@ export function GlassSurface({ as: Tag = 'div', radius = 'var(--radL,22px)', she
         borderRadius: radius,
         background: 'linear-gradient(180deg,var(--glassg1),var(--glassg2)),var(--glass)',
         border: '1px solid var(--glassbrd)',
-        boxShadow:
-          'inset 0 1.5px 1px var(--glasshi),inset 0 -1px 1px rgba(255,255,255,0.07),inset 1px 0 1px rgba(255,255,255,0.09),inset -1px 0 1px rgba(255,255,255,0.09),inset 0 -9px 14px -11px rgba(0,0,0,0.35),var(--shadow)',
+        boxShadow: lite
+          ? 'inset 0 1.5px 1px var(--glasshi),inset 0 -9px 14px -11px rgba(0,0,0,0.35),var(--shadow)'
+          : 'inset 0 1.5px 1px var(--glasshi),inset 0 -1px 1px rgba(255,255,255,0.07),inset 1px 0 1px rgba(255,255,255,0.09),inset -1px 0 1px rgba(255,255,255,0.09),inset 0 -9px 14px -11px rgba(0,0,0,0.35),var(--shadow)',
         transition: '--glassTint 0.5s ease,--glassPct 0.5s ease',
         ...style,
       }}
@@ -55,19 +58,21 @@ export function GlassSurface({ as: Tag = 'div', radius = 'var(--radL,22px)', she
       <div data-ldfrost="1" aria-hidden style={r} />
       <div data-ldedge="1" aria-hidden style={r} />
       <div data-ldrim="1" aria-hidden style={r} />
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 12,
-          right: 12,
-          height: 1,
-          background: 'linear-gradient(90deg,transparent,var(--glasshi),transparent)',
-          borderRadius: 999,
-          pointerEvents: 'none',
-        }}
-      />
+      {sheen && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 12,
+            right: 12,
+            height: 1,
+            background: 'linear-gradient(90deg,transparent,var(--glasshi),transparent)',
+            borderRadius: 999,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       {children}
     </Tag>
   );
