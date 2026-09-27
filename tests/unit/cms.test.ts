@@ -34,13 +34,19 @@ describe('LD Flow — Schema', () => {
     expect(isSafeMediaSrc('/media/abc')).toBe(true);
     expect(isSafeMediaSrc('/../etc/passwd')).toBe(false);
     expect(isSafeMediaSrc('http://insecure.example/x.png')).toBe(false);
-    const { errors } = validateDoc('projects', { ...seedDocs().find((d) => d.collection === 'projects')!.data, color: 'red', link: 'javascript:x' });
+    const { errors } = validateDoc('projects', {
+      ...seedDocs().find((d) => d.collection === 'projects')!.data,
+      color: 'red',
+      link: 'javascript:x',
+    });
     expect(errors.color).toBeTruthy();
     expect(errors.link).toBeTruthy();
   });
 
   it('Rich Text: nur erlaubte Struktur, keine unsicheren Links, keine Zusatzattribute', () => {
-    expect(validateRichText([{ type: 'p', c: [{ t: 'Hallo', b: true, onclick: 'x' }] }])).toEqual([{ type: 'p', c: [{ t: 'Hallo', b: true }] }]);
+    expect(validateRichText([{ type: 'p', c: [{ t: 'Hallo', b: true, onclick: 'x' }] }])).toEqual([
+      { type: 'p', c: [{ t: 'Hallo', b: true }] },
+    ]);
     expect(validateRichText([{ type: 'p', c: [{ t: 'x', href: 'javascript:alert(1)' }] }])).toBeNull();
     expect(validateRichText([{ type: 'script', c: [] }])).toBeNull();
     expect(validateRichText([{ type: 'ul', items: [[{ t: 'a' }], [{ t: 'b', i: true }]] }])).toEqual([
