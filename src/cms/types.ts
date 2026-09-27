@@ -18,15 +18,14 @@ export interface AboutContent {
 
 export type JourneyEntry = JourneyStation & { id: string; shot?: MediaRef; insights?: (MediaRef | null)[] };
 
-export type Block =
-  | { _id: string; type: 'text'; body?: RichText }
-  | { _id: string; type: 'chapter'; n?: string; label?: string }
-  | { _id: string; type: 'image'; image?: MediaRef; caption?: string }
-  | { _id: string; type: 'gallery'; images?: (MediaRef | null)[] }
-  | { _id: string; type: 'quote'; text?: string; by?: string }
-  | { _id: string; type: 'cta'; label?: string; href?: string }
-  | { _id: string; type: 'projects'; title?: string; ids?: string[] }
-  | { _id: string; type: 'stats'; items?: { value?: string; label?: string }[] };
+/** Widget-Instanz im Dokument (Felder flach, dazu controls/slots). */
+export interface Block {
+  type: string;
+  _id: string;
+  controls?: Record<string, unknown>;
+  slots?: Record<string, Block[]>;
+  [k: string]: unknown;
+}
 
 export interface CmsPage {
   id: string;
@@ -48,4 +47,6 @@ export interface SiteContent {
   articles: Article[];
   journey: JourneyEntry[];
   pages: { id: string; title: string }[];
+  /** Veröffentlichte Vorlagen (Baukasten). */
+  patterns: { id: string; title: string; global?: boolean; blocks: Block[] }[];
 }

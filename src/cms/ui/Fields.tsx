@@ -2,7 +2,7 @@
 
 import { useId, type ReactNode } from 'react';
 import { EditProvider, ERich } from '@/site/cms/editing';
-import { BLOCKS, randomId, type FieldDef, type MediaRef, type RichText, type Errors } from '../schema';
+import { WIDGETS, newBlock, type FieldDef, type MediaRef, type RichText, type Errors } from '../schema';
 import { MediaField } from './Media';
 
 /**
@@ -318,57 +318,140 @@ export function Field({ f, value, onChange, path, errors, relations }: FieldProp
         </Wrap>
       );
     }
-    case 'blocks': {
-      const arr = (value as (Record<string, unknown> & { type: string; _id?: string })[]) ?? [];
+    case 'blocks':
       return (
         <Wrap f={f} id={id} path={path} errors={errors} group>
-          {arr.map((b, i) => {
-            const def = BLOCKS[b.type];
-            return (
-              <div key={b._id ?? i} className="f-group">
-                <div className="f-group-head">
-                  <span>{def?.label ?? b.type}</span>
-                  <ItemTools
-                    i={i}
-                    n={arr.length}
-                    onMove={(j) => onChange(move(arr, i, j))}
-                    onRemove={() => onChange(arr.filter((_, k) => k !== i))}
-                  />
-                </div>
-                {errors[`${path}.${i}`] && <span className="f-err">{errors[`${path}.${i}`]}</span>}
-                {def?.fields.map((sf) => (
-                  <Field
-                    key={sf.key}
-                    f={sf}
-                    value={b[sf.key]}
-                    path={`${path}.${i}.${sf.key}`}
-                    errors={errors}
-                    relations={relations}
-                    onChange={(v) => onChange(arr.map((x, k) => (k === i ? { ...x, [sf.key]: v } : x)))}
-                  />
-                ))}
-              </div>
-            );
-          })}
-          <select
-            value=""
-            aria-label="Block hinzufügen"
-            onChange={(e) => {
-              const t = e.target.value;
-              if (t) onChange([...arr, { type: t, _id: randomId() }]);
-            }}
-          >
-            <option value="">+ Block hinzufügen …</option>
-            {f.allowed.map((t) => (
-              <option key={t} value={t}>
-                {BLOCKS[t]?.label ?? t}
-              </option>
-            ))}
-          </select>
+          <BlocksEditor value={value} onChange={onChange} allowed={f.allowed} path={path} errors={errors} relations={relations} />
         </Wrap>
       );
-    }
   }
+}
+
+type BlockVal = Record<string, unknown> & {
+  type: string;
+  _id?: string;
+  controls?: Record<string, unknown>;
+  slots?: Record<string, BlockVal[]>;
+};
+
+/** Widget-Liste im Formular (rekursiv für Slots). data-flow-path = Sprungziel für „Einstellungen“ aus der Vorschau. */
+function BlocksEditor({
+  value,
+  onChange,
+  allowed,
+  path,
+  errors,
+  relations,
+}: {
+  value: unknown;
+  onChange: (v: unknown) => void;
+  allowed: '*' | string[];
+  path: string;
+  errors: Errors;
+  relations: Relations;
+}) {
+  const arr = (value as BlockVal[]) ?? [];
+  const opts = Object.values(WIDGETS).filter((w) => allowed === '*' || allowed.includes(w.id));
+  const set = (i: number, b: BlockVal) => onChange(arr.map((x, k) => (k === i ? b : x)));
+  return (
+    <>
+      {arr.map((b, i) => {
+        const w = WIDGETS[b.type];
+        const p = `${path}.${i}`;
+        return (
+          <div key={b._id ?? i} className="f-group" data-flow-path={p}>
+            <div className="f-group-head">
+              <span>
+                <span aria-hidden>{w?.icon} </span>
+                {w?.label ?? b.type}
+              </span>
+              <ItemTools
+                i={i}
+                n={arr.length}
+                onMove={(j) => onChange(move(arr, i, j))}
+                onRemove={() => onChange(arr.filter((_, k) => k !== i))}
+              />
+            </div>
+            {errors[p] && <span className="f-err">{errors[p]}</span>}
+            {w && Object.keys(w.controls).length > 0 && (
+              <div className="f-row" style={{ marginBottom: 12 }}>
+                {Object.entries(w.controls).map(([ck, c]) => {
+                  const cur = b.controls?.[ck] ?? c.default;
+                  return c.kind === 'toggle' ? (
+                    <button
+                      key={ck}
+                      type="button"
+                      className="f-btn sm"
+                      aria-pressed={cur === true}
+                      onClick={() => set(i, { ...b, controls: { ...b.controls, [ck]: !cur } })}
+                    >
+                      {c.label}
+                    </button>
+                  ) : (
+                    <span key={ck} className="f-row" role="group" aria-label={c.label || ck} style={{ gap: 2 }}>
+                      {c.options.map(([v, l]) => (
+                        <button
+                          key={v}
+                          type="button"
+                          className="f-btn sm"
+                          aria-pressed={cur === v}
+                          onClick={() => set(i, { ...b, controls: { ...b.controls, [ck]: v } })}
+                        >
+                          {l}
+                        </button>
+                      ))}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {w?.fields.map((sf: FieldDef) => (
+              <Field
+                key={sf.key}
+                f={sf}
+                value={b[sf.key]}
+                path={`${p}.${sf.key}`}
+                errors={errors}
+                relations={relations}
+                onChange={(v) => set(i, { ...b, [sf.key]: v })}
+              />
+            ))}
+            {w &&
+              Object.entries(w.slots).map(([sk, sd]) => (
+                <div key={sk} className="f-field" role="group" aria-label={sd.label}>
+                  <div className="f-label">↳ {sd.label}</div>
+                  <div style={{ borderLeft: '2px solid rgba(167,139,250,0.35)', paddingLeft: 10 }}>
+                    <BlocksEditor
+                      value={b.slots?.[sk] ?? []}
+                      onChange={(v) => set(i, { ...b, slots: { ...b.slots, [sk]: v as BlockVal[] } })}
+                      allowed={sd.allow}
+                      path={`${p}.slots.${sk}`}
+                      errors={errors}
+                      relations={relations}
+                    />
+                  </div>
+                </div>
+              ))}
+          </div>
+        );
+      })}
+      <select
+        value=""
+        aria-label="Widget hinzufügen"
+        onChange={(e) => {
+          const t = e.target.value;
+          if (t) onChange([...arr, newBlock(t)]);
+        }}
+      >
+        <option value="">+ Widget hinzufügen …</option>
+        {opts.map((w) => (
+          <option key={w.id} value={w.id}>
+            {w.icon} {w.label}
+          </option>
+        ))}
+      </select>
+    </>
+  );
 }
 
 function ItemTools({ i, n, onMove, onRemove }: { i: number; n: number; onMove: (j: number) => void; onRemove: () => void }) {

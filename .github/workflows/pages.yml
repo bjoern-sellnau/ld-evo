@@ -1,0 +1,51 @@
+# Statische Vorschau der WEBSITE auf GitHub Pages (https://<user>.github.io/<repo>/).
+# LD Flow (CMS) ist nicht enthalten — es braucht einen Node-Server mit Datenbank (siehe docs/LD-FLOW.md).
+# Einmalig nötig: Repo → Settings → Pages → Source: „GitHub Actions“.
+name: Website-Vorschau (GitHub Pages)
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Entfernt Server-Teile (LD Flow, Medien-Route, Proxy) — nur in dieser CI-Kopie.
+      - run: node scripts/prepare-static-export.mjs
+      - name: Statischer Export
+        run: npm run build
+        env:
+          STATIC_EXPORT: '1'
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          NODE_NO_WARNINGS: '1'
+      - run: touch out/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

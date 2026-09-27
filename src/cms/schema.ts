@@ -8,6 +8,12 @@
  * (siehe docs/LD-FLOW.md).
  */
 
+import { WIDGETS } from '@/widgets';
+import { controlDefaults } from '@/widgets/define';
+import { isSafeHref, isSafeMediaSrc } from './safe';
+
+export { isSafeHref, isSafeMediaSrc };
+
 // ---------------------------------------------------------------------------------------------------------------
 // Felder
 // ---------------------------------------------------------------------------------------------------------------
@@ -35,7 +41,7 @@ export type FieldDef =
   | (FieldBase & { type: 'strings'; max?: number })
   | (FieldBase & { type: 'paragraphs' })
   | (FieldBase & { type: 'list'; fields: FieldDef[]; itemLabel: string })
-  | (FieldBase & { type: 'blocks'; allowed: string[] })
+  | (FieldBase & { type: 'blocks'; allowed: '*' | string[] })
   | (FieldBase & { type: 'relations'; collection: string });
 
 export type FieldType = FieldDef['type'];
@@ -61,19 +67,6 @@ export interface MediaRef {
   alt: string;
 }
 
-/** Erlaubte Link-Ziele: http(s), mailto, tel, relative Pfade und Anker — kein javascript:, data:, //host. */
-export function isSafeHref(href: string): boolean {
-  if (/^(https?:\/\/|mailto:|tel:)/i.test(href)) return true;
-  if (href.startsWith('/') && !href.startsWith('//')) return true;
-  return href.startsWith('#');
-}
-
-/** Bildquellen: eigene Medien (/media/…), Dateien aus public/ oder https. */
-export function isSafeMediaSrc(src: string): boolean {
-  if (/^https:\/\//i.test(src)) return true;
-  return src.startsWith('/') && !src.startsWith('//') && !src.includes('..');
-}
-
 export const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
 const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
@@ -81,72 +74,8 @@ const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 // Blöcke & Seiten-Templates
 // ---------------------------------------------------------------------------------------------------------------
 
-export interface BlockDef {
-  type: string;
-  label: string;
-  fields: FieldDef[];
-}
-
-export const BLOCKS: Record<string, BlockDef> = {
-  text: { type: 'text', label: 'Text', fields: [{ key: 'body', label: 'Text', type: 'richtext', inline: true }] },
-  chapter: {
-    type: 'chapter',
-    label: 'Kapitel-Kopf',
-    fields: [
-      { key: 'n', label: 'Nummer', type: 'text', max: 4, help: 'z. B. 01' },
-      { key: 'label', label: 'Titel', type: 'text', max: 80, inline: true },
-    ],
-  },
-  image: {
-    type: 'image',
-    label: 'Bild',
-    fields: [
-      { key: 'image', label: 'Bild', type: 'media' },
-      { key: 'caption', label: 'Bildunterschrift', type: 'text', max: 200, inline: true },
-    ],
-  },
-  gallery: { type: 'gallery', label: 'Galerie (1 breit + 2 klein)', fields: [{ key: 'images', label: 'Bilder', type: 'gallery' }] },
-  quote: {
-    type: 'quote',
-    label: 'Zitat',
-    fields: [
-      { key: 'text', label: 'Zitat', type: 'textarea', max: 600, inline: true },
-      { key: 'by', label: 'Quelle', type: 'text', max: 120, inline: true },
-    ],
-  },
-  cta: {
-    type: 'cta',
-    label: 'Button',
-    fields: [
-      { key: 'label', label: 'Beschriftung', type: 'text', max: 60, required: true, inline: true },
-      { key: 'href', label: 'Ziel', type: 'url', required: true },
-    ],
-  },
-  projects: {
-    type: 'projects',
-    label: 'Projekt-Karten',
-    fields: [
-      { key: 'title', label: 'Überschrift', type: 'text', max: 80, inline: true },
-      { key: 'ids', label: 'Projekte', type: 'relations', collection: 'projects' },
-    ],
-  },
-  stats: {
-    type: 'stats',
-    label: 'Kennzahlen',
-    fields: [
-      {
-        key: 'items',
-        label: 'Kennzahlen',
-        type: 'list',
-        itemLabel: 'Kennzahl',
-        fields: [
-          { key: 'value', label: 'Wert', type: 'text', max: 16 },
-          { key: 'label', label: 'Beschriftung', type: 'text', max: 60 },
-        ],
-      },
-    ],
-  },
-};
+/** Seiten-Inhalte bestehen aus Widgets (src/widgets/*.tsx, Registry in src/widgets/index.ts). */
+export { WIDGETS } from '@/widgets';
 
 export interface PageTemplateDef {
   id: string;
@@ -168,7 +97,7 @@ export const PAGE_TEMPLATES: Record<string, PageTemplateDef> = {
         key: 'blocks',
         label: 'Inhalt',
         type: 'blocks',
-        allowed: ['text', 'chapter', 'image', 'gallery', 'quote', 'cta', 'projects', 'stats'],
+        allowed: '*',
       },
     ],
   },
@@ -185,7 +114,7 @@ export const PAGE_TEMPLATES: Record<string, PageTemplateDef> = {
         key: 'blocks',
         label: 'Inhalt',
         type: 'blocks',
-        allowed: ['text', 'chapter', 'image', 'gallery', 'quote', 'cta', 'projects', 'stats'],
+        allowed: '*',
       },
     ],
   },
@@ -344,6 +273,24 @@ const ABOUT_FIELDS: FieldDef[] = [
 ];
 
 export const COLLECTIONS: Record<string, CollectionDef> = {
+  patterns: {
+    id: 'patterns',
+    label: 'Vorlagen',
+    singular: 'Vorlage',
+    kind: 'collection',
+    titleField: 'title',
+    creatable: true,
+    fields: [
+      { key: 'title', label: 'Name', type: 'text', max: 80, required: true },
+      {
+        key: 'global',
+        label: 'Global — als Verweis einfügbar (Änderungen wirken überall)',
+        type: 'boolean',
+      },
+      { key: 'blocks', label: 'Inhalt', type: 'blocks', allowed: '*' },
+    ],
+    href: () => null,
+  },
   home: {
     id: 'home',
     label: 'Startseite',
@@ -421,6 +368,7 @@ export function fieldsFor(collection: string, doc?: Record<string, unknown>): Fi
 
 /** Slugs, die als Seiten-ID tabu sind (bestehende Routen). */
 export const RESERVED_SLUGS = new Set([
+  'vorlage',
   'projekte',
   'labs',
   'tech',
@@ -594,21 +542,62 @@ export function validateField(f: FieldDef, raw: unknown, path: string, errors: E
       if (!Array.isArray(raw) || raw.length > 200) return fail('Liste erwartet');
       return raw.map((item, i) => validateObject(f.fields, item, `${path}.${i}`, errors));
     }
-    case 'blocks': {
-      if (!Array.isArray(raw) || raw.length > 200) return fail('Blöcke erwartet');
-      return raw.map((item, i) => {
-        const o = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
-        const type = String(o.type ?? '');
-        const def = BLOCKS[type];
-        if (!def || !f.allowed.includes(type)) {
-          errors[`${path}.${i}`] = 'Unbekannter Block';
-          return undefined;
-        }
-        const id = typeof o._id === 'string' && /^[a-z0-9]{6,24}$/.test(o._id) ? o._id : randomId();
-        return { type, _id: id, ...validateObject(def.fields, o, `${path}.${i}`, errors) };
-      });
-    }
+    case 'blocks':
+      return validateBlocks(raw, f.allowed, path, errors, 0);
   }
+}
+
+const MAX_DEPTH = 6;
+
+/** Widgets validieren: Felder, Controls (nur vorgegebene Varianten) und Slots rekursiv. */
+function validateBlocks(raw: unknown, allowed: '*' | string[], path: string, errors: Errors, depth: number): unknown[] | undefined {
+  if (!Array.isArray(raw) || raw.length > 200) {
+    errors[path] = 'Blöcke erwartet';
+    return undefined;
+  }
+  if (depth > MAX_DEPTH) {
+    errors[path] = 'Zu tief verschachtelt';
+    return undefined;
+  }
+  const out: unknown[] = [];
+  raw.forEach((item, i) => {
+    const o = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+    const type = String(o.type ?? '');
+    const w = WIDGETS[type];
+    const p = `${path}.${i}`;
+    if (!w || (allowed !== '*' && !allowed.includes(type))) {
+      errors[p] = 'Unbekanntes oder hier nicht erlaubtes Widget';
+      return;
+    }
+    const id = typeof o._id === 'string' && /^[a-z0-9]{6,24}$/.test(o._id) ? o._id : randomId();
+    const block: Record<string, unknown> = { type, _id: id, ...validateObject(w.fields, o, p, errors) };
+    if (w.controlFields.length)
+      block.controls = { ...controlDefaults(w), ...validateObject(w.controlFields, o.controls, `${p}.controls`, errors) };
+    const slotNames = Object.keys(w.slots);
+    if (slotNames.length) {
+      const src = (o.slots && typeof o.slots === 'object' ? o.slots : {}) as Record<string, unknown>;
+      const slots: Record<string, unknown> = {};
+      for (const name of slotNames) {
+        const def = w.slots[name];
+        const v = validateBlocks(src[name] ?? [], def.allow, `${p}.slots.${name}`, errors, depth + 1);
+        if (v && def.max !== undefined && v.length > def.max) errors[`${p}.slots.${name}`] = `Höchstens ${def.max} Elemente`;
+        slots[name] = v ?? [];
+      }
+      block.slots = slots;
+    }
+    out.push(block);
+  });
+  return out;
+}
+
+/** Neues Widget mit Standardwerten (Controls, leere Slots). */
+export function newBlock(type: string): Record<string, unknown> {
+  const w = WIDGETS[type];
+  const b: Record<string, unknown> = { type, _id: randomId() };
+  if (!w) return b;
+  if (w.controlFields.length) b.controls = controlDefaults(w);
+  if (Object.keys(w.slots).length) b.slots = Object.fromEntries(Object.keys(w.slots).map((k) => [k, []]));
+  return b;
 }
 
 export function validateObject(fields: FieldDef[], raw: unknown, prefix: string, errors: Errors): Record<string, unknown> {

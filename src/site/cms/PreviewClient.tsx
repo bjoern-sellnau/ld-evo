@@ -12,6 +12,7 @@ import { CaseStudyPage } from '../pages/CaseStudyPage';
 import { HalloPage } from '../pages/HalloPage';
 import { ReisePage } from '../pages/ReisePage';
 import { EditProvider, setAtPath } from './editing';
+import { WidgetEditProvider, WidgetList, clearWidgetSelection, type Block, type Pattern } from './Widgets';
 import { PageRenderer } from './PageRenderer';
 
 type Doc = Record<string, unknown> & { id: string };
@@ -26,12 +27,15 @@ const upsert = <T extends { id: string }>(list: T[], doc: T) =>
 export function PreviewClient({ collection, initial }: { collection: string; initial: Doc }) {
   const content = useContent();
   const [doc, setDoc] = useState<Doc>(initial);
+  const [patterns, setPatterns] = useState<Pattern[]>(content.patterns as Pattern[]);
 
   useEffect(() => {
     const on = (e: MessageEvent) => {
       if (e.origin !== window.location.origin || e.source !== window.parent) return;
       const d = e.data as { type?: string; doc?: Record<string, unknown> };
       if (d?.type === 'ldflow:doc' && d.doc) setDoc({ ...d.doc, id: initial.id });
+      const pd = e.data as { type?: string; patterns?: Pattern[] };
+      if (pd?.type === 'ldflow:patterns' && Array.isArray(pd.patterns)) setPatterns(pd.patterns);
     };
     window.addEventListener('message', on);
     window.parent.postMessage({ type: 'ldflow:ready' }, window.location.origin);
@@ -41,7 +45,13 @@ export function PreviewClient({ collection, initial }: { collection: string; ini
       if (a && !a.closest('[data-flow-field]')) e.preventDefault();
     };
     document.addEventListener('click', click, true);
+    // Klick ins Leere hebt die Widget-Auswahl auf.
+    const clear = (e: MouseEvent) => {
+      if (!(e.target as Element | null)?.closest?.('[data-widget-path],[role=menu],[role=toolbar]')) clearWidgetSelection();
+    };
+    document.addEventListener('click', clear);
     return () => {
+      document.removeEventListener('click', clear);
       window.removeEventListener('message', on);
       document.removeEventListener('click', click, true);
     };
@@ -57,42 +67,60 @@ export function PreviewClient({ collection, initial }: { collection: string; ini
     [],
   );
 
-  let merged = content;
+  const post = (msg: Record<string, unknown>) => window.parent.postMessage(msg, window.location.origin);
+  const widgetApi = {
+    doc,
+    set: api.set,
+    focus: (path: string) => post({ type: 'ldflow:focus', path }),
+    savePattern: (block: Block) => post({ type: 'ldflow:pattern', block }),
+    patterns,
+  };
+
+  let merged = { ...content, patterns: patterns as typeof content.patterns };
   let body: ReactNode = null;
   switch (collection) {
     case 'projects': {
       const p = doc as unknown as Project;
-      merged = { ...content, projects: upsert(content.projects, p) };
+      merged = { ...merged, projects: upsert(content.projects, p) };
       body = <CaseStudyPage p={p} />;
       break;
     }
     case 'articles': {
       const a = doc as unknown as Article;
-      merged = { ...content, articles: upsert(content.articles, a) };
+      merged = { ...merged, articles: upsert(content.articles, a) };
       body = <ArticlePage a={a} />;
       break;
     }
     case 'home':
-      merged = { ...content, home: doc as unknown as HomeContent };
+      merged = { ...merged, home: doc as unknown as HomeContent };
       body = <HalloPage />;
       break;
     case 'about':
-      merged = { ...content, about: doc as unknown as AboutContent };
+      merged = { ...merged, about: doc as unknown as AboutContent };
       body = <AboutPage />;
       break;
     case 'journey': {
       const j = upsert(content.journey, doc as unknown as JourneyEntry).sort((x, y) => x.year - y.year);
-      merged = { ...content, journey: j };
+      merged = { ...merged, journey: j };
       body = <ReisePage />;
       break;
     }
     case 'pages':
       body = <PageRenderer page={doc as unknown as CmsPage} />;
       break;
+    case 'patterns':
+      body = (
+        <div style={{ padding: '140px 0 80px', maxWidth: 760, margin: '0 auto' }}>
+          <WidgetList blocks={doc.blocks as Block[] | undefined} path="blocks" />
+        </div>
+      );
+      break;
   }
   return (
     <ContentProvider value={merged}>
-      <EditProvider api={api}>{body}</EditProvider>
+      <EditProvider api={api}>
+        <WidgetEditProvider value={widgetApi}>{body}</WidgetEditProvider>
+      </EditProvider>
     </ContentProvider>
   );
 }

@@ -7,3 +7,4 @@ src/site/hero/engine/
 scripts/hero-engine-head.js
 src/site/splash/sketchMarkup.ts
 src/orbit/
+src/widgets/index.ts

@@ -10,6 +10,7 @@ const mono = JetBrains_Mono({ subsets: ['latin'], weight: ['400'], variable: '--
 export const metadata: Metadata = {
   title: 'ORBIT OS · Wallpapers',
   description: 'Dreizehn interaktive GPU-Shader-Wallpapers, die auf Cursor und Klicks reagieren.',
+  icons: { icon: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/favicon.svg` },
 };
 
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#000000' };

@@ -8,6 +8,8 @@ import {
   adminDeleteUser,
   adminUpdateUser,
   createDoc,
+  createPattern,
+  publishedPatterns,
   deleteDoc,
   deleteMedia,
   discardDraft,
@@ -84,7 +86,7 @@ export async function changePasswordAction(_: ActionState, fd: FormData): Promis
 
 export async function createDocAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const collection = str(fd, 'collection');
-  const res = await guard(() => createDoc(collection, str(fd, 'id'), str(fd, 'template') || undefined));
+  const res = await guard(() => createDoc(collection, str(fd, 'id'), str(fd, 'template') || undefined, str(fd, 'pattern') || undefined));
   if (!res.ok) return { error: res.error };
   redirect(`/flow/c/${collection}/${(res as { id: string }).id}`);
 }
@@ -97,6 +99,14 @@ export async function publishAction(collection: string, id: string, data?: unkno
   const res = await guard(() => publishDoc(collection, id, data));
   if (res.ok) refreshSite();
   return res;
+}
+
+/** Widget als Vorlage speichern; liefert die aktuelle Vorlagen-Liste für die Vorschau zurück. */
+export async function savePatternAction(title: string, global: boolean, block: unknown) {
+  const res = await guard(() => createPattern(title, block, global));
+  if (!res.ok) return res;
+  refreshSite();
+  return { ok: true as const, patterns: publishedPatterns() };
 }
 
 export async function discardDraftAction(collection: string, id: string) {

@@ -4,7 +4,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { setAtPath } from '@/site/cms/editing';
-import { deleteDocAction, discardDraftAction, publishAction, restoreRevisionAction, saveDraftAction, unpublishAction } from '../actions';
+import {
+  deleteDocAction,
+  discardDraftAction,
+  publishAction,
+  restoreRevisionAction,
+  saveDraftAction,
+  savePatternAction,
+  unpublishAction,
+} from '../actions';
 import { COLLECTIONS, fieldsFor, type Errors } from '../schema';
 import { Field, type Relations } from './Fields';
 
@@ -101,6 +109,30 @@ export function DocEditor(props: EditorProps) {
       const d = e.data as { type?: string; path?: string; value?: unknown };
       if (d?.type === 'ldflow:ready') post(docRef.current);
       if (d?.type === 'ldflow:set' && typeof d.path === 'string') change(setAtPath(docRef.current, d.path, d.value), true);
+      // „⚙ Einstellungen“ in der Werkzeugleiste: zum Widget im Formular springen und kurz hervorheben.
+      if (d?.type === 'ldflow:focus' && typeof d.path === 'string') {
+        const el = document.querySelector<HTMLElement>(`[data-flow-path="${CSS.escape(d.path)}"]`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          el.animate([{ boxShadow: '0 0 0 3px #A78BFA' }, { boxShadow: '0 0 0 0 transparent' }], { duration: 1400 });
+          el.querySelector<HTMLElement>('input,textarea,select,button')?.focus({ preventScroll: true });
+        }
+      }
+      // „☆ Als Vorlage speichern“
+      const pd = e.data as { type?: string; block?: unknown };
+      if (pd?.type === 'ldflow:pattern' && pd.block) {
+        const title = window.prompt('Name der Vorlage (z. B. „Preis-Abschnitt“):');
+        if (!title) return;
+        const global = window.confirm(
+          'Als GLOBALE Vorlage speichern?\n\nOK = global: kann als Verweis eingefügt werden, Änderungen wirken überall.\nAbbrechen = normale Vorlage: wird beim Einfügen kopiert.',
+        );
+        void savePatternAction(title, global, pd.block).then((res) => {
+          if (res.ok && 'patterns' in res) {
+            frame.current?.contentWindow?.postMessage({ type: 'ldflow:patterns', patterns: res.patterns }, window.location.origin);
+            setMsg({ kind: 'ok', text: `Vorlage „${title}“ gespeichert — im „+“-Menü unter Vorlagen.` });
+          } else if (!res.ok) setMsg({ kind: 'error', text: res.error });
+        });
+      }
     };
     window.addEventListener('message', on);
     return () => window.removeEventListener('message', on);

@@ -19,14 +19,52 @@ const check = (name, ok, detail = '') => {
 };
 
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? '/opt/pw-browsers/chromium' });
-const ctx = await b.newContext({ viewport: { width: 1500, height: 950 } });
+// Breit genug, dass die Desktop-Vorschau (1280 px) unskaliert bleibt — Playwright rechnet Klicks in skalierten iframes ungenau um.
+const ctx = await b.newContext({ viewport: { width: 2000, height: 1000 } });
 await ctx.addInitScript(() => {
   localStorage.setItem('ld-cookie', 'ok');
   localStorage.setItem('ld-splash', 'off');
 });
+if (process.env.TRACE_MSG)
+  await ctx.addInitScript(() => {
+    window.addEventListener('message', (e) => {
+      const d = e.data || {};
+      if (!String(d.type || '').startsWith('ldflow')) return;
+      const n = d.doc ? (d.doc.blocks || []).map((b) => b.type).join(',') : (d.path ?? '');
+      console.log(
+        `MSG ${location.pathname.startsWith('/flow-preview') ? 'preview<-' : 'editor<-'} ${d.type} ${n} ${d.path === 'blocks' ? (d.value || []).map((b) => b.type).join(',') : ''}`,
+      );
+    });
+    document.addEventListener(
+      'click',
+      (e) =>
+        console.log(
+          `MSG CLICK ${location.pathname.slice(0, 14)} ${e.target?.tagName} ${(e.target?.textContent || '').slice(0, 12)} ${e.target?.closest?.('[data-widget-path]')?.dataset.widgetPath ?? ''}`,
+        ),
+      true,
+    );
+  });
 const p = await ctx.newPage();
+if (process.env.TRACE_MSG) p.on('console', (c) => c.text().startsWith('MSG') && console.log(c.text()));
 const errs = [];
 p.on('pageerror', (e) => errs.push(e.message));
+/** Wartet, bis fn() wahr wird (statt fester Wartezeiten). */
+const until = async (fn, ms = 5000) => {
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    if (await fn().catch(() => false)) return true;
+    await p.waitForTimeout(150);
+  }
+  return false;
+};
+/** Menü über einen Button öffnen und warten, bis es sichtbar ist (Layout kann sich gerade verschieben). */
+const openMenu = async (frame, button) => {
+  for (let i = 0; i < 6; i++) {
+    await button.click();
+    if (await until(async () => (await frame.getByRole('menu').count()) > 0, 800)) return;
+  }
+  throw new Error('Menü öffnet nicht');
+};
 const alert = (pg = p) => pg.locator('.f-msg[role=alert]').first();
 
 await p.goto(U + '/flow');
@@ -87,7 +125,7 @@ await p.click('text=+ Seite anlegen');
 await p.waitForURL(/kontakt-info/);
 await p.getByRole('textbox', { name: 'Titel', exact: true }).fill('Kontakt & Info');
 await p.getByLabel('Kicker').fill('SEITE AUS LD FLOW');
-await p.selectOption('select[aria-label="Block hinzufügen"]', 'quote');
+await p.selectOption('select[aria-label="Widget hinzufügen"]', 'quote');
 await p.getByRole('textbox', { name: 'Zitat', exact: true }).fill('Gebaut mit LD Flow.');
 await p.waitForTimeout(600);
 await p.getByRole('button', { name: 'Veröffentlichen' }).click();
@@ -101,6 +139,84 @@ await p.fill('#new-id', 'projekte');
 await p.click('text=+ Seite anlegen');
 await alert().waitFor();
 check('reservierter Slug abgelehnt', (await alert().textContent()).includes('reserviert'));
+
+// Widget-Baukasten in der Vorschau
+await p.goto(U + '/flow/c/pages/kontakt-info');
+const pv = p.frameLocator('iframe[title=Vorschau]');
+const w0 = pv.locator('[data-widget-path="blocks.0"]');
+await w0.waitFor({ timeout: 20000 });
+// Die Hülle wird serverseitig vorgerendert — erst nach der Hydration reagiert sie auf Klicks.
+for (let i = 0; i < 20 && !(await pv.getByRole('toolbar').getByRole('button', { name: 'Groß' }).count()); i++) {
+  await w0.click({ position: { x: 20, y: 20 } });
+  await p.waitForTimeout(300);
+}
+await pv.getByRole('toolbar').getByRole('button', { name: 'Groß' }).click();
+check(
+  'Control-Button in der Werkzeugleiste → Formular',
+  await until(async () => (await p.locator('[data-flow-path="blocks.0"] [aria-pressed="true"]').allTextContents()).includes('Groß')),
+);
+await openMenu(pv, pv.getByRole('button', { name: 'Widget einfügen' }).last());
+await pv.getByRole('menuitem', { name: /Spalten/ }).click();
+await pv.locator('[data-widget-path="blocks.1"]').waitFor();
+check(
+  'Widget über „+“ eingefügt',
+  (await p.locator('[data-flow-path="blocks.1"] .f-group-head').first().textContent()).includes('Spalten'),
+);
+await openMenu(pv, pv.locator('[data-widget-path="blocks.1"]').getByRole('button', { name: 'Widget einfügen' }).first());
+await pv.getByRole('menuitem', { name: /Preiskarte/ }).click();
+const price = pv.locator('[data-flow-field="blocks.1.slots.links.0.price"]');
+await price.waitFor();
+await price.click();
+await p.keyboard.type('ab 990 €');
+await p.waitForTimeout(400);
+check(
+  'Widget im Slot + Inline-Edit',
+  (await p.locator('[data-flow-path="blocks.1.slots.links.0"] input').nth(1).inputValue()) === 'ab 990 €',
+);
+await w0.click({ position: { x: 20, y: 20 } });
+await pv.getByRole('button', { name: 'Duplizieren' }).click();
+await pv.locator('[data-widget-path="blocks.2"]').waitFor();
+check('Duplizieren', (await pv.locator('[data-widget-path^="blocks."]:not([data-widget-path*="slots"])').count()) === 3);
+// Drag & Drop: Reihenfolge ist jetzt [Zitat, Zitat-Kopie, Spalten] → erstes Zitat ans Ende
+await pv.locator('[data-widget-path="blocks.0"]').hover({ position: { x: 20, y: 20 } });
+const handle = pv.locator('[data-widget-path="blocks.0"] [data-drag-handle]').first();
+await handle.waitFor();
+const hb = await handle.boundingBox();
+const tbox = await pv.locator('[data-widget-path="blocks.2"]').boundingBox();
+// Pointer-Drag in Schritten (funktioniert auch auf Touch-Geräten)
+await p.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2);
+await p.mouse.down();
+for (let i = 1; i <= 10; i++) await p.mouse.move(hb.x + 20, hb.y + (tbox.y + tbox.height - 8 - hb.y) * (i / 10), { steps: 3 });
+await p.mouse.up();
+const head = async (i) => (await p.locator(`[data-flow-path="blocks.${i}"] .f-group-head`).first().textContent()) ?? '';
+check('Drag & Drop verschiebt', await until(async () => (await head(1)).includes('Spalten') && (await head(2)).includes('Zitat')));
+// Vorlage speichern (global)
+let dialogs = 0;
+const onDialog = (d) => (dialogs++ === 0 ? d.accept('Preis-Spalten') : d.accept());
+p.on('dialog', onDialog);
+// Verschachteltes Widget anklicken, dann „↥ Übergeordnetes auswählen“ → die Spalten sind ausgewählt
+await pv.locator('[data-widget-path="blocks.1.slots.links.0"]').click({ position: { x: 30, y: 60 } });
+await pv.getByRole('button', { name: 'Übergeordnetes auswählen' }).click();
+await pv.getByRole('button', { name: 'Als Vorlage speichern' }).click();
+await p.locator('.f-editor-bar .f-msg').waitFor();
+check(
+  'Vorlage gespeichert',
+  (await p.locator('.f-editor-bar .f-msg').textContent()).includes('Preis-Spalten'),
+  await p.locator('.f-editor-bar .f-msg').textContent(),
+);
+p.off('dialog', onDialog);
+await p.getByRole('button', { name: 'Veröffentlichen' }).click();
+await p.waitForTimeout(1500);
+await site.goto(U + '/kontakt-info');
+check('Widgets live (Preiskarte im Spalten-Slot)', (await site.getByText('ab 990 €').count()) === 1);
+check('öffentlich keine Widget-Hülle', (await site.locator('[data-widget-path]').count()) === 0);
+await p.goto(U + '/flow/c/pages');
+await p.fill('#new-id', 'aus-vorlage');
+await p.selectOption('#new-pattern', { label: 'Preis-Spalten' });
+await p.click('text=+ Seite anlegen');
+await p.waitForURL(/aus-vorlage/);
+check('Seite aus Vorlage', (await p.locator('[data-flow-path="blocks.0"] .f-group-head').first().textContent()).includes('Spalten'));
+if (OUT) await p.screenshot({ path: `${OUT}/flow-widgets.png` });
 
 // Medien
 await p.goto(U + '/flow/media');

@@ -15,9 +15,14 @@ export default async function Page() {
           <div className="f-kicker">LD Flow. — cms · loona! designs</div>
           <h1>Hallo {user?.name.split(' ')[0]}.</h1>
         </div>
-        <Link className="f-btn primary" href="/flow/c/pages">
-          + Neue Seite
-        </Link>
+        <span className="f-row">
+          <Link className="f-btn" href="/flow/guide">
+            Guide öffnen
+          </Link>
+          <Link className="f-btn primary" href="/flow/c/pages">
+            + Neue Seite
+          </Link>
+        </span>
       </div>
       <div className="f-grid">
         {Object.values(COLLECTIONS).map((def) => {

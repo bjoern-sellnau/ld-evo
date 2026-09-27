@@ -1,7 +1,8 @@
 'use client';
 
 import { createContext, useContext, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { isSafeHref, type RichBlock, type RichInline, type RichText } from '@/cms/schema';
+import type { RichBlock, RichInline, RichText } from '@/cms/schema';
+import { isSafeHref } from '@/cms/safe';
 import { RichTextView } from './RichTextView';
 
 /**
@@ -17,10 +18,21 @@ export interface EditApi {
 const EditCtx = createContext<EditApi | null>(null);
 
 export function EditProvider({ api, children }: { api: EditApi; children: ReactNode }) {
-  return <EditCtx.Provider value={api}>{children}</EditCtx.Provider>;
+  return (
+    <EditCtx.Provider value={api}>
+      {/* Leere Felder brauchen eine klickbare Fläche + Hinweis (nur im Editor). */}
+      <style>{`[data-flow-field]:empty{display:inline-block;min-width:4ch}[data-flow-field]:empty::before{content:attr(data-placeholder);opacity:.45;font-style:italic}`}</style>
+      {children}
+    </EditCtx.Provider>
+  );
 }
 
 export const useEditing = () => useContext(EditCtx) !== null;
+
+/** Bereich ohne Inline-Editing (z. B. globale Vorlagen: werden in der Vorlage selbst bearbeitet). */
+export function NoEdit({ children }: { children: ReactNode }) {
+  return <EditCtx.Provider value={null}>{children}</EditCtx.Provider>;
+}
 
 const editStyle: CSSProperties = { outline: '1px dashed color-mix(in srgb, #A78BFA 70%, transparent)', outlineOffset: 3, cursor: 'text' };
 
@@ -47,6 +59,7 @@ function EditableText({ api, path, value, multiline }: { api: EditApi; path: str
       contentEditable="plaintext-only"
       suppressContentEditableWarning
       data-flow-field={path}
+      data-placeholder="Text …"
       spellCheck
       style={{ ...editStyle, whiteSpace: multiline ? 'pre-wrap' : undefined }}
       onKeyDown={(e) => {

@@ -13,7 +13,12 @@
     "brand:sync": "node scripts/sync-brand-assets.mjs",
     "brand:ico": "node scripts/make-favicon-ico.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" scripts",
-    "test:e2e": "node tests/e2e/flow.e2e.mjs"
+    "test:e2e": "node tests/e2e/flow.e2e.mjs",
+    "widgets": "node scripts/gen-widgets.mjs",
+    "predev": "node scripts/gen-widgets.mjs",
+    "prebuild": "node scripts/gen-widgets.mjs",
+    "pretest": "node scripts/gen-widgets.mjs",
+    "pretypecheck": "node scripts/gen-widgets.mjs"
   },
   "dependencies": {
     "next": "^16.3.6",

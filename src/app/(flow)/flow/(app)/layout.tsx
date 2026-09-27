@@ -18,8 +18,14 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     badge: c[id]?.drafts ? `${c[id].drafts} Entwurf` : undefined,
   });
   const groups = [
-    { label: 'Übersicht', items: [{ href: '/flow', label: 'Dashboard' }] },
-    { label: 'Seiten', items: [col('home'), col('about'), col('pages')] },
+    {
+      label: 'Übersicht',
+      items: [
+        { href: '/flow', label: 'Dashboard' },
+        { href: '/flow/guide', label: 'Guide' },
+      ],
+    },
+    { label: 'Seiten', items: [col('home'), col('about'), col('pages'), col('patterns')] },
     { label: 'Inhalte', items: [col('projects'), col('articles'), col('journey')] },
     {
       label: 'Verwaltung',

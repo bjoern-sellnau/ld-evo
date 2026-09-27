@@ -94,7 +94,12 @@ export function workingCopy(row: DocRow): Record<string, unknown> {
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string; errors?: Errors };
 
-export async function createDoc(collection: string, idRaw: string, template?: string): Promise<Result<{ id: string }>> {
+export async function createDoc(
+  collection: string,
+  idRaw: string,
+  template?: string,
+  fromPattern?: string,
+): Promise<Result<{ id: string }>> {
   const user = await requireUser();
   const def = COLLECTIONS[collection];
   if (!def) return { ok: false, error: 'Unbekannte Collection' };
@@ -109,6 +114,11 @@ export async function createDoc(collection: string, idRaw: string, template?: st
   const pos = (db().prepare('SELECT COALESCE(MAX(position), -1) + 1 AS p FROM docs WHERE collection = ?').get(collection) as { p: number })
     .p;
   const data = emptyDoc(collection, template);
+  // Seite aus einer Vorlage starten: deren Widgets als unabhängige Kopie übernehmen.
+  if (fromPattern && 'blocks' in data) {
+    const p = publishedDoc('patterns', fromPattern);
+    if (p && Array.isArray(p.blocks)) data.blocks = validateDoc(collection, { ...data, blocks: p.blocks }).value.blocks ?? [];
+  }
   db()
     .prepare(
       'INSERT INTO docs (collection, id, position, published, draft, created_at, updated_at, updated_by) VALUES (?, ?, ?, NULL, ?, ?, ?, ?)',
@@ -204,6 +214,29 @@ export async function moveDoc(collection: string, id: string, dir: -1 | 1): Prom
     rows.forEach((r, k) => upd.run(k === i ? j : k === j ? i : k, collection, r.id));
   });
   return { ok: true };
+}
+
+/** Widget (samt verschachtelten Widgets) als neue, sofort veröffentlichte Vorlage speichern. */
+export async function createPattern(title: string, block: unknown, global: boolean): Promise<Result<{ id: string }>> {
+  await requireUser();
+  const t = title.trim().slice(0, 80);
+  if (!t) return { ok: false, error: 'Name fehlt.' };
+  const base = t
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+  const id = `${base || 'vorlage'}-${randomBytes(3).toString('hex')}`;
+  const created = await createDoc('patterns', id);
+  if (!created.ok) return created;
+  const res = await publishDoc('patterns', id, { title: t, global, blocks: [block] });
+  return res.ok ? { ok: true, id } : res;
+}
+
+export function publishedPatterns() {
+  return publishedDocs('patterns');
 }
 
 export async function listRevisions(collection: string, id: string) {

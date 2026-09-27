@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
-import { listDocs, workingCopy } from '@/cms/repo';
+import { listDocs, publishedPatterns, workingCopy } from '@/cms/repo';
 import { COLLECTIONS, PAGE_TEMPLATES } from '@/cms/schema';
 import { CollectionList, type ListRow } from '@/cms/ui/CollectionList';
 
@@ -31,7 +31,13 @@ export default async function Page({ params }: { params: Promise<{ collection: s
           <h1>{def.label}</h1>
         </div>
       </div>
-      <CollectionList collection={collection} rows={rows} creatable={def.creatable} singular={def.singular} />
+      <CollectionList
+        collection={collection}
+        rows={rows}
+        creatable={def.creatable}
+        singular={def.singular}
+        patterns={collection === 'pages' ? publishedPatterns().map((p) => ({ id: p.id, title: String(p.title ?? p.id) })) : []}
+      />
     </>
   );
 }

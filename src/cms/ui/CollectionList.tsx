@@ -22,11 +22,14 @@ export function CollectionList({
   rows,
   creatable,
   singular,
+  patterns = [],
 }: {
   collection: string;
   rows: ListRow[];
   creatable: boolean;
   singular: string;
+  /** Veröffentlichte Vorlagen als Startpunkt für neue Seiten. */
+  patterns?: { id: string; title: string }[];
 }) {
   const [state, create, pending] = useActionState<ActionState, FormData>(createDocAction, undefined);
   const [moving, startMove] = useTransition();
@@ -54,6 +57,19 @@ export function CollectionList({
                   {Object.values(PAGE_TEMPLATES).map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {collection === 'pages' && patterns.length > 0 && (
+              <div className="f-field" style={{ margin: 0, flex: '1 1 200px' }}>
+                <label htmlFor="new-pattern">Start-Vorlage</label>
+                <select id="new-pattern" name="pattern" defaultValue="">
+                  <option value="">Leer beginnen</option>
+                  {patterns.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
                     </option>
                   ))}
                 </select>

@@ -40,6 +40,7 @@ export function getSiteContent(): SiteContent {
     articles: read('articles') as unknown as Article[],
     journey: [...journey].sort((a, b) => a.year - b.year),
     pages: (read('pages') as unknown as CmsPage[]).map((p) => ({ id: p.id, title: p.title })),
+    patterns: read('patterns') as unknown as SiteContent['patterns'],
   };
 }
 
