@@ -5,6 +5,8 @@
  *   src/orbit/markup.ts   — <body>-Markup inkl. der 15 Shader-<script>-Blöcke (GLSL unverändert, werden per textContent gelesen)
  *   src/orbit/engine.js   — Host-Script (IIFE) unverändert als mountOrbit(); Canvas-Schrift nutzt die geladene Inter,
  *                           Rückgabe { selectShader, current } für Persistenz (README: „Persist current and all tweak values“)
+ * Barrierefreiheit (einzige Abweichungen, Lighthouse): der Open-Zustand des Pickers liegt als data-open am Container,
+ * aria-expanded an der Combobox (ARIA verlangt es dort); jeder Regler bekommt den Zeilennamen als aria-label.
  * Aufruf: node scripts/extract-orbit.mjs
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -25,13 +27,29 @@ expect(2543, '})();');
 expect(2544, '</script>');
 
 const css = L(8, 479)
+  .replaceAll('.picker[aria-expanded="true"]', '.picker[data-open="true"]')
   .replaceAll('"Inter"', 'var(--orbit-inter), "Inter"')
   .replaceAll('"JetBrains Mono"', 'var(--orbit-mono), "JetBrains Mono"');
-const markup = L(483, 1744);
+let markup = L(483, 1744)
+  .replace('id="picker" aria-expanded="false"', 'id="picker" data-open="false"')
+  .replace('role="combobox" tabindex="0"', 'role="combobox" aria-expanded="false" tabindex="0"');
+if (!markup.includes('data-open="false"') || !markup.includes('role="combobox" aria-expanded'))
+  throw new Error('Picker-Markup nicht gefunden');
+// Regler ohne Label: Namen der Zeile als aria-label übernehmen.
+markup = markup.replace(/<input id="(t\w+)"/g, (m, id, off) => {
+  const names = [...markup.slice(0, off).matchAll(/<span class="name"[^>]*>([^<]+)<\/span>/g)];
+  const name = names.length ? names[names.length - 1][1].trim() : id;
+  return `<input id="${id}" aria-label="${name}"`;
+});
 let engine = L(1748, 2542);
 const fontCount = (engine.match(/"Inter", system-ui/g) || []).length;
 if (fontCount !== 2) throw new Error('Canvas-Schrift: erwartet 2 Stellen');
 engine = engine.replaceAll('"Inter", system-ui', '${INTER}, system-ui');
+const openCount = (engine.match(/picker\.(set|get)Attribute\('aria-expanded'/g) || []).length;
+if (openCount !== 4) throw new Error(`Picker-Zustand: erwartet 4 Stellen, gefunden ${openCount}`);
+engine = engine
+  .replaceAll("picker.setAttribute('aria-expanded', ", 'setPickerOpen(')
+  .replaceAll("picker.getAttribute('aria-expanded')", 'picker.dataset.open');
 
 mkdirSync(path.join(root, 'src/orbit'), { recursive: true });
 const gen =
@@ -49,6 +67,11 @@ writeFileSync(
  */
 export function mountOrbit(opts = {}) {
   const INTER = opts.interFamily || '"Inter"';
+  // a11y: Zustand am Container (CSS) und aria-expanded an der Combobox.
+  const setPickerOpen = (v) => {
+    picker.dataset.open = v;
+    pickerControl.setAttribute('aria-expanded', v);
+  };
 ${engine}
   return {
     selectShader,

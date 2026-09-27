@@ -7,6 +7,11 @@
  */
 export function mountOrbit(opts = {}) {
   const INTER = opts.interFamily || '"Inter"';
+  // a11y: Zustand am Container (CSS) und aria-expanded an der Combobox.
+  const setPickerOpen = (v) => {
+    picker.dataset.open = v;
+    pickerControl.setAttribute('aria-expanded', v);
+  };
   const canvas = document.getElementById('stage');
   const gl = canvas.getContext('webgl', { antialias: false, premultipliedAlpha: false });
   if(!gl){
@@ -191,17 +196,17 @@ export function mountOrbit(opts = {}) {
   });
 
   function openMenu(){
-    picker.setAttribute('aria-expanded', 'true');
+    setPickerOpen('true');
     setFocus(current);
     // scroll focused into view
     const el = pickerMenu.children[current];
     if(el) el.scrollIntoView({ block: 'nearest' });
   }
   function closeMenu(){
-    picker.setAttribute('aria-expanded', 'false');
+    setPickerOpen('false');
   }
   function toggleMenu(){
-    if(picker.getAttribute('aria-expanded') === 'true') closeMenu();
+    if(picker.dataset.open === 'true') closeMenu();
     else openMenu();
   }
   function setFocus(i){
@@ -213,7 +218,7 @@ export function mountOrbit(opts = {}) {
 
   pickerControl.addEventListener('click', toggleMenu);
   pickerControl.addEventListener('keydown', (e) => {
-    const open = picker.getAttribute('aria-expanded') === 'true';
+    const open = picker.dataset.open === 'true';
     if(e.key === 'Enter' || e.key === ' '){
       e.preventDefault();
       if(open){ selectShader(focusIdx); closeMenu(); }

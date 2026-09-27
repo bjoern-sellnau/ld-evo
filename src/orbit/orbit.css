@@ -106,7 +106,7 @@
     user-select: none;
   }
   .picker .control:hover{ border-color: var(--glass-stroke-strong); }
-  .picker[aria-expanded="true"] .control{
+  .picker[data-open="true"] .control{
     border-color: var(--glass-stroke-strong);
     background: rgba(20,22,30,0.7);
   }
@@ -131,7 +131,7 @@
     color: var(--ink-dim);
     transition: transform 200ms ease;
   }
-  .picker[aria-expanded="true"] .control .caret{ transform: rotate(180deg); }
+  .picker[data-open="true"] .control .caret{ transform: rotate(180deg); }
 
   .picker .menu{
     position: absolute; left: 0; right: 0; bottom: calc(100% + 8px);
@@ -149,7 +149,7 @@
     opacity: 0; transform: translateY(6px); pointer-events: none;
     transition: opacity 180ms ease, transform 180ms ease;
   }
-  .picker[aria-expanded="true"] .menu{
+  .picker[data-open="true"] .menu{
     opacity: 1; transform: translateY(0); pointer-events: auto;
   }
   .picker .menu .opt{
