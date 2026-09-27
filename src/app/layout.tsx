@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { LOONA_NEUTRALS } from '@/components/brand';
 import { spaceGrotesk } from '@/lib/fonts';
 import { siteIcons } from '@/lib/site-icons';
 import { instrumentSans, jetbrainsMono } from '@/site/fonts';
-import { THEME_BOOT_SCRIPT } from '@/site/settings/applyBody';
+import { BRAND_THEME_COLOR, THEME_BOOT_SCRIPT } from '@/site/settings/applyBody';
 import '@/styles/globals.css';
 import '@/site/styles/site.css';
 
@@ -29,8 +28,9 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image' },
 };
 
+// Default Marken-Ink; per Einstellung „Browser-Farbe“ (ld-themecolor) auf den Seitenhintergrund umschaltbar.
 export const viewport: Viewport = {
-  themeColor: LOONA_NEUTRALS.ink,
+  themeColor: BRAND_THEME_COLOR,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { pageVtClasses, runVt, trackVtOrigin } from '../vt/runVt';
-import { applyBody } from './applyBody';
+import { applyBody, applyThemeColor } from './applyBody';
 import { DEFAULT_SETTINGS, readSettings, writeSetting, type Settings } from './schema';
 
 type Overlay = 'search' | 'settings' | 'kontakt' | 'mobileNav' | null;
@@ -17,6 +17,8 @@ interface SiteContextValue {
   /** Viewport < 1020 px bzw. ≥ 1600 px (Prototyp: isMobile / isWide). */
   isMobile: boolean;
   isWide: boolean;
+  /** Viewport < 480 px (Logo nur als Zeichen). */
+  isNarrow: boolean;
   /** Mobile-Layout aktiv (View-Mode „Mobile“ oder automatisch schmal). */
   mob: boolean;
   /** Glas-Sidebar statt Top-Pille (View-Mode „Wide“ oder Seitenmenü-Toggle ab 1600 px). */
@@ -40,7 +42,7 @@ export function useSite(): SiteContextValue {
 export function SiteProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [hydrated, setHydrated] = useState(false);
-  const [viewport, setViewport] = useState({ isMobile: false, isWide: false });
+  const [viewport, setViewport] = useState({ isMobile: false, isWide: false, isNarrow: false });
   const [overlay, setOverlay] = useState<Overlay>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -51,7 +53,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setSettings(readSettings(localStorage));
     setHydrated(true);
-    const onResize = () => setViewport({ isMobile: window.innerWidth < 1020, isWide: window.innerWidth >= 1600 });
+    const onResize = () => setViewport({ isMobile: window.innerWidth < 1020, isWide: window.innerWidth >= 1600, isNarrow: window.innerWidth < 480 });
     onResize();
     window.addEventListener('resize', onResize);
     document.addEventListener('pointerdown', trackVtOrigin, { passive: true });
@@ -62,7 +64,9 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (hydrated) applyBody(settings);
+    if (!hydrated) return;
+    applyBody(settings);
+    applyThemeColor(settings.themeColor);
   }, [settings, hydrated]);
 
   // Esc schließt Overlays, ⌘K/Strg+K schaltet die Suche (Prototyp: _esc).

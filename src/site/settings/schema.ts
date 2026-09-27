@@ -7,6 +7,8 @@ export type Theme = 'dark' | 'light';
 export type StyleMode = 'liquid' | 'fluent' | 'glassm';
 export type ViewMode = 'auto' | 'desktop' | 'mobile' | 'wide';
 export type Frame = 'clear' | 'island' | 'hole' | 'notch';
+/** Browser-UI-Farbe: Marken-Ink (Logo-Handoff) oder Seitenhintergrund (--bg). */
+export type ThemeColorMode = 'brand' | 'site';
 
 export interface Settings {
   theme: Theme;
@@ -50,6 +52,7 @@ export interface Settings {
   mxLater: boolean;
   mxSize: number;
   cookie: string | null;
+  themeColor: ThemeColorMode;
 }
 
 /** SSR-Defaults (dark, Animationen an) — entsprechen dem initialen State des Prototyps. */
@@ -95,6 +98,7 @@ export const DEFAULT_SETTINGS: Settings = {
   mxLater: false,
   mxSize: 100,
   cookie: null,
+  themeColor: 'brand',
 };
 
 interface Codec<T> {
@@ -173,6 +177,8 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   mxLater: offUnlessOn('ld-mxlater'),
   mxSize: int('ld-mxsize', 100),
   cookie: nullableStr('ld-cookie'),
+  // Neu (nicht im Prototyp): wählbare theme-color
+  themeColor: str<ThemeColorMode>('ld-themecolor', 'brand'),
 };
 
 export function readSettings(storage: Pick<Storage, 'getItem'>): Settings {

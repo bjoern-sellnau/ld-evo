@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { CSSProperties, MouseEvent } from 'react';
+import { LoonaLockup } from '@/components/brand';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
@@ -25,7 +26,7 @@ const iconBtn: CSSProperties = {
 
 /** Liquid-Glass-Nav: Top-Pille (Desktop) bzw. Glas-Sidebar (Wide). Markup/Werte aus dem Prototyp, Zeile 328 ff. */
 export function SiteNav() {
-  const { settings, mob, sideActive, isWide, frame, toggleTheme, toggleAnim, setOverlay, navigate, set } = useSiteNav();
+  const { settings, mob, sideActive, isWide, frame, narrow, toggleTheme, toggleAnim, setOverlay, navigate, set } = useSiteNav();
   const pathname = usePathname();
   const active = pageForPath(pathname);
 
@@ -75,6 +76,7 @@ export function SiteNav() {
         <Link
           href="/"
           onClick={go('/')}
+          aria-label="Loona! Designs — Startseite"
           className={cx(styles.reset, styles.logo)}
           style={{
             display: 'flex',
@@ -82,33 +84,18 @@ export function SiteNav() {
             gap: 8,
             padding: '8px 12px 8px 9px',
             borderRadius: 999,
-            fontWeight: 700,
-            fontSize: 14,
             color: 'var(--ink)',
             transition: 'transform 0.25s,color 0.25s',
           }}
         >
-          <span
-            aria-hidden
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: 8,
-              background: 'linear-gradient(135deg,#FFB224,#FF7A2F)',
-              color: '#241400',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 11,
-              fontWeight: 800,
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)',
-            }}
-          >
-            L!
-          </span>
-          <span>
-            Loona<span style={{ color: 'var(--accent)' }}>!</span>
-          </span>
+          {/* LD-Lockup (Logo-Handoff Prompt 2): Zeichenhöhe 28 px, unter 480 px nur das Zeichen.
+              Textfarben folgen den Site-Tokens, damit Auto-Kontrast greift (Site-Nachtrag v23). */}
+          <LoonaLockup
+            markSize={28}
+            theme={settings.theme}
+            variant={narrow ? 'mark' : 'full'}
+            style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
+          />
         </Link>
 
         {!mob && (
@@ -234,5 +221,7 @@ function useSiteNav() {
   const s = site.settings;
   // Telefon-Hardware (Island/Hole/Notch) nur in der Desktop-Simulation → Top-Nav rückt auf 58 px.
   const frame = site.mob && !site.isMobile && s.frame !== 'clear';
-  return { ...site, frame };
+  // Unter 480 px (auch im 430-px-Telefonrahmen der Desktop-Simulation) nur das Zeichen.
+  const narrow = site.isNarrow || (site.mob && !site.isMobile);
+  return { ...site, frame, narrow };
 }

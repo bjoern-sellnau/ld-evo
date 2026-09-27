@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
+import { LoonaTile } from '@/components/brand';
 import { useSite } from '../settings/SiteProvider';
 import styles from './MobileMenu.module.css';
 import { pageForPath } from './pages';
@@ -85,24 +86,7 @@ export function MobileMenu() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, ...item('0.05s') }}>
-            <span
-              aria-hidden
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: 9,
-                background: 'linear-gradient(135deg,#FFB224,#FF7A2F)',
-                color: '#241400',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 11.5,
-                fontWeight: 800,
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)',
-              }}
-            >
-              L!
-            </span>
+            <LoonaTile product="ld" variant="color" size={26} decorative style={{ display: 'block' }} />
             <span style={{ fontFamily: 'var(--ld-font-mono),monospace', fontSize: 10, letterSpacing: '0.2em', color: 'var(--soft)' }}>MENÜ</span>
           </div>
 

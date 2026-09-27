@@ -40,6 +40,16 @@ export function applyBody(s: Settings, body: HTMLElement = document.body) {
   }
 }
 
+/** Marken-Ink aus dem Logo-Handoff (theme-color-Default). */
+export const BRAND_THEME_COLOR = '#171310';
+
+/** <meta name="theme-color"> je nach Einstellung: Marken-Ink oder aktueller Seitenhintergrund (--bg). */
+export function applyThemeColor(mode: Settings['themeColor'], body: HTMLElement = document.body) {
+  const bg = getComputedStyle(body).getPropertyValue('--bg').trim();
+  const color = mode === 'site' && bg ? bg : BRAND_THEME_COLOR;
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => (m.content = color));
+}
+
 /**
  * Vor dem ersten Paint (inline im <head>): Theme-Klasse setzen, damit Light-Nutzer keinen Dark-Blitz sehen.
  * Der Rest synchronisiert sich nach der Hydration über den SettingsProvider.

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { LoonaTile } from '@/components/brand';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
@@ -15,11 +16,11 @@ interface Tab {
   logo?: boolean;
 }
 
-// Prototyp: renderVals → tabItems (Modern: L!-Home mittig; klassisch: Home zuerst).
+// Prototyp: renderVals → tabItems (Modern: Logo-Home mittig; klassisch: Home zuerst).
 const MODERN: Tab[] = [
   { id: 'projekte', label: 'Projekte', icon: '▦' },
   { id: 'ueber', label: 'Über mich', icon: '◉' },
-  { id: 'hallo', label: 'Home', icon: 'L!', logo: true },
+  { id: 'hallo', label: 'Home', icon: '', logo: true },
   { id: 'labs', label: 'Labs', icon: '⚗' },
 ];
 const CLASSIC: Tab[] = [
@@ -171,6 +172,9 @@ export function MobileTabBar() {
 }
 
 function TabIcon({ icon, logo, color }: { icon: string; logo?: boolean; color: string }) {
+  // Home-Button (Modern): LD-Kachel im App-Icon-Stil statt der früheren „L!“-Verlaufskachel.
+  // Ohne Schatten/Glow — Logo-Regel „keine Schatten“ (Logo-Handoff §5).
+  if (logo) return <LoonaTile product="ld" variant="color" size={34} decorative style={{ display: 'block' }} />;
   return (
     <span
       aria-hidden
@@ -178,15 +182,10 @@ function TabIcon({ icon, logo, color }: { icon: string; logo?: boolean; color: s
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: logo ? 34 : 'auto',
-        height: logo ? 34 : 'auto',
-        borderRadius: logo ? 11 : 0,
-        background: logo ? 'linear-gradient(135deg,#FFB224,#FF7A2F)' : 'transparent',
-        boxShadow: logo ? 'inset 0 1px 0 rgba(255,255,255,0.5), 0 4px 12px rgba(255,122,47,0.45)' : 'none',
-        fontSize: logo ? 13 : 17,
-        fontWeight: logo ? 800 : 400,
+        fontSize: 17,
+        fontWeight: 400,
         lineHeight: 1,
-        color: logo ? '#241400' : color,
+        color,
         transition: 'color 0.25s,transform 0.3s',
       }}
     >
