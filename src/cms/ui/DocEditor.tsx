@@ -1,0 +1,347 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { setAtPath } from '@/site/cms/editing';
+import { deleteDocAction, discardDraftAction, publishAction, restoreRevisionAction, saveDraftAction, unpublishAction } from '../actions';
+import { COLLECTIONS, fieldsFor, type Errors } from '../schema';
+import { Field, type Relations } from './Fields';
+
+type Doc = Record<string, unknown>;
+const DESKTOP_W = 1280;
+type SaveState = 'saved' | 'dirty' | 'saving' | 'error';
+
+export interface EditorProps {
+  collection: string;
+  id: string;
+  initial: Doc;
+  live: boolean;
+  hasDraft: boolean;
+  isAdmin: boolean;
+  relations: Relations;
+  revisions: { rid: number; createdAt: number; createdBy: string | null }[];
+  publicHref: string | null;
+}
+
+/**
+ * Dokument-Editor: links das Formular, rechts die echte Seite als Live-Vorschau (iframe, gleicher Ursprung).
+ * Formular ↔ Vorschau synchronisieren per postMessage; Texte lassen sich direkt in der Vorschau bearbeiten.
+ * Jede Änderung wird nach 1,2 s als Entwurf gespeichert; „Veröffentlichen“ bringt sie live.
+ */
+export function DocEditor(props: EditorProps) {
+  const { collection, id, isAdmin, relations, revisions, publicHref } = props;
+  const def = COLLECTIONS[collection];
+  const router = useRouter();
+  const [doc, setDoc] = useState<Doc>(props.initial);
+  const [save, setSave] = useState<SaveState>('saved');
+  const [live, setLive] = useState(props.live);
+  const [hasDraft, setHasDraft] = useState(props.hasDraft);
+  const [errors, setErrors] = useState<Errors>({});
+  const [msg, setMsg] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+  const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
+  const [busy, start] = useTransition();
+  const frame = useRef<HTMLIFrameElement>(null);
+  // Desktop-Vorschau in echter Desktop-Breite rendern und auf die Spalte herunterskalieren.
+  const box = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [boxH, setBoxH] = useState(0);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setScale(Math.min(1, el.clientWidth / DESKTOP_W));
+      setBoxH(el.clientHeight);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const docRef = useRef(doc);
+  docRef.current = doc;
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const saveSeq = useRef(0);
+
+  const post = useCallback((d: Doc) => {
+    frame.current?.contentWindow?.postMessage({ type: 'ldflow:doc', doc: d }, window.location.origin);
+  }, []);
+
+  const saveNow = useCallback(async () => {
+    clearTimeout(timer.current);
+    const seq = ++saveSeq.current;
+    setSave('saving');
+    const res = await saveDraftAction(collection, id, docRef.current);
+    if (seq !== saveSeq.current) return; // neuere Änderung unterwegs
+    if (res.ok) {
+      setSave('saved');
+      setHasDraft(true);
+      setErrors({});
+    } else {
+      setSave('error');
+      setErrors(('errors' in res && res.errors) || {});
+      setMsg({ kind: 'error', text: res.error });
+    }
+  }, [collection, id]);
+
+  const change = useCallback(
+    (next: Doc, fromPreview = false) => {
+      setDoc(next);
+      docRef.current = next;
+      if (!fromPreview) post(next);
+      setSave('dirty');
+      clearTimeout(timer.current);
+      timer.current = setTimeout(saveNow, 1200);
+    },
+    [post, saveNow],
+  );
+
+  // Nachrichten aus der Vorschau
+  useEffect(() => {
+    const on = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin || e.source !== frame.current?.contentWindow) return;
+      const d = e.data as { type?: string; path?: string; value?: unknown };
+      if (d?.type === 'ldflow:ready') post(docRef.current);
+      if (d?.type === 'ldflow:set' && typeof d.path === 'string') change(setAtPath(docRef.current, d.path, d.value), true);
+    };
+    window.addEventListener('message', on);
+    return () => window.removeEventListener('message', on);
+  }, [change, post]);
+
+  // Ungespeichertes nicht verlieren
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => {
+      if (save === 'dirty' || save === 'saving') e.preventDefault();
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [save]);
+
+  // ⌘S / Strg+S = sofort speichern
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        void saveNow();
+      }
+    };
+    document.addEventListener('keydown', k);
+    return () => document.removeEventListener('keydown', k);
+  }, [saveNow]);
+
+  const publish = () =>
+    start(async () => {
+      clearTimeout(timer.current);
+      const res = await publishAction(collection, id, docRef.current);
+      if (res.ok) {
+        setLive(true);
+        setHasDraft(false);
+        setSave('saved');
+        setErrors({});
+        setMsg({ kind: 'ok', text: 'Veröffentlicht — die Site ist aktualisiert.' });
+      } else {
+        setErrors(('errors' in res && res.errors) || {});
+        setMsg({ kind: 'error', text: res.error });
+      }
+    });
+
+  const act = (fn: () => Promise<{ ok: boolean; error?: string }>, okText: string, after?: () => void) =>
+    start(async () => {
+      const res = await fn();
+      if (res.ok) {
+        setMsg({ kind: 'ok', text: okText });
+        after?.();
+      } else setMsg({ kind: 'error', text: res.error ?? 'Fehler' });
+    });
+
+  const fields = fieldsFor(collection, doc);
+  const title = String(doc[def.titleField] ?? '') || id;
+  const status =
+    save === 'saving'
+      ? 'Speichere …'
+      : save === 'dirty'
+        ? 'Ungespeichert'
+        : save === 'error'
+          ? 'Nicht gespeichert'
+          : hasDraft
+            ? 'Entwurf gespeichert'
+            : 'Alles live';
+
+  return (
+    <div className="f-editor">
+      <section className="f-editor-form" aria-label="Formular">
+        <div className="f-editor-bar">
+          <div className="f-row" style={{ justifyContent: 'space-between' }}>
+            <Link href={def.kind === 'singleton' ? '/flow' : `/flow/c/${collection}`} className="f-btn sm ghost">
+              ← {def.kind === 'singleton' ? 'Dashboard' : def.label}
+            </Link>
+            <span className="f-row" style={{ gap: 6 }}>
+              {live ? <span className="f-badge live">● Live</span> : <span className="f-badge off">○ Offline</span>}
+              <span className={`f-badge ${hasDraft || save !== 'saved' ? 'draft' : ''}`} aria-live="polite">
+                {status}
+              </span>
+            </span>
+          </div>
+          <h1 style={{ margin: 0, fontSize: 19, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</h1>
+          <div className="f-row">
+            <button className="f-btn primary" type="button" onClick={publish} disabled={busy}>
+              Veröffentlichen
+            </button>
+            <button className="f-btn" type="button" onClick={() => void saveNow()} disabled={busy || save === 'saving'} title="⌘S / Strg+S">
+              Entwurf speichern
+            </button>
+            {hasDraft && live && (
+              <button
+                className="f-btn ghost"
+                type="button"
+                disabled={busy}
+                onClick={() =>
+                  window.confirm('Entwurf verwerfen und zur Live-Fassung zurückkehren?') &&
+                  act(
+                    () => discardDraftAction(collection, id),
+                    'Entwurf verworfen.',
+                    () => window.location.reload(),
+                  )
+                }
+              >
+                Verwerfen
+              </button>
+            )}
+          </div>
+          {msg && (
+            <p className={`f-msg ${msg.kind}`} role={msg.kind === 'error' ? 'alert' : 'status'} style={{ margin: 0 }}>
+              {msg.text}
+            </p>
+          )}
+        </div>
+        <div className="f-editor-fields">
+          {fields.map((f) => (
+            <Field
+              key={f.key}
+              f={f}
+              value={doc[f.key]}
+              path={f.key}
+              errors={errors}
+              relations={relations}
+              onChange={(v) => change({ ...docRef.current, [f.key]: v })}
+            />
+          ))}
+          <details className="f-group" style={{ marginTop: 24 }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Versionen ({revisions.length})</summary>
+            {revisions.length === 0 && <p className="f-help">Noch keine älteren Versionen — sie entstehen bei jedem Veröffentlichen.</p>}
+            <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0 0' }}>
+              {revisions.map((r) => (
+                <li
+                  key={r.rid}
+                  className="f-row"
+                  style={{ justifyContent: 'space-between', padding: '6px 0', borderTop: '1px solid var(--f-line)' }}
+                >
+                  <span className="f-help">
+                    {new Date(r.createdAt).toLocaleString('de-DE')} · {r.createdBy ?? '—'}
+                  </span>
+                  <button
+                    className="f-btn sm"
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      window.confirm('Diese Version als Entwurf laden? (Danach prüfen und veröffentlichen.)') &&
+                      act(
+                        () => restoreRevisionAction(collection, id, r.rid),
+                        'Version geladen.',
+                        () => window.location.reload(),
+                      )
+                    }
+                  >
+                    Als Entwurf laden
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </details>
+          {def.kind === 'collection' && (
+            <div className="f-group" style={{ marginTop: 12 }}>
+              <div className="f-group-head">Gefahrenzone</div>
+              <div className="f-row">
+                {live && (
+                  <button
+                    className="f-btn sm"
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      window.confirm('Von der Site nehmen? Der Inhalt bleibt als Entwurf erhalten.') &&
+                      act(
+                        () => unpublishAction(collection, id),
+                        'Offline genommen.',
+                        () => {
+                          setLive(false);
+                          setHasDraft(true);
+                        },
+                      )
+                    }
+                  >
+                    Offline nehmen
+                  </button>
+                )}
+                {isAdmin && (
+                  <button
+                    className="f-btn sm danger"
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      window.confirm(`„${title}“ endgültig löschen? Das lässt sich nicht rückgängig machen.`) &&
+                      act(
+                        () => deleteDocAction(collection, id),
+                        'Gelöscht.',
+                        () => router.push(`/flow/c/${collection}`),
+                      )
+                    }
+                  >
+                    Löschen
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+      <section className="f-preview" aria-label="Live-Vorschau">
+        <div className="f-preview-bar">
+          <span>
+            Live-Vorschau <span className="f-badge inline">WYSIWYG</span> — gestrichelte Texte direkt anklicken und tippen
+          </span>
+          <span className="f-row" style={{ gap: 4 }}>
+            <button className="f-btn sm" type="button" aria-pressed={device === 'desktop'} onClick={() => setDevice('desktop')}>
+              Desktop
+            </button>
+            <button className="f-btn sm" type="button" aria-pressed={device === 'mobile'} onClick={() => setDevice('mobile')}>
+              Mobil
+            </button>
+            {publicHref && live && (
+              <a className="f-btn sm ghost" href={publicHref} target="_blank" rel="noopener">
+                Live ansehen ↗
+              </a>
+            )}
+          </span>
+        </div>
+        <div ref={box} className={`f-preview-frame ${device}`}>
+          <iframe
+            ref={frame}
+            src={`/flow-preview/${collection}/${id}`}
+            title="Vorschau"
+            onLoad={() => post(docRef.current)}
+            style={
+              device === 'desktop' && scale < 1
+                ? {
+                    width: DESKTOP_W,
+                    height: boxH / scale,
+                    flex: 'none',
+                    transform: `scale(${scale})`,
+                    transformOrigin: '0 0',
+                    alignSelf: 'flex-start',
+                  }
+                : undefined
+            }
+          />
+        </div>
+      </section>
+    </div>
+  );
+}

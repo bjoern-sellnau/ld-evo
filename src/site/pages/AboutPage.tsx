@@ -5,6 +5,7 @@ import { ABOUT_CAPTIONS, ABOUT_IMAGE_FOR, ABOUT_IMAGES, ABOUT_RAIL, LOONA_PROJEC
 import { LoonaTile } from '@/components/brand';
 import { mono } from '../cards/ProjectCard';
 import { useContent } from '../content/ContentProvider';
+import { EText } from '../cms/editing';
 import { useSite } from '../settings/SiteProvider';
 import { ScrollRail, useScrollSpy } from './ScrollRail';
 import detailStyles from './detail.module.css';
@@ -87,18 +88,22 @@ export function AboutPage() {
 
         <div style={{ padding: mob ? '28px 18px 64px 18px' : '150px 170px 80px 44px' }}>
           <section id="u-intro">
-            <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: '0.18em', color: 'var(--accent)' }}>{about.introKicker}</div>
+            <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: '0.18em', color: 'var(--accent)' }}>
+              <EText path="introKicker" value={about.introKicker} />
+            </div>
             <h1 style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '12px 0 0' }}>
-              {about.introTitle}
+              <EText path="introTitle" value={about.introTitle} />
             </h1>
-            <p style={{ margin: '20px 0 0', fontSize: 15.5, lineHeight: 1.75, color: 'var(--muted)' }}>{about.intro}</p>
+            <p style={{ margin: '20px 0 0', fontSize: 15.5, lineHeight: 1.75, color: 'var(--muted)' }}>
+              <EText path="intro" value={about.intro} multiline />
+            </p>
           </section>
 
           <section id="u-vita" style={{ marginTop: 64 }}>
             <h2 style={h2}>Vita</h2>
             {about.vita.map((p, i) => (
               <p key={i} style={{ ...para, marginTop: i === 0 ? 14 : 12 }}>
-                {p}
+                <EText path={`vita.${i}`} value={p} multiline />
               </p>
             ))}
           </section>
@@ -228,7 +233,9 @@ export function AboutPage() {
                   seit 2001
                 </span>
               </div>
-              <p style={{ margin: '14px 0 0', fontSize: 14.5, lineHeight: 1.7, color: 'var(--muted)' }}>{about.loona}</p>
+              <p style={{ margin: '14px 0 0', fontSize: 14.5, lineHeight: 1.7, color: 'var(--muted)' }}>
+                <EText path="loona" value={about.loona} multiline />
+              </p>
               {LOONA_PROJECTS.map((sp) => (
                 <ProjectBox key={sp.anchor} sp={sp} />
               ))}

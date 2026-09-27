@@ -5,6 +5,7 @@ import { NewsCard } from '../cards/NewsCard';
 import { ProjectCard, mono } from '../cards/ProjectCard';
 import styles from '../cards/cards.module.css';
 import { useContent } from '../content/ContentProvider';
+import { EText } from '../cms/editing';
 import { FlowHero } from '../hero/FlowHero';
 import { heroInk, heroMode } from '../hero/heroInk';
 import { HERO_MODES, heroFxBgOf, heroFxSampleOf } from '../hero/modes';
@@ -179,7 +180,7 @@ export function HalloPage() {
               aria-hidden
               style={{ width: 7, height: 7, borderRadius: '50%', background: '#28C840', animation: 'ldPulse 2s infinite' }}
             />
-            {home.kicker}
+            <EText path="kicker" value={home.kicker} />
           </div>
           <h1
             style={{
@@ -191,9 +192,13 @@ export function HalloPage() {
               ...txt,
             }}
           >
-            <span style={{ color: ink.t1.col, mixBlendMode: ink.t1.blend }}>{home.titleLine1}</span>
+            <span style={{ color: ink.t1.col, mixBlendMode: ink.t1.blend }}>
+              <EText path="titleLine1" value={home.titleLine1} />
+            </span>
             <br />
-            <span style={{ color: ink.t2.col, mixBlendMode: ink.t2.blend }}>{home.titleLine2}</span>
+            <span style={{ color: ink.t2.col, mixBlendMode: ink.t2.blend }}>
+              <EText path="titleLine2" value={home.titleLine2} />
+            </span>
           </h1>
           <div
             style={{
@@ -208,7 +213,7 @@ export function HalloPage() {
             }}
           >
             <span style={{ color: ink.sub.col, mixBlendMode: ink.sub.blend, fontWeight: 400, whiteSpace: 'nowrap', fontSize: 15 }}>
-              {home.name}
+              <EText path="name" value={home.name} />
             </span>
             <span
               aria-live="polite"
@@ -238,7 +243,7 @@ export function HalloPage() {
               ...txt,
             }}
           >
-            {home.intro}
+            <EText path="intro" value={home.intro} multiline />
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 30 }}>
             <button

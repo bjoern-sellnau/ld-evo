@@ -3,6 +3,7 @@
 import type { MouseEvent } from 'react';
 import type { Article } from '@content/articles';
 import { useContent } from '../content/ContentProvider';
+import { EText } from '../cms/editing';
 import { mono } from '../cards/ProjectCard';
 import { inkOn, lum } from '../lib/color';
 import { articleHref } from '../lib/routes';
@@ -65,16 +66,18 @@ export function ArticlePage({ a }: { a: Article }) {
             )}
           </div>
           <h1 style={{ fontSize: mob ? 29 : 46, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.12, margin: '14px 0 0' }}>
-            {a.titel}
+            <EText path="titel" value={a.titel} />
           </h1>
-          <div style={{ fontSize: 16, lineHeight: 1.6, marginTop: 14, opacity: 0.85, fontStyle: 'italic' }}>{a.teaser}</div>
+          <div style={{ fontSize: 16, lineHeight: 1.6, marginTop: 14, opacity: 0.85, fontStyle: 'italic' }}>
+            <EText path="teaser" value={a.teaser} multiline />
+          </div>
         </div>
       </header>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 0 60px' }}>
         {a.body.map((p, i) => (
           <p key={i} style={{ margin: '0 0 22px', fontSize: 16.5, lineHeight: 1.8, color: 'var(--muted)' }}>
-            {p}
+            <EText path={`body.${i}`} value={p} multiline />
           </p>
         ))}
         <div style={{ marginTop: 40 }}>

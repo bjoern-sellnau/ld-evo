@@ -3,6 +3,7 @@
 import type { MouseEvent } from 'react';
 import type { Project } from '@content/projects';
 import { useContent } from '../content/ContentProvider';
+import { EText } from '../cms/editing';
 import { mono } from '../cards/ProjectCard';
 import { inkOn, lum } from '../lib/color';
 import { projectHref } from '../lib/routes';
@@ -72,7 +73,9 @@ export function CaseStudyPage({ p }: { p: Project }) {
               opacity: 0.85,
             }}
           >
-            <span>{p.tag}</span>
+            <span>
+              <EText path="tag" value={p.tag} />
+            </span>
             <span aria-hidden>·</span>
             <span>{p.datum}</span>
             <span aria-hidden>·</span>
@@ -88,9 +91,11 @@ export function CaseStudyPage({ p }: { p: Project }) {
               maxWidth: 760,
             }}
           >
-            {p.name}
+            <EText path="name" value={p.name} />
           </h1>
-          <div style={{ fontSize: 16.5, lineHeight: 1.6, marginTop: 16, maxWidth: 560, opacity: 0.85 }}>{p.desc}</div>
+          <div style={{ fontSize: 16.5, lineHeight: 1.6, marginTop: 16, maxWidth: 560, opacity: 0.85 }}>
+            <EText path="desc" value={p.desc} multiline />
+          </div>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginTop: 26, flexWrap: 'wrap' }}>
             {p.link && (
               <a
@@ -103,7 +108,9 @@ export function CaseStudyPage({ p }: { p: Project }) {
                 {p.linkLabel || 'Jetzt spielen ↗'}
               </a>
             )}
-            <span style={{ fontFamily: mono, fontSize: 10.5, opacity: 0.75 }}>{p.tool}</span>
+            <span style={{ fontFamily: mono, fontSize: 10.5, opacity: 0.75 }}>
+              <EText path="tool" value={p.tool} />
+            </span>
           </div>
         </div>
       </header>
@@ -121,7 +128,7 @@ export function CaseStudyPage({ p }: { p: Project }) {
             fontStyle: 'italic',
           }}
         >
-          {p.desc}
+          <EText path="desc" value={p.desc} multiline />
         </p>
         <dl
           style={{
@@ -145,10 +152,12 @@ export function CaseStudyPage({ p }: { p: Project }) {
 
         <Chapter n="01" label="DIE AUSGANGSLAGE" color={acc} first />
         <p className="ld-dropcap" style={{ margin: '12px 0 0', fontSize: 18.5, lineHeight: 1.65, color: 'var(--ink)', textWrap: 'pretty' }}>
-          {p.ueberblick}
+          <EText path="ueberblick" value={p.ueberblick} multiline />
         </p>
         <Chapter n="02" label="DER ANSATZ" color={acc} />
-        <p style={{ margin: '12px 0 0', fontSize: 16, lineHeight: 1.75, color: 'var(--muted)' }}>{p.ansatz}</p>
+        <p style={{ margin: '12px 0 0', fontSize: 16, lineHeight: 1.75, color: 'var(--muted)' }}>
+          <EText path="ansatz" value={p.ansatz} multiline />
+        </p>
         <figure style={{ margin: '52px 0', padding: '0 22px', textAlign: 'center' }}>
           <div aria-hidden style={{ fontSize: 40, color: acc, lineHeight: 0.5, fontFamily: 'var(--ld-font-sans),sans-serif' }}>
             „
@@ -165,7 +174,7 @@ export function CaseStudyPage({ p }: { p: Project }) {
               textWrap: 'balance',
             }}
           >
-            {p.zitat}
+            <EText path="zitat" value={p.zitat} multiline />
           </blockquote>
         </figure>
         <Chapter n="03" label="DIE WERKZEUGE" color={acc} first />
@@ -198,10 +207,12 @@ export function CaseStudyPage({ p }: { p: Project }) {
             textWrap: 'pretty',
           }}
         >
-          {p.ergebnis}
+          <EText path="ergebnis" value={p.ergebnis} multiline />
         </p>
         <Chapter n="05" label="GELERNT" color={acc} />
-        <p style={{ margin: '12px 0 0', fontSize: 15.5, lineHeight: 1.75, color: 'var(--muted)' }}>{p.learnings}</p>
+        <p style={{ margin: '12px 0 0', fontSize: 15.5, lineHeight: 1.75, color: 'var(--muted)' }}>
+          <EText path="learnings" value={p.learnings} multiline />
+        </p>
         <Chapter n="06" label="EINDRÜCKE" color={acc} />
         <GallerySlots
           wide={320}

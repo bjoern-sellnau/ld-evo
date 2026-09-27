@@ -12,7 +12,8 @@
     "test:visual": "vitest run --config vitest.visual.config.ts",
     "brand:sync": "node scripts/sync-brand-assets.mjs",
     "brand:ico": "node scripts/make-favicon-ico.mjs",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" scripts"
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" scripts",
+    "test:e2e": "node tests/e2e/flow.e2e.mjs"
   },
   "dependencies": {
     "next": "^16.3.6",
@@ -30,5 +31,8 @@
     "prettier": "^3.9.9",
     "typescript": "^5.9.3",
     "vitest": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=22.13"
   }
 }

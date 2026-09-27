@@ -31,6 +31,9 @@ interface RawRow {
   published_at: number | null;
 }
 
+/** node:sqlite liefert Zeilen mit Null-Prototyp — für React/Client-Props in normale Objekte umwandeln. */
+const plain = <T>(rows: T[]): T[] => rows.map((r) => ({ ...r }));
+
 const parse = (s: string | null) => (s ? (JSON.parse(s) as Record<string, unknown>) : null);
 const toRow = (r: RawRow): DocRow => ({
   collection: r.collection,
@@ -205,11 +208,13 @@ export async function moveDoc(collection: string, id: string, dir: -1 | 1): Prom
 
 export async function listRevisions(collection: string, id: string) {
   await requireUser();
-  return db()
-    .prepare(
-      'SELECT rid, created_at AS createdAt, created_by AS createdBy FROM revisions WHERE collection = ? AND doc_id = ? ORDER BY rid DESC',
-    )
-    .all(collection, id) as { rid: number; createdAt: number; createdBy: string | null }[];
+  return plain(
+    db()
+      .prepare(
+        'SELECT rid, created_at AS createdAt, created_by AS createdBy FROM revisions WHERE collection = ? AND doc_id = ? ORDER BY rid DESC',
+      )
+      .all(collection, id) as { rid: number; createdAt: number; createdBy: string | null }[],
+  );
 }
 
 /** Version als Entwurf zurückholen (zum Prüfen, danach veröffentlichen). */
@@ -270,14 +275,16 @@ export async function uploadMedia(file: File, alt: string): Promise<Result<{ id:
 
 export async function listMedia() {
   await requireUser();
-  return db().prepare('SELECT id, filename, mime, size, alt, created_at AS createdAt FROM media ORDER BY created_at DESC').all() as {
-    id: string;
-    filename: string;
-    mime: string;
-    size: number;
-    alt: string;
-    createdAt: number;
-  }[];
+  return plain(
+    db().prepare('SELECT id, filename, mime, size, alt, created_at AS createdAt FROM media ORDER BY created_at DESC').all() as {
+      id: string;
+      filename: string;
+      mime: string;
+      size: number;
+      alt: string;
+      createdAt: number;
+    }[],
+  );
 }
 
 export async function updateMediaAlt(id: string, alt: string): Promise<Result> {
@@ -305,14 +312,16 @@ export function readMedia(id: string): { mime: string; bytes: Uint8Array } | nul
 
 export async function listUsers() {
   await requireUser('admin');
-  return db().prepare('SELECT id, email, name, role, disabled, created_at AS createdAt FROM users ORDER BY created_at').all() as {
-    id: string;
-    email: string;
-    name: string;
-    role: Role;
-    disabled: number;
-    createdAt: number;
-  }[];
+  return plain(
+    db().prepare('SELECT id, email, name, role, disabled, created_at AS createdAt FROM users ORDER BY created_at').all() as {
+      id: string;
+      email: string;
+      name: string;
+      role: Role;
+      disabled: number;
+      createdAt: number;
+    }[],
+  );
 }
 
 export async function adminCreateUser(input: { email: string; name: string; password: string; role: Role }) {
