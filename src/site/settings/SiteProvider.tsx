@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
-import { pageVtClasses, runVt, trackVtOrigin } from '../vt/runVt';
+import { REVEAL_MODES, pageVtClasses, runVt, trackVtOrigin } from '../vt/runVt';
 import { applyBody, applyThemeColor } from './applyBody';
 import { DEFAULT_SETTINGS, readSettings, writeSetting, type Settings } from './schema';
 
@@ -28,10 +28,21 @@ interface SiteContextValue {
   toggleTheme: () => void;
   toggleAnim: () => void;
   /** Seitenwechsel mit View Transition nach gewähltem Page-Transition-Modus. */
-  navigate: (href: string) => void;
+  navigate: (href: string, opts?: { keepVt?: boolean }) => void;
+  /** Karte → Detail: nur die geklickte Karte bekommt einen view-transition-name (vtTarget-Gating, Nachtrag v20). */
+  openItem: (href: string, id: string) => void;
+  /** Id des Items, dessen Karte/Hero gerade morphen darf. */
+  vtTarget: string | null;
+  /** Morph-freundlicher Transition-Modus (kein Clip-Reveal). */
+  morphOk: boolean;
+  /** Herkunftsseite der aktuellen Detailseite, z. B. '/labs' — für „‹ Zurück“. */
+  from: string | null;
 }
 
 const SiteContext = createContext<SiteContextValue | null>(null);
+
+/** Detailseiten: /projekte/<slug>, /labs/<slug>, /tech/<slug>. */
+export const isDetailPath = (p: string) => /^\/(projekte|labs|tech)\/[^/]+\/?$/.test(p);
 
 export function useSite(): SiteContextValue {
   const ctx = useContext(SiteContext);
@@ -110,13 +121,21 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     pending.current = null;
   }, [pathname]);
 
+  const [vtTarget, setVtTarget] = useState<string | null>(null);
+  const [from, setFrom] = useState<string | null>(null);
+
   const navigate = useCallback(
-    (href: string) => {
+    (href: string, opts?: { keepVt?: boolean }) => {
       const s = settingsRef.current;
       setOverlay(null);
-      if (href === window.location.pathname) return;
+      const current = window.location.pathname;
+      if (href === current) return;
+      const detailNav = isDetailPath(href) || isDetailPath(current);
+      if (isDetailPath(href) && !isDetailPath(current)) setFrom(current);
+      // „Detailseiten immer schlicht (Fade)“ (ld-detailplain) erzwingt Fade bei Detail-Navigation.
+      const mode = s.detailPlain && detailNav ? 'fade' : s.pageVt || 'fade';
       runVt(
-        pageVtClasses(s.pageVt),
+        pageVtClasses(mode),
         () =>
           new Promise<void>((resolve) => {
             const t = setTimeout(resolve, 1500);
@@ -124,6 +143,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
               clearTimeout(t);
               resolve();
             };
+            if (!opts?.keepVt) flushSync(() => setVtTarget(null));
             router.push(href);
           }),
         { anim: s.anim, hold: 130 },
@@ -132,12 +152,25 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     [router],
   );
 
+  const openItem = useCallback(
+    (href: string, id: string) => {
+      flushSync(() => setVtTarget(id));
+      // Zwei Frames warten, damit die Karte ihren Namen im alten Snapshot trägt (Prototyp: mkCard.go).
+      requestAnimationFrame(() => requestAnimationFrame(() => navigate(href, { keepVt: true })));
+    },
+    [navigate],
+  );
+
   const value = useMemo<SiteContextValue>(() => {
     const vm = settings.viewMode;
     const mob = vm === 'mobile' || (vm === 'auto' && viewport.isMobile);
     const sideActive = !mob && (vm === 'wide' || (settings.navSide && viewport.isWide));
-    return { settings, hydrated, set, ...viewport, mob, sideActive, overlay, setOverlay, toggleTheme, toggleAnim, navigate };
-  }, [settings, hydrated, set, viewport, overlay, toggleTheme, toggleAnim, navigate]);
+    const morphOk = !REVEAL_MODES.includes(settings.pageVt || 'fade');
+    return {
+      settings, hydrated, set, ...viewport, mob, sideActive, overlay, setOverlay, toggleTheme, toggleAnim,
+      navigate, openItem, vtTarget, morphOk, from,
+    };
+  }, [settings, hydrated, set, viewport, overlay, toggleTheme, toggleAnim, navigate, openItem, vtTarget, from]);
 
   return <SiteContext.Provider value={value}>{children}</SiteContext.Provider>;
 }
