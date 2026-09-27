@@ -1,5 +1,5 @@
-import { Placeholder } from '@/site/Placeholder';
+import { CatalogPage } from '@/site/pages/CatalogPage';
 
 export default function Page() {
-  return <Placeholder label="Katalog" title="Projekte" />;
+  return <CatalogPage kind="projekte" />;
 }
