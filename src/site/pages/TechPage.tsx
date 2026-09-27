@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ARTICLES, type Article } from '@content/articles';
+import type { Article } from '@content/articles';
+import { useContent } from '../content/ContentProvider';
 import { mono, useOpenItem } from '../cards/ProjectCard';
 import cardStyles from '../cards/cards.module.css';
 import { inkOn } from '../lib/color';
@@ -11,6 +12,7 @@ import { useSite } from '../settings/SiteProvider';
 /** .Tech-Magazin: erste Karte breiter (Spalte 1,2fr, 26 px Titel), Rest 18 px. Markup: Prototyp Zeile 622–636. */
 export function TechPage() {
   const { settings, mob, isMobile } = useSite();
+  const { articles } = useContent();
   return (
     <div data-screen-label=".Tech" style={{ paddingTop: mob && settings.mobModern ? 84 : 140, paddingBottom: 80 }}>
       <h1 style={{ fontFamily: mono, fontSize: 11, fontWeight: 400, letterSpacing: '0.18em', color: 'var(--accent)', margin: 0 }}>
@@ -20,7 +22,7 @@ export function TechPage() {
         Notizen aus 18 Jahren Webentwicklung — gepinnt, was gerade zählt.
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : '1.2fr 1fr 1fr', gap: 14, marginTop: 36, alignItems: 'stretch' }}>
-        {ARTICLES.map((a, i) => (
+        {articles.map((a, i) => (
           <MagCard key={a.id} a={a} lead={!isMobile && i === 0} />
         ))}
       </div>

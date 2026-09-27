@@ -1,13 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { JOURNEY } from '@content/journey';
 import { JOURNEY_MEDIA } from '@content/journeyMedia';
 import { LoonaTile } from '@/components/brand';
+import { useContent } from '../content/ContentProvider';
 import { useSite } from '../settings/SiteProvider';
 
 const mono = 'var(--ld-font-mono),monospace';
-const LAST = JOURNEY.length - 1;
 const GAP = 172; // depthGap-Default des Prototyps
 const BENTO = [
   { col: '1 / 3', row: '1 / 3' },
@@ -27,6 +26,8 @@ type IntroPhase = 'run' | 'out' | 'done';
  */
 export function ReisePage() {
   const { settings, hydrated } = useSite();
+  const JOURNEY = useContent().journey;
+  const LAST = JOURNEY.length - 1;
   const rm = !settings.anim; // reduceMotion = Animationen aus (Prototyp: reiseReduce)
   const [cur, setCur] = useState(rm ? LAST : 0);
   const [stepIdx, setStepIdx] = useState<number | null>(null);
@@ -187,8 +188,9 @@ export function ReisePage() {
       ? 'ldtSwapOut 0.2s cubic-bezier(0.4,0,0.7,0.2) both'
       : 'ldtSwapIn 0.5s cubic-bezier(0.2,0.7,0.2,1) both';
   const embeddedNarrow = vw < 1020;
-  const mini1 = JOURNEY_MEDIA[`ld-mini-${st.year}${stepSuffix}-1`];
-  const mini2 = JOURNEY_MEDIA[`ld-mini-${st.year}${stepSuffix}-2`];
+  // Einblicke: pro Zwischenschritt (Slot-IDs des Prototyps) oder die der Station aus LD Flow.
+  const mini1 = (curStep && JOURNEY_MEDIA[`ld-mini-${st.year}${stepSuffix}-1`]) || st.insights?.[0] || undefined;
+  const mini2 = (curStep && JOURNEY_MEDIA[`ld-mini-${st.year}${stepSuffix}-2`]) || st.insights?.[1] || undefined;
 
   return (
     <div
@@ -327,7 +329,7 @@ export function ReisePage() {
               pe = 'none';
               cursor = 'default';
             }
-            const shot = JOURNEY_MEDIA[`ld-shot-${c.year}`];
+            const shot = c.shot;
             return (
               <div
                 key={c.year}

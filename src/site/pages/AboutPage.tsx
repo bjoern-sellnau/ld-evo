@@ -1,21 +1,10 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import {
-  ABOUT_CAPTIONS,
-  ABOUT_IMAGE_FOR,
-  ABOUT_IMAGES,
-  ABOUT_RAIL,
-  ABOUT_TEXT,
-  LOONA_PROJECTS,
-  QUALIFICATIONS,
-  SKILL_GROUPS,
-  STATIONS,
-  TOOLS,
-  type StationProject,
-} from '@content/about';
+import { ABOUT_CAPTIONS, ABOUT_IMAGE_FOR, ABOUT_IMAGES, ABOUT_RAIL, LOONA_PROJECTS, STATIONS, type StationProject } from '@content/about';
 import { LoonaTile } from '@/components/brand';
 import { mono } from '../cards/ProjectCard';
+import { useContent } from '../content/ContentProvider';
 import { useSite } from '../settings/SiteProvider';
 import { ScrollRail, useScrollSpy } from './ScrollRail';
 import detailStyles from './detail.module.css';
@@ -27,6 +16,12 @@ const para: CSSProperties = { margin: '12px 0 0', fontSize: 15, lineHeight: 1.75
 /** Über mich — Split-Layout: links sticky Bild (Crossfade je Abschnitt), rechts Inhalt, Punkt-Rail. Prototyp Zeile 691–820. */
 export function AboutPage() {
   const { settings: s, mob, navigate } = useSite();
+  const { about } = useContent();
+  // Texte/Listen aus LD Flow; Stationen und Rail bleiben im Code (content/about.ts), Bilder je Slot aus dem CMS.
+  const images = ABOUT_IMAGES.map((im) => {
+    const cms = about.images.find((x) => x.slot === im.slot)?.image;
+    return cms ? { ...im, src: cms.src, alt: cms.alt } : im;
+  });
   const active = useScrollSpy(RAIL_IDS);
   const imgIdx = ABOUT_IMAGE_FOR[active] ?? 0;
   const padX = mob ? 18 : 32;
@@ -53,7 +48,7 @@ export function AboutPage() {
               background: 'var(--card)',
             }}
           >
-            {ABOUT_IMAGES.map((img, i) => (
+            {images.map((img, i) => (
               <div
                 key={img.slot}
                 aria-hidden={i !== imgIdx}
@@ -92,18 +87,16 @@ export function AboutPage() {
 
         <div style={{ padding: mob ? '28px 18px 64px 18px' : '150px 170px 80px 44px' }}>
           <section id="u-intro">
-            <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: '0.18em', color: 'var(--accent)' }}>
-              {ABOUT_TEXT.introKicker}
-            </div>
+            <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: '0.18em', color: 'var(--accent)' }}>{about.introKicker}</div>
             <h1 style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '12px 0 0' }}>
-              {ABOUT_TEXT.introTitle}
+              {about.introTitle}
             </h1>
-            <p style={{ margin: '20px 0 0', fontSize: 15.5, lineHeight: 1.75, color: 'var(--muted)' }}>{ABOUT_TEXT.intro}</p>
+            <p style={{ margin: '20px 0 0', fontSize: 15.5, lineHeight: 1.75, color: 'var(--muted)' }}>{about.intro}</p>
           </section>
 
           <section id="u-vita" style={{ marginTop: 64 }}>
             <h2 style={h2}>Vita</h2>
-            {ABOUT_TEXT.vita.map((p, i) => (
+            {about.vita.map((p, i) => (
               <p key={i} style={{ ...para, marginTop: i === 0 ? 14 : 12 }}>
                 {p}
               </p>
@@ -113,7 +106,7 @@ export function AboutPage() {
           <section id="u-werkzeuge" style={{ marginTop: 64 }}>
             <h2 style={h2}>Werkzeuge</h2>
             <ul style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '16px 0 0', padding: 0, listStyle: 'none' }}>
-              {TOOLS.map((t) => (
+              {about.tools.map((t) => (
                 <li
                   key={t}
                   style={{
@@ -134,7 +127,7 @@ export function AboutPage() {
           <section id="u-skills" style={{ marginTop: 64 }}>
             <h2 style={h2}>Skills</h2>
             <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : '1fr 1fr', gap: 12, marginTop: 16 }}>
-              {SKILL_GROUPS.map((g) => (
+              {about.skills.map((g) => (
                 <div key={g.titel} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 18 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 10px', color: 'var(--accent)' }}>{g.titel}</h3>
                   <ul style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: 0, padding: 0, listStyle: 'none' }}>
@@ -171,7 +164,7 @@ export function AboutPage() {
                 listStyle: 'none',
               }}
             >
-              {QUALIFICATIONS.map((q) => (
+              {about.qualifications.map((q) => (
                 <li
                   key={q.datum + q.name}
                   style={{ display: 'flex', gap: 16, alignItems: 'baseline', padding: '11px 0', borderBottom: '1px solid var(--hair)' }}
@@ -235,7 +228,7 @@ export function AboutPage() {
                   seit 2001
                 </span>
               </div>
-              <p style={{ margin: '14px 0 0', fontSize: 14.5, lineHeight: 1.7, color: 'var(--muted)' }}>{ABOUT_TEXT.loona}</p>
+              <p style={{ margin: '14px 0 0', fontSize: 14.5, lineHeight: 1.7, color: 'var(--muted)' }}>{about.loona}</p>
               {LOONA_PROJECTS.map((sp) => (
                 <ProjectBox key={sp.anchor} sp={sp} />
               ))}

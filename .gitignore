@@ -6,3 +6,6 @@ next-env.d.ts
 test-results/
 playwright-report/
 .env*.local
+
+# LD Flow Daten (SQLite + Setup-Token) — nie committen
+/data/

@@ -1,35 +1,22 @@
 'use client';
 
 import { useEffect, useState, type CSSProperties } from 'react';
-import { ARTICLES } from '@content/articles';
-import { PROJECTS } from '@content/projects';
 import { NewsCard } from '../cards/NewsCard';
 import { ProjectCard, mono } from '../cards/ProjectCard';
 import styles from '../cards/cards.module.css';
+import { useContent } from '../content/ContentProvider';
 import { FlowHero } from '../hero/FlowHero';
 import { heroInk, heroMode } from '../hero/heroInk';
 import { HERO_MODES, heroFxBgOf, heroFxSampleOf } from '../hero/modes';
 import { useHeroShader } from '../hero/useHeroShader';
 import { useSite } from '../settings/SiteProvider';
 
-// Prototyp: renderVals → roles / featuredCards / newsCards.
-const ROLES = [
-  'Senior Full-Stack / Senior Software Engineer : Frontend',
-  'Senior React Engineer',
-  'React Native Engineer',
-  'Senior Full-Stack : Frontend',
-  'Senior Nextjs Engineer',
-  'Senior Node Engineer',
-  'IT-Ausbilder (AEVO): Fachinformatiker — Anwendungsentwicklung',
-];
-const FEATURED = PROJECTS.filter((p) => ['corefall', 'covert', 'neuewebsite'].includes(p.id));
-const NEWS = ARTICLES.filter((a) => a.pinned);
 const CAREER_START = new Date('2007-09-01T09:00:00').getTime();
 
 const careerSeconds = () => Math.floor((Date.now() - CAREER_START) / 1000).toLocaleString('de-DE');
 
 /** Rotierende Rolle: alle 4,2 s ausblenden (7 px nach unten), 340 ms später nächste Rolle einblenden. */
-function useRole(active: boolean) {
+function useRole(roles: string[], active: boolean) {
   const [state, setState] = useState({ idx: 0, op: 1, y: '0px' });
   useEffect(() => {
     if (!active) return;
@@ -44,7 +31,7 @@ function useRole(active: boolean) {
       clearTimeout(t);
     };
   }, [active]);
-  return { role: ROLES[state.idx % ROLES.length], op: state.op, y: state.y };
+  return { role: roles.length ? roles[state.idx % roles.length] : '', op: state.op, y: state.y };
 }
 
 function useCareerSeconds() {
@@ -74,7 +61,11 @@ export function HalloPage() {
   const hm = heroMode(s);
   const def = HERO_MODES[hm] ?? HERO_MODES.flow;
   const ink = heroInk(s);
-  const { role, op: roleOp, y: roleY } = useRole(s.anim);
+  const { home, projects, articles } = useContent();
+  // Featured in der im CMS gewählten Reihenfolge; News = gepinnte Artikel (Prototyp: renderVals).
+  const FEATURED = home.featured.map((id) => projects.find((p) => p.id === id)).filter((p) => !!p);
+  const NEWS = articles.filter((a) => a.pinned);
+  const { role, op: roleOp, y: roleY } = useRole(home.roles, s.anim);
   const seconds = useCareerSeconds();
   const scrolled = useScrolled();
   const cineDone = useHeroShader(s);
@@ -188,7 +179,7 @@ export function HalloPage() {
               aria-hidden
               style={{ width: 7, height: 7, borderRadius: '50%', background: '#28C840', animation: 'ldPulse 2s infinite' }}
             />
-            #TeamMaterna — Public Sector | E-Government | Zoll
+            {home.kicker}
           </div>
           <h1
             style={{
@@ -200,9 +191,9 @@ export function HalloPage() {
               ...txt,
             }}
           >
-            <span style={{ color: ink.t1.col, mixBlendMode: ink.t1.blend }}>Das Web.</span>
+            <span style={{ color: ink.t1.col, mixBlendMode: ink.t1.blend }}>{home.titleLine1}</span>
             <br />
-            <span style={{ color: ink.t2.col, mixBlendMode: ink.t2.blend }}>Meine Leidenschaft.</span>
+            <span style={{ color: ink.t2.col, mixBlendMode: ink.t2.blend }}>{home.titleLine2}</span>
           </h1>
           <div
             style={{
@@ -217,7 +208,7 @@ export function HalloPage() {
             }}
           >
             <span style={{ color: ink.sub.col, mixBlendMode: ink.sub.blend, fontWeight: 400, whiteSpace: 'nowrap', fontSize: 15 }}>
-              Björn Sellnau
+              {home.name}
             </span>
             <span
               aria-live="polite"
@@ -247,8 +238,7 @@ export function HalloPage() {
               ...txt,
             }}
           >
-            Senior Full-Stack / Software Engineer — React, TypeScript, Web &amp; Mobile. Seit 18+ Jahren baue ich Dinge fürs Web, die
-            bleiben.
+            {home.intro}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 30 }}>
             <button

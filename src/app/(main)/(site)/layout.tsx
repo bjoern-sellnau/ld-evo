@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { getSiteContent } from '@/cms/content';
+import { ContentProvider } from '@/site/content/ContentProvider';
 import { GlassDriver } from '@/site/glass/GlassDriver';
 import { PhoneFrame } from '@/site/chrome/PhoneFrame';
 import { ScrollChrome } from '@/site/chrome/ScrollChrome';
@@ -14,20 +16,23 @@ import { SiteProvider } from '@/site/settings/SiteProvider';
 import { Splash } from '@/site/splash/Splash';
 
 export default function SiteLayout({ children }: { children: ReactNode }) {
+  const content = getSiteContent();
   return (
-    <SiteProvider>
-      <Splash />
-      <SiteNav />
-      <SitePage>{children}</SitePage>
-      <MobileMenu />
-      <MobileTabBar />
-      <ScrollChrome />
-      <PhoneFrame />
-      <CookieBanner />
-      <SearchOverlay />
-      <KontaktPanel />
-      <SettingsPanel />
-      <GlassDriver />
-    </SiteProvider>
+    <ContentProvider value={content}>
+      <SiteProvider>
+        <Splash />
+        <SiteNav />
+        <SitePage>{children}</SitePage>
+        <MobileMenu />
+        <MobileTabBar />
+        <ScrollChrome />
+        <PhoneFrame />
+        <CookieBanner />
+        <SearchOverlay />
+        <KontaktPanel />
+        <SettingsPanel />
+        <GlassDriver />
+      </SiteProvider>
+    </ContentProvider>
   );
 }

@@ -1,35 +1,44 @@
 'use client';
 
 import { useMemo, useState, type KeyboardEvent } from 'react';
-import { ARTICLES } from '@content/articles';
-import { PROJECTS } from '@content/projects';
 import { mono } from '../cards/ProjectCard';
+import { useContent } from '../content/ContentProvider';
 import { articleHref, projectHref } from '../lib/routes';
 import { SITE_PAGES } from '../nav/pages';
 import { useSite } from '../settings/SiteProvider';
 import { ModalOverlay } from './GlassPanel';
 import styles from './overlays.module.css';
 
-// Suchindex wie im Prototyp: Seiten, Projekte/Labs (ohne Archiv), Artikel.
-const INDEX = [
-  ...SITE_PAGES.map((p) => ({ label: p.label, kind: 'SEITE', href: p.href })),
-  ...PROJECTS.filter((p) => p.kind !== 'archiv').map((p) => ({
-    label: p.name,
-    kind: p.kind === 'labs' ? 'LAB' : 'PROJEKT',
-    href: projectHref(p),
-  })),
-  ...ARTICLES.map((a) => ({ label: a.titel, kind: 'ARTIKEL', href: articleHref(a) })),
-];
+/** Suchindex wie im Prototyp: Seiten, Projekte/Labs (ohne Archiv), Artikel — plus frei angelegte CMS-Seiten. */
+function useIndex() {
+  const { projects, articles, pages } = useContent();
+  return useMemo(
+    () => [
+      ...SITE_PAGES.map((p) => ({ label: p.label, kind: 'SEITE', href: p.href })),
+      ...projects
+        .filter((p) => p.kind !== 'archiv')
+        .map((p) => ({
+          label: p.name,
+          kind: p.kind === 'labs' ? 'LAB' : 'PROJEKT',
+          href: projectHref(p),
+        })),
+      ...articles.map((a) => ({ label: a.titel, kind: 'ARTIKEL', href: articleHref(a) })),
+      ...pages.map((p) => ({ label: p.title, kind: 'SEITE', href: `/${p.id}` })),
+    ],
+    [projects, articles, pages],
+  );
+}
 
 /** Suche (⌘K / Strg+K, Esc). Treffer: Teilstring, max. 8. Markup: Prototyp Zeile 1241 ff. */
 export function SearchOverlay() {
   const { overlay, setOverlay, navigate } = useSite();
+  const INDEX = useIndex();
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
   const results = useMemo(() => {
     const n = q.toLowerCase();
     return INDEX.filter((r) => !n || r.label.toLowerCase().includes(n)).slice(0, 8);
-  }, [q]);
+  }, [q, INDEX]);
 
   if (overlay !== 'search') return null;
 

@@ -1,7 +1,8 @@
 'use client';
 
 import type { MouseEvent } from 'react';
-import { ARTICLES, type Article } from '@content/articles';
+import type { Article } from '@content/articles';
+import { useContent } from '../content/ContentProvider';
 import { mono } from '../cards/ProjectCard';
 import { inkOn, lum } from '../lib/color';
 import { articleHref } from '../lib/routes';
@@ -17,7 +18,8 @@ export function ArticlePage({ a }: { a: Article }) {
   useCoverColor(a.color, coverFull, s.themeColor);
   const ink = inkOn(a.color);
   const acc = coverFull ? ink : 'var(--accent)';
-  const rel = related(ARTICLES, a);
+  const { articles } = useContent();
+  const rel = related(articles, a);
   const padX = mob ? 18 : 32;
   const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;

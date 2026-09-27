@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react';
-import { PROJECTS, type Project } from '@content/projects';
+import type { Project } from '@content/projects';
+import { useContent } from '../content/ContentProvider';
 import { ProjectCard, mono, useOpenItem } from '../cards/ProjectCard';
 import styles from './catalog.module.css';
 import { inkOn } from '../lib/color';
@@ -62,7 +63,8 @@ function useSlider(n: number, auto: boolean) {
 /** Projekte / Labs: Kicker, Featured-Slider, Filter-Chips, Karten-Grid. Markup: Prototyp Zeile 468–531. */
 export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
   const { settings, mob, overlay } = useSite();
-  const cat = PROJECTS.filter((p) => p.kind === kind);
+  const { projects } = useContent();
+  const cat = projects.filter((p) => p.kind === kind);
   const slides = cat.filter((p) => p.featured);
   const kats = ['Alle', ...cat.map((p) => p.kat).filter((v, i, a) => a.indexOf(v) === i)];
   const [filter, setFilter] = useState('Alle');

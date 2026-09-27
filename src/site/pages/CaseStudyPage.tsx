@@ -1,7 +1,8 @@
 'use client';
 
 import type { MouseEvent } from 'react';
-import { PROJECTS, type Project } from '@content/projects';
+import type { Project } from '@content/projects';
+import { useContent } from '../content/ContentProvider';
 import { mono } from '../cards/ProjectCard';
 import { inkOn, lum } from '../lib/color';
 import { projectHref } from '../lib/routes';
@@ -17,7 +18,8 @@ export function CaseStudyPage({ p }: { p: Project }) {
   useCoverColor(p.color, coverFull, s.themeColor);
   const ink = inkOn(p.color);
   const acc = coverFull ? ink : 'var(--accent)';
-  const list = PROJECTS.filter((x) => x.kind === p.kind);
+  const { projects } = useContent();
+  const list = projects.filter((x) => x.kind === p.kind);
   const rel = related(list, p);
   const listHref = p.kind === 'labs' ? '/labs' : '/projekte';
   const facts = [
