@@ -9,3 +9,6 @@ playwright-report/
 
 # LD Flow Daten (SQLite + Setup-Token) — nie committen
 /data/
+
+# Differenzbilder der Seiten-Pixeltests
+tests/visual-pages/diff/

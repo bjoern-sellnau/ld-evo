@@ -312,7 +312,8 @@ export function HalloPage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
-          <span style={{ fontFamily: mono, fontSize: mob ? 22 : 26, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+          {/* data-live: läuft sekündlich weiter — die Seiten-Pixeltests maskieren solche Stellen */}
+          <span data-live style={{ fontFamily: mono, fontSize: mob ? 22 : 26, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
             {seconds ?? ' '}
           </span>
           <span style={{ fontSize: 13, color: 'var(--muted)' }}>Sekunden im Dienst des Webs — läuft seit September 2007.</span>

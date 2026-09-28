@@ -19,7 +19,8 @@
     "prebuild": "node scripts/gen-widgets.mjs",
     "pretest": "node scripts/gen-widgets.mjs",
     "pretypecheck": "node scripts/gen-widgets.mjs",
-    "test:a11y": "node tests/a11y/axe.mjs"
+    "test:a11y": "node tests/a11y/axe.mjs",
+    "test:pages": "node tests/visual-pages/pages.mjs"
   },
   "dependencies": {
     "next": "^16.3.6",
