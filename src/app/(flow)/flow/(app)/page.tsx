@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getCurrentUser } from '@/cms/auth';
-import { counts } from '@/cms/repo';
+import { counts, listScheduled } from '@/cms/repo';
 import { COLLECTIONS, PAGE_TEMPLATES } from '@/cms/schema';
 
 export const metadata = { title: 'Dashboard' };
@@ -8,6 +8,7 @@ export const metadata = { title: 'Dashboard' };
 export default async function Page() {
   const user = await getCurrentUser();
   const c = await counts();
+  const scheduled = await listScheduled();
   return (
     <>
       <div className="f-head">
@@ -43,6 +44,29 @@ export default async function Page() {
           );
         })}
       </div>
+      {scheduled.length > 0 && (
+        <div className="f-card" style={{ marginTop: 22 }}>
+          <div className="f-kicker">Geplant</div>
+          <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0' }}>
+            {scheduled.map((s) => (
+              <li key={`${s.collection}/${s.id}`} className="f-row" style={{ justifyContent: 'space-between', padding: '6px 0' }}>
+                <Link href={`/flow/c/${s.collection}/${s.id}`}>
+                  {COLLECTIONS[s.collection]?.singular ?? s.collection} · {s.id}
+                </Link>
+                <span className="f-help">
+                  {new Date(s.publishAt).toLocaleString('de-DE', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                    // Server rendert → Zeitzone explizit (Standard: Berlin), sonst stünde hier UTC.
+                    timeZone: process.env.LDFLOW_TZ ?? 'Europe/Berlin',
+                  })}{' '}
+                  · {s.publishBy ?? '—'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="f-card" style={{ marginTop: 22 }}>
         <div className="f-kicker">So funktioniert’s</div>
         <ol style={{ margin: '8px 0 0', paddingLeft: 18, color: 'var(--f-muted)', lineHeight: 1.8 }}>

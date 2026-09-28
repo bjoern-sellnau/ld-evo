@@ -2,11 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { AuthError, changeOwnPassword, login, logout, setupFirstAdmin, type Role } from './auth';
+import { AuthError, changeOwnPassword, login, logout, requestPasswordReset, resetPassword, setupFirstAdmin, type Role } from './auth';
 import {
   adminCreateUser,
   adminDeleteUser,
+  adminResetLink,
   adminUpdateUser,
+  cancelSchedule,
   createDoc,
   createPattern,
   publishedPatterns,
@@ -18,6 +20,7 @@ import {
   publishDoc,
   restoreRevision,
   saveDraft,
+  schedulePublish,
   unpublishDoc,
   updateMediaAlt,
   uploadMedia,
@@ -76,6 +79,18 @@ export async function setupAction(_: ActionState, fd: FormData): Promise<ActionS
   redirect('/flow');
 }
 
+export async function forgotPasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const res = await requestPasswordReset(str(fd, 'email'));
+  return res.ok ? { ok: true, message: res.message } : { error: res.error };
+}
+
+export async function resetPasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  if (str(fd, 'password') !== str(fd, 'password2')) return { error: 'Die Passwörter stimmen nicht überein.' };
+  const res = await resetPassword(str(fd, 'token'), str(fd, 'password'));
+  if (!res.ok) return { error: res.error };
+  redirect('/flow');
+}
+
 export async function changePasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
   if (str(fd, 'next') !== str(fd, 'next2')) return { error: 'Die neuen Passwörter stimmen nicht überein.' };
   const res = await guard(() => changeOwnPassword(str(fd, 'current'), str(fd, 'next')));
@@ -107,6 +122,15 @@ export async function savePatternAction(title: string, global: boolean, block: u
   if (!res.ok) return res;
   refreshSite();
   return { ok: true as const, patterns: publishedPatterns() };
+}
+
+/** Veröffentlichen planen (`at` = Zeitpunkt in ms, vom Browser aus der lokalen Zeit umgerechnet). */
+export async function scheduleAction(collection: string, id: string, at: number, data?: unknown) {
+  return guard(() => schedulePublish(collection, id, at, data));
+}
+
+export async function cancelScheduleAction(collection: string, id: string) {
+  return guard(() => cancelSchedule(collection, id));
 }
 
 export async function discardDraftAction(collection: string, id: string) {
@@ -178,6 +202,10 @@ export async function updateUserAction(id: string, patch: { role?: Role; disable
   const res = await guard(() => adminUpdateUser(id, patch));
   revalidatePath('/flow/users');
   return res;
+}
+
+export async function resetLinkAction(id: string) {
+  return guard(() => adminResetLink(id));
 }
 
 export async function deleteUserAction(id: string) {

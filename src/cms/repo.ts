@@ -1,8 +1,9 @@
 import 'server-only';
 import { randomBytes } from 'node:crypto';
-import { requireUser, type User, createUser, passwordProblem, hashPassword, type Role } from './auth';
+import { requireUser, type User, createUser, passwordProblem, hashPassword, issueResetToken, type Role } from './auth';
 import { db, tx } from './db';
 import { VARIANT_WIDTHS, webpSize } from './media';
+import { commitPublish } from './publish';
 import { COLLECTIONS, RESERVED_SLUGS, SLUG_RE, emptyDoc, validateDoc, type Errors } from './schema';
 
 /**
@@ -19,6 +20,9 @@ export interface DocRow {
   updatedAt: number;
   updatedBy: string | null;
   publishedAt: number | null;
+  /** Geplantes Veröffentlichen des Entwurfs (ms) und wer es geplant hat. */
+  publishAt: number | null;
+  publishBy: string | null;
 }
 
 interface RawRow {
@@ -30,6 +34,8 @@ interface RawRow {
   updated_at: number;
   updated_by: string | null;
   published_at: number | null;
+  publish_at: number | null;
+  publish_by: string | null;
 }
 
 /** node:sqlite liefert Zeilen mit Null-Prototyp — für React/Client-Props in normale Objekte umwandeln. */
@@ -45,6 +51,8 @@ const toRow = (r: RawRow): DocRow => ({
   updatedAt: r.updated_at,
   updatedBy: r.updated_by,
   publishedAt: r.published_at,
+  publishAt: r.publish_at,
+  publishBy: r.publish_by,
 });
 
 function assertCollection(c: string) {
@@ -151,32 +159,60 @@ export async function publishDoc(collection: string, id: string, input?: unknown
   if (!row) return { ok: false, error: 'Eintrag nicht gefunden.' };
   const { value, errors } = validateDoc(collection, input ?? workingCopy(row));
   if (Object.keys(errors).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors };
-  const now = Date.now();
-  tx(() => {
-    if (row.published)
-      db()
-        .prepare('INSERT INTO revisions (collection, doc_id, data, created_at, created_by) VALUES (?, ?, ?, ?, ?)')
-        .run(collection, id, JSON.stringify(row.published), now, user.email);
-    db()
-      .prepare(
-        'UPDATE docs SET published = ?, draft = NULL, updated_at = ?, updated_by = ?, published_at = ? WHERE collection = ? AND id = ?',
-      )
-      .run(JSON.stringify(value), now, user.email, now, collection, id);
-    // Höchstens 30 Versionen je Dokument aufheben.
-    db()
-      .prepare(
-        `DELETE FROM revisions WHERE collection = ? AND doc_id = ? AND rid NOT IN
-         (SELECT rid FROM revisions WHERE collection = ? AND doc_id = ? ORDER BY rid DESC LIMIT 30)`,
-      )
-      .run(collection, id, collection, id);
-  });
+  commitPublish(collection, id, value, user.email);
   return { ok: true };
+}
+
+/** Frühester/spätester Zeitpunkt fürs Planen (1 Minute Vorlauf, höchstens ein Jahr). */
+const SCHEDULE_MIN = 60 * 1000;
+const SCHEDULE_MAX = 366 * 24 * 3600 * 1000;
+
+/**
+ * Veröffentlichen planen: Daten werden sofort vollständig geprüft und als Entwurf gespeichert; zum Zeitpunkt
+ * bringt der Zeitplan (scheduler.ts) den dann aktuellen Entwurf live. Spätere Entwurfsänderungen gehen also mit.
+ */
+export async function schedulePublish(collection: string, id: string, at: number, input?: unknown): Promise<Result> {
+  const user = await requireUser();
+  assertCollection(collection);
+  const now = Date.now();
+  if (!Number.isFinite(at) || at < now + SCHEDULE_MIN)
+    return { ok: false, error: 'Zeitpunkt muss mindestens eine Minute in der Zukunft liegen.' };
+  if (at > now + SCHEDULE_MAX) return { ok: false, error: 'Höchstens ein Jahr im Voraus planen.' };
+  const row = await getDoc(collection, id);
+  if (!row) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  const { value, errors } = validateDoc(collection, input ?? workingCopy(row));
+  if (Object.keys(errors).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors };
+  db()
+    .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ?, publish_at = ?, publish_by = ? WHERE collection = ? AND id = ?')
+    .run(JSON.stringify(value), now, user.email, Math.round(at), user.email, collection, id);
+  return { ok: true };
+}
+
+export async function cancelSchedule(collection: string, id: string): Promise<Result> {
+  await requireUser();
+  assertCollection(collection);
+  db().prepare('UPDATE docs SET publish_at = NULL, publish_by = NULL WHERE collection = ? AND id = ?').run(collection, id);
+  return { ok: true };
+}
+
+/** Alle geplanten Veröffentlichungen (fürs Dashboard). */
+export async function listScheduled() {
+  await requireUser();
+  return plain(
+    db()
+      .prepare(
+        'SELECT collection, id, publish_at AS publishAt, publish_by AS publishBy FROM docs WHERE publish_at IS NOT NULL ORDER BY publish_at',
+      )
+      .all() as { collection: string; id: string; publishAt: number; publishBy: string | null }[],
+  );
 }
 
 export async function discardDraft(collection: string, id: string): Promise<Result> {
   await requireUser();
   assertCollection(collection);
-  const r = db().prepare('UPDATE docs SET draft = NULL WHERE collection = ? AND id = ? AND published IS NOT NULL').run(collection, id);
+  const r = db()
+    .prepare('UPDATE docs SET draft = NULL, publish_at = NULL, publish_by = NULL WHERE collection = ? AND id = ? AND published IS NOT NULL')
+    .run(collection, id);
   return r.changes ? { ok: true } : { ok: false, error: 'Nichts zu verwerfen (noch nie veröffentlicht).' };
 }
 
@@ -414,6 +450,14 @@ export async function adminUpdateUser(id: string, patch: { role?: Role; disabled
     db().prepare('DELETE FROM sessions WHERE user_id = ?').run(id);
   }
   return { ok: true };
+}
+
+/** Admin: Einmal-Link zum Zurücksetzen erzeugen (1 h gültig) — z. B. wenn kein Mailversand eingerichtet ist. */
+export async function adminResetLink(id: string): Promise<Result<{ path: string }>> {
+  await requireUser('admin');
+  const u = db().prepare('SELECT id FROM users WHERE id = ? AND disabled = 0').get(id);
+  if (!u) return { ok: false, error: 'Nutzer nicht gefunden oder gesperrt.' };
+  return { ok: true, path: issueResetToken(id) };
 }
 
 export async function adminDeleteUser(id: string): Promise<Result> {

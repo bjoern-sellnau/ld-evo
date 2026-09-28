@@ -1,7 +1,7 @@
 'use client';
 
-import { useActionState, useTransition } from 'react';
-import { changePasswordAction, createUserAction, deleteUserAction, updateUserAction, type ActionState } from '../actions';
+import { useActionState, useState, useTransition } from 'react';
+import { changePasswordAction, createUserAction, deleteUserAction, resetLinkAction, updateUserAction, type ActionState } from '../actions';
 
 export interface UserRow {
   id: string;
@@ -31,6 +31,7 @@ function Msg({ s }: { s: ActionState }) {
 export function UsersAdmin({ users, meId }: { users: UserRow[]; meId: string }) {
   const [state, create, pending] = useActionState<ActionState, FormData>(createUserAction, undefined);
   const [busy, start] = useTransition();
+  const [link, setLink] = useState<{ name: string; url: string } | null>(null);
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
       const r = await fn();
@@ -91,6 +92,24 @@ export function UsersAdmin({ users, meId }: { users: UserRow[]; meId: string }) 
                   >
                     Passwort setzen
                   </button>{' '}
+                  {!u.disabled && (
+                    <>
+                      <button
+                        className="f-btn sm"
+                        type="button"
+                        disabled={busy}
+                        onClick={() =>
+                          start(async () => {
+                            const r = await resetLinkAction(u.id);
+                            if (!r.ok) window.alert(r.error);
+                            else setLink({ name: u.name, url: new URL((r as { path: string }).path, window.location.origin).toString() });
+                          })
+                        }
+                      >
+                        Reset-Link
+                      </button>{' '}
+                    </>
+                  )}
                   {u.id !== meId && (
                     <button
                       className="f-btn sm danger"
@@ -107,6 +126,22 @@ export function UsersAdmin({ users, meId }: { users: UserRow[]; meId: string }) 
           </tbody>
         </table>
       </div>
+      {link && (
+        <div className="f-card" role="status" style={{ marginBottom: 18 }}>
+          <div className="f-kicker">Reset-Link für {link.name} · 1 Stunde gültig · nur einmal</div>
+          <input
+            className="f-input"
+            readOnly
+            value={link.url}
+            aria-label="Reset-Link"
+            onFocus={(e) => e.currentTarget.select()}
+            style={{ marginTop: 8 }}
+          />
+          <p className="f-help" style={{ margin: '8px 0 0' }}>
+            Nur auf sicherem Weg weitergeben (z. B. persönlich oder per Signal) — wer den Link hat, kann das Passwort setzen.
+          </p>
+        </div>
+      )}
       <form action={create} className="f-card" aria-labelledby="nu-title" style={{ maxWidth: 520 }}>
         <h2 id="nu-title" style={{ margin: '0 0 14px', fontSize: 16 }}>
           Nutzer anlegen

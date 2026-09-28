@@ -2,7 +2,8 @@
 
 import { useActionState } from 'react';
 import { LoonaLockup } from '@/components/brand';
-import { loginAction, setupAction, type ActionState } from '../actions';
+import Link from 'next/link';
+import { forgotPasswordAction, loginAction, resetPasswordAction, setupAction, type ActionState } from '../actions';
 
 function Brand() {
   return (
@@ -37,6 +38,11 @@ export function LoginForm({ next }: { next: string }) {
       <button className="f-btn primary" type="submit" disabled={pending} style={{ width: '100%', justifyContent: 'center' }}>
         {pending ? 'Prüfe …' : 'Anmelden'}
       </button>
+      <p style={{ margin: '14px 0 0', textAlign: 'center' }}>
+        <Link href="/flow/forgot" className="f-help">
+          Passwort vergessen?
+        </Link>
+      </p>
     </form>
   );
 }
@@ -80,6 +86,89 @@ export function SetupForm({ tokenHint }: { tokenHint: string }) {
       </div>
       <button className="f-btn primary" type="submit" disabled={pending} style={{ width: '100%', justifyContent: 'center' }}>
         {pending ? 'Lege an …' : 'Admin anlegen'}
+      </button>
+    </form>
+  );
+}
+
+export function ForgotForm() {
+  const [state, action, pending] = useActionState<ActionState, FormData>(forgotPasswordAction, undefined);
+  return (
+    <form action={action} className="f-card" aria-labelledby="forgot-title">
+      <Brand />
+      <h1 id="forgot-title" style={{ fontSize: 20, margin: '0 0 6px' }}>
+        Passwort vergessen
+      </h1>
+      <p className="f-help" style={{ margin: '0 0 18px' }}>
+        Wir schicken dir einen Link, mit dem du ein neues Passwort setzt. Ohne eingerichteten Mailversand kann ein Admin dir den Link unter
+        „Nutzer“ erzeugen.
+      </p>
+      {state?.error && (
+        <p className="f-msg error" role="alert">
+          {state.error}
+        </p>
+      )}
+      {state?.message ? (
+        <p className="f-msg ok" role="status">
+          {state.message}
+        </p>
+      ) : (
+        <>
+          <div className="f-field">
+            <label htmlFor="email">E-Mail</label>
+            <input id="email" name="email" type="email" autoComplete="username" required autoFocus />
+          </div>
+          <button className="f-btn primary" type="submit" disabled={pending} style={{ width: '100%', justifyContent: 'center' }}>
+            {pending ? 'Sende …' : 'Link anfordern'}
+          </button>
+        </>
+      )}
+      <p style={{ margin: '14px 0 0', textAlign: 'center' }}>
+        <Link href="/flow/login" className="f-help">
+          ← Zur Anmeldung
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+export function ResetForm({ token }: { token: string | null }) {
+  const [state, action, pending] = useActionState<ActionState, FormData>(resetPasswordAction, undefined);
+  if (!token)
+    return (
+      <div className="f-card">
+        <Brand />
+        <h1 style={{ fontSize: 20, margin: '0 0 12px' }}>Link ungültig</h1>
+        <p className="f-msg error" role="alert">
+          Der Link ist ungültig oder abgelaufen (1 Stunde gültig, nur einmal verwendbar).
+        </p>
+        <Link href="/flow/forgot" className="f-btn">
+          Neuen Link anfordern
+        </Link>
+      </div>
+    );
+  return (
+    <form action={action} className="f-card" aria-labelledby="reset-title">
+      <Brand />
+      <h1 id="reset-title" style={{ fontSize: 20, margin: '0 0 18px' }}>
+        Neues Passwort
+      </h1>
+      {state?.error && (
+        <p className="f-msg error" role="alert">
+          {state.error}
+        </p>
+      )}
+      <input type="hidden" name="token" value={token} />
+      <div className="f-field">
+        <label htmlFor="rp-pw">Neues Passwort</label>
+        <input id="rp-pw" name="password" type="password" autoComplete="new-password" minLength={10} required autoFocus />
+      </div>
+      <div className="f-field">
+        <label htmlFor="rp-pw2">Wiederholen</label>
+        <input id="rp-pw2" name="password2" type="password" autoComplete="new-password" minLength={10} required />
+      </div>
+      <button className="f-btn primary" type="submit" disabled={pending} style={{ width: '100%', justifyContent: 'center' }}>
+        {pending ? 'Speichere …' : 'Passwort setzen'}
       </button>
     </form>
   );

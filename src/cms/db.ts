@@ -12,7 +12,7 @@ import { seedDocs } from './seed';
  * Dokumente liegen als JSON: `published` = Live-Fassung, `draft` = Arbeitskopie (null = keine offenen Änderungen).
  */
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 const MIGRATIONS: string[] = [
   `CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -77,6 +77,16 @@ const MIGRATIONS: string[] = [
      mime TEXT NOT NULL,
      bytes BLOB NOT NULL,
      PRIMARY KEY (media_id, width)
+   );`,
+  // 3: geplantes Veröffentlichen (Entwurf geht zu publish_at live) und Einmal-Links zum Zurücksetzen des Passworts
+  `ALTER TABLE docs ADD COLUMN publish_at INTEGER;
+   ALTER TABLE docs ADD COLUMN publish_by TEXT;
+   CREATE INDEX IF NOT EXISTS docs_publish_at ON docs(publish_at) WHERE publish_at IS NOT NULL;
+   CREATE TABLE IF NOT EXISTS password_resets (
+     token_hash TEXT PRIMARY KEY,
+     user_id TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     expires_at INTEGER NOT NULL
    );`,
 ];
 

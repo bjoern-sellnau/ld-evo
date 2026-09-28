@@ -30,6 +30,7 @@ export default async function Page({ params }: { params: Promise<{ collection: s
       relations={{ projects }}
       revisions={await listRevisions(collection, id)}
       publicHref={def.href({ ...doc, id })}
+      scheduledAt={row.publishAt}
     />
   );
 }

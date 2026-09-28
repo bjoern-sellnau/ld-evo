@@ -4,6 +4,7 @@ import { readFileSync, rmSync } from 'node:fs';
 import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
 import { db, setupTokenFile } from './db';
+import { mailConfigured, publicUrl, sendMail } from './mail';
 
 /**
  * LD Flow. — Anmeldung.
@@ -12,6 +13,8 @@ import { db, setupTokenFile } from './db';
  *   verrät keine gültigen Sessions. Serverseitig widerrufbar (Logout, Passwortwechsel, Nutzer deaktiviert).
  * - Brute-Force-Schutz: 5 Fehlversuche je E-Mail+IP bzw. 20 je IP in 15 min sperren.
  * - Rollen: admin (alles inkl. Nutzerverwaltung), editor (Inhalte + Medien).
+ * - Passwort vergessen: Einmal-Link (256 Bit, 1 h gültig, in der DB nur als SHA-256), Antwort immer gleich —
+ *   verrät also nicht, ob es ein Konto gibt. Nach dem Zurücksetzen werden alle Sessions des Kontos beendet.
  */
 
 export type Role = 'admin' | 'editor';
@@ -259,4 +262,86 @@ export async function changeOwnPassword(current: string, next: string) {
   db().prepare('DELETE FROM sessions WHERE user_id = ?').run(me.id);
   await createSession(me.id);
   return { ok: true as const };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Passwort vergessen
+// ---------------------------------------------------------------------------------------------------------------
+
+const RESET_TTL = 60 * 60 * 1000;
+
+/**
+ * Neues Reset-Token für ein Konto (ältere verfallen). Liefert den relativen Link — nur für requestPasswordReset
+ * und die Admin-Funktion in repo.ts (die requireUser('admin') prüft) gedacht.
+ */
+export function issueResetToken(userId: string): string {
+  const token = randomBytes(32).toString('base64url');
+  const now = Date.now();
+  db().prepare('DELETE FROM password_resets WHERE user_id = ? OR expires_at < ?').run(userId, now);
+  db()
+    .prepare('INSERT INTO password_resets (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)')
+    .run(sha256(token), userId, now, now + RESET_TTL);
+  return `/flow/reset?token=${token}`;
+}
+
+/** Immer dieselbe Antwort (kein Konto-Orakel); Mail nur, wenn SMTP konfiguriert ist. */
+export async function requestPasswordReset(emailRaw: string): Promise<{ ok: true; message: string } | { ok: false; error: string }> {
+  const email = emailRaw.trim().toLowerCase().slice(0, 200);
+  const ip = await clientIp();
+  if (attempts(`reset:${ip}`) >= 5 || attempts(`reset:${email}`) >= 3)
+    return { ok: false, error: 'Zu viele Anfragen. Bitte in 15 Minuten erneut versuchen.' };
+  bump(`reset:${ip}`);
+  bump(`reset:${email}`);
+  const message = 'Falls es ein Konto mit dieser Adresse gibt, ist ein Link zum Zurücksetzen unterwegs (1 Stunde gültig).';
+  const row = db().prepare('SELECT id, name FROM users WHERE email = ? AND disabled = 0').get(email) as
+    { id: string; name: string } | undefined;
+  if (!row) return { ok: true, message };
+  if (!mailConfigured()) {
+    console.warn(
+      '[LD Flow] Passwort-Reset angefragt, aber kein Mailversand konfiguriert (LDFLOW_SMTP_URL …). Ein Admin kann in „Nutzer“ einen Link erzeugen.',
+    );
+    return { ok: true, message };
+  }
+  const link = publicUrl(issueResetToken(row.id));
+  // Nicht abwarten: sonst verriete die längere Antwortzeit, dass es das Konto gibt.
+  void sendMail(
+    email,
+    'LD Flow — Passwort zurücksetzen',
+    `Hallo ${row.name},\n\nüber diesen Link setzt du dein Passwort für LD Flow zurück (1 Stunde gültig, nur einmal):\n${link}\n\nDu hast das nicht angefordert? Dann ignoriere diese Mail — dein Passwort bleibt unverändert.\n`,
+  ).catch((e) => console.error('[LD Flow] Mailversand fehlgeschlagen:', e instanceof Error ? e.message : e));
+  return { ok: true, message };
+}
+
+/** Prüft, ob ein Reset-Link (noch) gültig ist — für die Reset-Seite. */
+export function resetTokenValid(token: string): boolean {
+  if (!token || token.length > 100) return false;
+  const r = db().prepare('SELECT expires_at FROM password_resets WHERE token_hash = ?').get(sha256(token)) as
+    { expires_at: number } | undefined;
+  return !!r && r.expires_at > Date.now();
+}
+
+/** Neues Passwort mit Einmal-Link setzen; beendet alle Sessions und meldet danach neu an. */
+export async function resetPassword(token: string, password: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const ip = await clientIp();
+  if (attempts(`reset-use:${ip}`) >= 10) return { ok: false, error: 'Zu viele Versuche. Bitte später erneut versuchen.' };
+  const invalid = { ok: false as const, error: 'Der Link ist ungültig oder abgelaufen. Bitte einen neuen anfordern.' };
+  if (!token || token.length > 100) return invalid;
+  const row = db()
+    .prepare(
+      `SELECT r.user_id FROM password_resets r JOIN users u ON u.id = r.user_id
+       WHERE r.token_hash = ? AND r.expires_at > ? AND u.disabled = 0`,
+    )
+    .get(sha256(token), Date.now()) as { user_id: string } | undefined;
+  if (!row) {
+    bump(`reset-use:${ip}`);
+    return invalid;
+  }
+  const pw = passwordProblem(password);
+  if (pw) return { ok: false, error: `Neues Passwort: ${pw}.` };
+  const hash = await hashPassword(password);
+  db().prepare('UPDATE users SET pass_hash = ?, updated_at = ? WHERE id = ?').run(hash, Date.now(), row.user_id);
+  db().prepare('DELETE FROM password_resets WHERE user_id = ?').run(row.user_id);
+  db().prepare('DELETE FROM sessions WHERE user_id = ?').run(row.user_id);
+  await createSession(row.user_id);
+  return { ok: true };
 }

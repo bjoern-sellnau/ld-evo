@@ -1,10 +1,11 @@
 /**
  * LD Flow — End-to-End-Durchlauf gegen einen laufenden Server mit FRISCHEM Build und FRISCHER Datenbank
  * (next start schreibt revalidierte Seiten nach .next zurück — ein zweiter Lauf braucht erneut `npm run build`):
- *   npm run build && LDFLOW_DB=/tmp/ldflow-e2e/flow.db npx next start -p 3123
+ *   npm run build && LDFLOW_DB=/tmp/ldflow-e2e/flow.db LDFLOW_SCHEDULER_INTERVAL_MS=2000 npx next start -p 3123
  *   LDFLOW_DB=/tmp/ldflow-e2e/flow.db node tests/e2e/flow.e2e.mjs
  * Prüft Zugriffsschutz, Setup-Token, WYSIWYG-Sync Vorschau ↔ Formular, Veröffentlichen, neue Seite,
- * reservierte Slugs, Medien-Upload inkl. Typprüfung, Logout und Brute-Force-Sperre.
+ * reservierte Slugs, Navigation, geplantes Veröffentlichen, Medien-Upload inkl. Varianten und Typprüfung,
+ * Passwort-Reset, Logout und Brute-Force-Sperre.
  */
 import { chromium } from '@playwright/test';
 import { readFileSync } from 'node:fs';
@@ -153,6 +154,33 @@ await p.getByRole('button', { name: 'Veröffentlichen' }).click();
 await p.locator('.f-editor-bar .f-msg.ok').waitFor();
 await site.goto(U + '/impressum');
 check('Navigation: Menüpunkt live', (await site.locator('nav a[href$="/kontakt-info"]').count()) > 0);
+
+// Geplantes Veröffentlichen: Entwurf einplanen, Zeitpunkt in der DB vorziehen — der Takt (Server mit
+// LDFLOW_SCHEDULER_INTERVAL_MS=2000 starten) bringt ihn ohne weiteres Zutun live.
+await p.goto(U + '/flow/c/home/home');
+await fr.locator('[data-flow-field="intro"]').waitFor({ timeout: 20000 });
+await p.getByLabel('Einleitung').fill('Geplanter Intro-Text.');
+await p.getByRole('button', { name: 'Planen …' }).click();
+await p.getByRole('button', { name: 'Einplanen' }).click();
+await p.locator('.f-editor-bar .f-msg.ok').waitFor();
+check('Planen: Zeitplan gesetzt', (await p.locator('.f-editor-bar').textContent()).includes('Geplant:'));
+await site.goto(U + '/');
+check('Planen: vor dem Zeitpunkt nicht live', !(await site.content()).includes('Geplanter Intro-Text.'));
+await p.goto(U + '/flow');
+check('Planen: im Dashboard gelistet', (await p.locator('.f-kicker', { hasText: 'Geplant' }).count()) > 0);
+{
+  const { DatabaseSync } = await import('node:sqlite');
+  const sdb = new DatabaseSync(process.env.LDFLOW_DB);
+  sdb.prepare("UPDATE docs SET publish_at = ? WHERE collection = 'home'").run(Date.now() - 1000);
+  sdb.close();
+}
+check(
+  'Planen: Takt veröffentlicht',
+  await until(async () => {
+    await site.goto(U + '/');
+    return (await site.content()).includes('Geplanter Intro-Text.');
+  }, 20000),
+);
 if (OUT) await site.screenshot({ path: `${OUT}/flow-page.png` });
 await p.goto(U + '/flow/c/pages');
 await p.fill('#new-id', 'projekte');
@@ -284,6 +312,40 @@ await p.setInputFiles('#up-file', 'package.json');
 await p.click('text=Hochladen');
 await alert().waitFor();
 check('Nicht-Bild abgelehnt', (await alert().textContent()).includes('Nur'));
+
+// Passwort vergessen: gleiche Antwort mit/ohne Konto; Admin erzeugt Einmal-Link (kein Mailversand konfiguriert)
+await p.goto(U + '/flow/users');
+await p.fill('#nu-name', 'Rita Redaktion');
+await p.fill('#nu-email', 'rita@example.com');
+await p.fill('#nu-pw', 'start-passwort-123');
+await p.getByRole('button', { name: 'Anlegen' }).click();
+await p.locator('tr', { hasText: 'rita@example.com' }).waitFor();
+await p.locator('tr', { hasText: 'rita@example.com' }).getByRole('button', { name: 'Reset-Link' }).click();
+await p.getByLabel('Reset-Link').waitFor();
+const resetUrl = await p.getByLabel('Reset-Link').inputValue();
+check('Reset-Link erzeugt', resetUrl.includes('/flow/reset?token='));
+{
+  const ctx2 = await b.newContext();
+  const q = await ctx2.newPage();
+  await q.goto(U + '/flow/login');
+  await q.click('text=Passwort vergessen?');
+  await q.fill('#email', 'niemand@example.com');
+  await q.click('text=Link anfordern');
+  const generic = await q.locator('.f-msg.ok').textContent();
+  await q.goto(U + '/flow/forgot');
+  await q.fill('#email', 'rita@example.com');
+  await q.click('text=Link anfordern');
+  check('Passwort vergessen: gleiche Antwort mit/ohne Konto', generic === (await q.locator('.f-msg.ok').textContent()));
+  await q.goto(resetUrl);
+  await q.fill('#rp-pw', 'neues-passwort-456');
+  await q.fill('#rp-pw2', 'neues-passwort-456');
+  await q.click('text=Passwort setzen');
+  await q.waitForURL(U + '/flow');
+  check('Reset-Link setzt Passwort und meldet an', true);
+  await q.goto(resetUrl);
+  check('Reset-Link nur einmal gültig', (await q.locator('text=Link ungültig').count()) > 0);
+  await ctx2.close();
+}
 
 // Logout + Brute-Force
 await p.goto(U + '/flow/account');

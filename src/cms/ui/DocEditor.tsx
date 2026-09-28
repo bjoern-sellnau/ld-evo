@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { setAtPath } from '@/site/cms/editing';
 import {
+  cancelScheduleAction,
   deleteDocAction,
   discardDraftAction,
   publishAction,
   restoreRevisionAction,
   saveDraftAction,
   savePatternAction,
+  scheduleAction,
   unpublishAction,
 } from '../actions';
 import { COLLECTIONS, fieldsFor, type Errors } from '../schema';
@@ -30,6 +32,8 @@ export interface EditorProps {
   relations: Relations;
   revisions: { rid: number; createdAt: number; createdBy: string | null }[];
   publicHref: string | null;
+  /** Geplantes Veröffentlichen (ms) — null, wenn nichts geplant ist. */
+  scheduledAt: number | null;
 }
 
 /**
@@ -45,6 +49,8 @@ export function DocEditor(props: EditorProps) {
   const [save, setSave] = useState<SaveState>('saved');
   const [live, setLive] = useState(props.live);
   const [hasDraft, setHasDraft] = useState(props.hasDraft);
+  const [scheduledAt, setScheduledAt] = useState(props.scheduledAt);
+  const [planOpen, setPlanOpen] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [msg, setMsg] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
@@ -166,9 +172,27 @@ export function DocEditor(props: EditorProps) {
       if (res.ok) {
         setLive(true);
         setHasDraft(false);
+        setScheduledAt(null);
         setSave('saved');
         setErrors({});
         setMsg({ kind: 'ok', text: 'Veröffentlicht — die Site ist aktualisiert.' });
+      } else {
+        setErrors(('errors' in res && res.errors) || {});
+        setMsg({ kind: 'error', text: res.error });
+      }
+    });
+
+  const schedule = (at: number) =>
+    start(async () => {
+      clearTimeout(timer.current);
+      const res = await scheduleAction(collection, id, at, docRef.current);
+      if (res.ok) {
+        setScheduledAt(at);
+        setHasDraft(true);
+        setSave('saved');
+        setErrors({});
+        setPlanOpen(false);
+        setMsg({ kind: 'ok', text: `Geplant für ${fmtDate(at)}. Spätere Änderungen am Entwurf gehen mit.` });
       } else {
         setErrors(('errors' in res && res.errors) || {});
         setMsg({ kind: 'error', text: res.error });
@@ -220,6 +244,9 @@ export function DocEditor(props: EditorProps) {
             <button className="f-btn" type="button" onClick={() => void saveNow()} disabled={busy || save === 'saving'} title="⌘S / Strg+S">
               Entwurf speichern
             </button>
+            <button className="f-btn ghost" type="button" onClick={() => setPlanOpen((o) => !o)} aria-expanded={planOpen} disabled={busy}>
+              Planen …
+            </button>
             {hasDraft && live && (
               <button
                 className="f-btn ghost"
@@ -238,6 +265,26 @@ export function DocEditor(props: EditorProps) {
               </button>
             )}
           </div>
+          {planOpen && <PlanForm busy={busy} onPlan={schedule} />}
+          {scheduledAt && (
+            <p className="f-row f-help" style={{ margin: 0, gap: 8 }}>
+              <span className="f-badge draft">⏱ Geplant: {fmtDate(scheduledAt)}</span>
+              <button
+                className="f-btn sm ghost"
+                type="button"
+                disabled={busy}
+                onClick={() =>
+                  act(
+                    () => cancelScheduleAction(collection, id),
+                    'Zeitplan aufgehoben — der Entwurf bleibt erhalten.',
+                    () => setScheduledAt(null),
+                  )
+                }
+              >
+                Zeitplan aufheben
+              </button>
+            </p>
+          )}
           {msg && (
             <p className={`f-msg ${msg.kind}`} role={msg.kind === 'error' ? 'alert' : 'status'} style={{ margin: 0 }}>
               {msg.text}
@@ -375,5 +422,38 @@ export function DocEditor(props: EditorProps) {
         </div>
       </section>
     </div>
+  );
+}
+
+const fmtDate = (ms: number) => new Date(ms).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' });
+
+/** `datetime-local` erwartet lokale Zeit ohne Zone: YYYY-MM-DDTHH:MM. */
+function localInput(ms: number) {
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/** Zeitpunkt wählen (lokale Zeit des Browsers) — der Server prüft Mindestvorlauf und Höchstdauer. */
+function PlanForm({ busy, onPlan }: { busy: boolean; onPlan: (at: number) => void }) {
+  const [value, setValue] = useState(() => localInput(Date.now() + 60 * 60 * 1000));
+  return (
+    <form
+      className="f-row"
+      style={{ gap: 8, alignItems: 'flex-end' }}
+      onSubmit={(e) => {
+        e.preventDefault();
+        const at = new Date(value).getTime();
+        if (Number.isFinite(at)) onPlan(at);
+      }}
+    >
+      <div className="f-field" style={{ margin: 0 }}>
+        <label htmlFor="plan-at">Veröffentlichen am</label>
+        <input id="plan-at" type="datetime-local" value={value} onChange={(e) => setValue(e.target.value)} required />
+      </div>
+      <button className="f-btn" type="submit" disabled={busy}>
+        Einplanen
+      </button>
+    </form>
   );
 }

@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server';
  */
 export function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
-  if (pathname === '/flow/login' || pathname === '/flow/setup') return NextResponse.next();
+  if (['/flow/login', '/flow/setup', '/flow/forgot', '/flow/reset'].includes(pathname)) return NextResponse.next();
   if (!req.cookies.has('ldflow_session')) {
     const url = req.nextUrl.clone();
     url.pathname = '/flow/login';

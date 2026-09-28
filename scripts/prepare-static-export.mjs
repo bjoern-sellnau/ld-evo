@@ -13,7 +13,7 @@ if (process.env.CI !== 'true' && process.env.FORCE_STATIC_PREP !== '1') {
 }
 const root = path.resolve(import.meta.dirname, '..');
 // Frei angelegte CMS-Seiten (/[slug]) entfallen: der Export baut mit frischer DB (nur Prototyp-Inhalte).
-const remove = ['src/app/(flow)', 'src/app/media', 'src/app/(main)/(site)/flow-preview', 'src/app/(main)/(site)/[slug]', 'src/proxy.ts'];
+const remove = ['src/app/(flow)', 'src/app/media', 'src/app/(main)/(site)/flow-preview', 'src/app/(main)/(site)/[slug]', 'src/proxy.ts', 'src/instrumentation.ts'];
 for (const r of remove) {
   const p = path.join(root, r);
   if (existsSync(p)) {
