@@ -5,8 +5,10 @@ Versionen, Mediathek, frei anlegbare Seiten mit Seitentypen (Templates) sowie An
 
 - Admin: **`/flow`** (eigenes Root-Layout, nie indexiert)
 - Entwurfsvorschau: `/flow-preview/<collection>/<id>` (nur angemeldet, sonst 404)
-- Medien: `/media/<id>`
+- Medien: `/media/<id>` (mit `?w=640|1280|2400` die verkleinerte WebP-Variante, sonst das Original)
 - Frei angelegte Seiten: `/<kennung>`
+- Passwort vergessen: `/flow/forgot`, Einmal-Link `/flow/reset?token=…`
+- Kontaktformular-Eingang: `POST /api/contact` · Zeitplan-Takt: `POST /flow-cron` (nur mit geheimem Header)
 
 ## Architektur
 
@@ -19,15 +21,23 @@ Versionen, Mediathek, frei anlegbare Seiten mit Seitentypen (Templates) sowie An
 | Server Actions | `src/cms/actions.ts` | dünne Hüllen um `repo.ts` + `revalidatePath('/', 'layout')` nach Live-Änderungen |
 | Site-Anbindung | `src/cms/content.ts`, `src/site/content/ContentProvider.tsx` | Site-Layout lädt die veröffentlichten Inhalte einmal und gibt sie per Context an die Seiten |
 | WYSIWYG | `src/site/cms/editing.tsx`, `PreviewClient.tsx` | `EText`/`ERich` machen Texte in der Vorschau editierbar; ohne Editor rendern sie exakt den bisherigen Text |
-| Admin-UI | `src/app/(flow)/…`, `src/cms/ui/*` | Dashboard, Listen, Editor (Formular + Live-Vorschau), Mediathek, Nutzer, Konto |
+| Admin-UI | `src/app/(flow)/…`, `src/cms/ui/*` | Dashboard, Listen, Editor (Formular + Live-Vorschau), Mediathek, Nachrichten, Nutzer, Konto |
+| Veröffentlichen/Zeitplan | `src/cms/publish.ts`, `scheduler.ts`, `src/instrumentation.ts` | gemeinsamer Kern `commitPublish()`; Minutentakt veröffentlicht geplante Entwürfe |
+| Medien | `src/cms/media.ts`, `src/cms/ui/imageVariants.ts` | Browser rechnet WebP-Varianten, Server prüft sie (Magic Bytes + WebP-Kopf), Site setzt `srcset` |
+| Mail/Kontakt | `src/cms/mail.ts`, `src/cms/contact.ts` | optionaler SMTP-Versand; öffentlicher Eingang des Kontaktformulars (Spam-Schutz) |
 
 **Datenfluss beim Bearbeiten:** Formular links ↔ Vorschau-iframe rechts per `postMessage` (nur gleicher Ursprung).
 Jede Änderung wird nach 1,2 s als Entwurf gespeichert (⌘S/Strg+S sofort). „Veröffentlichen“ validiert vollständig,
 legt die bisherige Live-Fassung als Version ab (max. 30) und erneuert die statisch erzeugte Site.
 
 **Was ist editierbar:** Startseite (Hero-Texte, Rollen, Featured), Über mich (Texte, Werkzeuge, Skills, Zertifikate,
-Bilder), Projekte & Labs, .Tech-Artikel, Meine Reise (Stationen, Zwischenschritte, Bilder) und frei angelegte Seiten.
-Im Code bleiben bewusst: Impressum/Datenschutz (Rechtstexte), Stationen der Über-mich-Seite samt Rail, Navigation.
+Bilder, Stationen mit Projekten — Rail und Bilder leiten sich daraus ab), Navigation (inkl. eigener Seiten und
+externer Links), Impressum & Datenschutz, Projekte & Labs, .Tech-Artikel, Meine Reise (Stationen, Zwischenschritte
+mit eigenen Einblick-Bildern) und frei angelegte Seiten. Neue Singletons/Felder ergänzt `backfillSingletons()` auch in
+bestehenden Datenbanken (additiv). Im Code bleiben die Struktur der festen Seiten, die mobile Tab-Leiste und die Gestaltung.
+
+**Planen:** „Planen …“ im Editor prüft vollständig und speichert den Entwurf mit Zeitpunkt; das Dashboard listet
+Geplantes. Spätere Entwurfsänderungen gehen mit. Ist der Entwurf zum Zeitpunkt ungültig, bleibt er Entwurf.
 
 ## Betrieb
 
@@ -43,6 +53,17 @@ Im Code bleiben bewusst: Impressum/Datenschutz (Rechtstexte), Stationen der Übe
 | `LDFLOW_DB` | Pfad der SQLite-Datei (Standard `./data/flow.db`) |
 | `LDFLOW_SETUP_TOKEN` | optional: festes Setup-Token statt der generierten Datei |
 | `LDFLOW_INSECURE_COOKIES` | `1` = Cookies ohne `Secure` (nur lokal/Tests) |
+| `LDFLOW_PUBLIC_URL` | öffentliche Adresse (Basis für Links in Mails; nie aus dem Host-Header) |
+| `LDFLOW_SMTP_URL` | Mailversand: `smtps://nutzer:pass@host:465` oder `smtp://…:587` (STARTTLS erzwungen) |
+| `LDFLOW_MAIL_FROM` | Absender, z. B. `LD Flow <flow@loona-designs.de>` |
+| `LDFLOW_CONTACT_TO` | optional: Benachrichtigung über neue Kontakt-Nachrichten |
+| `LDFLOW_TZ` | Zeitzone für Zeitangaben im Dashboard (Standard `Europe/Berlin`) |
+| `LDFLOW_SCHEDULER` | `0` = internen Minutentakt aus (externer Cron ruft `POST /flow-cron` mit Header `x-ldflow-cron`) |
+| `LDFLOW_CRON_SECRET` | festes Geheimnis für den externen Cron (sonst zufällig je Prozess) |
+| `LDFLOW_SCHEDULER_INTERVAL_MS` | Takt in ms (Standard 60000; E2E nutzt 2000) |
+
+Ohne Mailversand funktioniert „Passwort vergessen“ weiterhin über Admins: **Nutzer → Reset-Link** erzeugt einen
+Einmal-Link (1 h), der auf sicherem Weg weitergegeben wird.
 
 ### Einrichtung
 
@@ -64,6 +85,11 @@ Im Code bleiben bewusst: Impressum/Datenschutz (Rechtstexte), Stationen der Übe
   `https`, `mailto`, `tel`, relativ oder Anker. Uploads werden an den Magic Bytes erkannt (PNG, JPEG, GIF, WebP,
   AVIF, MP4, WebM — kein SVG) und mit `nosniff` + `sandbox`-CSP ausgeliefert.
 - Clickjacking: `frame-ancestors 'self'` für die Site (nötig für die Vorschau), `'none'` für `/flow`.
+- Passwort vergessen: Einmal-Link (256 Bit, 1 h, in der DB nur SHA-256); gleiche Antwort und Laufzeit mit oder ohne
+  Konto (Mail wird nicht abgewartet); Rate-Limit je IP und E-Mail; danach werden alle Sessions beendet.
+- Kontaktformular: nur JSON ≤ 20 KB, Origin-Prüfung, Honeypot, Mindest-Ausfülldauer, 5 Nachrichten je IP in 15 min;
+  gespeichert wird ohne IP. Nachrichten erscheinen nur als Text (kein HTML).
+- Zeitplan-Route: nur mit geheimem Header (Vergleich über Hashes in konstanter Zeit), sonst 404.
 
 ## Neuen Seitentyp anlegen
 
@@ -81,12 +107,16 @@ Formular, Validierung, Speichern und Vorschau ergeben sich automatisch aus der D
 - `npm test` — u. a. `tests/unit/cms.test.ts`: alle Prototyp-Inhalte bestehen das Schema verlustfrei; Link-/Rich-Text-
   Filter; scrypt; Upload-Typprüfung.
 - `tests/e2e/flow.e2e.mjs` — kompletter Durchlauf gegen eine frische DB (Anleitung im Dateikopf): Zugriffsschutz,
-  Setup-Token, WYSIWYG-Sync, Entwurf vs. live, neue Seite, reservierte Kennungen, Medien, Logout, Sperre.
+  Setup-Token, WYSIWYG-Sync, Entwurf vs. live, neue Seite, reservierte Kennungen, Navigation, Widgets, Kontaktformular,
+  geplantes Veröffentlichen, Bildvarianten, Passwort-Reset, Logout, Sperre. Braucht **frischen Build und frische DB**.
 
 ## Offene Punkte
 
 - Mehrere Server-Instanzen: SQLite ist für eine Instanz gedacht; für horizontales Skalieren den Speicher in
   `db.ts`/`repo.ts` auf Postgres umstellen (Schnittstelle bleibt).
-- Bildgrößen: Uploads werden unverändert ausgeliefert (kein Resizing/`srcset`).
-- Zwei-Faktor-Anmeldung und Passwort-zurücksetzen per E-Mail fehlen (Admins setzen Passwörter in „Nutzer“).
-- Zwischenschritt-Bilder der Reise (`ld-mini-<jahr>-s<n>-…`) liegen noch in `content/journeyMedia.ts`.
+- Vor dem Livegang empfohlen: Zwei-Faktor-Anmeldung (TOTP), Script-CSP mit Nonces, Sitzungsübersicht
+  („überall abmelden“), Cookie-Präfix `__Host-`.
+- Mehrsprachigkeit ist nicht umgesetzt — es gibt keine Quelltexte in anderen Sprachen; vorher klären: Sprachen,
+  URL-Schema (`/en/…`), wer übersetzt, `hreflang`.
+- Bildvarianten entstehen im Browser beim Upload; ältere Uploads (vor dieser Funktion) haben keine und werden im
+  Original ausgeliefert.

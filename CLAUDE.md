@@ -27,7 +27,9 @@ Ausführlich und interaktiv: **LD Flow → Guide** (`/flow/guide`).
 2. **Widgets** (`src/widgets/*.tsx`): kein `'use client'`, kein `createContext`/`useState` direkt — Hooks nur aus
    Client-Modulen (`useSite`, `useContent`). Texte mit `<EText path={`${path}.feld`} …/>` für WYSIWYG.
 3. **Sicherheit:** SQL nur mit Prepared Statements (`?`), nie String-Verkettung. Jede Funktion in `src/cms/repo.ts`
-   prüft `requireUser()` selbst. Kein `dangerouslySetInnerHTML` mit Nutzerinhalten; Rich Text bleibt JSON.
+   prüft `requireUser()` selbst. Bewusste Ausnahmen ohne Login liegen außerhalb von `repo.ts` und sind
+   einzeln abgesichert: `contact.ts` (öffentliches Kontaktformular), `scheduler.ts` (nur per geheimem Cron-Header),
+   Passwort-Reset in `auth.ts`. Kein `dangerouslySetInnerHTML` mit Nutzerinhalten; Rich Text bleibt JSON.
    Links über `isSafeHref`, Medien über `isSafeMediaSrc`.
 4. **Keine Scroll-Locks auf `body`**, echte `<button>`s, `prefers-reduced-motion`/„Animationen aus“ respektieren,
    Kontrast ≥ 4.5:1.

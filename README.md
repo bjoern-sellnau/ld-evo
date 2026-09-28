@@ -11,7 +11,7 @@ Sicherheit, Hosting, AI-Prompts). Kurzfassung für AI-Assistenten: [`CLAUDE.md`]
 | Pfad | Inhalt |
 |---|---|
 | `src/app/(main)` · `src/site/` | Website (Portfolio) — 1:1 nach `design/design_handoff_loona_site/` |
-| `src/app/(flow)` · `src/cms/` | CMS **LD Flow.** — WYSIWYG, Entwürfe, Versionen, Medien, Nutzer, Guide |
+| `src/app/(flow)` · `src/cms/` | CMS **LD Flow.** — WYSIWYG, Entwürfe, Planen, Versionen, Medien (mit Bildvarianten), Navigation, Nachrichten, Nutzer, Guide |
 | `src/widgets/` | Baukasten-Widgets (`defineWidget`), Registry wird generiert |
 | `src/app/(orbit)` · `src/orbit/` | ORBIT OS Shader-Wallpapers (`/orbit`) |
 | `src/components/brand/` | Logo-Bibliothek: `LoonaMark`, `LoonaLockup`, `LoonaTile`, … (Demo `/brand`) |
