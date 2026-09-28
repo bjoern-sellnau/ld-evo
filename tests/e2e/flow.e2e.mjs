@@ -77,6 +77,16 @@ const openMenu = async (frame, button) => {
   throw new Error('Menü öffnet nicht');
 };
 const alert = (pg = p) => pg.locator('.f-msg[role=alert]').first();
+/** Direkter DB-Zugriff für Situationen, die sonst eine zweite Person bräuchten (z. B. gleichzeitiges Bearbeiten). */
+const sql = async (fn) => {
+  const { DatabaseSync } = await import('node:sqlite');
+  const d = new DatabaseSync(process.env.LDFLOW_DB);
+  try {
+    return fn(d);
+  } finally {
+    d.close();
+  }
+};
 
 await p.goto(U + '/flow');
 check('ohne Login → Setup', new URL(p.url()).pathname === '/flow/setup');
@@ -304,6 +314,31 @@ check(
     (await p.locator('li', { hasText: 'bot@example.com' }).count()) === 0,
 );
 
+// Gleichzeitiges Bearbeiten: jemand anders speichert dazwischen → kein Überschreiben, bewusste Entscheidung
+await p.goto(U + '/flow/c/home/home');
+await fr.locator('[data-flow-field="intro"]').waitFor({ timeout: 20000 });
+await sql((d) => d.prepare("UPDATE docs SET updated_at = ?, updated_by = 'rita@example.com' WHERE collection = 'home'").run(Date.now()));
+await p.getByLabel('Einleitung').fill('Konflikt-Test.');
+await p.locator('.f-msg[role=alert]', { hasText: 'rita@example.com' }).waitFor({ timeout: 8000 });
+const homeDraft = () => sql((d) => d.prepare("SELECT draft FROM docs WHERE collection = 'home'").get()?.draft ?? '');
+check('Konflikt erkannt, nichts überschrieben', !(await homeDraft()).includes('Konflikt-Test.'));
+p.once('dialog', (d) => d.accept());
+await p.getByRole('button', { name: 'Trotzdem speichern' }).click();
+check(
+  'Trotzdem speichern überschreibt bewusst',
+  await until(
+    async () => (await homeDraft()).includes('Konflikt-Test.') && (await p.locator('text=Trotzdem speichern').count()) === 0,
+    8000,
+  ),
+);
+// Versionsvergleich: letzte Version ↔ aktueller Stand
+await p.locator('summary', { hasText: 'Versionen' }).click();
+await p.getByRole('button', { name: 'Vergleichen' }).first().click();
+const diffList = p.locator('ul[aria-label="Unterschiede zum aktuellen Stand"]');
+await diffList.waitFor();
+check('Versionsvergleich zeigt Änderung mit Feldnamen', (await diffList.textContent()).includes('Einleitung'));
+check('Versionsvergleich wortweise', (await diffList.locator('ins', { hasText: 'Konflikt-Test.' }).count()) > 0);
+
 // Medien
 await p.goto(U + '/flow/media');
 await p.setInputFiles('#up-file', 'public/brand/flow/mark-512.png');
@@ -350,6 +385,33 @@ await p.setInputFiles('#up-file', 'package.json');
 await p.click('text=Hochladen');
 await alert().waitFor();
 check('Nicht-Bild abgelehnt', (await alert().textContent()).includes('Nur'));
+// Mediathek: Suche, Verwendung, Varianten nachrüsten (alter Upload ohne Varianten), Löschschutz
+const bigId = bigSrc.split('/').pop();
+await sql((d) => d.prepare('DELETE FROM media_variants WHERE media_id = ?').run(bigId));
+await sql((d) => {
+  const r = d.prepare("SELECT published FROM docs WHERE collection = 'pages' AND id = 'kontakt-info'").get();
+  const doc = JSON.parse(r.published);
+  doc.blocks.push({ type: 'image', _id: 'imgtest01', image: { src: bigSrc, alt: 'Test' } });
+  d.prepare("UPDATE docs SET draft = ? WHERE collection = 'pages' AND id = 'kontakt-info'").run(JSON.stringify(doc));
+});
+await p.goto(U + '/flow/media');
+await p.fill('input[aria-label="Medien durchsuchen"]', 'gross');
+check('Mediathek: Suche', (await p.locator('.f-media-grid > .f-card').count()) === 1);
+const bigCard = p.locator('.f-media-grid > .f-card', { hasText: 'gross.png' });
+check('Mediathek: Verwendung angezeigt', (await bigCard.textContent()).includes('Verwendet in: Kontakt & Info'));
+await bigCard.getByRole('button', { name: 'Varianten erzeugen' }).click();
+await p.locator('[role=status]', { hasText: 'Varianten für' }).waitFor({ timeout: 15000 });
+check('Varianten nachgerüstet', (await ctx.request.get(U + bigSrc + '?w=500')).headers()['content-type'] === 'image/webp');
+{
+  let asked = '';
+  p.once('dialog', (d) => {
+    asked = d.message();
+    return d.dismiss();
+  });
+  await bigCard.getByRole('button', { name: 'Löschen' }).click();
+  await until(async () => asked !== '');
+  check('Löschschutz: Warnung bei verwendetem Bild', asked.includes('wird noch verwendet'));
+}
 
 // Passwort vergessen: gleiche Antwort mit/ohne Konto; Admin erzeugt Einmal-Link (kein Mailversand konfiguriert)
 await p.goto(U + '/flow/users');
@@ -398,9 +460,9 @@ const totp = (b32, ms = Date.now()) => {
   const o = h[19] & 15;
   return String((h.readUInt32BE(o) & 0x7fffffff) % 1e6).padStart(6, '0');
 };
-const loginAs = async (pg, pw = 'sehr-geheim-123') => {
+const loginAs = async (pg, pw = 'sehr-geheim-123', email = 'admin@example.com') => {
   await pg.goto(U + '/flow/login');
-  await pg.fill('#email', 'admin@example.com');
+  await pg.fill('#email', email);
   await pg.fill('#password', pw);
   await pg.click('button[type=submit]');
 };
@@ -468,6 +530,24 @@ check(
   'Nutzerliste zeigt 2FA',
   (await p.locator('tr', { hasText: 'admin@example.com' }).locator('.f-badge', { hasText: 'an' }).count()) === 1,
 );
+// 2FA-Pflicht: Konto ohne 2FA kommt nur noch an „Mein Konto“
+await p.getByLabel('2FA-Pflicht für alle').check();
+await until(async () => p.getByLabel('2FA-Pflicht für alle').isChecked());
+{
+  const ctx5 = await b.newContext();
+  const q5 = await ctx5.newPage();
+  watchCsp(q5);
+  await loginAs(q5, 'neues-passwort-456', 'rita@example.com');
+  await q5.waitForURL(/\/flow\/account\?pflicht=1/);
+  check('2FA-Pflicht: ohne 2FA nur „Mein Konto“', (await alert(q5).textContent()).includes('Pflicht'));
+  await q5.goto(U + '/flow/c/home/home');
+  check('2FA-Pflicht: Editor gesperrt', new URL(q5.url()).pathname === '/flow/account');
+  const res = await q5.evaluate(async () => (await fetch('/flow/c/home/home', { redirect: 'manual' })).type);
+  check('2FA-Pflicht: auch direkte Aufrufe umgeleitet', res === 'opaqueredirect');
+  await ctx5.close();
+}
+await p.getByLabel('2FA-Pflicht für alle').uncheck();
+await until(async () => !(await p.getByLabel('2FA-Pflicht für alle').isChecked()));
 
 // Logout + Brute-Force
 await p.goto(U + '/flow/account');

@@ -101,7 +101,28 @@ export function workingCopy(row: DocRow): Record<string, unknown> {
   return row.draft ?? row.published ?? {};
 }
 
-type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string; errors?: Errors };
+type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string; errors?: Errors; conflict?: { by: string | null; at: number } };
+
+/**
+ * Gleichzeitiges Bearbeiten: Der Editor schickt den Stand (`updated_at`) mit, den er kennt. Hat inzwischen jemand
+ * anders gespeichert, wird nicht überschrieben — der Editor zeigt, wer wann geändert hat. `expectedRev` undefined
+ * = ohne Prüfung (z. B. „trotzdem speichern“). Aufruf synchron direkt vor dem Schreiben (kein await dazwischen).
+ */
+function conflictWith(collection: string, id: string, expectedRev: number | undefined) {
+  if (expectedRev === undefined) return null;
+  const r = db().prepare('SELECT updated_at, updated_by FROM docs WHERE collection = ? AND id = ?').get(collection, id) as
+    { updated_at: number; updated_by: string | null } | undefined;
+  if (!r || r.updated_at === expectedRev) return null;
+  return {
+    ok: false as const,
+    error: `${r.updated_by ?? 'Jemand'} hat diesen Eintrag inzwischen geändert.`,
+    conflict: { by: r.updated_by, at: r.updated_at },
+  };
+}
+
+const revOf = (collection: string, id: string) =>
+  (db().prepare('SELECT updated_at FROM docs WHERE collection = ? AND id = ?').get(collection, id) as { updated_at: number } | undefined)
+    ?.updated_at ?? 0;
 
 export async function createDoc(
   collection: string,
@@ -137,30 +158,35 @@ export async function createDoc(
 }
 
 /** Entwurf speichern (validiert, aber noch nicht live). */
-export async function saveDraft(collection: string, id: string, input: unknown): Promise<Result> {
+export async function saveDraft(collection: string, id: string, input: unknown, expectedRev?: number): Promise<Result<{ rev: number }>> {
   const user = await requireUser();
   assertCollection(collection);
   const { value, errors } = validateDoc(collection, input);
   // Entwürfe dürfen unvollständig sein — nur Formatfehler blockieren; Pflichtfelder prüft erst das Veröffentlichen.
   const blocking = Object.fromEntries(Object.entries(errors).filter(([, m]) => m !== 'Pflichtfeld'));
   if (Object.keys(blocking).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors: blocking };
+  const conflict = conflictWith(collection, id, expectedRev);
+  if (conflict) return conflict;
+  const now = Date.now();
   const res = db()
     .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ?')
-    .run(JSON.stringify(value), Date.now(), user.email, collection, id);
+    .run(JSON.stringify(value), now, user.email, collection, id);
   if (!res.changes) return { ok: false, error: 'Eintrag nicht gefunden.' };
-  return { ok: true };
+  return { ok: true, rev: now };
 }
 
 /** Entwurf (bzw. übergebene Daten) veröffentlichen; alte Live-Fassung wandert in die Versionen. */
-export async function publishDoc(collection: string, id: string, input?: unknown): Promise<Result> {
+export async function publishDoc(collection: string, id: string, input?: unknown, expectedRev?: number): Promise<Result<{ rev: number }>> {
   const user = await requireUser();
   assertCollection(collection);
   const row = await getDoc(collection, id);
   if (!row) return { ok: false, error: 'Eintrag nicht gefunden.' };
   const { value, errors } = validateDoc(collection, input ?? workingCopy(row));
   if (Object.keys(errors).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors };
+  const conflict = conflictWith(collection, id, expectedRev);
+  if (conflict) return conflict;
   commitPublish(collection, id, value, user.email);
-  return { ok: true };
+  return { ok: true, rev: revOf(collection, id) };
 }
 
 /** Frühester/spätester Zeitpunkt fürs Planen (1 Minute Vorlauf, höchstens ein Jahr). */
@@ -171,7 +197,13 @@ const SCHEDULE_MAX = 366 * 24 * 3600 * 1000;
  * Veröffentlichen planen: Daten werden sofort vollständig geprüft und als Entwurf gespeichert; zum Zeitpunkt
  * bringt der Zeitplan (scheduler.ts) den dann aktuellen Entwurf live. Spätere Entwurfsänderungen gehen also mit.
  */
-export async function schedulePublish(collection: string, id: string, at: number, input?: unknown): Promise<Result> {
+export async function schedulePublish(
+  collection: string,
+  id: string,
+  at: number,
+  input?: unknown,
+  expectedRev?: number,
+): Promise<Result<{ rev: number }>> {
   const user = await requireUser();
   assertCollection(collection);
   const now = Date.now();
@@ -182,10 +214,12 @@ export async function schedulePublish(collection: string, id: string, at: number
   if (!row) return { ok: false, error: 'Eintrag nicht gefunden.' };
   const { value, errors } = validateDoc(collection, input ?? workingCopy(row));
   if (Object.keys(errors).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors };
+  const conflict = conflictWith(collection, id, expectedRev);
+  if (conflict) return conflict;
   db()
     .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ?, publish_at = ?, publish_by = ? WHERE collection = ? AND id = ?')
     .run(JSON.stringify(value), now, user.email, Math.round(at), user.email, collection, id);
-  return { ok: true };
+  return { ok: true, rev: now };
 }
 
 export async function cancelSchedule(collection: string, id: string): Promise<Result> {
@@ -217,7 +251,7 @@ export async function discardDraft(collection: string, id: string): Promise<Resu
 }
 
 /** Von der Site nehmen, Inhalt bleibt als Entwurf erhalten. */
-export async function unpublishDoc(collection: string, id: string): Promise<Result> {
+export async function unpublishDoc(collection: string, id: string): Promise<Result<{ rev: number }>> {
   const user = await requireUser();
   const def = COLLECTIONS[collection];
   if (!def || def.kind === 'singleton') return { ok: false, error: 'Singletons bleiben immer online.' };
@@ -226,7 +260,7 @@ export async function unpublishDoc(collection: string, id: string): Promise<Resu
       'UPDATE docs SET draft = COALESCE(draft, published), published = NULL, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ?',
     )
     .run(Date.now(), user.email, collection, id);
-  return r.changes ? { ok: true } : { ok: false, error: 'Eintrag nicht gefunden.' };
+  return r.changes ? { ok: true, rev: revOf(collection, id) } : { ok: false, error: 'Eintrag nicht gefunden.' };
 }
 
 export async function deleteDoc(collection: string, id: string): Promise<Result> {
@@ -287,6 +321,15 @@ export async function listRevisions(collection: string, id: string) {
   );
 }
 
+/** Inhalt einer Version (für den Vergleich im Editor). */
+export async function getRevision(collection: string, id: string, rid: number): Promise<Result<{ data: Record<string, unknown> }>> {
+  await requireUser();
+  assertCollection(collection);
+  const r = db().prepare('SELECT data FROM revisions WHERE rid = ? AND collection = ? AND doc_id = ?').get(rid, collection, id) as
+    { data: string } | undefined;
+  return r ? { ok: true, data: JSON.parse(r.data) as Record<string, unknown> } : { ok: false, error: 'Version nicht gefunden.' };
+}
+
 /** Version als Entwurf zurückholen (zum Prüfen, danach veröffentlichen). */
 export async function restoreRevision(collection: string, id: string, rid: number): Promise<Result> {
   const user = await requireUser();
@@ -329,23 +372,44 @@ export function sniffImage(buf: Uint8Array): string | null {
   return null;
 }
 
-export async function uploadMedia(file: File, alt: string, variants: File[] = []): Promise<Result<{ id: string; src: string }>> {
-  const user = await requireUser();
-  if (file.size > MAX_UPLOAD) return { ok: false, error: 'Datei ist größer als 10 MB.' };
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  const mime = sniffImage(bytes);
-  if (!mime) return { ok: false, error: 'Nur PNG, JPEG, GIF, WebP, AVIF, MP4 oder WebM.' };
-  // Varianten (vom Browser verkleinert): nur WebP, nur die vorgesehenen Breiten, Breite laut Header muss passen.
-  // Ungültige werden verworfen statt den Upload abzulehnen — das Original reicht immer.
+/**
+ * Varianten (vom Browser verkleinert) prüfen: nur WebP (Magic Bytes), nur die vorgesehenen Breiten, Breite laut
+ * WebP-Kopf muss passen. Ungültige werden verworfen statt abzulehnen — das Original reicht immer.
+ */
+async function checkVariants(variants: File[]): Promise<{ width: number; bytes: Uint8Array }[]> {
   const ok: { width: number; bytes: Uint8Array }[] = [];
   for (const v of variants.slice(0, VARIANT_WIDTHS.length)) {
-    if (v.size > MAX_UPLOAD || !mime.startsWith('image/')) continue;
+    if (v.size > MAX_UPLOAD) continue;
     const vb = new Uint8Array(await v.arrayBuffer());
     const size = sniffImage(vb) === 'image/webp' ? webpSize(vb) : null;
     if (size && (VARIANT_WIDTHS as readonly number[]).includes(size.width) && !ok.some((o) => o.width === size.width)) {
       ok.push({ width: size.width, bytes: vb });
     }
   }
+  return ok;
+}
+
+/** Varianten für ein bereits hochgeladenes Bild nachrüsten (Uploads von vor der Variantenfunktion). */
+export async function addMediaVariants(id: string, variants: File[]): Promise<Result<{ count: number }>> {
+  await requireUser();
+  const m = db().prepare('SELECT mime FROM media WHERE id = ?').get(id) as { mime: string } | undefined;
+  if (!m) return { ok: false, error: 'Medium nicht gefunden.' };
+  if (!/^image\/(png|jpeg|webp)$/.test(m.mime)) return { ok: false, error: 'Varianten nur für PNG, JPEG und WebP.' };
+  const ok = await checkVariants(variants);
+  tx(() => {
+    const ins = db().prepare('INSERT OR REPLACE INTO media_variants (media_id, width, mime, bytes) VALUES (?, ?, ?, ?)');
+    for (const v of ok) ins.run(id, v.width, 'image/webp', v.bytes);
+  });
+  return { ok: true, count: ok.length };
+}
+
+export async function uploadMedia(file: File, alt: string, variants: File[] = []): Promise<Result<{ id: string; src: string }>> {
+  const user = await requireUser();
+  if (file.size > MAX_UPLOAD) return { ok: false, error: 'Datei ist größer als 10 MB.' };
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const mime = sniffImage(bytes);
+  if (!mime) return { ok: false, error: 'Nur PNG, JPEG, GIF, WebP, AVIF, MP4 oder WebM.' };
+  const ok = mime.startsWith('image/') ? await checkVariants(variants) : [];
   const id = randomBytes(12).toString('base64url');
   const name = file.name.replace(/[^\w.\- ]+/g, '_').slice(0, 120) || 'datei';
   tx(() => {
@@ -358,18 +422,45 @@ export async function uploadMedia(file: File, alt: string, variants: File[] = []
   return { ok: true, id, src: `/media/${id}` };
 }
 
+export interface MediaUse {
+  collection: string;
+  id: string;
+  title: string;
+}
+
+/** Wo wird welches Medium verwendet? (veröffentlichte Fassungen und Entwürfe aller Dokumente) */
+function mediaUsage(): Map<string, MediaUse[]> {
+  const rows = db().prepare('SELECT collection, id, published, draft FROM docs').all() as {
+    collection: string;
+    id: string;
+    published: string | null;
+    draft: string | null;
+  }[];
+  const out = new Map<string, MediaUse[]>();
+  for (const r of rows) {
+    const text = `${r.published ?? ''}\n${r.draft ?? ''}`;
+    const ids = new Set([...text.matchAll(/\/media\/([\w-]{8,32})/g)].map((m) => m[1]));
+    if (!ids.size) continue;
+    const def = COLLECTIONS[r.collection];
+    const data = parse(r.draft) ?? parse(r.published) ?? {};
+    const t = def && typeof data[def.titleField] === 'string' ? (data[def.titleField] as string) : '';
+    const use = { collection: r.collection, id: r.id, title: t || def?.singular || r.id };
+    for (const mid of ids) out.set(mid, [...(out.get(mid) ?? []), use]);
+  }
+  return out;
+}
+
 export async function listMedia() {
   await requireUser();
-  return plain(
-    db().prepare('SELECT id, filename, mime, size, alt, created_at AS createdAt FROM media ORDER BY created_at DESC').all() as {
-      id: string;
-      filename: string;
-      mime: string;
-      size: number;
-      alt: string;
-      createdAt: number;
-    }[],
-  );
+  const usage = mediaUsage();
+  const rows = db()
+    .prepare(
+      `SELECT id, filename, mime, size, alt, created_at AS createdAt,
+       (SELECT COUNT(*) FROM media_variants v WHERE v.media_id = media.id) AS variants
+       FROM media ORDER BY created_at DESC`,
+    )
+    .all() as { id: string; filename: string; mime: string; size: number; alt: string; createdAt: number; variants: number }[];
+  return rows.map((r) => ({ ...r, usedIn: usage.get(r.id) ?? [] }));
 }
 
 export async function updateMediaAlt(id: string, alt: string): Promise<Result> {
@@ -378,8 +469,11 @@ export async function updateMediaAlt(id: string, alt: string): Promise<Result> {
   return { ok: true };
 }
 
-export async function deleteMedia(id: string): Promise<Result> {
+/** Löschen; wird das Medium noch verwendet, nur mit `force` (die Seiten zeigen es danach nicht mehr). */
+export async function deleteMedia(id: string, force = false): Promise<Result> {
   await requireUser();
+  const used = mediaUsage().get(id) ?? [];
+  if (used.length && !force) return { ok: false, error: `Wird noch verwendet: ${used.map((u) => u.title).join(', ')}.` };
   tx(() => {
     db().prepare('DELETE FROM media_variants WHERE media_id = ?').run(id);
     db().prepare('DELETE FROM media WHERE id = ?').run(id);

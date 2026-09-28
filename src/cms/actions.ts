@@ -14,6 +14,7 @@ import {
   requestPasswordReset,
   resetPassword,
   revokeSessions,
+  setTwoFactorRequired,
   setupFirstAdmin,
   type Role,
 } from './auth';
@@ -22,6 +23,7 @@ import {
   adminDeleteUser,
   adminResetLink,
   adminUpdateUser,
+  addMediaVariants,
   cancelSchedule,
   createDoc,
   createPattern,
@@ -35,6 +37,7 @@ import {
   moveDoc,
   publishDoc,
   restoreRevision,
+  getRevision,
   saveDraft,
   schedulePublish,
   unpublishDoc,
@@ -135,12 +138,13 @@ export async function createDocAction(_: ActionState, fd: FormData): Promise<Act
   redirect(`/flow/c/${collection}/${(res as { id: string }).id}`);
 }
 
-export async function saveDraftAction(collection: string, id: string, data: unknown) {
-  return guard(() => saveDraft(collection, id, data));
+/** `rev`: der Stand, den der Editor kennt (Konfliktschutz); undefined = ohne Prüfung speichern. */
+export async function saveDraftAction(collection: string, id: string, data: unknown, rev?: number) {
+  return guard(() => saveDraft(collection, id, data, rev));
 }
 
-export async function publishAction(collection: string, id: string, data?: unknown) {
-  const res = await guard(() => publishDoc(collection, id, data));
+export async function publishAction(collection: string, id: string, data?: unknown, rev?: number) {
+  const res = await guard(() => publishDoc(collection, id, data, rev));
   if (res.ok) refreshSite();
   return res;
 }
@@ -154,12 +158,16 @@ export async function savePatternAction(title: string, global: boolean, block: u
 }
 
 /** Veröffentlichen planen (`at` = Zeitpunkt in ms, vom Browser aus der lokalen Zeit umgerechnet). */
-export async function scheduleAction(collection: string, id: string, at: number, data?: unknown) {
-  return guard(() => schedulePublish(collection, id, at, data));
+export async function scheduleAction(collection: string, id: string, at: number, data?: unknown, rev?: number) {
+  return guard(() => schedulePublish(collection, id, at, data, rev));
 }
 
 export async function cancelScheduleAction(collection: string, id: string) {
   return guard(() => cancelSchedule(collection, id));
+}
+
+export async function revisionAction(collection: string, id: string, rid: number) {
+  return guard(() => getRevision(collection, id, rid));
 }
 
 export async function discardDraftAction(collection: string, id: string) {
@@ -202,6 +210,13 @@ export async function uploadMediaAction(fd: FormData) {
   return res;
 }
 
+export async function addVariantsAction(id: string, fd: FormData) {
+  const variants = fd.getAll('variant').filter((v): v is File => v instanceof File);
+  const res = await guard(() => addMediaVariants(id, variants));
+  revalidatePath('/flow/media');
+  return res;
+}
+
 export async function listMediaAction() {
   return guard(async () => ({ ok: true as const, items: await listMedia() }));
 }
@@ -212,8 +227,8 @@ export async function mediaAltAction(id: string, alt: string) {
   return res;
 }
 
-export async function deleteMediaAction(id: string) {
-  const res = await guard(() => deleteMedia(id));
+export async function deleteMediaAction(id: string, force = false) {
+  const res = await guard(() => deleteMedia(id, force));
   revalidatePath('/flow/media');
   return res;
 }
@@ -283,4 +298,10 @@ export async function disableTotpAction(_: ActionState, fd: FormData): Promise<A
   if (!res.ok) return { error: res.error };
   revalidatePath('/flow/account');
   return { ok: true, message: 'Zwei-Faktor-Anmeldung ist aus.' };
+}
+
+export async function requireTwoFactorAction(on: boolean) {
+  const res = await guard(() => setTwoFactorRequired(on));
+  revalidatePath('/flow/users');
+  return res;
 }

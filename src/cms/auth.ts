@@ -3,6 +3,7 @@ import { createHash, randomBytes, randomUUID, scrypt as scryptCb, timingSafeEqua
 import { readFileSync, rmSync } from 'node:fs';
 import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { db, setupTokenFile, tx } from './db';
 import { mailConfigured, publicUrl, sendMail } from './mail';
 import { open as openSecret, seal } from './secretBox';
@@ -175,11 +176,31 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
 export class AuthError extends Error {}
 
 /** Für Server Actions und den DAL: wirft, wenn nicht angemeldet bzw. Rolle fehlt. */
-export async function requireUser(role?: Role): Promise<User> {
+export async function requireUser(role?: Role, opts: { accountSetup?: boolean } = {}): Promise<User> {
   const u = await getCurrentUser();
   if (!u) throw new AuthError('Nicht angemeldet');
+  // 2FA-Pflicht (Einstellung der Admins): ohne eingerichtete 2FA nur „Mein Konto“ (Einrichtung, Sitzungen, Passwort).
+  // Umleiten statt werfen: Next rendert Layout und Seite parallel — ein Fehler der Seite würde sonst die Umleitung
+  // des Layouts überholen (leere Seite nach Login/Klick). redirect() wirkt auch in Server Actions.
+  if (!opts.accountSetup && twoFactorRequired() && !hasTotp(u.id)) redirect('/flow/account?pflicht=1');
   if (role === 'admin' && u.role !== 'admin') throw new AuthError('Keine Berechtigung');
   return u;
+}
+
+/** Einstellung „2FA für alle Konten verpflichtend“ (meta-Tabelle). */
+export function twoFactorRequired(): boolean {
+  const r = db().prepare("SELECT value FROM meta WHERE key = 'require_2fa'").get() as { value: string } | undefined;
+  return r?.value === '1';
+}
+
+/** Nur Admins; einschalten nur, wenn die eigene 2FA aktiv ist (sonst sperrte man sich selbst aus). */
+export async function setTwoFactorRequired(on: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
+  const me = await requireUser('admin', { accountSetup: true });
+  if (on && !hasTotp(me.id)) return { ok: false, error: 'Bitte zuerst die eigene Zwei-Faktor-Anmeldung einrichten.' };
+  db()
+    .prepare("INSERT INTO meta (key, value) VALUES ('require_2fa', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
+    .run(on ? '1' : '0');
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -278,7 +299,7 @@ export async function createUser(input: { email: string; name: string; password:
 
 /** Passwort ändern: altes Passwort prüfen, danach alle anderen Sessions beenden. */
 export async function changeOwnPassword(current: string, next: string) {
-  const me = await requireUser();
+  const me = await requireUser(undefined, { accountSetup: true });
   const row = db().prepare('SELECT pass_hash FROM users WHERE id = ?').get(me.id) as { pass_hash: string };
   if (!(await verifyPassword(current, row.pass_hash))) return { ok: false as const, error: 'Aktuelles Passwort ist falsch.' };
   const pw = passwordProblem(next);
@@ -394,7 +415,7 @@ export interface SessionInfo {
 }
 
 export async function listMySessions(): Promise<SessionInfo[]> {
-  const me = await requireUser();
+  const me = await requireUser(undefined, { accountSetup: true });
   const cur = (await cookies()).get(sessionCookieName())?.value;
   const curHash = cur ? sha256(cur) : '';
   const rows = db()
@@ -411,7 +432,7 @@ export async function listMySessions(): Promise<SessionInfo[]> {
 
 /** Eine eigene Sitzung beenden (`handle`) oder alle anderen (`handle` = null). */
 export async function revokeSessions(handle: string | null): Promise<{ ok: true; count: number }> {
-  const me = await requireUser();
+  const me = await requireUser(undefined, { accountSetup: true });
   const cur = (await cookies()).get(sessionCookieName())?.value;
   const curHash = cur ? sha256(cur) : '';
   const rows = db().prepare('SELECT id_hash FROM sessions WHERE user_id = ?').all(me.id) as { id_hash: string }[];
@@ -508,7 +529,7 @@ export async function completeSecondFactor(code: string): Promise<{ ok: true } |
 
 /** Einrichtung Schritt 1: neues Geheimnis (noch nicht aktiv) — Anzeige als QR-Code und Text. */
 export async function beginTotpSetup(): Promise<{ ok: true; secret: string; uri: string } | { ok: false; error: string }> {
-  const me = await requireUser();
+  const me = await requireUser(undefined, { accountSetup: true });
   if (hasTotp(me.id)) return { ok: false, error: 'Zwei-Faktor-Anmeldung ist bereits aktiv.' };
   const secret = newTotpSecret();
   db().prepare('UPDATE users SET totp_pending = ? WHERE id = ?').run(seal(secret), me.id);
@@ -517,7 +538,7 @@ export async function beginTotpSetup(): Promise<{ ok: true; secret: string; uri:
 
 /** Einrichtung Schritt 2: Code aus der App bestätigt → aktiv; liefert einmalig die Wiederherstellungscodes. */
 export async function confirmTotpSetup(code: string): Promise<{ ok: true; recovery: string[] } | { ok: false; error: string }> {
-  const me = await requireUser();
+  const me = await requireUser(undefined, { accountSetup: true });
   const u = db().prepare('SELECT totp_pending FROM users WHERE id = ?').get(me.id) as { totp_pending: string | null };
   const secret = u.totp_pending ? openSecret(u.totp_pending) : null;
   if (!secret) return { ok: false, error: 'Bitte die Einrichtung neu starten.' };
@@ -538,7 +559,7 @@ export async function confirmTotpSetup(code: string): Promise<{ ok: true; recove
 
 /** Selbst abschalten: nur mit Passwort und gültigem Code (oder Wiederherstellungscode). */
 export async function disableTotp(password: string, code: string): Promise<{ ok: true } | { ok: false; error: string }> {
-  const me = await requireUser();
+  const me = await requireUser(undefined, { accountSetup: true });
   if (rateLimited(`2fa-off:${me.id}`, 5)) return { ok: false, error: 'Zu viele Versuche. Bitte später erneut versuchen.' };
   const row = db().prepare('SELECT pass_hash FROM users WHERE id = ?').get(me.id) as { pass_hash: string };
   if (!(await verifyPassword(password, row.pass_hash))) return { ok: false, error: 'Passwort ist falsch.' };
@@ -557,7 +578,7 @@ export function clearTotp(userId: string) {
 }
 
 export async function totpStatus(): Promise<{ enabled: boolean; recoveryLeft: number }> {
-  const me = await requireUser();
+  const me = await requireUser(undefined, { accountSetup: true });
   const left = (db().prepare('SELECT COUNT(*) AS n FROM recovery_codes WHERE user_id = ? AND used_at IS NULL').get(me.id) as { n: number })
     .n;
   return { enabled: hasTotp(me.id), recoveryLeft: left };

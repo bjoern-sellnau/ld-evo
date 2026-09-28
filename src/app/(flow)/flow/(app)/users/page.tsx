@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getCurrentUser } from '@/cms/auth';
+import { getCurrentUser, twoFactorRequired } from '@/cms/auth';
 import { listUsers } from '@/cms/repo';
 import { UsersAdmin } from '@/cms/ui/Users';
 
@@ -16,7 +16,7 @@ export default async function Page() {
           <h1>Nutzer</h1>
         </div>
       </div>
-      <UsersAdmin users={await listUsers()} meId={me.id} />
+      <UsersAdmin users={await listUsers()} meId={me.id} require2fa={twoFactorRequired()} />
     </>
   );
 }

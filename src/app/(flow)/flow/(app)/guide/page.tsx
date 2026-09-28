@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { requireUser } from '@/cms/auth';
 import { CHAPTERS, sourceKey, type GuideNode } from '@/cms/guide/chapters';
 import { Guide, type SourceExcerpt } from '@/cms/ui/Guide';
 
@@ -47,7 +48,8 @@ function collect(nodes: GuideNode[], out: Extract<GuideNode, { t: 'source' }>[] 
   return out;
 }
 
-export default function Page() {
+export default async function Page() {
+  await requireUser(); // u. a. 2FA-Pflicht: ohne 2FA nur „Mein Konto“
   const sources: Record<string, SourceExcerpt> = {};
   for (const ch of CHAPTERS) for (const n of collect(ch.nodes)) sources[sourceKey(n)] = excerpt(n);
   return <Guide chapters={CHAPTERS} sources={sources} />;

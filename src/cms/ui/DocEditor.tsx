@@ -10,12 +10,14 @@ import {
   discardDraftAction,
   publishAction,
   restoreRevisionAction,
+  revisionAction,
   saveDraftAction,
   savePatternAction,
   scheduleAction,
   unpublishAction,
 } from '../actions';
 import { COLLECTIONS, fieldsFor, type Errors } from '../schema';
+import { DiffView } from './DiffView';
 import { Field, type Relations } from './Fields';
 
 type Doc = Record<string, unknown>;
@@ -34,6 +36,8 @@ export interface EditorProps {
   publicHref: string | null;
   /** Geplantes Veröffentlichen (ms) — null, wenn nichts geplant ist. */
   scheduledAt: number | null;
+  /** Stand beim Laden (updated_at) — für den Konfliktschutz beim Speichern. */
+  rev: number;
 }
 
 /**
@@ -51,6 +55,7 @@ export function DocEditor(props: EditorProps) {
   const [hasDraft, setHasDraft] = useState(props.hasDraft);
   const [scheduledAt, setScheduledAt] = useState(props.scheduledAt);
   const [planOpen, setPlanOpen] = useState(false);
+  const [compare, setCompare] = useState<{ rid: number; data: Doc } | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [msg, setMsg] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
@@ -72,6 +77,18 @@ export function DocEditor(props: EditorProps) {
   }, []);
   const docRef = useRef(doc);
   docRef.current = doc;
+  // Konfliktschutz: bekannter Stand; bei Konflikt pausiert das automatische Speichern, bis entschieden ist.
+  const revRef = useRef<number | undefined>(props.rev);
+  const [conflict, setConflict] = useState<{ by: string | null; at: number } | null>(null);
+  const conflictRef = useRef(false);
+  /** Ergebnis einer Schreib-Action auswerten: neuen Stand merken bzw. Konflikt anzeigen. */
+  const track = (res: { ok: boolean; rev?: number; conflict?: { by: string | null; at: number } }) => {
+    if (res.ok && typeof res.rev === 'number') revRef.current = res.rev;
+    if (!res.ok && res.conflict) {
+      conflictRef.current = true;
+      setConflict(res.conflict);
+    }
+  };
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const saveSeq = useRef(0);
 
@@ -79,22 +96,32 @@ export function DocEditor(props: EditorProps) {
     frame.current?.contentWindow?.postMessage({ type: 'ldflow:doc', doc: d }, window.location.origin);
   }, []);
 
-  const saveNow = useCallback(async () => {
-    clearTimeout(timer.current);
-    const seq = ++saveSeq.current;
-    setSave('saving');
-    const res = await saveDraftAction(collection, id, docRef.current);
-    if (seq !== saveSeq.current) return; // neuere Änderung unterwegs
-    if (res.ok) {
-      setSave('saved');
-      setHasDraft(true);
-      setErrors({});
-    } else {
-      setSave('error');
-      setErrors(('errors' in res && res.errors) || {});
-      setMsg({ kind: 'error', text: res.error });
-    }
-  }, [collection, id]);
+  const saveNow = useCallback(
+    async (force = false) => {
+      clearTimeout(timer.current);
+      if (conflictRef.current && !force) return setSave('dirty');
+      const seq = ++saveSeq.current;
+      setSave('saving');
+      const res = await saveDraftAction(collection, id, docRef.current, force ? undefined : revRef.current);
+      track(res);
+      if (force && res.ok) {
+        conflictRef.current = false;
+        setConflict(null);
+      }
+      if (seq !== saveSeq.current) return; // neuere Änderung unterwegs
+      if (res.ok) {
+        setSave('saved');
+        setHasDraft(true);
+        setErrors({});
+      } else {
+        setSave('error');
+        setErrors(('errors' in res && res.errors) || {});
+        // Konflikte erklärt das Banner — keine zweite Meldung.
+        if (!('conflict' in res && res.conflict)) setMsg({ kind: 'error', text: res.error });
+      }
+    },
+    [collection, id],
+  );
 
   const change = useCallback(
     (next: Doc, fromPreview = false) => {
@@ -103,7 +130,7 @@ export function DocEditor(props: EditorProps) {
       if (!fromPreview) post(next);
       setSave('dirty');
       clearTimeout(timer.current);
-      timer.current = setTimeout(saveNow, 1200);
+      timer.current = setTimeout(() => void saveNow(), 1200);
     },
     [post, saveNow],
   );
@@ -168,7 +195,8 @@ export function DocEditor(props: EditorProps) {
   const publish = () =>
     start(async () => {
       clearTimeout(timer.current);
-      const res = await publishAction(collection, id, docRef.current);
+      const res = await publishAction(collection, id, docRef.current, conflictRef.current ? -1 : revRef.current);
+      track(res);
       if (res.ok) {
         setLive(true);
         setHasDraft(false);
@@ -185,7 +213,8 @@ export function DocEditor(props: EditorProps) {
   const schedule = (at: number) =>
     start(async () => {
       clearTimeout(timer.current);
-      const res = await scheduleAction(collection, id, at, docRef.current);
+      const res = await scheduleAction(collection, id, at, docRef.current, conflictRef.current ? -1 : revRef.current);
+      track(res);
       if (res.ok) {
         setScheduledAt(at);
         setHasDraft(true);
@@ -265,6 +294,25 @@ export function DocEditor(props: EditorProps) {
               </button>
             )}
           </div>
+          {conflict && (
+            <div className="f-msg error" role="alert" style={{ margin: 0 }}>
+              <strong>{conflict.by ?? 'Jemand'}</strong> hat diesen Eintrag um {fmtDate(conflict.at)} geändert. Automatisches Speichern ist
+              angehalten, damit nichts überschrieben wird.
+              <span className="f-row" style={{ marginTop: 8, gap: 8 }}>
+                <button className="f-btn sm" type="button" onClick={() => window.location.reload()}>
+                  Neu laden (meine Änderungen verwerfen)
+                </button>
+                <button
+                  className="f-btn sm danger"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => window.confirm('Die Fassung der anderen Person überschreiben?') && void saveNow(true)}
+                >
+                  Trotzdem speichern
+                </button>
+              </span>
+            </div>
+          )}
           {planOpen && <PlanForm busy={busy} onPlan={schedule} />}
           {scheduledAt && (
             <p className="f-row f-help" style={{ margin: 0, gap: 8 }}>
@@ -311,26 +359,53 @@ export function DocEditor(props: EditorProps) {
                 <li
                   key={r.rid}
                   className="f-row"
-                  style={{ justifyContent: 'space-between', padding: '6px 0', borderTop: '1px solid var(--f-line)' }}
+                  style={{ justifyContent: 'space-between', flexWrap: 'wrap', padding: '6px 0', borderTop: '1px solid var(--f-line)' }}
                 >
                   <span className="f-help">
                     {new Date(r.createdAt).toLocaleString('de-DE')} · {r.createdBy ?? '—'}
                   </span>
-                  <button
-                    className="f-btn sm"
-                    type="button"
-                    disabled={busy}
-                    onClick={() =>
-                      window.confirm('Diese Version als Entwurf laden? (Danach prüfen und veröffentlichen.)') &&
-                      act(
-                        () => restoreRevisionAction(collection, id, r.rid),
-                        'Version geladen.',
-                        () => window.location.reload(),
-                      )
-                    }
-                  >
-                    Als Entwurf laden
-                  </button>
+                  <span className="f-row" style={{ gap: 6 }}>
+                    <button
+                      className="f-btn sm ghost"
+                      type="button"
+                      disabled={busy}
+                      aria-expanded={compare?.rid === r.rid}
+                      onClick={() =>
+                        compare?.rid === r.rid
+                          ? setCompare(null)
+                          : start(async () => {
+                              const res = await revisionAction(collection, id, r.rid);
+                              if (res.ok) setCompare({ rid: r.rid, data: (res as { data: Doc }).data });
+                              else setMsg({ kind: 'error', text: res.error });
+                            })
+                      }
+                    >
+                      {compare?.rid === r.rid ? 'Vergleich schließen' : 'Vergleichen'}
+                    </button>
+                    <button
+                      className="f-btn sm"
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        window.confirm('Diese Version als Entwurf laden? (Danach prüfen und veröffentlichen.)') &&
+                        act(
+                          () => restoreRevisionAction(collection, id, r.rid),
+                          'Version geladen.',
+                          () => window.location.reload(),
+                        )
+                      }
+                    >
+                      Als Entwurf laden
+                    </button>
+                  </span>
+                  {compare?.rid === r.rid && (
+                    <div style={{ flexBasis: '100%' }}>
+                      <p className="f-help f-diff-legend" style={{ margin: '6px 0 0' }}>
+                        Diese Version → aktueller Stand im Editor: <ins>hinzugekommen</ins> · <del>weggefallen</del>
+                      </p>
+                      <DiffView before={compare.data} after={doc} fields={fields} />
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -347,7 +422,7 @@ export function DocEditor(props: EditorProps) {
                     onClick={() =>
                       window.confirm('Von der Site nehmen? Der Inhalt bleibt als Entwurf erhalten.') &&
                       act(
-                        () => unpublishAction(collection, id),
+                        () => unpublishAction(collection, id).then((r) => (track(r), r)),
                         'Offline genommen.',
                         () => {
                           setLive(false);

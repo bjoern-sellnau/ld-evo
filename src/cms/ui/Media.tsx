@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, useTransition } from 'react';
-import { deleteMediaAction, listMediaAction, mediaAltAction, uploadMediaAction } from '../actions';
+import { addVariantsAction, deleteMediaAction, listMediaAction, mediaAltAction, uploadMediaAction } from '../actions';
 import type { MediaRef } from '../schema';
 import { makeVariants } from './imageVariants';
 import { mediaUrl } from '../media';
@@ -13,6 +13,26 @@ export interface MediaItem {
   size: number;
   alt: string;
   createdAt: number;
+  /** Anzahl gespeicherter WebP-Varianten (0 = nur Original). */
+  variants: number;
+  /** Dokumente, die das Medium (live oder im Entwurf) verwenden. */
+  usedIn: { collection: string; id: string; title: string }[];
+}
+
+/** Suche über Dateiname und Alternativtext (Groß-/Kleinschreibung egal). */
+const matches = (m: MediaItem, q: string) => !q || `${m.filename} ${m.alt}`.toLowerCase().includes(q.trim().toLowerCase());
+
+const canVary = (m: MediaItem) => m.variants === 0 && /^image\/(png|jpeg|webp)$/.test(m.mime);
+
+/** Varianten für ein vorhandenes Bild im Browser erzeugen und hochladen. Liefert die Anzahl. */
+async function backfillVariants(m: MediaItem): Promise<number> {
+  const blob = await (await fetch(`/media/${m.id}`)).blob();
+  const files = await makeVariants(new File([blob], m.filename, { type: m.mime }));
+  if (!files.length) return 0;
+  const fd = new FormData();
+  for (const f of files) fd.append('variant', f);
+  const r = await addVariantsAction(m.id, fd);
+  return r.ok ? (r as { count: number }).count : 0;
 }
 
 const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.round(n / 1024)} KB`);
@@ -143,6 +163,7 @@ export function MediaField({ value, onChange, label }: { value: MediaRef | null;
 function MediaDialog({ onClose, onPick }: { onClose: () => void; onPick: (m: MediaRef) => void }) {
   const { items, reload } = useMedia();
   const [url, setUrl] = useState('');
+  const [q, setQ] = useState('');
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', k);
@@ -177,26 +198,37 @@ function MediaDialog({ onClose, onPick }: { onClose: () => void; onPick: (m: Med
             Übernehmen
           </button>
         </div>
+        <input
+          className="f-input"
+          type="search"
+          aria-label="Mediathek durchsuchen"
+          placeholder="Suchen (Dateiname, Alternativtext) …"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          style={{ marginBottom: 12 }}
+        />
         {items === null ? (
           <p className="f-help">Lade …</p>
         ) : items.length === 0 ? (
           <p className="f-help">Noch keine Medien hochgeladen.</p>
         ) : (
           <div className="f-media-grid">
-            {items.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => onPick({ src: `/media/${m.id}`, alt: m.alt })}
-                style={{ all: 'unset', cursor: 'pointer', display: 'block' }}
-                aria-label={`${m.filename} wählen`}
-              >
-                <Thumb src={`/media/${m.id}`} mime={m.mime} alt={m.alt} />
-                <div className="f-help" style={{ marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {m.filename}
-                </div>
-              </button>
-            ))}
+            {items
+              .filter((m) => matches(m, q))
+              .map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => onPick({ src: `/media/${m.id}`, alt: m.alt })}
+                  style={{ all: 'unset', cursor: 'pointer', display: 'block' }}
+                  aria-label={`${m.filename} wählen`}
+                >
+                  <Thumb src={`/media/${m.id}`} mime={m.mime} alt={m.alt} />
+                  <div className="f-help" style={{ marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {m.filename}
+                  </div>
+                </button>
+              ))}
           </div>
         )}
       </div>
@@ -204,25 +236,67 @@ function MediaDialog({ onClose, onPick }: { onClose: () => void; onPick: (m: Med
   );
 }
 
-/** Mediathek-Seite: Upload, Alternativtexte pflegen, löschen, Pfad kopieren. */
+/** Mediathek-Seite: Upload, Suche, Alternativtexte, Verwendung, Varianten nachrüsten, löschen. */
 export function MediaLibrary({ initial }: { initial: MediaItem[] }) {
   const [items, setItems] = useState(initial);
   const [pending, start] = useTransition();
+  const [q, setQ] = useState('');
+  const [msg, setMsg] = useState<string | null>(null);
   const reload = async () => {
     const r = await listMediaAction();
     if (r.ok) setItems((r as { items: MediaItem[] }).items);
   };
+  const missing = items.filter(canVary);
+  const shown = items.filter((m) => matches(m, q));
   return (
     <>
       <div className="f-card" style={{ marginBottom: 18 }}>
         <Uploader onDone={() => start(reload)} />
       </div>
+      <div className="f-row" style={{ marginBottom: 14, gap: 10 }}>
+        <input
+          className="f-input"
+          type="search"
+          aria-label="Medien durchsuchen"
+          placeholder="Suchen (Dateiname, Alternativtext) …"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          style={{ flex: '1 1 260px' }}
+        />
+        {missing.length > 0 && (
+          <button
+            className="f-btn sm"
+            type="button"
+            disabled={pending}
+            onClick={() =>
+              start(async () => {
+                let done = 0;
+                for (const m of missing) {
+                  setMsg(`Erzeuge Varianten … ${done + 1}/${missing.length}`);
+                  if ((await backfillVariants(m)) > 0) done++;
+                }
+                setMsg(`${done} von ${missing.length} Bildern haben jetzt verkleinerte Varianten.`);
+                await reload();
+              })
+            }
+          >
+            Varianten für {missing.length} ältere Bilder erzeugen
+          </button>
+        )}
+      </div>
+      {msg && (
+        <p className="f-msg ok" role="status" style={{ marginTop: 0 }}>
+          {msg}
+        </p>
+      )}
+      {shown.length === 0 && <p className="f-help">{items.length ? 'Nichts gefunden.' : 'Noch keine Medien hochgeladen.'}</p>}
       <div className="f-media-grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))' }}>
-        {items.map((m) => (
+        {shown.map((m) => (
           <div key={m.id} className="f-card" style={{ padding: 10 }}>
             <Thumb src={`/media/${m.id}`} mime={m.mime} alt={m.alt} />
             <div className="f-help" style={{ margin: '8px 0 6px' }}>
               {m.filename} · {kb(m.size)}
+              {m.variants > 0 && ` · ${m.variants} Varianten`}
             </div>
             <input
               className="f-input"
@@ -233,18 +307,58 @@ export function MediaLibrary({ initial }: { initial: MediaItem[] }) {
               placeholder="Alternativtext"
               onBlur={(e) => e.target.value !== m.alt && start(async () => void (await mediaAltAction(m.id, e.target.value)))}
             />
+            <div className="f-help" style={{ marginTop: 6 }}>
+              {m.usedIn.length ? (
+                <>
+                  Verwendet in:{' '}
+                  {m.usedIn.map((u, i) => (
+                    <span key={`${u.collection}/${u.id}`}>
+                      {i > 0 && ', '}
+                      <a href={`/flow/c/${u.collection}/${u.id}`}>{u.title}</a>
+                    </span>
+                  ))}
+                </>
+              ) : (
+                'Nicht verwendet'
+              )}
+            </div>
             <div className="f-row" style={{ marginTop: 8 }}>
               <button className="f-btn sm" type="button" onClick={() => navigator.clipboard?.writeText(`/media/${m.id}`)}>
                 Pfad kopieren
               </button>
+              {canVary(m) && (
+                <button
+                  className="f-btn sm"
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    start(async () => {
+                      const n = await backfillVariants(m);
+                      setMsg(
+                        n
+                          ? `${n} Varianten für „${m.filename}“ erzeugt.`
+                          : `Für „${m.filename}“ war keine Verkleinerung nötig oder möglich.`,
+                      );
+                      await reload();
+                    })
+                  }
+                >
+                  Varianten erzeugen
+                </button>
+              )}
               <button
                 className="f-btn sm danger"
                 type="button"
                 disabled={pending}
                 onClick={() => {
-                  if (!window.confirm(`„${m.filename}“ löschen? Seiten, die das Bild nutzen, zeigen es dann nicht mehr.`)) return;
+                  const used = m.usedIn.map((u) => u.title).join(', ');
+                  const q = used
+                    ? `„${m.filename}“ wird noch verwendet (${used}). Trotzdem löschen? Dort fehlt das Bild dann.`
+                    : `„${m.filename}“ löschen?`;
+                  if (!window.confirm(q)) return;
                   start(async () => {
-                    await deleteMediaAction(m.id);
+                    const r = await deleteMediaAction(m.id, m.usedIn.length > 0);
+                    if (!r.ok) setMsg(r.error);
                     await reload();
                   });
                 }}

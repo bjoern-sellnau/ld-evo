@@ -971,3 +971,37 @@ a {
     gap: 2px;
   }
 }
+
+/* Versionsvergleich (DiffView) — Farben nicht allein: <ins>/<del> tragen zusätzlich Unter-/Durchstreichung. */
+.f-diff {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: grid;
+  gap: 10px;
+}
+.f-diff-path {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--f-ink);
+}
+.f-diff-text {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--f-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.f-diff ins,
+.f-diff-legend ins {
+  background: rgba(61, 220, 132, 0.18);
+  color: var(--f-ink);
+  text-decoration: underline;
+}
+.f-diff del,
+.f-diff-legend del {
+  background: rgba(255, 107, 122, 0.18);
+  color: var(--f-ink);
+  text-decoration: line-through;
+}

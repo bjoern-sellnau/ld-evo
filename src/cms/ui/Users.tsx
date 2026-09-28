@@ -1,7 +1,15 @@
 'use client';
 
 import { useActionState, useState, useTransition } from 'react';
-import { changePasswordAction, createUserAction, deleteUserAction, resetLinkAction, updateUserAction, type ActionState } from '../actions';
+import {
+  changePasswordAction,
+  createUserAction,
+  deleteUserAction,
+  requireTwoFactorAction,
+  resetLinkAction,
+  updateUserAction,
+  type ActionState,
+} from '../actions';
 
 export interface UserRow {
   id: string;
@@ -29,10 +37,11 @@ function Msg({ s }: { s: ActionState }) {
   return null;
 }
 
-export function UsersAdmin({ users, meId }: { users: UserRow[]; meId: string }) {
+export function UsersAdmin({ users, meId, require2fa }: { users: UserRow[]; meId: string; require2fa: boolean }) {
   const [state, create, pending] = useActionState<ActionState, FormData>(createUserAction, undefined);
   const [busy, start] = useTransition();
   const [link, setLink] = useState<{ name: string; url: string } | null>(null);
+  const [need2fa, setNeed2fa] = useState(require2fa);
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
       const r = await fn();
@@ -40,6 +49,34 @@ export function UsersAdmin({ users, meId }: { users: UserRow[]; meId: string }) 
     });
   return (
     <>
+      <div className="f-card f-row" style={{ marginBottom: 18, justifyContent: 'space-between' }}>
+        <span>
+          <strong>Zwei-Faktor-Anmeldung für alle Pflicht</strong>
+          <span className="f-help" style={{ display: 'block' }}>
+            Konten ohne 2FA können dann nur noch „Mein Konto“ öffnen, bis sie 2FA eingerichtet haben.
+          </span>
+        </span>
+        <label className="f-row" style={{ gap: 8, cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            aria-label="2FA-Pflicht für alle"
+            checked={need2fa}
+            disabled={busy}
+            onChange={(e) => {
+              const on = e.target.checked;
+              setNeed2fa(on); // sofort zeigen, bei Fehler zurück
+              start(async () => {
+                const r = await requireTwoFactorAction(on);
+                if (!r.ok) {
+                  setNeed2fa(!on);
+                  window.alert(r.error);
+                }
+              });
+            }}
+          />
+          {need2fa ? 'an' : 'aus'}
+        </label>
+      </div>
       <div className="f-card" style={{ padding: 0, overflowX: 'auto', marginBottom: 18 }}>
         <table className="f-table">
           <thead>

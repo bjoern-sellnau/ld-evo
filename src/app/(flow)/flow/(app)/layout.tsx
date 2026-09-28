@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { getCurrentUser } from '@/cms/auth';
+import { getCurrentUser, hasTotp, twoFactorRequired } from '@/cms/auth';
 import { logoutAction } from '@/cms/actions';
 import { counts, unreadMessages } from '@/cms/repo';
 import { COLLECTIONS } from '@/cms/schema';
@@ -11,8 +11,11 @@ import { LoonaLockup } from '@/components/brand';
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
   if (!user) redirect('/flow/login');
-  const c = await counts();
-  const unread = await unreadMessages();
+  // 2FA-Pflicht: Die Umleitung auf „Mein Konto“ übernimmt requireUser() in jeder Seite/Action; das Layout
+  // überspringt nur seine eigenen Zähler (die sonst ebenfalls umleiten würden).
+  const mustSetup = twoFactorRequired() && !hasTotp(user.id);
+  const c: Awaited<ReturnType<typeof counts>> = mustSetup ? {} : await counts();
+  const unread = mustSetup ? 0 : await unreadMessages();
   const col = (id: string) => ({
     href: `/flow/c/${id}`,
     label: COLLECTIONS[id].label,
