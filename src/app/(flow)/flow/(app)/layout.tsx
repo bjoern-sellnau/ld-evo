@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { getCurrentUser } from '@/cms/auth';
 import { logoutAction } from '@/cms/actions';
-import { counts } from '@/cms/repo';
+import { counts, unreadMessages } from '@/cms/repo';
 import { COLLECTIONS } from '@/cms/schema';
 import { FlowNav } from '@/cms/ui/Nav';
 import { LoonaLockup } from '@/components/brand';
@@ -12,6 +12,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
   if (!user) redirect('/flow/login');
   const c = await counts();
+  const unread = await unreadMessages();
   const col = (id: string) => ({
     href: `/flow/c/${id}`,
     label: COLLECTIONS[id].label,
@@ -22,6 +23,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       label: 'Übersicht',
       items: [
         { href: '/flow', label: 'Dashboard' },
+        { href: '/flow/messages', label: 'Nachrichten', badge: unread ? `${unread} neu` : undefined },
         { href: '/flow/guide', label: 'Guide' },
       ],
     },

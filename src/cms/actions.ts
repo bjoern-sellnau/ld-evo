@@ -14,8 +14,10 @@ import {
   publishedPatterns,
   deleteDoc,
   deleteMedia,
+  deleteMessage,
   discardDraft,
   listMedia,
+  markMessage,
   moveDoc,
   publishDoc,
   restoreRevision,
@@ -211,5 +213,19 @@ export async function resetLinkAction(id: string) {
 export async function deleteUserAction(id: string) {
   const res = await guard(() => adminDeleteUser(id));
   revalidatePath('/flow/users');
+  return res;
+}
+
+// ---- Nachrichten -----------------------------------------------------------------------------------------------
+
+export async function markMessageAction(id: string, read: boolean) {
+  const res = await guard(() => markMessage(id, read));
+  revalidatePath('/flow', 'layout');
+  return res;
+}
+
+export async function deleteMessageAction(id: string) {
+  const res = await guard(() => deleteMessage(id));
+  revalidatePath('/flow', 'layout');
   return res;
 }

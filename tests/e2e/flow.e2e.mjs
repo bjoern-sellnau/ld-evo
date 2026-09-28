@@ -266,6 +266,34 @@ await p.waitForURL(/aus-vorlage/);
 check('Seite aus Vorlage', (await p.locator('[data-flow-path="blocks.0"] .f-group-head').first().textContent()).includes('Spalten'));
 if (OUT) await p.screenshot({ path: `${OUT}/flow-widgets.png` });
 
+// Kontaktformular-Widget: live absenden → landet unter „Nachrichten“; Bots und fremde Herkunft nicht
+await p.goto(U + '/flow/c/pages/kontakt-info');
+await fr.locator('blockquote').first().waitFor({ timeout: 20000 });
+await p.selectOption('select[aria-label="Widget hinzufügen"]', 'contact');
+await p.waitForTimeout(600);
+await p.getByRole('button', { name: 'Veröffentlichen' }).click();
+await p.locator('.f-editor-bar .f-msg.ok').waitFor();
+await site.goto(U + '/kontakt-info');
+await site.fill('input[name=name]', 'Erika Muster');
+await site.fill('input[name=email]', 'erika@example.com');
+await site.fill('textarea[name=message]', 'Hallo! Ich hätte gern ein Angebot.');
+await site.waitForTimeout(3100); // Mindest-Ausfülldauer (Bot-Schutz)
+await site.getByRole('button', { name: 'Nachricht senden' }).click();
+check('Kontakt: Danke-Text', await until(async () => (await site.locator('[role=status]', { hasText: 'Danke' }).count()) > 0, 8000));
+{
+  const body = { name: 'Bot', email: 'bot@example.com', message: 'Kaufen Sie jetzt! Jetzt!', shownAt: Date.now() - 10000 };
+  const hp = await ctx.request.post(U + '/api/contact', { data: { ...body, website: 'spam.example' } });
+  check('Kontakt: Honeypot still verworfen', hp.ok() && (await hp.json()).ok === true);
+  const xo = await ctx.request.post(U + '/api/contact', { headers: { origin: 'https://evil.example' }, data: body });
+  check('Kontakt: fremde Herkunft abgelehnt', xo.status() === 403);
+}
+await p.goto(U + '/flow/messages');
+check(
+  'Kontakt: Nachricht in LD Flow',
+  (await p.locator('li', { hasText: 'Erika Muster' }).count()) === 1 &&
+    (await p.locator('li', { hasText: 'bot@example.com' }).count()) === 0,
+);
+
 // Medien
 await p.goto(U + '/flow/media');
 await p.setInputFiles('#up-file', 'public/brand/flow/mark-512.png');
@@ -329,6 +357,7 @@ check('Reset-Link erzeugt', resetUrl.includes('/flow/reset?token='));
   const q = await ctx2.newPage();
   await q.goto(U + '/flow/login');
   await q.click('text=Passwort vergessen?');
+  await q.waitForURL(/\/flow\/forgot/); // beide Seiten haben #email — erst nach der Navigation ausfüllen
   await q.fill('#email', 'niemand@example.com');
   await q.click('text=Link anfordern');
   const generic = await q.locator('.f-msg.ok').textContent();

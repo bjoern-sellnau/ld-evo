@@ -12,7 +12,7 @@ import { seedDocs } from './seed';
  * Dokumente liegen als JSON: `published` = Live-Fassung, `draft` = Arbeitskopie (null = keine offenen Änderungen).
  */
 
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 const MIGRATIONS: string[] = [
   `CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -87,6 +87,16 @@ const MIGRATIONS: string[] = [
      user_id TEXT NOT NULL,
      created_at INTEGER NOT NULL,
      expires_at INTEGER NOT NULL
+   );`,
+  // 4: Nachrichten aus dem Kontaktformular-Widget (ohne IP — die zählt nur kurz im Rate-Limit)
+  `CREATE TABLE IF NOT EXISTS messages (
+     id TEXT PRIMARY KEY,
+     created_at INTEGER NOT NULL,
+     name TEXT NOT NULL,
+     email TEXT NOT NULL,
+     message TEXT NOT NULL,
+     page TEXT NOT NULL DEFAULT '',
+     read INTEGER NOT NULL DEFAULT 0
    );`,
 ];
 

@@ -2,6 +2,7 @@
 import type { RegisteredWidget } from './define';
 import w_chapter from './chapter';
 import w_columns from './columns';
+import w_contact from './contact';
 import w_cta from './cta';
 import w_faq from './faq';
 import w_gallery from './gallery';
@@ -12,10 +13,13 @@ import w_projects from './projects';
 import w_quote from './quote';
 import w_section from './section';
 import w_stats from './stats';
+import w_tabs from './tabs';
+import w_testimonial from './testimonial';
 import w_text from './text';
+import w_timeline from './timeline';
 import w_video from './video';
 
-const list: RegisteredWidget[] = [w_chapter, w_columns, w_cta, w_faq, w_gallery, w_image, w_pattern, w_pricing_card, w_projects, w_quote, w_section, w_stats, w_text, w_video];
+const list: RegisteredWidget[] = [w_chapter, w_columns, w_contact, w_cta, w_faq, w_gallery, w_image, w_pattern, w_pricing_card, w_projects, w_quote, w_section, w_stats, w_tabs, w_testimonial, w_text, w_timeline, w_video];
 
 export const WIDGETS: Record<string, RegisteredWidget> = {};
 for (const w of list) {

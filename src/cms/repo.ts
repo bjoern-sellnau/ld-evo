@@ -466,3 +466,45 @@ export async function adminDeleteUser(id: string): Promise<Result> {
   db().prepare('DELETE FROM users WHERE id = ?').run(id);
   return { ok: true };
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Nachrichten aus dem Kontaktformular (Eingang: src/cms/contact.ts)
+// ---------------------------------------------------------------------------------------------------------------
+
+export interface MessageRow {
+  id: string;
+  createdAt: number;
+  name: string;
+  email: string;
+  message: string;
+  page: string;
+  read: number;
+}
+
+export async function listMessages(): Promise<MessageRow[]> {
+  await requireUser();
+  return plain(
+    db()
+      .prepare('SELECT id, created_at AS createdAt, name, email, message, page, read FROM messages ORDER BY created_at DESC LIMIT 500')
+      .all() as unknown as MessageRow[],
+  );
+}
+
+export async function unreadMessages(): Promise<number> {
+  await requireUser();
+  return (db().prepare('SELECT COUNT(*) AS n FROM messages WHERE read = 0').get() as { n: number }).n;
+}
+
+export async function markMessage(id: string, read: boolean): Promise<Result> {
+  await requireUser();
+  db()
+    .prepare('UPDATE messages SET read = ? WHERE id = ?')
+    .run(read ? 1 : 0, id);
+  return { ok: true };
+}
+
+export async function deleteMessage(id: string): Promise<Result> {
+  await requireUser();
+  db().prepare('DELETE FROM messages WHERE id = ?').run(id);
+  return { ok: true };
+}

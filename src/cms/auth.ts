@@ -94,7 +94,14 @@ function bump(key: string) {
     .run(key, now, now, WINDOW, now, WINDOW, now);
 }
 
-async function clientIp(): Promise<string> {
+/** Zählt einen Versuch für `key` und meldet, ob das Limit im 15-Minuten-Fenster überschritten ist. */
+export function rateLimited(key: string, max: number): boolean {
+  if (attempts(key) >= max) return true;
+  bump(key);
+  return false;
+}
+
+export async function clientIp(): Promise<string> {
   const h = await headers();
   // Hinter einem Reverse-Proxy setzt dieser X-Forwarded-For; ohne Proxy fällt alles auf „local“.
   return (h.get('x-forwarded-for')?.split(',')[0] ?? h.get('x-real-ip') ?? 'local').trim().slice(0, 64);
