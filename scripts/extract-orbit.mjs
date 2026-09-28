@@ -2,7 +2,8 @@
 /**
  * Erzeugt die ORBIT-OS-Shader-Wallpapers aus design/design_handoff_shader_wallpapers/Shader Wallpapers.html:
  *   src/orbit/orbit.css   — <style> (Zeilen 8–478) unverändert; "Inter"/"JetBrains Mono" zuerst über next/font-Variablen
- *   src/orbit/markup.ts   — <body>-Markup inkl. der 15 Shader-<script>-Blöcke (GLSL unverändert, werden per textContent gelesen)
+ *   src/orbit/markup.ts   — <body>-Markup inkl. der 15 Shader-<script>-Blöcke (GLSL unverändert bis auf die Naht-Korrektur
+ *                           in Shader 05, siehe unten; werden per textContent gelesen)
  *   src/orbit/engine.js   — Host-Script (IIFE) unverändert als mountOrbit(); Canvas-Schrift nutzt die geladene Inter,
  *                           Rückgabe { selectShader, current } für Persistenz (README: „Persist current and all tweak values“)
  * Barrierefreiheit (einzige Abweichungen, Lighthouse): der Open-Zustand des Pickers liegt als data-open am Container,
@@ -41,6 +42,19 @@ markup = markup.replace(/<input id="(t\w+)"/g, (m, id, off) => {
   const name = names.length ? names[names.length - 1][1].trim() : id;
   return `<input id="${id}" aria-label="${name}"`;
 });
+// Fehlerkorrektur Shader 05 „Event Horizon“ (einzige Abweichung im GLSL): `spiral = angle*1.5 + …` mit
+// angle = atan(p.y, p.x) springt bei ±π um 1,5·2π = 3π; fbm ist nicht periodisch → waagrechte Naht (auch im
+// Prototyp sichtbar). Kurz vor dem Sprung (letzte 0,6 rad) wird zur um 3π verschobenen Probe übergeblendet:
+// bei angle = π ergibt das exakt den Wert bei −π, also stetig; überall sonst bleibt das Bild unverändert.
+const seamFrom = '  float disk = fbm(vec2(spiral, rr*5.0));';
+if (markup.split(seamFrom).length !== 2) throw new Error('Event Horizon: Zeile mit fbm(vec2(spiral, …)) nicht eindeutig gefunden');
+markup = markup.replace(
+  seamFrom,
+  [
+    '  float disk = mix(fbm(vec2(spiral, rr*5.0)), fbm(vec2(spiral - 4.71238898*2.0, rr*5.0)),',
+    '                   smoothstep(3.14159265 - 0.6, 3.14159265, angle)); // LD: Naht bei ±π geschlossen',
+  ].join('\n'),
+);
 let engine = L(1748, 2542);
 const fontCount = (engine.match(/"Inter", system-ui/g) || []).length;
 if (fontCount !== 2) throw new Error('Canvas-Schrift: erwartet 2 Stellen');
