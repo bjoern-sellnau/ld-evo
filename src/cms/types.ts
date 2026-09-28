@@ -2,6 +2,7 @@ import type { Article } from '@content/articles';
 import type { HomeContent } from '@content/home';
 import type { JourneyStation } from '@content/journey';
 import type { Project } from '@content/projects';
+import type { NavItem } from '@/site/nav/pages';
 import type { MediaRef, RichText } from './schema';
 
 export interface AboutContent {
@@ -13,7 +14,52 @@ export interface AboutContent {
   tools: string[];
   skills: { titel: string; chips: string[] }[];
   qualifications: { datum: string; name: string; von: string }[];
-  images: { slot: string; image?: MediaRef }[];
+  images: { slot: string; image?: MediaRef; caption?: string }[];
+  /** Berufliche Stationen (Rail + Bild je Station werden daraus abgeleitet). */
+  stations?: CmsStation[];
+  /** Projekte im Loona!-Abschnitt. */
+  loonaProjects?: CmsStationProject[];
+}
+
+export interface CmsStationProject {
+  name: string;
+  anchor: string;
+  zeit: string;
+  desc: string;
+  stack: string[];
+  /** Beschriftung in der Punkt-Rail (Standard: name). */
+  railLabel?: string;
+}
+
+export interface CmsStation {
+  firma: string;
+  anchor: string;
+  rolle: string;
+  zeit: string;
+  desc: string;
+  railLabel?: string;
+  image?: MediaRef;
+  caption?: string;
+  /** Platzhaltertext, solange kein Bild gesetzt ist. */
+  placeholder?: string;
+  projekte: CmsStationProject[];
+}
+
+export interface ImprintBlockCms {
+  kind: 'h2' | 'h3' | 'p' | 'box' | 'credit';
+  /** p: Links als [Text](https://…); box: eine Zeile pro Zeile. */
+  text: string;
+  href?: string;
+}
+
+export interface ImprintContent {
+  kicker: string;
+  title: string;
+  owner: string;
+  address: string[];
+  email: string;
+  notice: string;
+  sections: { id: string; rail: string; sub?: boolean; blocks: ImprintBlockCms[] }[];
 }
 
 export type JourneyEntry = JourneyStation & { id: string; shot?: MediaRef; insights?: (MediaRef | null)[] };
@@ -47,6 +93,8 @@ export interface SiteContent {
   articles: Article[];
   journey: JourneyEntry[];
   pages: { id: string; title: string }[];
+  navigation: NavItem[];
+  imprint: ImprintContent;
   /** Veröffentlichte Vorlagen (Baukasten). */
   patterns: { id: string; title: string; global?: boolean; blocks: Block[] }[];
 }

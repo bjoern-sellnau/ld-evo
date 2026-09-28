@@ -185,7 +185,7 @@ export function DocEditor(props: EditorProps) {
     });
 
   const fields = fieldsFor(collection, doc);
-  const title = String(doc[def.titleField] ?? '') || id;
+  const title = (typeof doc[def.titleField] === 'string' ? (doc[def.titleField] as string) : '') || def.singular || id;
   const status =
     save === 'saving'
       ? 'Speichere …'

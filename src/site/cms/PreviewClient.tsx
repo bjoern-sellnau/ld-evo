@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Article } from '@content/articles';
 import type { HomeContent } from '@content/home';
 import type { Project } from '@content/projects';
-import type { AboutContent, CmsPage, JourneyEntry } from '@/cms/types';
-import { ContentProvider, useContent } from '../content/ContentProvider';
+import type { AboutContent, CmsPage, ImprintContent, JourneyEntry, SiteContent } from '@/cms/types';
+import { useContentOverride } from '../content/ContentProvider';
+import type { NavItem } from '../nav/pages';
+import { ImprintPage } from '../pages/ImprintPage';
 import { AboutPage } from '../pages/AboutPage';
 import { ArticlePage } from '../pages/ArticlePage';
 import { CaseStudyPage } from '../pages/CaseStudyPage';
@@ -25,9 +27,9 @@ const upsert = <T extends { id: string }>(list: T[], doc: T) =>
  * Ursprung) schickt jede Formular-Änderung per postMessage; Inline-Änderungen gehen umgekehrt zurück.
  */
 export function PreviewClient({ collection, initial }: { collection: string; initial: Doc }) {
-  const content = useContent();
+  const { base, setOverride } = useContentOverride();
   const [doc, setDoc] = useState<Doc>(initial);
-  const [patterns, setPatterns] = useState<Pattern[]>(content.patterns as Pattern[]);
+  const [patterns, setPatterns] = useState<Pattern[]>(base.patterns as Pattern[]);
 
   useEffect(() => {
     const on = (e: MessageEvent) => {
@@ -76,35 +78,34 @@ export function PreviewClient({ collection, initial }: { collection: string; ini
     patterns,
   };
 
-  let merged = { ...content, patterns: patterns as typeof content.patterns };
+  // Entwurf in die Site-Inhalte einsetzen — gilt für die ganze Seite inkl. Nav/Suche (ContentProvider-Override).
+  const merged = useMemo(() => mergeDraft(base, collection, doc, patterns), [base, collection, doc, patterns]);
+  useEffect(() => {
+    setOverride(merged);
+  }, [merged, setOverride]);
+  useEffect(() => () => setOverride(null), [setOverride]);
+
   let body: ReactNode = null;
   switch (collection) {
-    case 'projects': {
-      const p = doc as unknown as Project;
-      merged = { ...merged, projects: upsert(content.projects, p) };
-      body = <CaseStudyPage p={p} />;
+    case 'projects':
+      body = <CaseStudyPage p={doc as unknown as Project} />;
       break;
-    }
-    case 'articles': {
-      const a = doc as unknown as Article;
-      merged = { ...merged, articles: upsert(content.articles, a) };
-      body = <ArticlePage a={a} />;
+    case 'articles':
+      body = <ArticlePage a={doc as unknown as Article} />;
       break;
-    }
     case 'home':
-      merged = { ...merged, home: doc as unknown as HomeContent };
+    case 'navigation':
       body = <HalloPage />;
       break;
     case 'about':
-      merged = { ...merged, about: doc as unknown as AboutContent };
       body = <AboutPage />;
       break;
-    case 'journey': {
-      const j = upsert(content.journey, doc as unknown as JourneyEntry).sort((x, y) => x.year - y.year);
-      merged = { ...merged, journey: j };
+    case 'imprint':
+      body = <ImprintPage />;
+      break;
+    case 'journey':
       body = <ReisePage />;
       break;
-    }
     case 'pages':
       body = <PageRenderer page={doc as unknown as CmsPage} />;
       break;
@@ -117,10 +118,33 @@ export function PreviewClient({ collection, initial }: { collection: string; ini
       break;
   }
   return (
-    <ContentProvider value={merged}>
-      <EditProvider api={api}>
-        <WidgetEditProvider value={widgetApi}>{body}</WidgetEditProvider>
-      </EditProvider>
-    </ContentProvider>
+    <EditProvider api={api}>
+      <WidgetEditProvider value={widgetApi}>{body}</WidgetEditProvider>
+    </EditProvider>
   );
+}
+
+/** Setzt den Entwurf an die passende Stelle der veröffentlichten Inhalte. */
+function mergeDraft(base: SiteContent, collection: string, doc: Doc, patterns: Pattern[]): SiteContent {
+  const c: SiteContent = { ...base, patterns: patterns as SiteContent['patterns'] };
+  switch (collection) {
+    case 'projects':
+      return { ...c, projects: upsert(base.projects, doc as unknown as Project) };
+    case 'articles':
+      return { ...c, articles: upsert(base.articles, doc as unknown as Article) };
+    case 'home':
+      return { ...c, home: doc as unknown as HomeContent };
+    case 'about':
+      return { ...c, about: doc as unknown as AboutContent };
+    case 'navigation':
+      return { ...c, navigation: ((doc.items as NavItem[] | undefined) ?? []).filter((x) => x?.label && x?.href) };
+    case 'imprint':
+      return { ...c, imprint: doc as unknown as ImprintContent };
+    case 'journey':
+      return { ...c, journey: upsert(base.journey, doc as unknown as JourneyEntry).sort((x, y) => x.year - y.year) };
+    case 'patterns':
+      return { ...c, patterns: upsert(c.patterns, doc as unknown as SiteContent['patterns'][number]) };
+    default:
+      return c;
+  }
 }

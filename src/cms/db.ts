@@ -3,6 +3,7 @@ import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
+import { COLLECTIONS } from './schema';
 import { seedDocs } from './seed';
 
 /**
@@ -104,6 +105,7 @@ function migrate(db: DatabaseSync) {
       );
     }
     seedIfEmpty(db);
+    backfillSingletons(db);
     db.exec('COMMIT');
   } catch (e) {
     db.exec('ROLLBACK');
@@ -121,6 +123,38 @@ function seedIfEmpty(db: DatabaseSync) {
     'INSERT OR IGNORE INTO docs (collection, id, position, published, draft, created_at, updated_at, published_at) VALUES (?, ?, ?, ?, NULL, ?, ?, ?)',
   );
   for (const d of seedDocs()) ins.run(d.collection, d.id, d.position, JSON.stringify(d.data), now, now, now);
+}
+
+/**
+ * Neue Singletons (z. B. Navigation, Impressum) und neue Felder bestehender Singletons (z. B. Über mich → Stationen)
+ * aus den Startinhalten ergänzen — additiv: vorhandene Werte werden nie überschrieben. So bekommen auch bereits
+ * laufende Installationen neue Bereiche, ohne dass jemand etwas migrieren muss.
+ */
+function backfillSingletons(db: DatabaseSync) {
+  const now = Date.now();
+  for (const d of seedDocs()) {
+    if (COLLECTIONS[d.collection]?.kind !== 'singleton') continue;
+    const row = db.prepare('SELECT published, draft FROM docs WHERE collection = ? AND id = ?').get(d.collection, d.id) as
+      { published: string | null; draft: string | null } | undefined;
+    if (!row) {
+      db.prepare(
+        'INSERT INTO docs (collection, id, position, published, draft, created_at, updated_at, published_at) VALUES (?, ?, 0, ?, NULL, ?, ?, ?)',
+      ).run(d.collection, d.id, JSON.stringify(d.data), now, now, now);
+      continue;
+    }
+    const fill = (json: string | null) => {
+      if (!json) return null;
+      const cur = JSON.parse(json) as Record<string, unknown>;
+      const missing = Object.keys(d.data).filter((k) => !(k in cur));
+      if (!missing.length) return null;
+      for (const k of missing) cur[k] = d.data[k];
+      return JSON.stringify(cur);
+    };
+    const pub = fill(row.published);
+    const dr = fill(row.draft);
+    if (pub) db.prepare('UPDATE docs SET published = ? WHERE collection = ? AND id = ?').run(pub, d.collection, d.id);
+    if (dr) db.prepare('UPDATE docs SET draft = ? WHERE collection = ? AND id = ?').run(dr, d.collection, d.id);
+  }
 }
 
 /**

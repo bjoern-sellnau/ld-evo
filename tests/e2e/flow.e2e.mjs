@@ -1,5 +1,6 @@
 /**
- * LD Flow — End-to-End-Durchlauf gegen einen laufenden Server mit FRISCHER Datenbank:
+ * LD Flow — End-to-End-Durchlauf gegen einen laufenden Server mit FRISCHEM Build und FRISCHER Datenbank
+ * (next start schreibt revalidierte Seiten nach .next zurück — ein zweiter Lauf braucht erneut `npm run build`):
  *   npm run build && LDFLOW_DB=/tmp/ldflow-e2e/flow.db npx next start -p 3123
  *   LDFLOW_DB=/tmp/ldflow-e2e/flow.db node tests/e2e/flow.e2e.mjs
  * Prüft Zugriffsschutz, Setup-Token, WYSIWYG-Sync Vorschau ↔ Formular, Veröffentlichen, neue Seite,
@@ -133,6 +134,25 @@ await p.locator('.f-editor-bar .f-msg.ok').waitFor();
 r = await site.goto(U + '/kontakt-info');
 check('neue Seite live', r.status() === 200 && (await site.locator('h1').textContent()) === 'Kontakt & Info');
 check('Block gerendert', (await site.locator('blockquote').textContent()).includes('Gebaut mit LD Flow.'));
+
+// Navigation: neuer Menüpunkt erscheint sofort in der Vorschau-Leiste, live erst nach dem Veröffentlichen
+await p.goto(U + '/flow/c/navigation/navigation');
+await fr.locator('nav').first().waitFor({ timeout: 20000 });
+await p.getByRole('button', { name: '+ Menüpunkt' }).click();
+await p
+  .getByLabel(/^Beschriftung\*?$/)
+  .last()
+  .fill('Info-Seite');
+await p
+  .getByLabel(/^Ziel\*?$/)
+  .last()
+  .fill('/kontakt-info');
+await until(async () => (await fr.locator('nav a', { hasText: 'Info-Seite' }).count()) > 0);
+check('Navigation: Vorschau folgt dem Entwurf', (await fr.locator('nav a', { hasText: 'Info-Seite' }).count()) > 0);
+await p.getByRole('button', { name: 'Veröffentlichen' }).click();
+await p.locator('.f-editor-bar .f-msg.ok').waitFor();
+await site.goto(U + '/impressum');
+check('Navigation: Menüpunkt live', (await site.locator('nav a[href$="/kontakt-info"]').count()) > 0);
 if (OUT) await site.screenshot({ path: `${OUT}/flow-page.png` });
 await p.goto(U + '/flow/c/pages');
 await p.fill('#new-id', 'projekte');

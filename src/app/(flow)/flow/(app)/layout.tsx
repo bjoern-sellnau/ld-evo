@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         { href: '/flow/guide', label: 'Guide' },
       ],
     },
-    { label: 'Seiten', items: [col('home'), col('about'), col('pages'), col('patterns')] },
+    { label: 'Seiten', items: [col('home'), col('about'), col('pages'), col('patterns'), col('navigation'), col('imprint')] },
     { label: 'Inhalte', items: [col('projects'), col('articles'), col('journey')] },
     {
       label: 'Verwaltung',

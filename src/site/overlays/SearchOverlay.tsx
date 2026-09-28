@@ -4,17 +4,16 @@ import { useMemo, useState, type KeyboardEvent } from 'react';
 import { mono } from '../cards/ProjectCard';
 import { useContent } from '../content/ContentProvider';
 import { articleHref, projectHref } from '../lib/routes';
-import { SITE_PAGES } from '../nav/pages';
 import { useSite } from '../settings/SiteProvider';
 import { ModalOverlay } from './GlassPanel';
 import styles from './overlays.module.css';
 
 /** Suchindex wie im Prototyp: Seiten, Projekte/Labs (ohne Archiv), Artikel — plus frei angelegte CMS-Seiten. */
 function useIndex() {
-  const { projects, articles, pages } = useContent();
+  const { projects, articles, pages, navigation } = useContent();
   return useMemo(
     () => [
-      ...SITE_PAGES.map((p) => ({ label: p.label, kind: 'SEITE', href: p.href })),
+      ...navigation.filter((p) => p.href.startsWith('/')).map((p) => ({ label: p.label, kind: 'SEITE', href: p.href })),
       ...projects
         .filter((p) => p.kind !== 'archiv')
         .map((p) => ({
@@ -23,9 +22,11 @@ function useIndex() {
           href: projectHref(p),
         })),
       ...articles.map((a) => ({ label: a.titel, kind: 'ARTIKEL', href: articleHref(a) })),
-      ...pages.map((p) => ({ label: p.title, kind: 'SEITE', href: `/${p.id}` })),
+      ...pages
+        .filter((p) => !navigation.some((n) => n.href === `/${p.id}`))
+        .map((p) => ({ label: p.title, kind: 'SEITE', href: `/${p.id}` })),
     ],
-    [projects, articles, pages],
+    [projects, articles, pages, navigation],
   );
 }
 

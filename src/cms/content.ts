@@ -6,7 +6,8 @@ import type { Project } from '@content/projects';
 import { publishedDoc, publishedDocs } from './repo';
 import type { MediaRef } from './schema';
 import { seedDocs } from './seed';
-import type { AboutContent, CmsPage, SiteContent } from './types';
+import { DEFAULT_NAV, type NavItem } from '@/site/nav/pages';
+import type { AboutContent, CmsPage, ImprintContent, SiteContent } from './types';
 
 /**
  * Veröffentlichte Inhalte für die Site. Fällt die Datenbank aus (z. B. Node ohne node:sqlite), liefert die Site
@@ -41,6 +42,8 @@ export function getSiteContent(): SiteContent {
     journey: [...journey].sort((a, b) => a.year - b.year),
     pages: (read('pages') as unknown as CmsPage[]).map((p) => ({ id: p.id, title: p.title })),
     patterns: read('patterns') as unknown as SiteContent['patterns'],
+    navigation: ((read('navigation')[0] ?? fromSeed('navigation')[0]) as unknown as { items?: NavItem[] }).items ?? DEFAULT_NAV,
+    imprint: (read('imprint')[0] ?? fromSeed('imprint')[0]) as unknown as ImprintContent,
   };
 }
 

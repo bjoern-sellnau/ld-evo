@@ -17,3 +17,31 @@ export function pageForPath(pathname: string): SitePageId | null {
   const hit = SITE_PAGES.find((p) => p.href !== '/' && (pathname === p.href || pathname.startsWith(`${p.href}/`)));
   return hit?.id ?? null;
 }
+
+/** Menüpunkt der Hauptnavigation (pflegbar in LD Flow → Navigation). */
+export interface NavItem {
+  label: string;
+  href: string;
+  /** Beschriftung im mobilen Vollbild-Menü (falls abweichend). */
+  menuLabel?: string;
+  /** Zusätzlich im mobilen Menü (die Tab-Leiste deckt Projekte/Über mich/Labs/Home ab). */
+  inMenu?: boolean;
+}
+
+/** Startwerte = Prototyp (Desktop-Nav + menuSheetItems). */
+export const DEFAULT_NAV: NavItem[] = [
+  { label: 'Hallo', href: '/' },
+  { label: 'Projekte', href: '/projekte' },
+  { label: 'Über mich', href: '/ueber-mich' },
+  { label: 'Labs', href: '/labs' },
+  { label: 'Meine Reise', href: '/reise', menuLabel: 'Meine Reise — 18 Jahre im Web', inMenu: true },
+  { label: '.Tech', href: '/tech', menuLabel: '.Tech — der Blog', inMenu: true },
+  { label: 'Impressum', href: '/impressum', inMenu: true },
+];
+
+/** Ist ein Menüpunkt für den Pfad aktiv? (Detailseiten gehören zu ihrer Liste.) */
+export function isActiveHref(pathname: string, href: string): boolean {
+  if (href === '/') return pathname === '/';
+  if (!href.startsWith('/')) return false;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}

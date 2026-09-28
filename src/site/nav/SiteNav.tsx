@@ -7,7 +7,8 @@ import { LoonaLockup } from '@/components/brand';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
-import { SITE_PAGES, pageForPath } from './pages';
+import { useContent } from '../content/ContentProvider';
+import { isActiveHref } from './pages';
 import { useBack } from './useBack';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
@@ -29,7 +30,7 @@ const iconBtn: CSSProperties = {
 export function SiteNav() {
   const { settings, mob, sideActive, isWide, frame, narrow, toggleTheme, toggleAnim, setOverlay, navigate, set } = useSiteNav();
   const pathname = usePathname();
-  const active = pageForPath(pathname);
+  const { navigation } = useContent();
   const back = useBack();
 
   if (mob && settings.mobModern) return null;
@@ -40,7 +41,7 @@ export function SiteNav() {
     : { width: 1, height: 20, margin: '0 3px', background: 'var(--hair)' };
 
   const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0 || !href.startsWith('/')) return;
     e.preventDefault();
     navigate(href);
   };
@@ -136,12 +137,14 @@ export function SiteNav() {
         {!mob && (
           <>
             <span aria-hidden style={divider} />
-            {SITE_PAGES.map((p) => {
-              const on = active === p.id;
+            {navigation.map((p) => {
+              const on = isActiveHref(pathname, p.href);
+              const external = /^https?:/i.test(p.href);
               return (
                 <Link
-                  key={p.id}
+                  key={p.href + p.label}
                   href={p.href}
+                  {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   onClick={go(p.href)}
                   aria-current={on ? 'page' : undefined}
                   data-navactive={on}

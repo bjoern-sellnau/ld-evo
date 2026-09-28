@@ -1,19 +1,33 @@
 'use client';
 
-import { Fragment, type CSSProperties } from 'react';
-import { IMPRINT_RAIL } from '@content/about';
-import { IMPRINT, PRIVACY_SECTIONS, type ImprintBlock, type Segment } from '@content/imprint';
+import { Fragment, useMemo, type CSSProperties } from 'react';
+import type { ImprintBlock, Segment } from '@content/imprint';
+import { toImprintBlock as toBlock } from '../lib/imprintModel';
+import { useContent } from '../content/ContentProvider';
 import { mono } from '../cards/ProjectCard';
 import { useSite } from '../settings/SiteProvider';
 import { ScrollRail, useScrollSpy } from './ScrollRail';
 
-const RAIL_IDS = IMPRINT_RAIL.map((r) => r.id);
 const link: CSSProperties = { color: 'var(--accent)', textDecoration: 'none' };
 const para: CSSProperties = { margin: '10px 0 0', fontSize: 13.5, lineHeight: 1.75, color: 'var(--muted)' };
 
 /** Impressum + Datenschutz mit Bereichs-Rail. Markup/Werte: Prototyp Zeile 826–893. */
 export function ImprintPage() {
   const { settings, mob } = useSite();
+  const { imprint: IMPRINT } = useContent();
+  // Inhalte aus LD Flow → Impressum; die Rail ergibt sich aus den Abschnitten.
+  const PRIVACY_SECTIONS = useMemo(
+    () => IMPRINT.sections.map((sec) => ({ id: sec.id, blocks: sec.blocks.map(toBlock) })),
+    [IMPRINT.sections],
+  );
+  const IMPRINT_RAIL = useMemo(
+    () => [
+      { id: 'i-impressum', label: 'Impressum' },
+      ...IMPRINT.sections.map((sec) => ({ id: sec.id, label: sec.rail, sub: sec.sub || undefined })),
+    ],
+    [IMPRINT.sections],
+  );
+  const RAIL_IDS = useMemo(() => IMPRINT_RAIL.map((r) => r.id), [IMPRINT_RAIL]);
   const active = useScrollSpy(RAIL_IDS);
   return (
     <div data-screen-label="Impressum" style={{ paddingTop: mob && settings.mobModern ? 88 : 150, paddingBottom: 80, maxWidth: 680 }}>
@@ -48,14 +62,15 @@ export function ImprintPage() {
         <p style={{ margin: '22px 0 0', fontSize: 13, lineHeight: 1.7, color: 'var(--soft)' }}>{IMPRINT.notice}</p>
       </section>
 
-      {PRIVACY_SECTIONS.map((sec) => (
+      {/* Der erste Abschnitt (Datenschutzerklärung) ist mit Linie + größerem Abstand abgesetzt (Prototyp). */}
+      {PRIVACY_SECTIONS.map((sec, si) => (
         <section
           key={sec.id}
           id={sec.id}
           style={{
             scrollMarginTop: 130,
-            marginTop: sec.id === 'i-datenschutz' ? 56 : 36,
-            ...(sec.id === 'i-datenschutz' ? { borderTop: '1px solid var(--hair)', paddingTop: 36 } : {}),
+            marginTop: si === 0 ? 56 : 36,
+            ...(si === 0 ? { borderTop: '1px solid var(--hair)', paddingTop: 36 } : {}),
           }}
         >
           {sec.blocks.map((b, i) => (

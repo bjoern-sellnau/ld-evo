@@ -1,16 +1,16 @@
 'use client';
 
-import type { CSSProperties } from 'react';
-import { ABOUT_CAPTIONS, ABOUT_IMAGE_FOR, ABOUT_IMAGES, ABOUT_RAIL, LOONA_PROJECTS, STATIONS, type StationProject } from '@content/about';
+import { useMemo, type CSSProperties } from 'react';
+import type { CmsStationProject as StationProject } from '@/cms/types';
 import { LoonaTile } from '@/components/brand';
 import { mono } from '../cards/ProjectCard';
 import { useContent } from '../content/ContentProvider';
+import { buildAbout } from '../lib/aboutModel';
 import { EText } from '../cms/editing';
 import { useSite } from '../settings/SiteProvider';
 import { ScrollRail, useScrollSpy } from './ScrollRail';
 import detailStyles from './detail.module.css';
 
-const RAIL_IDS = ABOUT_RAIL.map((r) => r.id);
 const h2: CSSProperties = { fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', margin: 0 };
 const para: CSSProperties = { margin: '12px 0 0', fontSize: 15, lineHeight: 1.75, color: 'var(--muted)' };
 
@@ -18,13 +18,12 @@ const para: CSSProperties = { margin: '12px 0 0', fontSize: 15, lineHeight: 1.75
 export function AboutPage() {
   const { settings: s, mob, navigate } = useSite();
   const { about } = useContent();
-  // Texte/Listen aus LD Flow; Stationen und Rail bleiben im Code (content/about.ts), Bilder je Slot aus dem CMS.
-  const images = ABOUT_IMAGES.map((im) => {
-    const cms = about.images.find((x) => x.slot === im.slot)?.image;
-    return cms ? { ...im, src: cms.src, alt: cms.alt } : im;
-  });
+  // Alles aus LD Flow; Rail, Bildreihenfolge und Bildzeilen werden aus den Stationen abgeleitet.
+  const model = useMemo(() => buildAbout(about), [about]);
+  const { stations: STATIONS, loonaProjects: LOONA_PROJECTS, images, captions: ABOUT_CAPTIONS, rail: ABOUT_RAIL, imageFor } = model;
+  const RAIL_IDS = useMemo(() => ABOUT_RAIL.map((r) => r.id), [ABOUT_RAIL]);
   const active = useScrollSpy(RAIL_IDS);
-  const imgIdx = ABOUT_IMAGE_FOR[active] ?? 0;
+  const imgIdx = imageFor[active] ?? 0;
   const padX = mob ? 18 : 32;
 
   return (
@@ -51,7 +50,7 @@ export function AboutPage() {
           >
             {images.map((img, i) => (
               <div
-                key={img.slot}
+                key={img.key}
                 aria-hidden={i !== imgIdx}
                 style={{ position: 'absolute', inset: 0, opacity: i === imgIdx ? 1 : 0, transition: 'opacity 0.6s ease' }}
               >
@@ -59,7 +58,9 @@ export function AboutPage() {
                   <img src={img.src} alt={img.alt ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.12em', color: 'var(--soft)' }}>FOTO FOLGT</span>
+                    <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.12em', color: 'var(--soft)' }} title={img.placeholder}>
+                      FOTO FOLGT
+                    </span>
                   </div>
                 )}
               </div>

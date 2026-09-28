@@ -6,14 +6,8 @@ import { useEffect, useRef, type CSSProperties, type MouseEvent, type ReactNode 
 import { LoonaTile } from '@/components/brand';
 import { useSite } from '../settings/SiteProvider';
 import styles from './MobileMenu.module.css';
-import { pageForPath } from './pages';
-
-// Prototyp: menuSheetItems — was nicht in der Tab-Bar steht.
-const ITEMS = [
-  { id: 'reise', label: 'Meine Reise — 18 Jahre im Web', href: '/reise' },
-  { id: 'tech', label: '.Tech — der Blog', href: '/tech' },
-  { id: 'impressum', label: 'Impressum', href: '/impressum' },
-] as const;
+import { useContent } from '../content/ContentProvider';
+import { isActiveHref } from './pages';
 
 const item = (delay: string): CSSProperties => ({ animation: `ldMenuItem 0.45s ${delay} cubic-bezier(0.22,1,0.32,1) both` });
 
@@ -21,7 +15,8 @@ const item = (delay: string): CSSProperties => ({ animation: `ldMenuItem 0.45s $
 export function MobileMenu() {
   const { settings, mob, isMobile, overlay, setOverlay, toggleTheme, toggleAnim, navigate } = useSite();
   const pathname = usePathname();
-  const page = pageForPath(pathname);
+  // Prototyp: menuSheetItems — was nicht in der Tab-Bar steht (pflegbar in LD Flow → Navigation).
+  const ITEMS = useContent().navigation.filter((n) => n.inMenu);
   const open = mob && overlay === 'mobileNav';
   const panel = useRef<HTMLDivElement>(null);
 
@@ -39,7 +34,7 @@ export function MobileMenu() {
   const framed = !isMobile;
   const rad = framed ? '32px' : '0px';
   const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0 || !href.startsWith('/')) return;
     e.preventDefault();
     navigate(href);
   };
@@ -94,17 +89,17 @@ export function MobileMenu() {
 
           <div style={{ marginTop: 26 }}>
             {ITEMS.map((x, i) => {
-              const on = page === x.id;
+              const on = isActiveHref(pathname, x.href);
               return (
                 <Link
-                  key={x.id}
+                  key={x.href + x.label}
                   href={x.href}
                   onClick={go(x.href)}
                   aria-current={on ? 'page' : undefined}
                   className={styles.sheetItem}
                   style={{ color: on ? 'var(--accent)' : 'var(--ink)', ...item(`${(0.1 + i * 0.06).toFixed(2)}s`) }}
                 >
-                  {x.label}
+                  {x.menuLabel || x.label}
                   <span aria-hidden style={{ color: 'var(--soft)', fontSize: 17, fontWeight: 400 }}>
                     ›
                   </span>

@@ -231,6 +231,74 @@ const HOME_FIELDS: FieldDef[] = [
   { key: 'featured', label: 'Featured-Projekte', type: 'relations', collection: 'projects' },
 ];
 
+const STATION_PROJECT_FIELDS: FieldDef[] = [
+  { key: 'name', label: 'Name', type: 'text', max: 120 },
+  { key: 'anchor', label: 'Anker', type: 'text', max: 40, help: 'z. B. p-egov' },
+  { key: 'zeit', label: 'Zeitraum', type: 'text', max: 40 },
+  { key: 'desc', label: 'Beschreibung', type: 'textarea', max: 800 },
+  { key: 'stack', label: 'Stack', type: 'strings', max: 16 },
+  { key: 'railLabel', label: 'Rail-Beschriftung (optional)', type: 'text', max: 40 },
+];
+
+const NAV_FIELDS: FieldDef[] = [
+  {
+    key: 'items',
+    label: 'Menüpunkte',
+    type: 'list',
+    itemLabel: 'Menüpunkt',
+    help: 'Desktop-Leiste in dieser Reihenfolge. Die mobile Tab-Leiste (Projekte · Über mich · Home · Labs · Menü) ist fest; „Im mobilen Menü“ zeigt den Punkt zusätzlich im Vollbild-Menü.',
+    fields: [
+      { key: 'label', label: 'Beschriftung', type: 'text', max: 30, required: true },
+      { key: 'href', label: 'Ziel', type: 'url', required: true, help: '/pfad, #anker oder https://…' },
+      { key: 'menuLabel', label: 'Beschriftung im mobilen Menü (optional)', type: 'text', max: 60 },
+      { key: 'inMenu', label: 'Im mobilen Menü', type: 'boolean' },
+    ],
+  },
+];
+
+const IMPRINT_FIELDS: FieldDef[] = [
+  { key: 'kicker', label: 'Kicker', type: 'text', max: 60 },
+  { key: 'title', label: 'Titel', type: 'text', max: 80 },
+  { key: 'owner', label: 'Anbieter', type: 'text', max: 120 },
+  { key: 'address', label: 'Anschrift', type: 'strings', max: 6 },
+  { key: 'email', label: 'E-Mail', type: 'text', max: 120 },
+  { key: 'notice', label: 'Hinweis', type: 'textarea', max: 1000 },
+  {
+    key: 'sections',
+    label: 'Abschnitte (Datenschutz)',
+    type: 'list',
+    itemLabel: 'Abschnitt',
+    help: 'Rechtstexte: Änderungen nur nach Prüfung. Links im Text als [Linktext](https://…).',
+    fields: [
+      { key: 'id', label: 'Anker', type: 'text', max: 40 },
+      { key: 'rail', label: 'Rail-Beschriftung', type: 'text', max: 40 },
+      { key: 'sub', label: 'Unterpunkt in der Rail', type: 'boolean' },
+      {
+        key: 'blocks',
+        label: 'Inhalt',
+        type: 'list',
+        itemLabel: 'Absatz',
+        fields: [
+          {
+            key: 'kind',
+            label: 'Art',
+            type: 'select',
+            options: [
+              ['p', 'Absatz'],
+              ['h2', 'Überschrift groß'],
+              ['h3', 'Überschrift'],
+              ['box', 'Kasten (eine Zeile pro Zeile)'],
+              ['credit', 'Quellen-Link (klein)'],
+            ],
+          },
+          { key: 'text', label: 'Text', type: 'textarea', max: 6000 },
+          { key: 'href', label: 'Link (nur Quellen-Link)', type: 'url' },
+        ],
+      },
+    ],
+  },
+];
+
 const ABOUT_FIELDS: FieldDef[] = [
   { key: 'introKicker', label: 'Intro-Kicker', type: 'text', max: 60, inline: true },
   { key: 'introTitle', label: 'Intro-Titel', type: 'text', max: 160, inline: true },
@@ -264,15 +332,68 @@ const ABOUT_FIELDS: FieldDef[] = [
     label: 'Bilder (linke Spalte)',
     type: 'list',
     itemLabel: 'Bild',
-    help: 'Reihenfolge: Porträt, Werkzeuge, Arbeit, Loona!, Materna, Code-b, PIXELTEX',
+    help: 'Feste Abschnitte: Porträt (Intro/Vita), Werkzeuge (Werkzeuge/Skills), Arbeit (Zertifikate), Loona!. Stationen haben ihr Bild direkt an der Station.',
     fields: [
       { key: 'slot', label: 'Slot', type: 'text', max: 40 },
       { key: 'image', label: 'Bild', type: 'media' },
+      { key: 'caption', label: 'Bildzeile', type: 'text', max: 80 },
     ],
+  },
+  {
+    key: 'stations',
+    label: 'Stationen',
+    type: 'list',
+    itemLabel: 'Station',
+    help: 'Reihenfolge = Anzeige. Die Punkt-Rail rechts entsteht automatisch aus Stationen und Projekten.',
+    fields: [
+      { key: 'firma', label: 'Firma', type: 'text', max: 80 },
+      { key: 'anchor', label: 'Anker (URL-Fragment)', type: 'text', max: 40, help: 'z. B. st-materna' },
+      { key: 'rolle', label: 'Rolle', type: 'text', max: 80 },
+      { key: 'zeit', label: 'Zeitraum', type: 'text', max: 40 },
+      { key: 'desc', label: 'Beschreibung', type: 'textarea', max: 800 },
+      { key: 'railLabel', label: 'Rail-Beschriftung (optional)', type: 'text', max: 40 },
+      { key: 'image', label: 'Bild', type: 'media' },
+      { key: 'caption', label: 'Bildzeile', type: 'text', max: 80 },
+      { key: 'placeholder', label: 'Platzhalter ohne Bild', type: 'text', max: 80 },
+      {
+        key: 'projekte',
+        label: 'Projekte',
+        type: 'list',
+        itemLabel: 'Projekt',
+        fields: STATION_PROJECT_FIELDS,
+      },
+    ],
+  },
+  {
+    key: 'loonaProjects',
+    label: 'Loona!-Projekte',
+    type: 'list',
+    itemLabel: 'Projekt',
+    fields: STATION_PROJECT_FIELDS,
   },
 ];
 
 export const COLLECTIONS: Record<string, CollectionDef> = {
+  navigation: {
+    id: 'navigation',
+    label: 'Navigation',
+    singular: 'Navigation',
+    kind: 'singleton',
+    titleField: 'items',
+    creatable: false,
+    fields: NAV_FIELDS,
+    href: () => '/',
+  },
+  imprint: {
+    id: 'imprint',
+    label: 'Impressum & Datenschutz',
+    singular: 'Impressum',
+    kind: 'singleton',
+    titleField: 'title',
+    creatable: false,
+    fields: IMPRINT_FIELDS,
+    href: () => '/impressum',
+  },
   patterns: {
     id: 'patterns',
     label: 'Vorlagen',
