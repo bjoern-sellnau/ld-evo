@@ -10,8 +10,8 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || undefined;
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   ...(staticExport && { output: 'export', basePath, trailingSlash: true, images: { unoptimized: true } }),
-  // LD Flow: Medien-Uploads bis 10 MB über Server Actions.
-  experimental: { serverActions: { bodySizeLimit: '11mb' } },
+  // LD Flow: Medien-Uploads bis 10 MB über Server Actions (+ verkleinerte WebP-Varianten, siehe src/cms/media.ts).
+  experimental: { serverActions: { bodySizeLimit: '24mb' } },
   // Header setzt beim statischen Export der Webserver (GitHub Pages) — Next unterstützt sie dort nicht.
   ...(staticExport ? {} : { headers }),
 };

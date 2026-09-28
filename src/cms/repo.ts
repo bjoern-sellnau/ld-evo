@@ -2,6 +2,7 @@ import 'server-only';
 import { randomBytes } from 'node:crypto';
 import { requireUser, type User, createUser, passwordProblem, hashPassword, type Role } from './auth';
 import { db, tx } from './db';
+import { VARIANT_WIDTHS, webpSize } from './media';
 import { COLLECTIONS, RESERVED_SLUGS, SLUG_RE, emptyDoc, validateDoc, type Errors } from './schema';
 
 /**
@@ -292,17 +293,32 @@ export function sniffImage(buf: Uint8Array): string | null {
   return null;
 }
 
-export async function uploadMedia(file: File, alt: string): Promise<Result<{ id: string; src: string }>> {
+export async function uploadMedia(file: File, alt: string, variants: File[] = []): Promise<Result<{ id: string; src: string }>> {
   const user = await requireUser();
   if (file.size > MAX_UPLOAD) return { ok: false, error: 'Datei ist größer als 10 MB.' };
   const bytes = new Uint8Array(await file.arrayBuffer());
   const mime = sniffImage(bytes);
   if (!mime) return { ok: false, error: 'Nur PNG, JPEG, GIF, WebP, AVIF, MP4 oder WebM.' };
+  // Varianten (vom Browser verkleinert): nur WebP, nur die vorgesehenen Breiten, Breite laut Header muss passen.
+  // Ungültige werden verworfen statt den Upload abzulehnen — das Original reicht immer.
+  const ok: { width: number; bytes: Uint8Array }[] = [];
+  for (const v of variants.slice(0, VARIANT_WIDTHS.length)) {
+    if (v.size > MAX_UPLOAD || !mime.startsWith('image/')) continue;
+    const vb = new Uint8Array(await v.arrayBuffer());
+    const size = sniffImage(vb) === 'image/webp' ? webpSize(vb) : null;
+    if (size && (VARIANT_WIDTHS as readonly number[]).includes(size.width) && !ok.some((o) => o.width === size.width)) {
+      ok.push({ width: size.width, bytes: vb });
+    }
+  }
   const id = randomBytes(12).toString('base64url');
   const name = file.name.replace(/[^\w.\- ]+/g, '_').slice(0, 120) || 'datei';
-  db()
-    .prepare('INSERT INTO media (id, filename, mime, size, alt, bytes, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    .run(id, name, mime, bytes.length, alt.slice(0, 300), bytes, Date.now(), user.email);
+  tx(() => {
+    db()
+      .prepare('INSERT INTO media (id, filename, mime, size, alt, bytes, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(id, name, mime, bytes.length, alt.slice(0, 300), bytes, Date.now(), user.email);
+    const ins = db().prepare('INSERT INTO media_variants (media_id, width, mime, bytes) VALUES (?, ?, ?, ?)');
+    for (const v of ok) ins.run(id, v.width, 'image/webp', v.bytes);
+  });
   return { ok: true, id, src: `/media/${id}` };
 }
 
@@ -328,13 +344,25 @@ export async function updateMediaAlt(id: string, alt: string): Promise<Result> {
 
 export async function deleteMedia(id: string): Promise<Result> {
   await requireUser();
-  db().prepare('DELETE FROM media WHERE id = ?').run(id);
+  tx(() => {
+    db().prepare('DELETE FROM media_variants WHERE media_id = ?').run(id);
+    db().prepare('DELETE FROM media WHERE id = ?').run(id);
+  });
   return { ok: true };
 }
 
-/** Öffentlich (von /media/[id]): Medien sind wie Dateien in public/ frei abrufbar, IDs sind nicht erratbar. */
-export function readMedia(id: string): { mime: string; bytes: Uint8Array } | null {
+/**
+ * Öffentlich (von /media/[id]): Medien sind wie Dateien in public/ frei abrufbar, IDs sind nicht erratbar.
+ * Mit `width` die kleinste Variante, die mindestens so breit ist; gibt es keine, das Original.
+ */
+export function readMedia(id: string, width?: number): { mime: string; bytes: Uint8Array } | null {
   if (!/^[\w-]{8,32}$/.test(id)) return null;
+  if (width) {
+    const v = db()
+      .prepare('SELECT mime, bytes FROM media_variants WHERE media_id = ? AND width >= ? ORDER BY width LIMIT 1')
+      .get(id, width) as { mime: string; bytes: Uint8Array } | undefined;
+    if (v) return v;
+  }
   const r = db().prepare('SELECT mime, bytes FROM media WHERE id = ?').get(id) as { mime: string; bytes: Uint8Array } | undefined;
   return r ?? null;
 }

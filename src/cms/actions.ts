@@ -143,7 +143,8 @@ export async function restoreRevisionAction(collection: string, id: string, rid:
 export async function uploadMediaAction(fd: FormData) {
   const file = fd.get('file');
   if (!(file instanceof File)) return { ok: false as const, error: 'Keine Datei.' };
-  const res = await guard(() => uploadMedia(file, str(fd, 'alt')));
+  const variants = fd.getAll('variant').filter((v): v is File => v instanceof File);
+  const res = await guard(() => uploadMedia(file, str(fd, 'alt'), variants));
   revalidatePath('/flow/media');
   return res;
 }

@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState, useTransition } from 'react';
 import { deleteMediaAction, listMediaAction, mediaAltAction, uploadMediaAction } from '../actions';
 import type { MediaRef } from '../schema';
+import { makeVariants } from './imageVariants';
+import { mediaUrl } from '../media';
 
 export interface MediaItem {
   id: string;
@@ -18,7 +20,11 @@ const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB
 function Thumb({ src, mime, alt }: { src: string; mime?: string; alt: string }) {
   return (
     <div className="f-thumb">
-      {mime?.startsWith('video/') ? <video src={src} muted playsInline aria-label={alt} /> : <img src={src} alt={alt} loading="lazy" />}
+      {mime?.startsWith('video/') ? (
+        <video src={src} muted playsInline aria-label={alt} />
+      ) : (
+        <img src={mediaUrl(src, 640)} alt={alt} loading="lazy" />
+      )}
     </div>
   );
 }
@@ -37,6 +43,8 @@ export function Uploader({ onDone }: { onDone?: (m: { id: string; src: string; a
         const form = e.currentTarget;
         setError(null);
         start(async () => {
+          const file = fd.get('file');
+          if (file instanceof File) for (const v of await makeVariants(file)) fd.append('variant', v);
           const res = await uploadMediaAction(fd);
           if (!res.ok) setError(res.error);
           else {

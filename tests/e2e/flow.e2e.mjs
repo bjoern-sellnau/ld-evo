@@ -248,6 +248,38 @@ const src = await p.locator('.f-thumb img').first().getAttribute('src');
 r = await site.goto(U + src);
 check('Medium ausgeliefert', r.status() === 200 && r.headers()['content-type'] === 'image/png', src);
 check('Medium mit Sandbox-CSP', (r.headers()['content-security-policy'] ?? '').includes('sandbox'));
+// Großes Bild (1500 px) → der Browser rechnet WebP-Varianten 640/1280, das Original bleibt PNG
+const bigPng = Buffer.from(
+  (
+    await p.evaluate(() => {
+      const c = document.createElement('canvas');
+      c.width = 1500;
+      c.height = 1000;
+      const g = c.getContext('2d');
+      g.fillStyle = '#ff9d3c';
+      g.fillRect(0, 0, 1500, 1000);
+      g.fillStyle = '#1b2230';
+      g.fillRect(200, 200, 600, 400);
+      return c.toDataURL('image/png');
+    })
+  ).split(',')[1],
+  'base64',
+);
+await p.setInputFiles('#up-file', { name: 'gross.png', mimeType: 'image/png', buffer: bigPng });
+await p.fill('#up-alt', 'Großes Testbild');
+await p.click('text=Hochladen');
+await until(async () => (await p.locator('.f-thumb img[alt="Großes Testbild"]').count()) > 0, 15000);
+const bigSrc = (await p.locator('.f-thumb img[alt="Großes Testbild"]').first().getAttribute('src')).split('?')[0];
+const v640 = await ctx.request.get(U + bigSrc + '?w=500');
+const v1280 = await ctx.request.get(U + bigSrc + '?w=1000');
+const vOrig = await ctx.request.get(U + bigSrc + '?w=2400');
+check(
+  'Bildvarianten: WebP 640/1280, sonst Original',
+  v640.headers()['content-type'] === 'image/webp' &&
+    v1280.headers()['content-type'] === 'image/webp' &&
+    (await v1280.body()).length !== (await v640.body()).length &&
+    vOrig.headers()['content-type'] === 'image/png',
+);
 await p.setInputFiles('#up-file', 'package.json');
 await p.click('text=Hochladen');
 await alert().waitFor();

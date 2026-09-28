@@ -1,13 +1,11 @@
 import 'server-only';
 import type { Article } from '@content/articles';
 import type { HomeContent } from '@content/home';
-import type { JourneyStation } from '@content/journey';
 import type { Project } from '@content/projects';
 import { publishedDoc, publishedDocs } from './repo';
-import type { MediaRef } from './schema';
 import { seedDocs } from './seed';
 import { DEFAULT_NAV, type NavItem } from '@/site/nav/pages';
-import type { AboutContent, CmsPage, ImprintContent, SiteContent } from './types';
+import type { AboutContent, CmsPage, ImprintContent, JourneyEntry, SiteContent } from './types';
 
 /**
  * Veröffentlichte Inhalte für die Site. Fällt die Datenbank aus (z. B. Node ohne node:sqlite), liefert die Site
@@ -33,7 +31,7 @@ function read(collection: string): (Record<string, unknown> & { id: string })[] 
 export function getSiteContent(): SiteContent {
   const home = (read('home')[0] ?? fromSeed('home')[0]) as unknown as HomeContent;
   const about = (read('about')[0] ?? fromSeed('about')[0]) as unknown as AboutContent;
-  const journey = read('journey') as unknown as (JourneyStation & { id: string; shot?: MediaRef; insights?: (MediaRef | null)[] })[];
+  const journey = read('journey') as unknown as JourneyEntry[];
   return {
     home,
     about,

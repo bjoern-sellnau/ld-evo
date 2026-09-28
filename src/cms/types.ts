@@ -62,7 +62,13 @@ export interface ImprintContent {
   sections: { id: string; rail: string; sub?: boolean; blocks: ImprintBlockCms[] }[];
 }
 
-export type JourneyEntry = JourneyStation & { id: string; shot?: MediaRef; insights?: (MediaRef | null)[] };
+export type JourneyStepEntry = JourneyStation['steps'][number] & { images?: (MediaRef | null)[] };
+export type JourneyEntry = Omit<JourneyStation, 'steps'> & {
+  id: string;
+  shot?: MediaRef;
+  insights?: (MediaRef | null)[];
+  steps: JourneyStepEntry[];
+};
 
 /** Widget-Instanz im Dokument (Felder flach, dazu controls/slots). */
 export interface Block {

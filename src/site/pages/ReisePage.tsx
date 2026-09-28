@@ -5,6 +5,7 @@ import { JOURNEY_MEDIA } from '@content/journeyMedia';
 import { LoonaTile } from '@/components/brand';
 import { useContent } from '../content/ContentProvider';
 import { useSite } from '../settings/SiteProvider';
+import { mediaSrcSet } from '@/cms/media';
 
 const mono = 'var(--ld-font-mono),monospace';
 const GAP = 172; // depthGap-Default des Prototyps
@@ -188,9 +189,9 @@ export function ReisePage() {
       ? 'ldtSwapOut 0.2s cubic-bezier(0.4,0,0.7,0.2) both'
       : 'ldtSwapIn 0.5s cubic-bezier(0.2,0.7,0.2,1) both';
   const embeddedNarrow = vw < 1020;
-  // Einblicke: pro Zwischenschritt (Slot-IDs des Prototyps) oder die der Station aus LD Flow.
-  const mini1 = (curStep && JOURNEY_MEDIA[`ld-mini-${st.year}${stepSuffix}-1`]) || st.insights?.[0] || undefined;
-  const mini2 = (curStep && JOURNEY_MEDIA[`ld-mini-${st.year}${stepSuffix}-2`]) || st.insights?.[1] || undefined;
+  // Einblicke: pro Zwischenschritt (LD Flow bzw. Slot-IDs des Prototyps), sonst die der Station.
+  const mini1 = curStep?.images?.[0] || (curStep && JOURNEY_MEDIA[`ld-mini-${st.year}${stepSuffix}-1`]) || st.insights?.[0] || undefined;
+  const mini2 = curStep?.images?.[1] || (curStep && JOURNEY_MEDIA[`ld-mini-${st.year}${stepSuffix}-2`]) || st.insights?.[1] || undefined;
 
   return (
     <div
@@ -386,6 +387,8 @@ export function ReisePage() {
                   {shot && (
                     <img
                       src={shot.src}
+                      srcSet={mediaSrcSet(shot.src)}
+                      sizes="600px"
                       alt={shot.alt}
                       style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                     />
@@ -1007,7 +1010,7 @@ function MiniSlot({ media, label }: { media?: { src: string; alt: string; video?
         media.video ? (
           <video src={media.src} aria-label={media.alt} muted loop playsInline autoPlay style={mediaFill} />
         ) : (
-          <img src={media.src} alt={media.alt} style={mediaFill} />
+          <img src={media.src} srcSet={mediaSrcSet(media.src)} sizes="240px" alt={media.alt} style={mediaFill} />
         )
       ) : (
         <span style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.12em', color: 'var(--tsoft)' }}>{label.toUpperCase()}</span>

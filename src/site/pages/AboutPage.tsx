@@ -10,6 +10,7 @@ import { EText } from '../cms/editing';
 import { useSite } from '../settings/SiteProvider';
 import { ScrollRail, useScrollSpy } from './ScrollRail';
 import detailStyles from './detail.module.css';
+import { mediaSrcSet } from '@/cms/media';
 
 const h2: CSSProperties = { fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', margin: 0 };
 const para: CSSProperties = { margin: '12px 0 0', fontSize: 15, lineHeight: 1.75, color: 'var(--muted)' };
@@ -55,7 +56,13 @@ export function AboutPage() {
                 style={{ position: 'absolute', inset: 0, opacity: i === imgIdx ? 1 : 0, transition: 'opacity 0.6s ease' }}
               >
                 {img.src ? (
-                  <img src={img.src} alt={img.alt ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <img
+                    src={img.src}
+                    srcSet={mediaSrcSet(img.src)}
+                    sizes="(max-width: 760px) 100vw, 40vw"
+                    alt={img.alt ?? ''}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.12em', color: 'var(--soft)' }} title={img.placeholder}>

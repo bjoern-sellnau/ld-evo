@@ -6,6 +6,7 @@ import { mono } from '../cards/ProjectCard';
 import { Lightbox } from '../overlays/Lightbox';
 import overlayStyles from '../overlays/overlays.module.css';
 import styles from './detail.module.css';
+import { mediaSrcSet } from '@/cms/media';
 
 /** Kapitel-Kopf „01 DIE AUSGANGSLAGE“ (Prototyp: Detail, Zeile 556 ff.). */
 export function Chapter({ n, label, color, first }: { n: string; label: string; color: string; first?: boolean }) {
@@ -81,6 +82,8 @@ function Slot({
       <div style={box}>
         <img
           src={image.src}
+          srcSet={mediaSrcSet(image.src)}
+          sizes="(max-width: 900px) 100vw, 900px"
           alt={image.alt}
           loading="lazy"
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}

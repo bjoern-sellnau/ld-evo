@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import type { GalleryImage } from '@content/projects';
 import { mono } from '../cards/ProjectCard';
 import styles from './overlays.module.css';
+import { mediaUrl } from '@/cms/media';
 
 interface Anim {
   x: string;
@@ -148,7 +149,7 @@ export function Lightbox({ images, start, onClose }: { images: GalleryImage[]; s
         style={{
           width: 'min(92vw, 1240px)',
           height: 'min(84vh, 860px)',
-          backgroundImage: `url(${JSON.stringify(img.src)})`,
+          backgroundImage: `url(${JSON.stringify(mediaUrl(img.src, 2400))})`,
           backgroundSize: 'contain',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

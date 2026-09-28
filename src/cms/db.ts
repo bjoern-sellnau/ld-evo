@@ -12,7 +12,7 @@ import { seedDocs } from './seed';
  * Dokumente liegen als JSON: `published` = Live-Fassung, `draft` = Arbeitskopie (null = keine offenen Änderungen).
  */
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 const MIGRATIONS: string[] = [
   `CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -69,6 +69,14 @@ const MIGRATIONS: string[] = [
      key TEXT PRIMARY KEY,
      count INTEGER NOT NULL,
      first_at INTEGER NOT NULL
+   );`,
+  // 2: verkleinerte WebP-Varianten hochgeladener Bilder (src/cms/media.ts)
+  `CREATE TABLE IF NOT EXISTS media_variants (
+     media_id TEXT NOT NULL,
+     width INTEGER NOT NULL,
+     mime TEXT NOT NULL,
+     bytes BLOB NOT NULL,
+     PRIMARY KEY (media_id, width)
    );`,
 ];
 

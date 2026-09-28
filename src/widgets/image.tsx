@@ -1,6 +1,7 @@
 import { EText } from '@/site/cms/editing';
 import { mono } from '@/site/cards/ProjectCard';
 import { defineWidget, media, segment, text } from './define';
+import { mediaSrcSet } from '@/cms/media';
 
 export default defineWidget({
   id: 'image',
@@ -22,6 +23,8 @@ export default defineWidget({
       <figure style={{ margin: 0 }}>
         <img
           src={image.src}
+          srcSet={mediaSrcSet(image.src)}
+          sizes="(max-width: 900px) 100vw, 900px"
           alt={image.alt}
           loading="lazy"
           style={{

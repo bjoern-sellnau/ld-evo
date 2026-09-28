@@ -205,6 +205,13 @@ const JOURNEY_FIELDS: FieldDef[] = [
     fields: [
       { key: 't', label: 'Titel', type: 'text', max: 80 },
       { key: 'd', label: 'Datum', type: 'text', max: 20 },
+      // Prototyp: eigene Einblick-Slots je Zwischenschritt (`ld-mini-<jahr>-s<i>-1|2`); leer → Einblicke der Station.
+      {
+        key: 'images',
+        label: 'Einblicke dieses Schritts (optional)',
+        type: 'gallery',
+        help: 'Leer lassen, um die Einblicke der Station zu zeigen.',
+      },
     ],
   },
 ];
