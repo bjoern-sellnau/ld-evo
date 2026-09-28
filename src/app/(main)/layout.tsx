@@ -26,6 +26,10 @@ export const metadata: Metadata = {
     ...(ogImage && { images: [{ url: ogImage, width: 1200, height: 630 }] }),
   },
   twitter: { card: 'summary_large_image' },
+  // RSS des .Tech-Blogs — Browser und Feed-Reader finden ihn über das <link rel="alternate">.
+  alternates: {
+    types: { 'application/rss+xml': [{ url: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/tech/feed.xml`, title: '.Tech — der Blog' }] },
+  },
 };
 
 // Default Marken-Ink; per Einstellung „Browser-Farbe“ (ld-themecolor) auf den Seitenhintergrund umschaltbar.
@@ -39,6 +43,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       {/* Body-Klassen (light, still, …) setzen Boot-Script und SiteProvider — daher suppressHydrationWarning. */}
       <body suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+        {/* Ohne JavaScript nie verstecken (CLS-Schutz in site.css wartet sonst auf den Browser-Teil) */}
+        <noscript>
+          <style>{'[data-ld-vp]{visibility:visible!important}'}</style>
+        </noscript>
         {children}
       </body>
     </html>

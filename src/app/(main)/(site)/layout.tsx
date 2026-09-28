@@ -21,11 +21,14 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
     <ContentProvider value={content}>
       <SiteProvider>
         <Splash />
-        <SiteNav />
-        <SitePage>{children}</SitePage>
-        <MobileMenu />
-        <MobileTabBar />
-        <ScrollChrome />
+        {/* data-ld-vp: auf schmalen Bildschirmen erst sichtbar, wenn das Layout zur Breite passt (CLS-Schutz, site.css) */}
+        <div data-ld-vp style={{ display: 'contents' }}>
+          <SiteNav />
+          <SitePage>{children}</SitePage>
+          <MobileMenu />
+          <MobileTabBar />
+          <ScrollChrome />
+        </div>
         <PhoneFrame />
         <CookieBanner />
         <SearchOverlay />

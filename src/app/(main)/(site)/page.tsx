@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { HalloPage } from '@/site/pages/HalloPage';
 import { JsonLd } from '@/site/seo/JsonLd';
-import { PERSON, SITE_URL, absUrl } from '@/site/seo/seo';
+import { PERSON, SITE_URL, absUrl, alternatesFor } from '@/site/seo/seo';
 
-export const metadata: Metadata = { alternates: { canonical: absUrl('/') } };
+export const metadata: Metadata = { alternates: alternatesFor('/') };
 
 export default function Page() {
   return (

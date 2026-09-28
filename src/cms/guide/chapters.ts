@@ -660,10 +660,19 @@ export const CHAPTERS: Chapter[] = [
             'LD Flow komplett im Browser: Setup, WYSIWYG, Baukasten, Medien, Konflikte, Planen, 2FA, Statistik, CSP',
             'vor Releases (frischer Build + frische DB!)',
           ],
-          ['npm run test:a11y', 'Barrierefreiheit (axe-core, WCAG 2.2 AA) aller Seiten, hell und dunkel', 'bei Design-/Farbänderungen'],
+          [
+            'npm run test:a11y',
+            'Barrierefreiheit (axe-core, WCAG 2.2 AA): Site Desktop + Mobil, hell/dunkel; LD Flow angemeldet (frische DB)',
+            'bei Design-/Farbänderungen',
+          ],
+          [
+            'npm run test:perf',
+            'Ladezeit mobil wie Lighthouse (LCP, CLS, TBT, Datenmenge) gegen Budgets',
+            'bei neuen Abhängigkeiten/Seiten',
+          ],
           [
             'npm run test:pages',
-            'Pixelvergleich der Hauptseiten mit Referenzbildern (UPDATE=1 erneuert sie bewusst)',
+            'Pixelvergleich der Hauptseiten, Desktop + Mobil (UPDATE=1 erneuert sie bewusst)',
             'bei Design-Änderungen (frischer Build!)',
           ],
           ['npm run format', 'Prettier', 'vor dem Commit'],
@@ -680,6 +689,7 @@ export const CHAPTERS: Chapter[] = [
         t: 'list',
         items: [
           '**Definition of Done:** Build sauber, Typecheck und Tests grün, keine Konsolenfehler, `test:a11y` ohne schwere Verstöße, `test:pages` grün (oder Referenzbilder bewusst erneuert), jede Einstellung funktioniert und bleibt gespeichert.',
+          '**Layout-Springen:** Viewport-abhängiges Layout entscheidet der Browser; mobil bleibt der Inhalt bis dahin unsichtbar (`[data-ld-vp]`, site.css). Neues Layout gern gleich per CSS-Media-Query statt `mob ? … : …`.',
           '**Kontrast:** Farben für Text auf Covern immer über `inkOn()`/`readableAlpha()` (src/site/lib/color.ts) — sie halten 4,5:1 ein und bleiben so nah wie möglich am Prototyp.',
         ],
       },

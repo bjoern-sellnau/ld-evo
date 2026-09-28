@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useLayoutEffect, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { REVEAL_MODES, pageVtClasses, runVt, trackVtOrigin } from '../vt/runVt';
 import { applyBody, applyThemeColor } from './applyBody';
@@ -61,6 +61,11 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   useHitCounter(pathname);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+
+  // CLS-Schutz (site.css): sobald das Layout mit echter Bildschirmbreite gerendert ist — vor dem Zeichnen — sichtbar machen.
+  useLayoutEffect(() => {
+    if (hydrated) document.documentElement.classList.add('ldvp');
+  }, [hydrated, viewport]);
 
   // Client-Sync nach der Hydration (SSR rendert immer die Defaults: dark, Animationen an).
   useEffect(() => {

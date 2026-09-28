@@ -9,6 +9,15 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 export const absUrl = (path: string) => `${SITE_URL}${BASE}${path === '/' ? '' : path}` || SITE_URL;
 
+/**
+ * Canonical-URL plus RSS-Hinweis. Next ersetzt `alternates` je Seite komplett — ohne die `types` hier verlöre jede Seite
+ * mit eigener Canonical-URL den Feed-Link aus dem Layout.
+ */
+export const alternatesFor = (path: string) => ({
+  canonical: absUrl(path),
+  types: { 'application/rss+xml': [{ url: `${BASE}/tech/feed.xml`, title: '.Tech — der Blog' }] },
+});
+
 /** Personendaten nur aus vorhandenen Quellen: content/home.ts (Name), Footer/Kontakt-Panel (Profile), Impressum (Ort). */
 export const PERSON = {
   '@type': 'Person',
@@ -38,7 +47,7 @@ export function pageMeta(o: {
   return {
     title: o.title,
     description: o.description,
-    alternates: { canonical: absUrl(o.path) },
+    alternates: alternatesFor(o.path),
     openGraph: {
       title: o.title,
       description: o.description,

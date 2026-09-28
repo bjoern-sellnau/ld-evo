@@ -1123,3 +1123,15 @@ body.light #ldt-stage {
   transform: scale(1.05);
   color: var(--tctatx);
 }
+
+/*
+ * CLS-Schutz (gemessen: Layout-Sprung 0,4–0,9 mobil): Der Server rendert ohne Kenntnis der Bildschirmbreite das
+ * Desktop-Layout; die Mobil-Variante (Raster, Navigation) wählt erst der Browser (SiteProvider → mob). Auf schmalen
+ * Bildschirmen bleibt der Inhalt bis dahin unsichtbar — sichtbar wird nur das richtige Layout. Ohne JavaScript
+ * hebt ein <noscript>-Stil im Site-Layout das auf.
+ */
+@media (max-width: 1019.98px) {
+  html:not(.ldvp) [data-ld-vp] {
+    visibility: hidden;
+  }
+}
