@@ -3,8 +3,10 @@ import { createHash, randomBytes, randomUUID, scrypt as scryptCb, timingSafeEqua
 import { readFileSync, rmSync } from 'node:fs';
 import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
-import { db, setupTokenFile } from './db';
+import { db, setupTokenFile, tx } from './db';
 import { mailConfigured, publicUrl, sendMail } from './mail';
+import { open as openSecret, seal } from './secretBox';
+import { base32Decode, newRecoveryCodes, newTotpSecret, otpauthUri, verifyTotp } from './totp';
 
 /**
  * LD Flow. — Anmeldung.
@@ -13,6 +15,10 @@ import { mailConfigured, publicUrl, sendMail } from './mail';
  *   verrät keine gültigen Sessions. Serverseitig widerrufbar (Logout, Passwortwechsel, Nutzer deaktiviert).
  * - Brute-Force-Schutz: 5 Fehlversuche je E-Mail+IP bzw. 20 je IP in 15 min sperren.
  * - Rollen: admin (alles inkl. Nutzerverwaltung), editor (Inhalte + Medien).
+ * - Zwei-Faktor (optional je Konto): TOTP nach RFC 6238, Schlüssel AES-GCM-verschlüsselt (secretBox.ts), Codes nicht
+ *   wiederverwendbar; 10 Wiederherstellungscodes (nur Hash gespeichert). Nach dem Passwort gibt es erst einen
+ *   5-Minuten-Zwischenschritt (max. 5 Codes), die Sitzung entsteht erst nach dem zweiten Faktor.
+ * - Cookies in Produktion mit Präfix `__Host-`; Sitzungen einsehbar und einzeln/„überall sonst“ beendbar.
  * - Passwort vergessen: Einmal-Link (256 Bit, 1 h gültig, in der DB nur als SHA-256), Antwort immer gleich —
  *   verrät also nicht, ob es ein Konto gibt. Nach dem Zurücksetzen werden alle Sessions des Kontos beendet.
  */
@@ -26,7 +32,14 @@ export interface User {
   role: Role;
 }
 
-export const SESSION_COOKIE = 'ldflow_session';
+/**
+ * Cookie-Namen: in Produktion mit Präfix `__Host-` — der Browser akzeptiert das Cookie dann nur mit `Secure`,
+ * `Path=/` und ohne `Domain`, also nie von einer Subdomain gesetzt oder überschrieben (Cookie Tossing).
+ * Lokal/Tests ohne TLS (LDFLOW_INSECURE_COOKIES=1) ohne Präfix, weil dort `Secure` fehlt.
+ */
+const cookieName = (base: string) => (secureCookies() ? `__Host-${base}` : base);
+export const sessionCookieName = () => cookieName('ldflow_session');
+const challengeCookieName = () => cookieName('ldflow_2fa');
 const SESSION_TTL = 7 * 24 * 3600 * 1000;
 const SCRYPT = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 const KEYLEN = 64;
@@ -120,10 +133,10 @@ async function createSession(userId: string) {
   const now = Date.now();
   const h = await headers();
   db()
-    .prepare('INSERT INTO sessions (id_hash, user_id, created_at, expires_at, user_agent) VALUES (?, ?, ?, ?, ?)')
-    .run(sha256(token), userId, now, now + SESSION_TTL, (h.get('user-agent') ?? '').slice(0, 200));
+    .prepare('INSERT INTO sessions (id_hash, user_id, created_at, expires_at, user_agent, last_seen) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(sha256(token), userId, now, now + SESSION_TTL, (h.get('user-agent') ?? '').slice(0, 200), now);
   db().prepare('DELETE FROM sessions WHERE expires_at < ?').run(now);
-  (await cookies()).set(SESSION_COOKIE, token, {
+  (await cookies()).set(sessionCookieName(), token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: secureCookies(),
@@ -134,14 +147,14 @@ async function createSession(userId: string) {
 
 /** Aktueller Nutzer (einmal pro Request ausgewertet). */
 export const getCurrentUser = cache(async (): Promise<User | null> => {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  const token = (await cookies()).get(sessionCookieName())?.value;
   if (!token || token.length > 100) return null;
   const row = db()
     .prepare(
-      `SELECT u.id, u.email, u.name, u.role, s.expires_at, s.id_hash FROM sessions s JOIN users u ON u.id = s.user_id
+      `SELECT u.id, u.email, u.name, u.role, s.expires_at, s.id_hash, s.last_seen FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.id_hash = ? AND u.disabled = 0`,
     )
-    .get(sha256(token)) as (User & { expires_at: number; id_hash: string }) | undefined;
+    .get(sha256(token)) as (User & { expires_at: number; id_hash: string; last_seen: number | null }) | undefined;
   if (!row) return null;
   const now = Date.now();
   if (row.expires_at < now) {
@@ -153,6 +166,9 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
     db()
       .prepare('UPDATE sessions SET expires_at = ? WHERE id_hash = ?')
       .run(now + SESSION_TTL, row.id_hash);
+  // „Zuletzt aktiv“ für die Sitzungsübersicht — höchstens alle 5 Minuten schreiben.
+  if (!row.last_seen || now - row.last_seen > 5 * 60 * 1000)
+    db().prepare('UPDATE sessions SET last_seen = ? WHERE id_hash = ?').run(now, row.id_hash);
   return { id: row.id, email: row.email, name: row.name, role: row.role };
 });
 
@@ -170,15 +186,15 @@ export async function requireUser(role?: Role): Promise<User> {
 // Login / Logout / Setup
 // ---------------------------------------------------------------------------------------------------------------
 
-export async function login(emailRaw: string, password: string): Promise<{ ok: true } | { ok: false; error: string }> {
+export async function login(emailRaw: string, password: string): Promise<{ ok: true; twoFactor?: boolean } | { ok: false; error: string }> {
   const email = emailRaw.trim().toLowerCase().slice(0, 200);
   const ip = await clientIp();
   const kUser = `u:${email}|${ip}`;
   const kIp = `ip:${ip}`;
   if (attempts(kUser) >= 5 || attempts(kIp) >= 20)
     return { ok: false, error: 'Zu viele Fehlversuche. Bitte in 15 Minuten erneut versuchen.' };
-  const row = db().prepare('SELECT id, pass_hash, disabled FROM users WHERE email = ?').get(email) as
-    { id: string; pass_hash: string; disabled: number } | undefined;
+  const row = db().prepare('SELECT id, pass_hash, disabled, totp_secret FROM users WHERE email = ?').get(email) as
+    { id: string; pass_hash: string; disabled: number; totp_secret: string | null } | undefined;
   const ok = await verifyPassword(password, row?.pass_hash ?? (await getDummy()));
   if (!row || !ok || row.disabled) {
     bump(kUser);
@@ -186,15 +202,19 @@ export async function login(emailRaw: string, password: string): Promise<{ ok: t
     return { ok: false, error: 'E-Mail oder Passwort falsch.' };
   }
   db().prepare('DELETE FROM login_attempts WHERE key = ?').run(kUser);
+  if (row.totp_secret) {
+    await startChallenge(row.id);
+    return { ok: true, twoFactor: true };
+  }
   await createSession(row.id);
   return { ok: true };
 }
 
 export async function logout() {
   const jar = await cookies();
-  const token = jar.get(SESSION_COOKIE)?.value;
+  const token = jar.get(sessionCookieName())?.value;
   if (token) db().prepare('DELETE FROM sessions WHERE id_hash = ?').run(sha256(token));
-  jar.delete(SESSION_COOKIE);
+  jar.delete(sessionCookieName());
 }
 
 export function userCount(): number {
@@ -328,7 +348,10 @@ export function resetTokenValid(token: string): boolean {
 }
 
 /** Neues Passwort mit Einmal-Link setzen; beendet alle Sessions und meldet danach neu an. */
-export async function resetPassword(token: string, password: string): Promise<{ ok: true } | { ok: false; error: string }> {
+export async function resetPassword(
+  token: string,
+  password: string,
+): Promise<{ ok: true; loggedIn: boolean } | { ok: false; error: string }> {
   const ip = await clientIp();
   if (attempts(`reset-use:${ip}`) >= 10) return { ok: false, error: 'Zu viele Versuche. Bitte später erneut versuchen.' };
   const invalid = { ok: false as const, error: 'Der Link ist ungültig oder abgelaufen. Bitte einen neuen anfordern.' };
@@ -349,6 +372,193 @@ export async function resetPassword(token: string, password: string): Promise<{ 
   db().prepare('UPDATE users SET pass_hash = ?, updated_at = ? WHERE id = ?').run(hash, Date.now(), row.user_id);
   db().prepare('DELETE FROM password_resets WHERE user_id = ?').run(row.user_id);
   db().prepare('DELETE FROM sessions WHERE user_id = ?').run(row.user_id);
+  // Mit 2FA nicht direkt anmelden — sonst ersetzte der Reset-Link den zweiten Faktor.
+  if (hasTotp(row.user_id)) return { ok: true, loggedIn: false };
   await createSession(row.user_id);
+  return { ok: true, loggedIn: true };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Sitzungen verwalten
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Öffentliche Kennung einer Sitzung (Hash vom Hash) — der Token-Hash selbst verlässt den Server nicht. */
+const sessionHandle = (idHash: string) => sha256(`handle:${idHash}`).slice(0, 20);
+
+export interface SessionInfo {
+  handle: string;
+  createdAt: number;
+  lastSeen: number | null;
+  userAgent: string;
+  current: boolean;
+}
+
+export async function listMySessions(): Promise<SessionInfo[]> {
+  const me = await requireUser();
+  const cur = (await cookies()).get(sessionCookieName())?.value;
+  const curHash = cur ? sha256(cur) : '';
+  const rows = db()
+    .prepare('SELECT id_hash, created_at, last_seen, user_agent FROM sessions WHERE user_id = ? AND expires_at > ? ORDER BY last_seen DESC')
+    .all(me.id, Date.now()) as { id_hash: string; created_at: number; last_seen: number | null; user_agent: string | null }[];
+  return rows.map((r) => ({
+    handle: sessionHandle(r.id_hash),
+    createdAt: r.created_at,
+    lastSeen: r.last_seen,
+    userAgent: r.user_agent ?? '',
+    current: r.id_hash === curHash,
+  }));
+}
+
+/** Eine eigene Sitzung beenden (`handle`) oder alle anderen (`handle` = null). */
+export async function revokeSessions(handle: string | null): Promise<{ ok: true; count: number }> {
+  const me = await requireUser();
+  const cur = (await cookies()).get(sessionCookieName())?.value;
+  const curHash = cur ? sha256(cur) : '';
+  const rows = db().prepare('SELECT id_hash FROM sessions WHERE user_id = ?').all(me.id) as { id_hash: string }[];
+  const del = db().prepare('DELETE FROM sessions WHERE id_hash = ? AND user_id = ?');
+  let count = 0;
+  for (const r of rows) {
+    const hit = handle === null ? r.id_hash !== curHash : sessionHandle(r.id_hash) === handle;
+    if (hit) count += Number(del.run(r.id_hash, me.id).changes);
+  }
+  return { ok: true, count };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Zwei-Faktor-Anmeldung (TOTP, RFC 6238)
+// ---------------------------------------------------------------------------------------------------------------
+
+const CHALLENGE_TTL = 5 * 60 * 1000;
+
+export function hasTotp(userId: string): boolean {
+  const r = db().prepare('SELECT totp_secret FROM users WHERE id = ?').get(userId) as { totp_secret: string | null } | undefined;
+  return !!r?.totp_secret;
+}
+
+/** Nach richtigem Passwort: kurzlebiger Zwischenschritt (5 min, max. 5 Codes) statt einer Sitzung. */
+async function startChallenge(userId: string) {
+  const token = randomBytes(32).toString('base64url');
+  const now = Date.now();
+  db().prepare('DELETE FROM login_challenges WHERE user_id = ? OR expires_at < ?').run(userId, now);
+  db()
+    .prepare('INSERT INTO login_challenges (token_hash, user_id, expires_at) VALUES (?, ?, ?)')
+    .run(sha256(token), userId, now + CHALLENGE_TTL);
+  (await cookies()).set(challengeCookieName(), token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: secureCookies(),
+    path: '/',
+    maxAge: CHALLENGE_TTL / 1000,
+  });
+}
+
+/** Gibt es einen offenen Zwischenschritt? (für die 2FA-Seite) */
+export async function pendingChallenge(): Promise<boolean> {
+  const t = (await cookies()).get(challengeCookieName())?.value;
+  if (!t || t.length > 100) return false;
+  const r = db().prepare('SELECT expires_at FROM login_challenges WHERE token_hash = ?').get(sha256(t)) as
+    { expires_at: number } | undefined;
+  return !!r && r.expires_at > Date.now();
+}
+
+/** Prüft TOTP-Code bzw. Wiederherstellungscode; bei Erfolg wird der Code verbraucht. */
+function checkSecondFactor(userId: string, input: string): boolean {
+  const u = db().prepare('SELECT totp_secret, totp_last_step FROM users WHERE id = ?').get(userId) as
+    { totp_secret: string | null; totp_last_step: number | null } | undefined;
+  const secret = u?.totp_secret ? openSecret(u.totp_secret) : null;
+  if (!secret) return false;
+  const code = input.replace(/\s/g, '');
+  if (/^\d{6}$/.test(code)) {
+    const step = verifyTotp(base32Decode(secret), code, Date.now(), u!.totp_last_step ?? -1);
+    if (step === null) return false;
+    db().prepare('UPDATE users SET totp_last_step = ? WHERE id = ?').run(step, userId);
+    return true;
+  }
+  const rc = code.toLowerCase();
+  if (!/^[a-z0-9]{4}-[a-z0-9]{4}$/.test(rc)) return false;
+  const res = db()
+    .prepare('UPDATE recovery_codes SET used_at = ? WHERE user_id = ? AND code_hash = ? AND used_at IS NULL')
+    .run(Date.now(), userId, sha256(rc));
+  return res.changes === 1;
+}
+
+export async function completeSecondFactor(code: string): Promise<{ ok: true } | { ok: false; error: string; restart?: boolean }> {
+  const jar = await cookies();
+  const t = jar.get(challengeCookieName())?.value;
+  const restart = { ok: false as const, error: 'Die Anmeldung ist abgelaufen. Bitte erneut mit Passwort anmelden.', restart: true };
+  if (!t || t.length > 100) return restart;
+  const h = sha256(t);
+  const ch = db().prepare('SELECT user_id, expires_at, attempts FROM login_challenges WHERE token_hash = ?').get(h) as
+    { user_id: string; expires_at: number; attempts: number } | undefined;
+  if (!ch || ch.expires_at < Date.now() || ch.attempts >= 5) {
+    db().prepare('DELETE FROM login_challenges WHERE token_hash = ?').run(h);
+    jar.delete(challengeCookieName());
+    return restart;
+  }
+  if (rateLimited(`2fa:${ch.user_id}`, 10)) return { ok: false, error: 'Zu viele Versuche. Bitte in 15 Minuten erneut versuchen.' };
+  if (!checkSecondFactor(ch.user_id, code.slice(0, 20))) {
+    db().prepare('UPDATE login_challenges SET attempts = attempts + 1 WHERE token_hash = ?').run(h);
+    return { ok: false, error: 'Code falsch oder abgelaufen.' };
+  }
+  db().prepare('DELETE FROM login_challenges WHERE token_hash = ?').run(h);
+  jar.delete(challengeCookieName());
+  await createSession(ch.user_id);
   return { ok: true };
+}
+
+/** Einrichtung Schritt 1: neues Geheimnis (noch nicht aktiv) — Anzeige als QR-Code und Text. */
+export async function beginTotpSetup(): Promise<{ ok: true; secret: string; uri: string } | { ok: false; error: string }> {
+  const me = await requireUser();
+  if (hasTotp(me.id)) return { ok: false, error: 'Zwei-Faktor-Anmeldung ist bereits aktiv.' };
+  const secret = newTotpSecret();
+  db().prepare('UPDATE users SET totp_pending = ? WHERE id = ?').run(seal(secret), me.id);
+  return { ok: true, secret, uri: otpauthUri(secret, me.email) };
+}
+
+/** Einrichtung Schritt 2: Code aus der App bestätigt → aktiv; liefert einmalig die Wiederherstellungscodes. */
+export async function confirmTotpSetup(code: string): Promise<{ ok: true; recovery: string[] } | { ok: false; error: string }> {
+  const me = await requireUser();
+  const u = db().prepare('SELECT totp_pending FROM users WHERE id = ?').get(me.id) as { totp_pending: string | null };
+  const secret = u.totp_pending ? openSecret(u.totp_pending) : null;
+  if (!secret) return { ok: false, error: 'Bitte die Einrichtung neu starten.' };
+  if (rateLimited(`2fa-setup:${me.id}`, 10)) return { ok: false, error: 'Zu viele Versuche. Bitte später erneut versuchen.' };
+  const step = verifyTotp(base32Decode(secret), code.replace(/\s/g, ''));
+  if (step === null) return { ok: false, error: 'Der Code passt nicht. Uhrzeit des Telefons prüfen und erneut versuchen.' };
+  const recovery = newRecoveryCodes();
+  tx(() => {
+    db()
+      .prepare('UPDATE users SET totp_secret = ?, totp_pending = NULL, totp_last_step = ?, updated_at = ? WHERE id = ?')
+      .run(seal(secret), step, Date.now(), me.id);
+    db().prepare('DELETE FROM recovery_codes WHERE user_id = ?').run(me.id);
+    const ins = db().prepare('INSERT INTO recovery_codes (user_id, code_hash) VALUES (?, ?)');
+    for (const c of recovery) ins.run(me.id, sha256(c));
+  });
+  return { ok: true, recovery };
+}
+
+/** Selbst abschalten: nur mit Passwort und gültigem Code (oder Wiederherstellungscode). */
+export async function disableTotp(password: string, code: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const me = await requireUser();
+  if (rateLimited(`2fa-off:${me.id}`, 5)) return { ok: false, error: 'Zu viele Versuche. Bitte später erneut versuchen.' };
+  const row = db().prepare('SELECT pass_hash FROM users WHERE id = ?').get(me.id) as { pass_hash: string };
+  if (!(await verifyPassword(password, row.pass_hash))) return { ok: false, error: 'Passwort ist falsch.' };
+  if (!checkSecondFactor(me.id, code)) return { ok: false, error: 'Code falsch oder abgelaufen.' };
+  clearTotp(me.id);
+  return { ok: true };
+}
+
+/** 2FA eines Kontos entfernen (eigene Abschaltung oder Admin-Reset in repo.ts, das requireUser('admin') prüft). */
+export function clearTotp(userId: string) {
+  tx(() => {
+    db().prepare('UPDATE users SET totp_secret = NULL, totp_pending = NULL, totp_last_step = NULL WHERE id = ?').run(userId);
+    db().prepare('DELETE FROM recovery_codes WHERE user_id = ?').run(userId);
+    db().prepare('DELETE FROM login_challenges WHERE user_id = ?').run(userId);
+  });
+}
+
+export async function totpStatus(): Promise<{ enabled: boolean; recoveryLeft: number }> {
+  const me = await requireUser();
+  const left = (db().prepare('SELECT COUNT(*) AS n FROM recovery_codes WHERE user_id = ? AND used_at IS NULL').get(me.id) as { n: number })
+    .n;
+  return { enabled: hasTotp(me.id), recoveryLeft: left };
 }

@@ -1,10 +1,12 @@
-import { getCurrentUser } from '@/cms/auth';
+import { getCurrentUser, listMySessions, totpStatus } from '@/cms/auth';
+import { Sessions, TwoFactor } from '@/cms/ui/Account';
 import { PasswordForm } from '@/cms/ui/Users';
 
 export const metadata = { title: 'Mein Konto' };
 
 export default async function Page() {
   const me = await getCurrentUser();
+  const tfa = await totpStatus();
   return (
     <>
       <div className="f-head">
@@ -17,6 +19,8 @@ export default async function Page() {
         {me?.name} · {me?.email} · {me?.role === 'admin' ? 'Admin' : 'Redaktion'}
       </p>
       <PasswordForm />
+      <TwoFactor enabled={tfa.enabled} recoveryLeft={tfa.recoveryLeft} />
+      <Sessions items={await listMySessions()} />
     </>
   );
 }

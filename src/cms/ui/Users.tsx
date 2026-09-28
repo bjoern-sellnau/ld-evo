@@ -10,6 +10,7 @@ export interface UserRow {
   role: 'admin' | 'editor';
   disabled: number;
   createdAt: number;
+  twoFactor: number;
 }
 
 function Msg({ s }: { s: ActionState }) {
@@ -47,6 +48,7 @@ export function UsersAdmin({ users, meId }: { users: UserRow[]; meId: string }) 
               <th>E-Mail</th>
               <th>Rolle</th>
               <th>Status</th>
+              <th>2FA</th>
               <th aria-label="Aktionen" />
             </tr>
           </thead>
@@ -72,6 +74,7 @@ export function UsersAdmin({ users, meId }: { users: UserRow[]; meId: string }) 
                   </select>
                 </td>
                 <td>{u.disabled ? <span className="f-badge off">gesperrt</span> : <span className="f-badge live">aktiv</span>}</td>
+                <td>{u.twoFactor ? <span className="f-badge live">an</span> : <span className="f-help">aus</span>}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>
                   <button
                     className="f-btn sm"
@@ -107,6 +110,21 @@ export function UsersAdmin({ users, meId }: { users: UserRow[]; meId: string }) 
                         }
                       >
                         Reset-Link
+                      </button>{' '}
+                    </>
+                  )}
+                  {!!u.twoFactor && (
+                    <>
+                      <button
+                        className="f-btn sm"
+                        type="button"
+                        disabled={busy}
+                        onClick={() =>
+                          window.confirm(`2FA von ${u.name} zurücksetzen? (z. B. Telefon verloren) Alle Sitzungen werden beendet.`) &&
+                          run(() => updateUserAction(u.id, { resetTwoFactor: true }))
+                        }
+                      >
+                        2FA zurücksetzen
                       </button>{' '}
                     </>
                   )}

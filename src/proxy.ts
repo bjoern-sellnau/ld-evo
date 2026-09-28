@@ -6,8 +6,9 @@ import { NextResponse, type NextRequest } from 'next/server';
  */
 export function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
-  if (['/flow/login', '/flow/setup', '/flow/forgot', '/flow/reset'].includes(pathname)) return NextResponse.next();
-  if (!req.cookies.has('ldflow_session')) {
+  if (['/flow/login', '/flow/login/2fa', '/flow/setup', '/flow/forgot', '/flow/reset'].includes(pathname)) return NextResponse.next();
+  // Produktion: `__Host-ldflow_session` (siehe auth.ts), lokal ohne TLS: `ldflow_session`.
+  if (!req.cookies.has('__Host-ldflow_session') && !req.cookies.has('ldflow_session')) {
     const url = req.nextUrl.clone();
     url.pathname = '/flow/login';
     url.search = pathname.startsWith('/flow') && pathname !== '/flow' ? `?next=${encodeURIComponent(pathname + search)}` : '';

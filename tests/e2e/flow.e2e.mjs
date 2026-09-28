@@ -8,6 +8,7 @@
  * Passwort-Reset, Logout und Brute-Force-Sperre.
  */
 import { chromium } from '@playwright/test';
+import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -73,7 +74,7 @@ await p.goto(U + '/flow');
 check('ohne Login → Setup', new URL(p.url()).pathname === '/flow/setup');
 await p.goto(U + '/flow-preview/home/home');
 check('Vorschau ohne Login umgeleitet', new URL(p.url()).pathname !== '/flow-preview/home/home');
-await ctx.addCookies([{ name: 'ldflow_session', value: 'bogus', url: U }]);
+await ctx.addCookies([{ name: '__Host-ldflow_session', value: 'bogus', domain: new URL(U).hostname, path: '/', secure: true }]);
 let r = await p.goto(U + '/flow-preview/home/home');
 check('Vorschau mit falschem Cookie → 404', r.status() === 404);
 await ctx.clearCookies();
@@ -376,9 +377,89 @@ check('Reset-Link erzeugt', resetUrl.includes('/flow/reset?token='));
   await ctx2.close();
 }
 
+// __Host-Cookie, Sitzungsübersicht („überall sonst abmelden“), Zwei-Faktor-Anmeldung mit Wiederherstellungscode
+/** TOTP (RFC 6238, SHA1/30 s/6 Stellen) für den Test — unabhängig von src/cms/totp.ts nachgebaut. */
+const totp = (b32, ms = Date.now()) => {
+  const bits = [...b32].map((c) => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'.indexOf(c).toString(2).padStart(5, '0')).join('');
+  const key = Buffer.from(bits.match(/.{8}/g).map((x) => parseInt(x, 2)));
+  const msg = Buffer.alloc(8);
+  msg.writeBigUInt64BE(BigInt(Math.floor(ms / 30000)));
+  const h = createHmac('sha1', key).update(msg).digest();
+  const o = h[19] & 15;
+  return String((h.readUInt32BE(o) & 0x7fffffff) % 1e6).padStart(6, '0');
+};
+const loginAs = async (pg, pw = 'sehr-geheim-123') => {
+  await pg.goto(U + '/flow/login');
+  await pg.fill('#email', 'admin@example.com');
+  await pg.fill('#password', pw);
+  await pg.click('button[type=submit]');
+};
+check(
+  'Session-Cookie mit __Host-Präfix',
+  (await ctx.cookies()).some((c) => c.name === '__Host-ldflow_session' && c.secure && c.httpOnly),
+);
+{
+  const ctx3 = await b.newContext();
+  const r3 = await ctx3.newPage();
+  await loginAs(r3);
+  await r3.waitForURL(U + '/flow');
+  await p.goto(U + '/flow/account');
+  const devices = p.locator('section[aria-labelledby=sess-title] li');
+  check(
+    'Sitzungsübersicht: 2 Geräte, eines markiert',
+    (await devices.count()) === 2 && (await p.locator('text=diese Sitzung').count()) === 1,
+  );
+  await p.getByRole('button', { name: 'Überall sonst abmelden' }).click();
+  await p.locator('[role=status]', { hasText: 'abgemeldet' }).waitFor();
+  await r3.goto(U + '/flow');
+  check('andere Sitzung abgemeldet', new URL(r3.url()).pathname === '/flow/login');
+  await ctx3.close();
+}
+await p.getByRole('button', { name: 'Einrichten' }).click();
+const tfaSecret = (await p.locator('code[aria-label="Schlüssel"]').textContent()).replace(/\s/g, '');
+check('2FA: QR-Code angezeigt', (await p.locator('svg[aria-label="QR-Code für die Authenticator-App"]').count()) === 1);
+await p.fill('#tfa-confirm', totp(tfaSecret));
+await p.getByRole('button', { name: 'Aktivieren' }).click();
+await p.locator('ul[aria-label=Wiederherstellungscodes] li').first().waitFor();
+const recovery = await p.locator('ul[aria-label=Wiederherstellungscodes] li').allTextContents();
+check('2FA aktiviert, 10 Wiederherstellungscodes', recovery.length === 10);
+{
+  const ctx4 = await b.newContext();
+  const q4 = await ctx4.newPage();
+  await loginAs(q4);
+  await q4.waitForURL(/\/flow\/login\/2fa/);
+  check(
+    'Login verlangt zweiten Faktor',
+    (await ctx4.cookies()).every((c) => !c.name.endsWith('ldflow_session')),
+  );
+  await q4.fill('#tfa-code', '000000');
+  await q4.click('button[type=submit]');
+  await alert(q4).waitFor();
+  check('2FA: falscher Code abgelehnt', (await alert(q4).textContent()).includes('falsch'));
+  await q4.fill('#tfa-code', recovery[0]);
+  await q4.click('button[type=submit]');
+  await q4.waitForURL(U + '/flow');
+  check('2FA: Wiederherstellungscode meldet an', true);
+  await q4.goto(U + '/flow/account');
+  await q4.getByRole('button', { name: 'Abmelden', exact: true }).click(); // Seitenleiste scrollt bei 720 px Höhe
+  await q4.waitForURL(/\/flow\/login/);
+  await loginAs(q4);
+  await q4.waitForURL(/\/flow\/login\/2fa/);
+  await q4.fill('#tfa-code', recovery[0]);
+  await q4.click('button[type=submit]');
+  await alert(q4).waitFor();
+  check('2FA: Wiederherstellungscode nur einmal', (await alert(q4).textContent()).includes('falsch'));
+  await ctx4.close();
+}
+await p.goto(U + '/flow/users');
+check(
+  'Nutzerliste zeigt 2FA',
+  (await p.locator('tr', { hasText: 'admin@example.com' }).locator('.f-badge', { hasText: 'an' }).count()) === 1,
+);
+
 // Logout + Brute-Force
 await p.goto(U + '/flow/account');
-await p.click('text=Abmelden');
+await p.getByRole('button', { name: 'Abmelden', exact: true }).click();
 await p.waitForURL(/\/flow\/login/);
 check('Logout', true);
 for (let i = 0; i < 6; i++) {

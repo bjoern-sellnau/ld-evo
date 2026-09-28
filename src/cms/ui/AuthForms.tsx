@@ -3,7 +3,7 @@
 import { useActionState } from 'react';
 import { LoonaLockup } from '@/components/brand';
 import Link from 'next/link';
-import { forgotPasswordAction, loginAction, resetPasswordAction, setupAction, type ActionState } from '../actions';
+import { forgotPasswordAction, loginAction, resetPasswordAction, secondFactorAction, setupAction, type ActionState } from '../actions';
 
 function Brand() {
   return (
@@ -13,7 +13,7 @@ function Brand() {
   );
 }
 
-export function LoginForm({ next }: { next: string }) {
+export function LoginForm({ next, notice }: { next: string; notice?: string }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(loginAction, undefined);
   return (
     <form action={action} className="f-card" aria-labelledby="login-title">
@@ -21,6 +21,11 @@ export function LoginForm({ next }: { next: string }) {
       <h1 id="login-title" style={{ fontSize: 20, margin: '0 0 18px' }}>
         Anmelden
       </h1>
+      {notice && !state?.error && (
+        <p className="f-msg ok" role="status">
+          {notice}
+        </p>
+      )}
       {state?.error && (
         <p className="f-msg error" role="alert">
           {state.error}
@@ -170,6 +175,50 @@ export function ResetForm({ token }: { token: string | null }) {
       <button className="f-btn primary" type="submit" disabled={pending} style={{ width: '100%', justifyContent: 'center' }}>
         {pending ? 'Speichere …' : 'Passwort setzen'}
       </button>
+    </form>
+  );
+}
+
+export function SecondFactorForm({ next }: { next: string }) {
+  const [state, action, pending] = useActionState<ActionState, FormData>(secondFactorAction, undefined);
+  return (
+    <form action={action} className="f-card" aria-labelledby="tfa-title">
+      <Brand />
+      <h1 id="tfa-title" style={{ fontSize: 20, margin: '0 0 6px' }}>
+        Bestätigungscode
+      </h1>
+      <p className="f-help" style={{ margin: '0 0 18px' }}>
+        6-stelliger Code aus deiner Authenticator-App — oder einer deiner Wiederherstellungscodes (xxxx-xxxx).
+      </p>
+      {state?.error && (
+        <p className="f-msg error" role="alert">
+          {state.error}
+        </p>
+      )}
+      <input type="hidden" name="next" value={next} />
+      <div className="f-field">
+        <label htmlFor="tfa-code">Code</label>
+        <input
+          id="tfa-code"
+          name="code"
+          type="text"
+          inputMode="text"
+          autoComplete="one-time-code"
+          autoCapitalize="off"
+          spellCheck={false}
+          maxLength={20}
+          required
+          autoFocus
+        />
+      </div>
+      <button className="f-btn primary" type="submit" disabled={pending} style={{ width: '100%', justifyContent: 'center' }}>
+        {pending ? 'Prüfe …' : 'Bestätigen'}
+      </button>
+      <p style={{ margin: '14px 0 0', textAlign: 'center' }}>
+        <Link href="/flow/login" className="f-help">
+          ← Abbrechen
+        </Link>
+      </p>
     </form>
   );
 }

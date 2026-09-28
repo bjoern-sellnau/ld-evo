@@ -1,6 +1,6 @@
 import 'server-only';
 import { randomBytes } from 'node:crypto';
-import { requireUser, type User, createUser, passwordProblem, hashPassword, issueResetToken, type Role } from './auth';
+import { requireUser, type User, createUser, passwordProblem, hashPassword, issueResetToken, clearTotp, type Role } from './auth';
 import { db, tx } from './db';
 import { VARIANT_WIDTHS, webpSize } from './media';
 import { commitPublish } from './publish';
@@ -410,13 +410,18 @@ export function readMedia(id: string, width?: number): { mime: string; bytes: Ui
 export async function listUsers() {
   await requireUser('admin');
   return plain(
-    db().prepare('SELECT id, email, name, role, disabled, created_at AS createdAt FROM users ORDER BY created_at').all() as {
+    db()
+      .prepare(
+        'SELECT id, email, name, role, disabled, created_at AS createdAt, (totp_secret IS NOT NULL) AS twoFactor FROM users ORDER BY created_at',
+      )
+      .all() as {
       id: string;
       email: string;
       name: string;
       role: Role;
       disabled: number;
       createdAt: number;
+      twoFactor: number;
     }[],
   );
 }
@@ -430,7 +435,10 @@ function otherActiveAdmins(me: User) {
   return (db().prepare("SELECT COUNT(*) AS n FROM users WHERE role = 'admin' AND disabled = 0 AND id != ?").get(me.id) as { n: number }).n;
 }
 
-export async function adminUpdateUser(id: string, patch: { role?: Role; disabled?: boolean; password?: string }): Promise<Result> {
+export async function adminUpdateUser(
+  id: string,
+  patch: { role?: Role; disabled?: boolean; password?: string; resetTwoFactor?: boolean },
+): Promise<Result> {
   const me = await requireUser('admin');
   if (id === me.id && (patch.role === 'editor' || patch.disabled) && otherActiveAdmins(me) === 0)
     return { ok: false, error: 'Der letzte aktive Admin kann sich nicht selbst herabstufen oder sperren.' };
@@ -447,6 +455,11 @@ export async function adminUpdateUser(id: string, patch: { role?: Role; disabled
     db()
       .prepare('UPDATE users SET pass_hash = ?, updated_at = ? WHERE id = ?')
       .run(await hashPassword(patch.password), Date.now(), id);
+    db().prepare('DELETE FROM sessions WHERE user_id = ?').run(id);
+  }
+  // Telefon verloren: Admin entfernt 2FA; die Person richtet sie danach neu ein. Sitzungen enden mit.
+  if (patch.resetTwoFactor) {
+    clearTotp(id);
     db().prepare('DELETE FROM sessions WHERE user_id = ?').run(id);
   }
   return { ok: true };

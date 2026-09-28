@@ -58,6 +58,8 @@ a {
   position: sticky;
   top: 0;
   height: 100vh;
+  /* Bei wenig Höhe (Laptop, 720 px) muss „Abmelden“ unten erreichbar bleiben. */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 4px;

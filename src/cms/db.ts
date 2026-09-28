@@ -12,7 +12,7 @@ import { seedDocs } from './seed';
  * Dokumente liegen als JSON: `published` = Live-Fassung, `draft` = Arbeitskopie (null = keine offenen Änderungen).
  */
 
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 const MIGRATIONS: string[] = [
   `CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -97,6 +97,23 @@ const MIGRATIONS: string[] = [
      message TEXT NOT NULL,
      page TEXT NOT NULL DEFAULT '',
      read INTEGER NOT NULL DEFAULT 0
+   );`,
+  // 5: Sitzungsübersicht (zuletzt aktiv) und Zwei-Faktor-Anmeldung (TOTP, Wiederherstellungscodes, Login-Zwischenschritt)
+  `ALTER TABLE sessions ADD COLUMN last_seen INTEGER;
+   ALTER TABLE users ADD COLUMN totp_secret TEXT;
+   ALTER TABLE users ADD COLUMN totp_pending TEXT;
+   ALTER TABLE users ADD COLUMN totp_last_step INTEGER;
+   CREATE TABLE IF NOT EXISTS recovery_codes (
+     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     code_hash TEXT NOT NULL,
+     used_at INTEGER,
+     PRIMARY KEY (user_id, code_hash)
+   );
+   CREATE TABLE IF NOT EXISTS login_challenges (
+     token_hash TEXT PRIMARY KEY,
+     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     expires_at INTEGER NOT NULL,
+     attempts INTEGER NOT NULL DEFAULT 0
    );`,
 ];
 

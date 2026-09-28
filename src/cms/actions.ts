@@ -2,7 +2,21 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { AuthError, changeOwnPassword, login, logout, requestPasswordReset, resetPassword, setupFirstAdmin, type Role } from './auth';
+import {
+  AuthError,
+  beginTotpSetup,
+  changeOwnPassword,
+  completeSecondFactor,
+  confirmTotpSetup,
+  disableTotp,
+  login,
+  logout,
+  requestPasswordReset,
+  resetPassword,
+  revokeSessions,
+  setupFirstAdmin,
+  type Role,
+} from './auth';
 import {
   adminCreateUser,
   adminDeleteUser,
@@ -60,8 +74,21 @@ function refreshSite() {
 export async function loginAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const res = await login(str(fd, 'email'), str(fd, 'password'));
   if (!res.ok) return { error: res.error };
-  const next = str(fd, 'next');
-  redirect(next.startsWith('/flow') && !next.startsWith('//') ? next : '/flow');
+  const next = safeNext(str(fd, 'next'));
+  if (res.twoFactor) redirect(`/flow/login/2fa?next=${encodeURIComponent(next)}`);
+  redirect(next);
+}
+
+const safeNext = (n: string) => (n.startsWith('/flow') && !n.startsWith('//') ? n : '/flow');
+
+/** Zweiter Schritt der Anmeldung: Code aus der Authenticator-App oder Wiederherstellungscode. */
+export async function secondFactorAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const res = await completeSecondFactor(str(fd, 'code'));
+  if (!res.ok) {
+    if (res.restart) redirect('/flow/login?expired=1');
+    return { error: res.error };
+  }
+  redirect(safeNext(str(fd, 'next')));
 }
 
 export async function logoutAction() {
@@ -90,7 +117,7 @@ export async function resetPasswordAction(_: ActionState, fd: FormData): Promise
   if (str(fd, 'password') !== str(fd, 'password2')) return { error: 'Die Passwörter stimmen nicht überein.' };
   const res = await resetPassword(str(fd, 'token'), str(fd, 'password'));
   if (!res.ok) return { error: res.error };
-  redirect('/flow');
+  redirect(res.loggedIn ? '/flow' : '/flow/login?reset=1');
 }
 
 export async function changePasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -200,7 +227,10 @@ export async function createUserAction(_: ActionState, fd: FormData): Promise<Ac
   return res.ok ? { ok: true, message: 'Nutzer angelegt.' } : { error: res.error };
 }
 
-export async function updateUserAction(id: string, patch: { role?: Role; disabled?: boolean; password?: string }) {
+export async function updateUserAction(
+  id: string,
+  patch: { role?: Role; disabled?: boolean; password?: string; resetTwoFactor?: boolean },
+) {
   const res = await guard(() => adminUpdateUser(id, patch));
   revalidatePath('/flow/users');
   return res;
@@ -228,4 +258,29 @@ export async function deleteMessageAction(id: string) {
   const res = await guard(() => deleteMessage(id));
   revalidatePath('/flow', 'layout');
   return res;
+}
+
+// ---- Konto: Sitzungen & Zwei-Faktor ----------------------------------------------------------------------------
+
+export async function revokeSessionAction(handle: string | null) {
+  const res = await guard(() => revokeSessions(handle));
+  revalidatePath('/flow/account');
+  return res;
+}
+
+export async function beginTotpAction() {
+  return guard(() => beginTotpSetup());
+}
+
+export async function confirmTotpAction(code: string) {
+  const res = await guard(() => confirmTotpSetup(code));
+  revalidatePath('/flow/account');
+  return res;
+}
+
+export async function disableTotpAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const res = await guard(() => disableTotp(str(fd, 'password'), str(fd, 'code')));
+  if (!res.ok) return { error: res.error };
+  revalidatePath('/flow/account');
+  return { ok: true, message: 'Zwei-Faktor-Anmeldung ist aus.' };
 }
