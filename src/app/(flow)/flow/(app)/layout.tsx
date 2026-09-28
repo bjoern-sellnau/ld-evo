@@ -27,6 +27,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       items: [
         { href: '/flow', label: 'Dashboard' },
         { href: '/flow/messages', label: 'Nachrichten', badge: unread ? `${unread} neu` : undefined },
+        { href: '/flow/stats', label: 'Statistik' },
         { href: '/flow/guide', label: 'Guide' },
       ],
     },

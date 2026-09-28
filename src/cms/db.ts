@@ -12,7 +12,7 @@ import { seedDocs } from './seed';
  * Dokumente liegen als JSON: `published` = Live-Fassung, `draft` = Arbeitskopie (null = keine offenen Änderungen).
  */
 
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 const MIGRATIONS: string[] = [
   `CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -114,6 +114,19 @@ const MIGRATIONS: string[] = [
      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
      expires_at INTEGER NOT NULL,
      attempts INTEGER NOT NULL DEFAULT 0
+   );`,
+  // 6: cookiefreie Besucherstatistik — nur Summen je Tag und Seite bzw. Herkunfts-Domain, keine IP, keine IDs
+  `CREATE TABLE IF NOT EXISTS page_views (
+     day TEXT NOT NULL,
+     path TEXT NOT NULL,
+     views INTEGER NOT NULL,
+     PRIMARY KEY (day, path)
+   );
+   CREATE TABLE IF NOT EXISTS referrers (
+     day TEXT NOT NULL,
+     host TEXT NOT NULL,
+     views INTEGER NOT NULL,
+     PRIMARY KEY (day, host)
    );`,
 ];
 

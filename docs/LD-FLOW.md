@@ -9,6 +9,7 @@ Versionen, Mediathek, frei anlegbare Seiten mit Seitentypen (Templates) sowie An
 - Frei angelegte Seiten: `/<kennung>`
 - Passwort vergessen: `/flow/forgot`, Einmal-Link `/flow/reset?token=…`
 - Kontaktformular-Eingang: `POST /api/contact` · Zeitplan-Takt: `POST /flow-cron` (nur mit geheimem Header)
+- Besucherzähler: `POST /api/hit` (cookiefrei) · Suchmaschinen: `/sitemap.xml`, `/robots.txt`, Vorschaubilder je Projekt/Artikel
 
 ## Architektur
 
@@ -35,6 +36,12 @@ Bilder, Stationen mit Projekten — Rail und Bilder leiten sich daraus ab), Navi
 externer Links), Impressum & Datenschutz, Projekte & Labs, .Tech-Artikel, Meine Reise (Stationen, Zwischenschritte
 mit eigenen Einblick-Bildern) und frei angelegte Seiten. Neue Singletons/Felder ergänzt `backfillSingletons()` auch in
 bestehenden Datenbanken (additiv). Im Code bleiben die Struktur der festen Seiten, die mobile Tab-Leiste und die Gestaltung.
+
+**Gleichzeitiges Bearbeiten:** Speichern prüft den bekannten Stand; hat jemand anders dazwischen gespeichert, wird
+nicht überschrieben (Banner mit Person/Zeit, „Neu laden“ oder bewusst „Trotzdem speichern“). **Versionen** lassen sich
+mit dem aktuellen Stand vergleichen (feldweise, Texte wortweise). **Mediathek:** Suche, „Verwendet in“, Löschschutz,
+Varianten für ältere Uploads nachrüsten. **Statistik:** cookiefrei, nur Summen je Tag/Seite und Herkunfts-Domain; ohne
+IP, Cookies oder Kennungen; DNT/GPC werden respektiert; eigene Aufrufe pro Browser abschaltbar.
 
 **Planen:** „Planen …“ im Editor prüft vollständig und speichert den Entwurf mit Zeitpunkt; das Dashboard listet
 Geplantes. Spätere Entwurfsänderungen gehen mit. Ist der Entwurf zum Zeitpunkt ungültig, bleibt er Entwurf.
@@ -83,6 +90,7 @@ Einmal-Link (1 h), der auf sicherem Weg weitergegeben wird.
   10 Wiederherstellungscodes (nur Hash, je einmal). Nach dem Passwort ein 5-Minuten-Zwischenschritt (max. 5 Codes),
   erst dann die Sitzung; Codes sind nicht wiederverwendbar. Geheimnisse AES-256-GCM-verschlüsselt, Schlüssel außerhalb
   der DB. Admins können 2FA zurücksetzen (Telefon verloren); ein Passwort-Reset meldet bei aktiver 2FA nicht direkt an.
+  Unter „Nutzer“ lässt sich 2FA für alle verpflichtend machen: Konten ohne 2FA kommen dann nur noch an „Mein Konto“.
 - Content-Security-Policy: LD Flow und Vorschau mit Nonce je Request und `'strict-dynamic'` (`src/proxy.ts`,
   `src/cms/csp.ts`) — nur Skripte mit Nonce laufen. Die öffentliche Site ist statisch vorgerendert; Nonces würden
   Static/ISR abschalten (Next-Doku), daher dort eine Grundpolicy: nur eigene Skripte (mit `'unsafe-inline'`), kein
@@ -124,7 +132,9 @@ Formular, Validierung, Speichern und Vorschau ergeben sich automatisch aus der D
 
 - Mehrere Server-Instanzen: SQLite ist für eine Instanz gedacht; für horizontales Skalieren den Speicher in
   `db.ts`/`repo.ts` auf Postgres umstellen (Schnittstelle bleibt).
-- Optional später: 2FA für alle Konten erzwingen; experimentelles SRI (`experimental.sri`) könnte der Site eine
+- Datenschutzerklärung: den cookiefreien Besucherzähler (Umfang siehe oben) und ggf. das Kontaktformular dort
+  erwähnen — die Texte pflegst du in LD Flow unter „Impressum & Datenschutz“.
+- Optional später: experimentelles SRI (`experimental.sri`) könnte der Site eine
   strengere Policy ohne `'unsafe-inline'` erlauben — erst prüfen, wenn es stabil ist.
 - Mehrsprachigkeit ist nicht umgesetzt — es gibt keine Quelltexte in anderen Sprachen; vorher klären: Sprachen,
   URL-Schema (`/en/…`), wer übersetzt, `hreflang`.

@@ -615,3 +615,41 @@ export async function deleteMessage(id: string): Promise<Result> {
   db().prepare('DELETE FROM messages WHERE id = ?').run(id);
   return { ok: true };
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Besucherstatistik (cookiefrei, nur Summen — Eingang: src/cms/stats.ts)
+// ---------------------------------------------------------------------------------------------------------------
+
+export interface SiteStats {
+  /** Aufrufe je Tag, lückenlos (auch Tage ohne Aufrufe), ältester zuerst. */
+  days: { day: string; views: number }[];
+  pages: { path: string; views: number }[];
+  referrers: { host: string; views: number }[];
+}
+
+export async function siteStats(range = 30): Promise<SiteStats> {
+  await requireUser();
+  const n = Math.min(365, Math.max(7, Math.round(range)));
+  const tz = process.env.LDFLOW_TZ ?? 'Europe/Berlin';
+  const fmt = new Intl.DateTimeFormat('sv-SE', { timeZone: tz });
+  const days = Array.from({ length: n }, (_, i) => fmt.format(Date.now() - (n - 1 - i) * 86_400_000));
+  const from = days[0];
+  const per = new Map(
+    (db().prepare('SELECT day, SUM(views) AS v FROM page_views WHERE day >= ? GROUP BY day').all(from) as { day: string; v: number }[]).map(
+      (r) => [r.day, r.v],
+    ),
+  );
+  return {
+    days: days.map((day) => ({ day, views: per.get(day) ?? 0 })),
+    pages: plain(
+      db()
+        .prepare('SELECT path, SUM(views) AS views FROM page_views WHERE day >= ? GROUP BY path ORDER BY views DESC LIMIT 20')
+        .all(from) as { path: string; views: number }[],
+    ),
+    referrers: plain(
+      db()
+        .prepare('SELECT host, SUM(views) AS views FROM referrers WHERE day >= ? GROUP BY host ORDER BY views DESC LIMIT 20')
+        .all(from) as { host: string; views: number }[],
+    ),
+  };
+}

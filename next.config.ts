@@ -9,6 +9,8 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || undefined;
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Im statischen Export gibt es keine API — der Besucherzähler bleibt dann aus (src/site/stats/useHitCounter.ts).
+  env: { NEXT_PUBLIC_STATIC_EXPORT: staticExport ? '1' : '' },
   ...(staticExport && { output: 'export', basePath, trailingSlash: true, images: { unoptimized: true } }),
   // LD Flow: Medien-Uploads bis 10 MB über Server Actions (+ verkleinerte WebP-Varianten, siehe src/cms/media.ts).
   experimental: { serverActions: { bodySizeLimit: '24mb' } },

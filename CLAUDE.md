@@ -28,7 +28,8 @@ Ausführlich und interaktiv: **LD Flow → Guide** (`/flow/guide`).
    Client-Modulen (`useSite`, `useContent`). Texte mit `<EText path={`${path}.feld`} …/>` für WYSIWYG.
 3. **Sicherheit:** SQL nur mit Prepared Statements (`?`), nie String-Verkettung. Jede Funktion in `src/cms/repo.ts`
    prüft `requireUser()` selbst. Bewusste Ausnahmen ohne Login liegen außerhalb von `repo.ts` und sind
-   einzeln abgesichert: `contact.ts` (öffentliches Kontaktformular), `scheduler.ts` (nur per geheimem Cron-Header),
+   einzeln abgesichert: `contact.ts` (öffentliches Kontaktformular), `stats.ts` (cookiefreier Zähler, nur Summen),
+   `scheduler.ts` (nur per geheimem Cron-Header),
    Passwort-Reset in `auth.ts`. Kein `dangerouslySetInnerHTML` mit Nutzerinhalten; Rich Text bleibt JSON.
    Links über `isSafeHref`, Medien über `isSafeMediaSrc`.
 4. **Keine Scroll-Locks auf `body`**, echte `<button>`s, `prefers-reduced-motion`/„Animationen aus“ respektieren,
@@ -44,5 +45,7 @@ Ausführlich und interaktiv: **LD Flow → Guide** (`/flow/guide`).
 | `npm run build && npm start` | Produktion (Node ≥ 22.13, Datenordner `data/` bzw. `LDFLOW_DB`) |
 | `npm run typecheck` · `npm test` | TypeScript · Unit-Tests (Vitest) |
 | `npm run test:visual` | Pixeltests der Logo-Komponenten |
-| `npm run test:e2e` | LD-Flow-Durchlauf gegen laufenden Server mit frischer DB (Anleitung im Dateikopf) |
+| `npm run test:e2e` | LD-Flow-Durchlauf gegen laufenden Server mit frischem Build + frischer DB (Anleitung im Dateikopf) |
+| `npm run test:a11y` | Barrierefreiheit (axe, WCAG 2.2 AA) aller Seiten, hell/dunkel |
+| `npm run test:pages` | Pixelvergleich der Hauptseiten (`UPDATE=1` erneuert die Referenzbilder bewusst) |
 | `npm run format` | Prettier |

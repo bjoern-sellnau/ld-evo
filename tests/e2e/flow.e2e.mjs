@@ -549,6 +549,38 @@ await until(async () => p.getByLabel('2FA-Pflicht für alle').isChecked());
 await p.getByLabel('2FA-Pflicht für alle').uncheck();
 await until(async () => !(await p.getByLabel('2FA-Pflicht für alle').isChecked()));
 
+// Cookiefreie Statistik: Seitenaufruf zählt, Bots/LD Flow/GPC nicht, keine Cookies
+{
+  const views = (p0) => sql((d) => d.prepare('SELECT COALESCE(SUM(views), 0) AS v FROM page_views WHERE path = ?').get(p0).v);
+  const before = { about: await views('/ueber-mich'), labs: await views('/labs'), imp: await views('/impressum') };
+  // Playwright meldet „HeadlessChrome“ — das filtert der Bot-Schutz zu Recht; hier ein normaler Browser.
+  const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36';
+  const ctx6 = await b.newContext({ userAgent: UA });
+  const s6 = await ctx6.newPage();
+  await s6.goto(U + '/ueber-mich', { waitUntil: 'networkidle' });
+  await until(async () => (await views('/ueber-mich')) > before.about);
+  check('Statistik: Seitenaufruf gezählt', (await views('/ueber-mich')) === before.about + 1);
+  check('Statistik: keine Cookies auf der Site', (await ctx6.cookies()).length === 0);
+  const gpc = await b.newContext({ userAgent: UA });
+  await gpc.addInitScript(() => Object.defineProperty(navigator, 'globalPrivacyControl', { value: true }));
+  await (await gpc.newPage()).goto(U + '/labs', { waitUntil: 'networkidle' });
+  await ctx6.request.post(U + '/api/hit', { data: JSON.stringify({ path: '/impressum' }), headers: { 'user-agent': 'Googlebot/2.1' } });
+  await ctx6.request.post(U + '/api/hit', { data: JSON.stringify({ path: '/flow/users' }) });
+  await s6.waitForTimeout(800);
+  check('Statistik: Global Privacy Control respektiert', (await views('/labs')) === before.labs);
+  check(
+    'Statistik: Bots und LD-Flow-Pfade nicht gezählt',
+    (await views('/impressum')) === before.imp && (await views('/flow/users')) === 0,
+  );
+  await ctx6.close();
+  await gpc.close();
+  await p.goto(U + '/flow/stats');
+  check(
+    'Statistik-Seite zeigt meistbesuchte Seiten',
+    (await p.locator('section[aria-label="Meistbesuchte Seiten"]').textContent()).includes('/ueber-mich'),
+  );
+}
+
 // Logout + Brute-Force
 await p.goto(U + '/flow/account');
 await p.getByRole('button', { name: 'Abmelden', exact: true }).click();

@@ -28,6 +28,8 @@ npm run typecheck      # TypeScript
 npm test               # Unit-Tests (Logo-Geometrie, Tokens/Kontrast, Schema, Auth, Widgets …)
 npm run test:visual    # Pixel-Vergleich der Logos (Chromium + pixelmatch, Toleranz 0.1 %)
 npm run test:e2e       # LD Flow im Browser (Anleitung im Dateikopf von tests/e2e/flow.e2e.mjs)
+npm run test:a11y      # Barrierefreiheit aller Seiten (axe-core, hell/dunkel)
+npm run test:pages     # Pixelvergleich der Hauptseiten mit Referenzbildern
 npm run widgets        # Widget-Registry neu erzeugen (läuft vor dev/build/test automatisch)
 npm run brand:sync     # finale Logo-Assets aus dem Handoff nach public/ kopieren
 ```

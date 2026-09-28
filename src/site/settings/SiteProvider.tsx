@@ -6,6 +6,7 @@ import { flushSync } from 'react-dom';
 import { REVEAL_MODES, pageVtClasses, runVt, trackVtOrigin } from '../vt/runVt';
 import { applyBody, applyThemeColor } from './applyBody';
 import { DEFAULT_SETTINGS, readSettings, writeSetting, type Settings } from './schema';
+import { useHitCounter } from '../stats/useHitCounter';
 
 type Overlay = 'search' | 'settings' | 'kontakt' | 'mobileNav' | null;
 
@@ -57,6 +58,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   const [overlay, setOverlay] = useState<Overlay>(null);
   const router = useRouter();
   const pathname = usePathname();
+  useHitCounter(pathname);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
