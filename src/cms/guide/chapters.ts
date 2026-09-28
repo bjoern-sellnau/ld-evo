@@ -523,13 +523,13 @@ export const CHAPTERS: Chapter[] = [
           ],
           [
             'Session-Diebstahl',
-            '256-Bit-Zufallstoken; HttpOnly (per JavaScript nicht lesbar); in der DB nur der SHA-256-Hash; 7 Tage gleitend; Logout/Passwortwechsel/Sperren beenden Sessions serverseitig',
+            '256-Bit-Zufallstoken; HttpOnly (per JavaScript nicht lesbar); Cookie-Präfix __Host- (nur Secure, Path=/, keine Subdomain); in der DB nur der SHA-256-Hash; 7 Tage gleitend; Sitzungsübersicht mit „überall sonst abmelden“; Logout/Passwortwechsel/Sperren beenden Sessions serverseitig',
             'src/cms/auth.ts',
           ],
           [
             'XSS',
-            'Rich Text als JSON, gerendert über React (kein innerHTML); Links nur https/mailto/tel/relativ; Uploads per Magic Bytes (kein SVG) mit Sandbox-CSP',
-            'schema.ts, safe.ts, repo.ts, media/[id]/route.ts',
+            'Rich Text als JSON, gerendert über React (kein innerHTML); Links nur https/mailto/tel/relativ; Uploads per Magic Bytes (kein SVG) mit Sandbox-CSP; LD Flow + Vorschau mit Nonce-CSP (strict-dynamic), die Site mit Grundpolicy ohne fremde Skriptquellen',
+            'schema.ts, safe.ts, csp.ts, proxy.ts, next.config.ts',
           ],
           ['CSRF', 'SameSite=Lax-Cookie; Next prüft bei Server Actions Origin gegen Host', 'auth.ts, Next'],
           [
@@ -538,6 +538,11 @@ export const CHAPTERS: Chapter[] = [
             'src/cms/auth.ts',
           ],
           ['Passwörter', 'scrypt mit Salt, Vergleich in konstanter Zeit, mind. 10 Zeichen', 'src/cms/auth.ts'],
+          [
+            'Gestohlenes Passwort',
+            'Zwei-Faktor-Anmeldung (TOTP, RFC 6238) je Konto; Schlüssel AES-GCM-verschlüsselt mit Schlüssel außerhalb der DB; Codes nicht wiederverwendbar; 10 Wiederherstellungscodes (nur Hash); Sitzung erst nach dem zweiten Faktor',
+            'src/cms/auth.ts, totp.ts, secretBox.ts',
+          ],
           ['Übernahme frischer Instanz', 'Erster Admin nur mit Setup-Token (Datei nur für Server-Betreiber lesbar)', 'db.ts, auth.ts'],
           [
             'Rechte',
@@ -572,8 +577,8 @@ export const CHAPTERS: Chapter[] = [
       {
         t: 'callout',
         kind: 'warn',
-        title: 'Noch offen (vor dem Livegang empfohlen)',
-        text: 'Zwei-Faktor-Anmeldung (TOTP), Content-Security-Policy für Skripte (Nonces), Übersicht aktiver Sitzungen mit „überall abmelden“, Cookie-Präfix `__Host-`. Und: das Login-Rate-Limit vertraut `X-Forwarded-For` — der Server muss hinter einem Reverse-Proxy stehen, der diesen Header setzt.',
+        title: 'Beim Betrieb beachten',
+        text: 'Das Rate-Limit vertraut `X-Forwarded-For` — der Server muss hinter einem Reverse-Proxy stehen, der diesen Header setzt (und von außen kommende Werte überschreibt). `flow-secret.key` (bzw. `LDFLOW_SECRET_KEY`) getrennt von der Datenbank sichern: ohne ihn ist 2FA neu einzurichten. Die öffentliche Site hat bewusst keine Nonces (sonst kein statisches Rendern) — dort gilt eine Grundpolicy mit `unsafe-inline`.',
       },
       {
         t: 'prompt',
@@ -617,6 +622,7 @@ export const CHAPTERS: Chapter[] = [
           ['LDFLOW_TZ', 'Zeitzone für Zeitangaben im Dashboard (Standard Europe/Berlin)'],
           ['LDFLOW_SCHEDULER', '0 = internen Minutentakt aus (dann externer Cron: POST /flow-cron mit Header x-ldflow-cron)'],
           ['LDFLOW_CRON_SECRET', 'festes Geheimnis für externen Cron (sonst zufällig je Prozess)'],
+          ['LDFLOW_SECRET_KEY', 'Schlüssel für verschlüsselte 2FA-Geheimnisse (sonst Datei flow-secret.key neben der DB)'],
         ],
       },
       { t: 'h', text: 'GitHub Pages' },

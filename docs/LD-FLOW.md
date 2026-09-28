@@ -61,6 +61,7 @@ Geplantes. Spätere Entwurfsänderungen gehen mit. Ist der Entwurf zum Zeitpunkt
 | `LDFLOW_SCHEDULER` | `0` = internen Minutentakt aus (externer Cron ruft `POST /flow-cron` mit Header `x-ldflow-cron`) |
 | `LDFLOW_CRON_SECRET` | festes Geheimnis für den externen Cron (sonst zufällig je Prozess) |
 | `LDFLOW_SCHEDULER_INTERVAL_MS` | Takt in ms (Standard 60000; E2E nutzt 2000) |
+| `LDFLOW_SECRET_KEY` | Schlüssel für die verschlüsselten 2FA-Geheimnisse (sonst `flow-secret.key` neben der DB — getrennt sichern!) |
 
 Ohne Mailversand funktioniert „Passwort vergessen“ weiterhin über Admins: **Nutzer → Reset-Link** erzeugt einen
 Einmal-Link (1 h), der auf sicherem Weg weitergegeben wird.
@@ -75,8 +76,17 @@ Einmal-Link (1 h), der auf sicherem Weg weitergegeben wird.
 
 - Passwörter: scrypt (N 16384, r 8, p 1), Salt je Passwort, Vergleich in konstanter Zeit; unbekannte E-Mails
   werden gleich lang geprüft (keine Nutzer-Enumeration).
-- Sessions: 256-Bit-Zufallstoken im `HttpOnly`/`SameSite=Lax`-Cookie, in der DB nur der Hash; 7 Tage gleitend;
-  Logout, Passwortwechsel und Sperren beenden Sessions serverseitig.
+- Sessions: 256-Bit-Zufallstoken im `HttpOnly`/`SameSite=Lax`-Cookie mit Präfix `__Host-` (in Produktion), in der DB
+  nur der Hash; 7 Tage gleitend; Logout, Passwortwechsel und Sperren beenden Sessions serverseitig. Unter „Mein Konto“
+  stehen alle angemeldeten Geräte; einzeln oder „überall sonst“ abmelden.
+- Zwei-Faktor (je Konto, „Mein Konto“): TOTP nach RFC 6238 (Testvektoren als Unit-Test), QR-Code + Schlüssel,
+  10 Wiederherstellungscodes (nur Hash, je einmal). Nach dem Passwort ein 5-Minuten-Zwischenschritt (max. 5 Codes),
+  erst dann die Sitzung; Codes sind nicht wiederverwendbar. Geheimnisse AES-256-GCM-verschlüsselt, Schlüssel außerhalb
+  der DB. Admins können 2FA zurücksetzen (Telefon verloren); ein Passwort-Reset meldet bei aktiver 2FA nicht direkt an.
+- Content-Security-Policy: LD Flow und Vorschau mit Nonce je Request und `'strict-dynamic'` (`src/proxy.ts`,
+  `src/cms/csp.ts`) — nur Skripte mit Nonce laufen. Die öffentliche Site ist statisch vorgerendert; Nonces würden
+  Static/ISR abschalten (Next-Doku), daher dort eine Grundpolicy: nur eigene Skripte (mit `'unsafe-inline'`), kein
+  `<object>`, `base-uri`/`form-action` nur eigene Seite.
 - Brute-Force: 5 Fehlversuche je E-Mail+IP bzw. 20 je IP → 15 Minuten Sperre.
 - Rollen: **Admin** (alles, Nutzerverwaltung, Löschen), **Redaktion** (Inhalte, Medien). Der letzte Admin kann
   sich nicht aussperren.
@@ -114,8 +124,8 @@ Formular, Validierung, Speichern und Vorschau ergeben sich automatisch aus der D
 
 - Mehrere Server-Instanzen: SQLite ist für eine Instanz gedacht; für horizontales Skalieren den Speicher in
   `db.ts`/`repo.ts` auf Postgres umstellen (Schnittstelle bleibt).
-- Vor dem Livegang empfohlen: Zwei-Faktor-Anmeldung (TOTP), Script-CSP mit Nonces, Sitzungsübersicht
-  („überall abmelden“), Cookie-Präfix `__Host-`.
+- Optional später: 2FA für alle Konten erzwingen; experimentelles SRI (`experimental.sri`) könnte der Site eine
+  strengere Policy ohne `'unsafe-inline'` erlauben — erst prüfen, wenn es stabil ist.
 - Mehrsprachigkeit ist nicht umgesetzt — es gibt keine Quelltexte in anderen Sprachen; vorher klären: Sprachen,
   URL-Schema (`/en/…`), wer übersetzt, `hreflang`.
 - Bildvarianten entstehen im Browser beim Upload; ältere Uploads (vor dieser Funktion) haben keine und werden im

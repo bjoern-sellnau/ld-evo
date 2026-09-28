@@ -51,6 +51,14 @@ const p = await ctx.newPage();
 if (process.env.TRACE_MSG) p.on('console', (c) => c.text().startsWith('MSG') && console.log(c.text()));
 const errs = [];
 p.on('pageerror', (e) => errs.push(e.message));
+/** CSP-Verstöße (Konsole, auch aus dem Vorschau-iframe) zählen als Fehler — die Policy darf nichts Eigenes blockieren. */
+const watchCsp = (pg) =>
+  pg.on(
+    'console',
+    (m) =>
+      m.type() === 'error' && /Content Security Policy|Refused to (execute|load|apply)/.test(m.text()) && errs.push(`CSP: ${m.text()}`),
+  );
+watchCsp(p);
 /** Wartet, bis fn() wahr wird (statt fester Wartezeiten). */
 const until = async (fn, ms = 5000) => {
   const end = Date.now() + ms;
@@ -113,6 +121,7 @@ await p.waitForTimeout(1800);
 check('Autosave als Entwurf', (await p.locator('.f-editor-bar [aria-live]').textContent()) === 'Entwurf gespeichert');
 if (OUT) await p.screenshot({ path: `${OUT}/flow-editor.png` });
 const site = await ctx.newPage();
+watchCsp(site);
 await site.goto(U + '/');
 check('Entwurf ist noch nicht live', !(await site.locator('h1').first().textContent()).includes('Heute'));
 await p.getByRole('button', { name: 'Veröffentlichen' }).click();
@@ -356,6 +365,7 @@ check('Reset-Link erzeugt', resetUrl.includes('/flow/reset?token='));
 {
   const ctx2 = await b.newContext();
   const q = await ctx2.newPage();
+  watchCsp(q);
   await q.goto(U + '/flow/login');
   await q.click('text=Passwort vergessen?');
   await q.waitForURL(/\/flow\/forgot/); // beide Seiten haben #email — erst nach der Navigation ausfüllen
@@ -401,6 +411,7 @@ check(
 {
   const ctx3 = await b.newContext();
   const r3 = await ctx3.newPage();
+  watchCsp(r3);
   await loginAs(r3);
   await r3.waitForURL(U + '/flow');
   await p.goto(U + '/flow/account');
@@ -426,6 +437,7 @@ check('2FA aktiviert, 10 Wiederherstellungscodes', recovery.length === 10);
 {
   const ctx4 = await b.newContext();
   const q4 = await ctx4.newPage();
+  watchCsp(q4);
   await loginAs(q4);
   await q4.waitForURL(/\/flow\/login\/2fa/);
   check(
@@ -469,6 +481,6 @@ for (let i = 0; i < 6; i++) {
   await p.waitForTimeout(700); // Server-Antwort abwarten, sonst liest man die vorige Meldung
 }
 check('Sperre nach Fehlversuchen', (await alert().textContent()).includes('Zu viele'));
-check('keine Seitenfehler', errs.length === 0, errs.join(' | '));
+check('keine Seitenfehler und CSP-Verstöße', errs.length === 0, errs.join(' | '));
 await b.close();
 process.exit(failed ? 1 : 0);
