@@ -140,6 +140,10 @@ export function ReisePage() {
       if (live.current.intro.phase !== 'done') return;
       const tgt = e.target as HTMLElement | null;
       if (tgt && (tgt.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(tgt.tagName))) return;
+      // Fokus im scrollbaren Infofeld (kleine Bildschirme): Hoch/Runter/Bild scrollen dort, Links/Rechts wechseln weiter.
+      const panel = tgt?.closest?.('#ldt-panel') as HTMLElement | null;
+      if (panel && panel.scrollHeight > panel.clientHeight && ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End'].includes(e.key))
+        return;
       if (['ArrowDown', 'ArrowRight', 'PageDown'].includes(e.key)) {
         e.preventDefault();
         step(-1);
@@ -639,8 +643,10 @@ export function ReisePage() {
         </nav>
 
         {/* Info-Panel links */}
+        {/* tabIndex 0: auf kleinen Bildschirmen scrollt das Panel — so ist es auch per Tastatur scrollbar (WCAG 2.1.1). */}
         <section
           id="ldt-panel"
+          tabIndex={0}
           aria-label={`Station ${st.year}`}
           style={{
             position: 'absolute',
