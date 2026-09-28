@@ -5,7 +5,7 @@ import type { Project } from '@content/projects';
 import { useContent } from '../content/ContentProvider';
 import { EText } from '../cms/editing';
 import { mono } from '../cards/ProjectCard';
-import { inkOn, lum } from '../lib/color';
+import { inkOn, lum, readableAlpha } from '../lib/color';
 import { projectHref } from '../lib/routes';
 import { useCoverColor } from '../lib/useCoverColor';
 import { useSite } from '../settings/SiteProvider';
@@ -70,7 +70,7 @@ export function CaseStudyPage({ p }: { p: Project }) {
               fontFamily: mono,
               fontSize: 10.5,
               letterSpacing: '0.12em',
-              opacity: 0.85,
+              opacity: readableAlpha(p.color, ink, 0.85),
             }}
           >
             <span>
@@ -93,7 +93,7 @@ export function CaseStudyPage({ p }: { p: Project }) {
           >
             <EText path="name" value={p.name} />
           </h1>
-          <div style={{ fontSize: 16.5, lineHeight: 1.6, marginTop: 16, maxWidth: 560, opacity: 0.85 }}>
+          <div style={{ fontSize: 16.5, lineHeight: 1.6, marginTop: 16, maxWidth: 560, opacity: readableAlpha(p.color, ink, 0.85) }}>
             <EText path="desc" value={p.desc} multiline />
           </div>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginTop: 26, flexWrap: 'wrap' }}>
@@ -108,7 +108,7 @@ export function CaseStudyPage({ p }: { p: Project }) {
                 {p.linkLabel || 'Jetzt spielen ↗'}
               </a>
             )}
-            <span style={{ fontFamily: mono, fontSize: 10.5, opacity: 0.75 }}>
+            <span style={{ fontFamily: mono, fontSize: 10.5, opacity: readableAlpha(p.color, ink, 0.75) }}>
               <EText path="tool" value={p.tool} />
             </span>
           </div>

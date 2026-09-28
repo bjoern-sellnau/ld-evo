@@ -8,12 +8,15 @@ import { useSite } from '../settings/SiteProvider';
 import styles from './cards.module.css';
 import { mono, useOpenItem } from './ProjectCard';
 
-/** News-Karte der Startseite (Prototyp Zeile 452 ff., mkArt). Kategorie in Artikelfarbe, bei dunkler Farbe Amber. */
+/**
+ * News-Karte der Startseite (Prototyp Zeile 452 ff., mkArt). Kategorie in Artikelfarbe, bei dunkler Farbe Amber —
+ * als var(--accent), damit das helle Theme den dunkleren Ton bekommt (README Z. 51; fest #FFB224 ergab 1,8:1).
+ */
 export function NewsCard({ a }: { a: Article }) {
   const { vtTarget, morphOk } = useSite();
   const href = articleHref(a);
   const onClick = useOpenItem(href, a.id);
-  const katColor = inkOn(a.color) === '#FFFFFF' ? '#FFB224' : a.color;
+  const katColor = inkOn(a.color) === '#FFFFFF' ? 'var(--accent)' : a.color;
   return (
     <Link
       href={href}

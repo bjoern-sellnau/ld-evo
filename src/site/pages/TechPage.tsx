@@ -5,7 +5,7 @@ import type { Article } from '@content/articles';
 import { useContent } from '../content/ContentProvider';
 import { mono, useOpenItem } from '../cards/ProjectCard';
 import cardStyles from '../cards/cards.module.css';
-import { inkOn } from '../lib/color';
+import { inkOn, readableAlpha } from '../lib/color';
 import { articleHref } from '../lib/routes';
 import { useSite } from '../settings/SiteProvider';
 
@@ -65,13 +65,15 @@ function MagCard({ a, lead }: { a: Article; lead: boolean }) {
           letterSpacing: '0.1em',
         }}
       >
-        <span style={{ border: `1px solid ${fg}`, borderRadius: 999, padding: '4px 10px', opacity: 0.85 }}>{a.kat}</span>
-        <span style={{ opacity: 0.7 }}>{a.datum}</span>
+        <span style={{ border: `1px solid ${fg}`, borderRadius: 999, padding: '4px 10px', opacity: readableAlpha(a.color, fg, 0.85) }}>
+          {a.kat}
+        </span>
+        <span style={{ opacity: readableAlpha(a.color, fg, 0.7) }}>{a.datum}</span>
       </div>
       <h2 style={{ fontSize: lead ? 26 : 18, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.18, flex: 1, margin: 0 }}>
         {a.titel}
       </h2>
-      <div style={{ fontSize: 13, lineHeight: 1.6, opacity: 0.8 }}>{a.teaser}</div>
+      <div style={{ fontSize: 13, lineHeight: 1.6, opacity: readableAlpha(a.color, fg, 0.8) }}>{a.teaser}</div>
       <span style={{ fontSize: 12.5, fontWeight: 700 }}>Lesen ›</span>
     </Link>
   );

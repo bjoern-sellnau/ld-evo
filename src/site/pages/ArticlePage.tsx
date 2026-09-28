@@ -5,7 +5,7 @@ import type { Article } from '@content/articles';
 import { useContent } from '../content/ContentProvider';
 import { EText } from '../cms/editing';
 import { mono } from '../cards/ProjectCard';
-import { inkOn, lum } from '../lib/color';
+import { inkOn, lum, readableAlpha } from '../lib/color';
 import { articleHref } from '../lib/routes';
 import { useCoverColor } from '../lib/useCoverColor';
 import { useSite } from '../settings/SiteProvider';
@@ -52,7 +52,7 @@ export function ArticlePage({ a }: { a: Article }) {
               fontFamily: mono,
               fontSize: 10.5,
               letterSpacing: '0.12em',
-              opacity: 0.85,
+              opacity: readableAlpha(a.color, ink, 0.85),
             }}
           >
             <span>{a.kat}</span>
@@ -68,7 +68,7 @@ export function ArticlePage({ a }: { a: Article }) {
           <h1 style={{ fontSize: mob ? 29 : 46, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.12, margin: '14px 0 0' }}>
             <EText path="titel" value={a.titel} />
           </h1>
-          <div style={{ fontSize: 16, lineHeight: 1.6, marginTop: 14, opacity: 0.85, fontStyle: 'italic' }}>
+          <div style={{ fontSize: 16, lineHeight: 1.6, marginTop: 14, opacity: readableAlpha(a.color, ink, 0.85), fontStyle: 'italic' }}>
             <EText path="teaser" value={a.teaser} multiline />
           </div>
         </div>

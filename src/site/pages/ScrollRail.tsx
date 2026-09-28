@@ -53,7 +53,7 @@ export function ScrollRail({ targets, active, label }: { targets: RailTarget[]; 
         zIndex: 40,
         display: 'flex',
         flexDirection: 'column',
-        gap: 5,
+        gap: 0, // Prototyp 5 — die Einträge sind jetzt selbst 24px hoch (rail.module.css)
       }}
     >
       {targets.map((u) => {
@@ -92,11 +92,12 @@ export function ScrollRail({ targets, active, label }: { targets: RailTarget[]; 
             >
               {u.label}
             </span>
-            <span style={{ width: 9, display: 'inline-flex', justifyContent: 'center', flex: 'none' }}>
+            <span style={{ width: 9, display: 'inline-flex', justifyContent: 'center', alignItems: 'center', flex: 'none' }}>
               <span
                 style={{
                   width: ds,
                   height: ds,
+                  flex: 'none', // nicht in den 9px-Rahmen stauchen (sonst oval)
                   borderRadius: '50%',
                   background: on ? 'var(--accent)' : 'var(--pill)',
                   border: '1px solid var(--glassbrd)',

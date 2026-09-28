@@ -7,6 +7,7 @@ import { Lightbox } from '../overlays/Lightbox';
 import overlayStyles from '../overlays/overlays.module.css';
 import styles from './detail.module.css';
 import { mediaSrcSet } from '@/cms/media';
+import { readableAlpha } from '../lib/color';
 
 /** Kapitel-Kopf „01 DIE AUSGANGSLAGE“ (Prototyp: Detail, Zeile 556 ff.). */
 export function Chapter({ n, label, color, first }: { n: string; label: string; color: string; first?: boolean }) {
@@ -143,7 +144,7 @@ export function RelatedCard({
       )}
       {children}
       <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
-        <span style={{ fontFamily: mono, fontSize: 9.5, opacity: 0.75 }}>{meta}</span>
+        <span style={{ fontFamily: mono, fontSize: 9.5, opacity: readableAlpha(color, ink, 0.75) }}>{meta}</span>
         <span aria-hidden style={{ fontSize: 16 }}>
           ›
         </span>

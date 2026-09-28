@@ -25,10 +25,13 @@
 }
 
 .dot {
+  /* Sichtbar 7px (Prototyp), klickbar 24×24 (WCAG 2.5.8): Innenabstand + background-clip. */
+  box-sizing: content-box;
   height: 7px;
   border-radius: 999px;
   border: 0;
-  padding: 0;
+  padding: 8.5px;
+  background-clip: content-box;
   cursor: pointer;
   transition:
     width 0.3s,

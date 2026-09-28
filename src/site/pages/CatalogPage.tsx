@@ -5,7 +5,7 @@ import type { Project } from '@content/projects';
 import { useContent } from '../content/ContentProvider';
 import { ProjectCard, mono, useOpenItem } from '../cards/ProjectCard';
 import styles from './catalog.module.css';
-import { inkOn } from '../lib/color';
+import { inkOn, readableAlpha } from '../lib/color';
 import { projectHref } from '../lib/routes';
 import { useSite } from '../settings/SiteProvider';
 
@@ -142,7 +142,8 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
               />
             </svg>
           </span>
-          <div style={{ position: 'absolute', bottom: 14, left: 40, display: 'flex', gap: 7 }}>
+          {/* Prototyp: gap 7 — die Punkte bringen ihren Klickraum jetzt selbst mit (catalog.module.css .dot). */}
+          <div style={{ position: 'absolute', bottom: 14 - 8.5, left: 40 - 8.5, display: 'flex', gap: 0 }}>
             {slides.map((p, i) => (
               <button
                 key={p.id}
@@ -151,7 +152,8 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
                 aria-current={i === active}
                 onClick={() => slider.jump(i)}
                 className={styles.dot}
-                style={{ width: i === active ? 22 : 7, background: i === active ? 'var(--accent)' : 'rgba(255,255,255,0.35)' }}
+                // backgroundColor statt background: die Kurzform setzte background-clip zurück (Klickraum, catalog.module.css)
+                style={{ width: i === active ? 22 : 7, backgroundColor: i === active ? 'var(--accent)' : 'rgba(255,255,255,0.35)' }}
               />
             ))}
           </div>
@@ -253,7 +255,15 @@ function Slide({ p, mob, hidden }: { p: Project; mob: boolean; hidden: boolean }
           {p.mono}
         </span>
         <span
-          style={{ position: 'absolute', bottom: 16, right: 20, fontFamily: mono, fontSize: 10, letterSpacing: '0.14em', opacity: 0.75 }}
+          style={{
+            position: 'absolute',
+            bottom: 16,
+            right: 20,
+            fontFamily: mono,
+            fontSize: 10,
+            letterSpacing: '0.14em',
+            opacity: readableAlpha(p.color, ink, 0.75),
+          }}
         >
           {p.tool}
         </span>

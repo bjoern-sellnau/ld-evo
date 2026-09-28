@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import type { Settings } from '../settings/schema';
 import { applyThemeColor } from '../settings/applyBody';
-import { inkOn } from './color';
+import { inkOn, over, readableAlpha } from './color';
 
 const VARS = ['--bg', '--ink', '--muted', '--soft', '--hair', '--card', '--border'] as const;
 
@@ -21,8 +21,12 @@ export function useCoverColor(color: string, enabled: boolean, themeColor: Setti
     const A = (a: number) => (w ? `rgba(255,255,255,${a})` : `rgba(16,13,10,${a})`);
     bs.setProperty('--bg', color);
     bs.setProperty('--ink', ink);
-    bs.setProperty('--muted', A(0.78));
-    bs.setProperty('--soft', A(0.58));
+    // Nebentexte: Prototyp-Deckkraft 0.78/0.58, bei Bedarf angehoben auf ≥ 4,5:1 (readableAlpha) — gerechnet gegen
+    // den ungünstigeren Untergrund, die Karte (--card = Cover + 8 % Tönung), auf der z. B. Platzhalter stehen.
+    const blend = w ? '#FFFFFF' : '#100d0a';
+    const card = over(color, blend, 0.08);
+    bs.setProperty('--muted', A(Math.max(readableAlpha(color, blend, 0.78), readableAlpha(card, blend, 0.78))));
+    bs.setProperty('--soft', A(Math.max(readableAlpha(color, blend, 0.58), readableAlpha(card, blend, 0.58))));
     bs.setProperty('--hair', A(0.16));
     bs.setProperty('--card', A(0.08));
     bs.setProperty('--border', A(0.15));

@@ -54,7 +54,8 @@ body.light {
   --border: #e9edf2;
   --ink: #0f2137;
   --muted: #56637a;
-  --soft: #6e7a8c;
+  /* Prototyp: #6e7a8c (4,11:1 auf --card) — minimal abgedunkelt auf 4,54:1, README Z. 51 verlangt ≥ 4,5:1. */
+  --soft: #687384;
   --accent: #b45309;
   --on-accent: #ffffff;
   --btn: #0f2137;

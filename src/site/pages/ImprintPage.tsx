@@ -8,7 +8,8 @@ import { mono } from '../cards/ProjectCard';
 import { useSite } from '../settings/SiteProvider';
 import { ScrollRail, useScrollSpy } from './ScrollRail';
 
-const link: CSSProperties = { color: 'var(--accent)', textDecoration: 'none' };
+// Prototyp: ohne Unterstreichung. Links im Fließtext brauchen ein Merkmal außer der Farbe (WCAG 1.4.1).
+const link: CSSProperties = { color: 'var(--accent)', textDecoration: 'underline', textUnderlineOffset: 3 };
 const para: CSSProperties = { margin: '10px 0 0', fontSize: 13.5, lineHeight: 1.75, color: 'var(--muted)' };
 
 /** Impressum + Datenschutz mit Bereichs-Rail. Markup/Werte: Prototyp Zeile 826–893. */

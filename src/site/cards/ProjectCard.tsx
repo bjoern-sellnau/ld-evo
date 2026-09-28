@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { MouseEvent } from 'react';
 import type { Project } from '@content/projects';
-import { inkOn } from '../lib/color';
+import { inkOn, readableAlpha } from '../lib/color';
 import { projectHref } from '../lib/routes';
 import { useSite } from '../settings/SiteProvider';
 import styles from './cards.module.css';
@@ -106,7 +106,7 @@ export function ProjectCard({ p, prefix, variant = 'featured' }: { p: Project; p
             border: `1px solid ${ink}`,
             borderRadius: 999,
             padding: z.katPad,
-            opacity: 0.8,
+            opacity: readableAlpha(p.color, ink, 0.8),
           }}
         >
           {p.kat}
