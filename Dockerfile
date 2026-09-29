@@ -1,6 +1,6 @@
 # LD Flow + Website als ein Container (Node-Server mit SQLite). Anleitung: docs/DEPLOY.md
 #   docker build -t ld-evo .
-#   docker run -d -p 127.0.0.1:3000:3000 -v ld-evo-data:/data --name ld-evo ld-evo
+#   docker run -d -p 127.0.0.1:3000:3000 -v ld-evo-data:/data -v ld-evo-backup:/backup --name ld-evo ld-evo
 # Daten (Datenbank, 2FA-Schlüssel, Setup-Token) liegen im Volume /data — der Container selbst bleibt austauschbar.
 # Node 22 LTS: ≥ 22.13 für node:sqlite ohne Flag.
 
@@ -21,7 +21,8 @@ RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
 FROM node:22-bookworm-slim
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 NODE_NO_WARNINGS=1 PORT=3000 LDFLOW_DB=/data/flow.db
+# Sicherungen bewusst in einem eigenen Verzeichnis/Volume (/backup), nicht neben der Datenbank
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 NODE_NO_WARNINGS=1 PORT=3000 LDFLOW_DB=/data/flow.db LDFLOW_BACKUP_DIR=/backup
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/package.json /app/next.config.ts ./
 COPY --from=build /app/public ./public
@@ -31,7 +32,7 @@ COPY --from=build /app/scripts/backup-db.mjs ./scripts/
 COPY --from=build --chown=node:node /app/.next ./.next
 RUN mkdir -p /data /backup && chown node:node /data /backup
 USER node
-VOLUME ["/data"]
+VOLUME ["/data", "/backup"]
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD ["node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]

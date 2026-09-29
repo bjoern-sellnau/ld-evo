@@ -12,7 +12,6 @@ services:
       # LDFLOW_MAIL_FROM: LD Flow <flow@example.com>
       # LDFLOW_CONTACT_TO: du@example.com
       # LDFLOW_ALERT_TO: du@example.com
-      LDFLOW_BACKUP_DIR: /backup
     volumes:
       - data:/data
       # Sicherungen landen auf dem Host (./backup) — von dort außer Haus kopieren
