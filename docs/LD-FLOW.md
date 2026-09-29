@@ -49,11 +49,15 @@ Geplantes. Spätere Entwurfsänderungen gehen mit. Ist der Entwurf zum Zeitpunkt
 ## Betrieb
 
 - **Node ≥ 22.13** (für `node:sqlite`; die Warnung „ExperimentalWarning: SQLite“ ist unkritisch, `NODE_NO_WARNINGS=1` blendet sie aus).
-- Start als Node-Server: `npm run build && npm start`. Ein statischer Export ist mit CMS nicht möglich.
+- Start als Node-Server: `npm run build && npm start`, oder als Container (`Dockerfile`, `compose.yaml` mit Caddy) —
+  Schritt für Schritt in **[DEPLOY.md](DEPLOY.md)**. Ein statischer Export ist mit CMS nicht möglich.
 - **Persistentes Verzeichnis** für die Datenbank: standardmäßig `./data/flow.db`, sonst `LDFLOW_DB=/pfad/flow.db`.
   Sie enthält alles inkl. Medien; Sicherung siehe unten. `data/` ist in `.gitignore`.
 - **HTTPS** verwenden; Cookies sind in Produktion `Secure`. Nur für Tests ohne TLS: `LDFLOW_INSECURE_COOKIES=1`.
-- Hinter einem Reverse-Proxy muss dieser `X-Forwarded-For` setzen (für das Rate-Limit).
+- Hinter einem Reverse-Proxy muss dieser `X-Forwarded-For` setzen (für das Rate-Limit). LD Flow wertet den **letzten**
+  Eintrag aus (den der eigene Proxy anhängt) — den App-Port daher nie direkt ins Netz stellen.
+- **Überwachung:** `GET /health` (200/503), **Fehler**-Eingang für Admins (Serverfehler gebündelt, optional Mail),
+  stündliches Aufräumen abgelaufener Sitzungen, Reset-Links, Sperr-Einträge und verwaister Bildvarianten.
 
 | Variable | Zweck |
 | --- | --- |
@@ -64,6 +68,8 @@ Geplantes. Spätere Entwurfsänderungen gehen mit. Ist der Entwurf zum Zeitpunkt
 | `LDFLOW_SMTP_URL` | Mailversand: `smtps://nutzer:pass@host:465` oder `smtp://…:587` (STARTTLS erzwungen) |
 | `LDFLOW_MAIL_FROM` | Absender, z. B. `LD Flow <flow@loona-designs.de>` |
 | `LDFLOW_CONTACT_TO` | optional: Benachrichtigung über neue Kontakt-Nachrichten |
+| `LDFLOW_ALERT_TO` | optional: Mail bei neuen Serverfehlern (je Fehler höchstens einmal am Tag, max. 10/Stunde) |
+| `LDFLOW_PROXY_HOPS` | Anzahl eigener Proxys vor der App (Standard `1`; `0` = nur `X-Real-IP`) |
 | `LDFLOW_TZ` | Zeitzone für Zeitangaben im Dashboard (Standard `Europe/Berlin`) |
 | `LDFLOW_SCHEDULER` | `0` = internen Minutentakt aus (externer Cron ruft `POST /flow-cron` mit Header `x-ldflow-cron`) |
 | `LDFLOW_CRON_SECRET` | festes Geheimnis für den externen Cron (sonst zufällig je Prozess) |

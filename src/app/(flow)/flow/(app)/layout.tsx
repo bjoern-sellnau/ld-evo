@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { getCurrentUser, hasTotp, twoFactorRequired } from '@/cms/auth';
 import { logoutAction } from '@/cms/actions';
-import { counts, unreadMessages } from '@/cms/repo';
+import { counts, errorCount, unreadMessages } from '@/cms/repo';
 import { COLLECTIONS } from '@/cms/schema';
 import { FlowNav } from '@/cms/ui/Nav';
 import { LoonaLockup } from '@/components/brand';
@@ -16,6 +16,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const mustSetup = twoFactorRequired() && !hasTotp(user.id);
   const c: Awaited<ReturnType<typeof counts>> = mustSetup ? {} : await counts();
   const unread = mustSetup ? 0 : await unreadMessages();
+  const errors = mustSetup || user.role !== 'admin' ? 0 : await errorCount();
   const col = (id: string) => ({
     href: `/flow/c/${id}`,
     label: COLLECTIONS[id].label,
@@ -37,7 +38,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       label: 'Verwaltung',
       items: [
         { href: '/flow/media', label: 'Medien' },
-        ...(user.role === 'admin' ? [{ href: '/flow/users', label: 'Nutzer' }] : []),
+        ...(user.role === 'admin'
+          ? [
+              { href: '/flow/users', label: 'Nutzer' },
+              { href: '/flow/errors', label: 'Fehler', badge: errors ? String(errors) : undefined },
+            ]
+          : []),
         { href: '/flow/account', label: 'Mein Konto' },
       ],
     },

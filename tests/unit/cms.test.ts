@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hashPassword, passwordProblem, verifyPassword } from '@/cms/auth';
+import { hashPassword, ipFromHeaders, passwordProblem, verifyPassword } from '@/cms/auth';
 import { sniffImage } from '@/cms/repo';
 import { COLLECTIONS, emptyDoc, isSafeHref, isSafeMediaSrc, validateDoc, validateRichText } from '@/cms/schema';
 import { seedDocs } from '@/cms/seed';
@@ -79,6 +79,20 @@ describe('LD Flow — Auth', () => {
   it('Passwortregeln', () => {
     expect(passwordProblem('kurz')).toBeTruthy();
     expect(passwordProblem('lang-genug-123')).toBeNull();
+  });
+
+  it('Client-IP: zählt der vom eigenen Proxy angehängte Eintrag, nicht der vom Client mitgeschickte', () => {
+    // Angreifer schickt „X-Forwarded-For: 1.2.3.4“, nginx/Caddy hängen die echte Adresse an.
+    expect(ipFromHeaders('1.2.3.4, 203.0.113.9', null)).toBe('203.0.113.9');
+    expect(ipFromHeaders('203.0.113.9', null)).toBe('203.0.113.9');
+    // Zwei Proxys (z. B. CDN → Caddy): der vorletzte Eintrag.
+    expect(ipFromHeaders('1.2.3.4, 203.0.113.9, 10.0.0.2', null, 2)).toBe('203.0.113.9');
+    expect(ipFromHeaders('203.0.113.9', null, 5)).toBe('203.0.113.9');
+    // Hops = 0: nur X-Real-IP (vom Proxy überschrieben).
+    expect(ipFromHeaders('1.2.3.4', '198.51.100.7', 0)).toBe('198.51.100.7');
+    expect(ipFromHeaders(null, '198.51.100.7')).toBe('198.51.100.7');
+    expect(ipFromHeaders(null, null)).toBe('local');
+    expect(ipFromHeaders(' , ', null)).toBe('local');
   });
 });
 

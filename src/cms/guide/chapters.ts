@@ -596,7 +596,7 @@ export const CHAPTERS: Chapter[] = [
     id: 'hosting',
     n: '09',
     title: 'Betrieb & Hosting',
-    lead: 'Node-Server, Umgebungsvariablen, HTTPS, Backups — und was GitHub Pages kann (und was nicht).',
+    lead: 'Docker oder Node-Server, Umgebungsvariablen, HTTPS, Backups, Überwachung — und was GitHub Pages kann (und was nicht).',
     minutes: 8,
     nodes: [
       {
@@ -604,11 +604,12 @@ export const CHAPTERS: Chapter[] = [
         id: 'ex-deploy',
         title: 'Checkliste Livegang (Node-Server)',
         items: [
-          'Server mit Node ≥ 22.13; `npm ci && npm run build && npm start` (Port per `PORT`).',
+          'Am einfachsten: `docker compose up -d --build` mit Caddy davor (HTTPS automatisch) — Schritt für Schritt in docs/DEPLOY.md. Alternativ Node ≥ 22.13: `npm ci && npm run build && npm start` (Port per `PORT`).',
           'Persistenten Ordner für die Datenbank anlegen und `LDFLOW_DB=/pfad/flow.db` setzen.',
-          'Reverse-Proxy mit HTTPS davor (z. B. Caddy/nginx), der `X-Forwarded-For` setzt.',
+          'Reverse-Proxy mit HTTPS davor (z. B. Caddy/nginx), der `X-Forwarded-For` setzt; den App-Port nie direkt öffnen (LD Flow liest den vom Proxy angehängten letzten Eintrag).',
           'Erster Aufruf von `/flow` → Setup-Token aus `flow-setup-token.txt` neben der DB → Admin anlegen.',
           'Backup einrichten: `npm run backup` nächtlich per cron (prüft die Kopie, behält 14 Stände; eine Datei = alles inkl. Medien). `flow-secret.key` getrennt sichern (`LDFLOW_BACKUP_KEY_DIR`) — Details in docs/LD-FLOW.md.',
+          'Uptime-Überwachung auf `/health` (200 = Server und Datenbank ok). Serverfehler sammelt **Fehler** in der Navigation (Admins); `LDFLOW_ALERT_TO` schickt zusätzlich eine Mail.',
           '`NODE_NO_WARNINGS=1` blendet die unkritische SQLite-Warnung aus.',
         ],
       },
@@ -623,6 +624,8 @@ export const CHAPTERS: Chapter[] = [
           ['LDFLOW_SMTP_URL', 'Mailversand: smtps://nutzer:pass@host:465 oder smtp://…:587 (STARTTLS erzwungen)'],
           ['LDFLOW_MAIL_FROM', 'Absender, z. B. "LD Flow <flow@loona-designs.de>"'],
           ['LDFLOW_CONTACT_TO', 'optional: Adresse für Benachrichtigungen über neue Kontakt-Nachrichten'],
+          ['LDFLOW_ALERT_TO', 'optional: Mail bei neuen Serverfehlern (je Fehler höchstens einmal am Tag)'],
+          ['LDFLOW_PROXY_HOPS', 'Anzahl eigener Proxys vor der App (Standard 1; 0 = nur X-Real-IP)'],
           ['LDFLOW_TZ', 'Zeitzone für Zeitangaben im Dashboard (Standard Europe/Berlin)'],
           ['LDFLOW_SCHEDULER', '0 = internen Minutentakt aus (dann externer Cron: POST /flow-cron mit Header x-ldflow-cron)'],
           ['LDFLOW_CRON_SECRET', 'festes Geheimnis für externen Cron (sonst zufällig je Prozess)'],

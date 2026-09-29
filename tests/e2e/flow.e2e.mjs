@@ -315,6 +315,35 @@ check(
     (await p.locator('li', { hasText: 'bot@example.com' }).count()) === 0,
 );
 
+// Fehler-Eingang: echte Serverfehler kommen über onRequestError (src/instrumentation.ts); hier direkt in die DB
+const now = Date.now();
+await sql((d) =>
+  d
+    .prepare(
+      "INSERT INTO errors (fp, message, path, route, kind, count, first_at, last_at) VALUES ('e2e', 'TypeError: E2E-Testfehler', '/tech/x', '/tech/[slug]', 'GET render', 3, ?, ?)",
+    )
+    .run(now, now),
+);
+await p.goto(U + '/flow/errors');
+const errItem = p.locator('li', { hasText: 'E2E-Testfehler' });
+check(
+  'Fehler-Eingang: Eintrag mit Zähler, Badge in der Navigation',
+  (await errItem.count()) === 1 &&
+    (await errItem.innerText()).includes('3×') &&
+    (await p.locator('.f-nav a[href="/flow/errors"]').innerText()).includes('1'),
+);
+await errItem.getByRole('button', { name: 'Erledigt' }).click();
+check(
+  'Fehler-Eingang: „Erledigt“ entfernt den Eintrag',
+  await until(async () => (await sql((d) => d.prepare('SELECT COUNT(*) AS n FROM errors').get().n)) === 0),
+);
+{
+  const h = await ctx.request.get(U + '/health');
+  check('/health meldet ok', h.status() === 200 && (await h.json()).status === 'ok');
+  // Der Takt hat seit dem Start aufgeräumt (stündlich; erster Lauf direkt nach dem Start)
+  check('Aufräum-Job gelaufen', !!(await sql((d) => d.prepare("SELECT value FROM meta WHERE key = 'maintenance_at'").get())));
+}
+
 // Gleichzeitiges Bearbeiten: jemand anders speichert dazwischen → kein Überschreiben, bewusste Entscheidung
 await p.goto(U + '/flow/c/home/home');
 await fr.locator('[data-flow-field="intro"]').waitFor({ timeout: 20000 });

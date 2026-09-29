@@ -1,0 +1,15 @@
+# Nur, was der Build braucht — keine Daten, keine Abhängigkeiten/Build-Ergebnisse vom Host
+.git
+.github
+node_modules
+.next
+out
+data
+tests
+design
+docs
+*.tsbuildinfo
+.env*
+Dockerfile
+compose.yaml
+backup

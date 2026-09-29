@@ -37,6 +37,7 @@ const FLOW_APP = [
   '/flow/messages',
   '/flow/stats',
   '/flow/users',
+  '/flow/errors',
   '/flow/account',
   '/flow/guide',
 ];

@@ -3,7 +3,8 @@
 #  2. browser  — gegen einen echten Server mit frischem Build und frischer DB, je Suite ein eigener Job:
 #                e2e (LD Flow), a11y (axe), pages (Pixelvergleich), perf (Ladezeit-Budgets)
 # Frischer Build je Suite ist Absicht: `next start` schreibt revalidierte Seiten nach .next zurück.
-#  3. referenzbilder — nur manuell (Actions → CI → Run workflow, Haken „Referenzbilder erneuern“): erzeugt die
+#  3. docker   — baut das Image (Dockerfile), startet es mit leerem Volume und prüft /health, Site und Sicherung
+#  4. referenzbilder — nur manuell (Actions → CI → Run workflow, Haken „Referenzbilder erneuern“): erzeugt die
 #                Seiten-Referenzbilder für diese Umgebung (tests/visual-pages/baseline/ci/) und committet sie auf den
 #                gewählten Branch. Nur nach gewollten Design-Änderungen oder einem Browser-Update nutzen.
 name: CI
@@ -101,6 +102,39 @@ jobs:
             .ci-shots/
           if-no-files-found: ignore
           retention-days: 7
+
+  docker:
+    needs: check
+    if: ${{ !inputs.referenzbilder }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Image bauen
+        run: docker build -t ld-evo:ci .
+      - name: Starten und auf „healthy“ warten
+        run: |
+          docker run -d --name ld -p 127.0.0.1:3000:3000 -v ld-data:/data ld-evo:ci
+          for i in $(seq 1 60); do
+            s=$(docker inspect -f '{{.State.Health.Status}}' ld)
+            [ "$s" = healthy ] && exit 0
+            sleep 2
+          done
+          docker logs ld
+          exit 1
+      - name: Prüfen (Health, Site, LD Flow, Nutzer, Sicherung)
+        run: |
+          set -e
+          curl -sf http://127.0.0.1:3000/health | grep -q '"ok"'
+          curl -sf http://127.0.0.1:3000/ | grep -q 'loona'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/flow/setup)" = 200
+          test "$(docker exec ld id -un)" = node
+          docker exec ld test -s /data/flow-setup-token.txt
+          docker exec ld node scripts/backup-db.mjs
+          docker exec ld sh -c 'ls /backup/flow-*.db'
+      - name: Container-Log
+        if: always()
+        run: docker logs ld 2>&1 | tail -n 100
 
   referenzbilder:
     if: ${{ inputs.referenzbilder }}

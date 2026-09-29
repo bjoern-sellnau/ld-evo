@@ -30,7 +30,7 @@ Ausführlich und interaktiv: **LD Flow → Guide** (`/flow/guide`).
 3. **Sicherheit:** SQL nur mit Prepared Statements (`?`), nie String-Verkettung. Jede Funktion in `src/cms/repo.ts`
    prüft `requireUser()` selbst. Bewusste Ausnahmen ohne Login liegen außerhalb von `repo.ts` und sind
    einzeln abgesichert: `contact.ts` (öffentliches Kontaktformular), `stats.ts` (cookiefreier Zähler, nur Summen),
-   `scheduler.ts` (nur per geheimem Cron-Header),
+   `scheduler.ts` und `maintenance.ts` (nur per geheimem Cron-Header), `errors.ts` (Fehler-Eingang, schreibt nur),
    Passwort-Reset in `auth.ts`. Kein `dangerouslySetInnerHTML` mit Nutzerinhalten; Rich Text bleibt JSON.
    Links über `isSafeHref`, Medien über `isSafeMediaSrc`.
 4. **Keine Scroll-Locks auf `body`**, echte `<button>`s, `prefers-reduced-motion`/„Animationen aus“ respektieren,

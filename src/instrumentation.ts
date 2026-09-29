@@ -1,5 +1,5 @@
 /**
- * Läuft einmal beim Serverstart (Next.js Instrumentation). Startet den Takt für geplantes Veröffentlichen:
+ * Läuft einmal beim Serverstart (Next.js Instrumentation). Startet den Takt für geplantes Veröffentlichen und Aufräumen:
  * jede Minute ein POST auf /flow-cron im eigenen Prozess — dort laufen Veröffentlichen und revalidatePath im
  * normalen Request-Kontext. Abschalten mit LDFLOW_SCHEDULER=0 (z. B. wenn ein externer Cron die Route aufruft).
  */
@@ -18,4 +18,20 @@ export async function register() {
     }
   };
   setInterval(() => void tick(), every).unref();
+  // Erster Takt kurz nach dem Start (erneuert u. a. die beim Build vorgerenderten Seiten, siehe /flow-cron).
+  setTimeout(() => void tick(), 3000).unref();
+}
+
+/**
+ * Serverfehler (Seiten, Route-Handler, Server Actions) in den Fehler-Eingang von LD Flow schreiben
+ * (src/cms/errors.ts). Next protokolliert sie weiterhin selbst.
+ */
+export async function onRequestError(
+  error: unknown,
+  request: Readonly<{ path: string; method: string }>,
+  context: Readonly<{ routePath: string; routeType: string }>,
+) {
+  if (process.env.NEXT_RUNTIME !== 'nodejs') return;
+  const { recordError } = await import('./cms/errors');
+  recordError(error, { path: request.path, method: request.method, route: context.routePath, kind: context.routeType });
 }

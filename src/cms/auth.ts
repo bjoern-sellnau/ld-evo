@@ -115,10 +115,27 @@ export function rateLimited(key: string, max: number): boolean {
   return false;
 }
 
+/**
+ * Client-IP für Rate-Limits aus den Headern des Reverse-Proxys. Proxys wie nginx (`$proxy_add_x_forwarded_for`) und
+ * Caddy HÄNGEN die echte Adresse an X-Forwarded-For an — was davor steht, kann der Client selbst mitschicken. Daher
+ * zählt der Eintrag, den der eigene (vorderste vertrauenswürdige) Proxy gesetzt hat: bei LDFLOW_PROXY_HOPS
+ * Proxys hintereinander (Standard 1) der n-te von hinten. LDFLOW_PROXY_HOPS=0: nur X-Real-IP (Proxy überschreibt ihn).
+ * Ohne Header (kein Proxy, lokal) → „local“. Die App deshalb nie ohne Proxy direkt ins Netz stellen.
+ */
+export function ipFromHeaders(forwardedFor: string | null, realIp: string | null, hops = 1): string {
+  const list = (forwardedFor ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const ip = hops > 0 && list.length ? list[Math.max(0, list.length - hops)] : realIp?.trim();
+  return (ip || 'local').slice(0, 64);
+}
+
 export async function clientIp(): Promise<string> {
   const h = await headers();
-  // Hinter einem Reverse-Proxy setzt dieser X-Forwarded-For; ohne Proxy fällt alles auf „local“.
-  return (h.get('x-forwarded-for')?.split(',')[0] ?? h.get('x-real-ip') ?? 'local').trim().slice(0, 64);
+  const raw = process.env.LDFLOW_PROXY_HOPS;
+  const hops = raw ? Math.max(0, Math.floor(Number(raw)) || 0) : 1;
+  return ipFromHeaders(h.get('x-forwarded-for'), h.get('x-real-ip'), hops);
 }
 
 // ---------------------------------------------------------------------------------------------------------------

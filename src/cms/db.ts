@@ -12,7 +12,7 @@ import { seedDocs } from './seed';
  * Dokumente liegen als JSON: `published` = Live-Fassung, `draft` = Arbeitskopie (null = keine offenen Änderungen).
  */
 
-const SCHEMA_VERSION = 6;
+const SCHEMA_VERSION = 7;
 
 const MIGRATIONS: string[] = [
   `CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -127,6 +127,20 @@ const MIGRATIONS: string[] = [
      host TEXT NOT NULL,
      views INTEGER NOT NULL,
      PRIMARY KEY (day, host)
+   );`,
+  // 7: Fehler-Eingang — Serverfehler gebündelt je Fingerabdruck (src/cms/errors.ts), Pfad ohne Query
+  `CREATE TABLE IF NOT EXISTS errors (
+     fp TEXT PRIMARY KEY,
+     message TEXT NOT NULL,
+     stack TEXT NOT NULL DEFAULT '',
+     path TEXT NOT NULL DEFAULT '',
+     route TEXT NOT NULL DEFAULT '',
+     kind TEXT NOT NULL DEFAULT '',
+     digest TEXT,
+     count INTEGER NOT NULL,
+     first_at INTEGER NOT NULL,
+     last_at INTEGER NOT NULL,
+     notified_at INTEGER
    );`,
 ];
 

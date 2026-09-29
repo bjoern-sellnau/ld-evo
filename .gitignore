@@ -12,3 +12,6 @@ playwright-report/
 
 # Differenzbilder der Seiten-Pixeltests
 tests/visual-pages/diff/
+
+# Sicherungen aus compose.yaml (./backup)
+/backup/

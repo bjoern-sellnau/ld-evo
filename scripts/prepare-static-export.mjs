@@ -16,6 +16,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const remove = [
   'src/app/(flow)',
   'src/app/media',
+  'src/app/health',
   'src/app/(main)/(site)/flow-preview',
   'src/app/(main)/(site)/[slug]',
   'src/proxy.ts',

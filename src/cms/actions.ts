@@ -31,6 +31,8 @@ import {
   deleteDoc,
   deleteMedia,
   deleteMessage,
+  deleteError,
+  clearErrors,
   discardDraft,
   listMedia,
   markMessage,
@@ -271,6 +273,20 @@ export async function markMessageAction(id: string, read: boolean) {
 
 export async function deleteMessageAction(id: string) {
   const res = await guard(() => deleteMessage(id));
+  revalidatePath('/flow', 'layout');
+  return res;
+}
+
+// ---- Fehler-Eingang --------------------------------------------------------------------------------------------
+
+export async function deleteErrorAction(fp: string) {
+  const res = await guard(() => deleteError(fp));
+  revalidatePath('/flow', 'layout');
+  return res;
+}
+
+export async function clearErrorsAction() {
+  const res = await guard(() => clearErrors());
   revalidatePath('/flow', 'layout');
   return res;
 }

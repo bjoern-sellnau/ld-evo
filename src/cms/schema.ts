@@ -508,6 +508,8 @@ export const RESERVED_SLUGS = new Set([
   'flow',
   'flow-preview',
   'media',
+  'health',
+  'flow-cron',
   'api',
   '_next',
 ]);

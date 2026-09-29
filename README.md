@@ -38,11 +38,16 @@ npm run widgets        # Widget-Registry neu erzeugen (läuft vor dev/build/test
 npm run brand:sync     # finale Logo-Assets aus dem Handoff nach public/ kopieren
 ```
 
+## Livegang
+
+`docker compose up -d --build` (Website + LD Flow hinter Caddy mit HTTPS) — oder Node + systemd + nginx.
+Schritt für Schritt: **[docs/DEPLOY.md](docs/DEPLOY.md)**. Überwachung über `GET /health` und den Fehler-Eingang in LD Flow.
+
 ## Automatische Prüfung (CI)
 
 `.github/workflows/ci.yml` läuft bei jedem Push und Pull Request: Prettier, ESLint, TypeScript, Unit- und
 Logo-Pixeltests; danach je ein Job mit frischem Build und frischer DB für E2E, Barrierefreiheit, Seiten-Pixel und
-Ladezeit. Bei Fehlern hängen Differenzbilder/Screenshots als Artefakt am Lauf. Die Seiten-Pixeltests haben je
+Ladezeit, dazu Docker-Image bauen und starten (Health-Check, Sicherung). Bei Fehlern hängen Differenzbilder/Screenshots als Artefakt am Lauf. Die Seiten-Pixeltests haben je
 Umgebung eigene Referenzbilder (`tests/visual-pages/baseline/local|ci`); die der CI erneuert man nach gewollten
 Design-Änderungen über **Actions → CI → Run workflow → „Referenzbilder erneuern“** (committet auf den Branch).
 

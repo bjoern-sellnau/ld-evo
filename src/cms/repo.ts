@@ -617,6 +617,54 @@ export async function deleteMessage(id: string): Promise<Result> {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// Fehler-Eingang (nur Admins — Eingang: src/cms/errors.ts)
+// ---------------------------------------------------------------------------------------------------------------
+
+export interface ErrorRow {
+  fp: string;
+  message: string;
+  stack: string;
+  path: string;
+  route: string;
+  kind: string;
+  digest: string | null;
+  count: number;
+  firstAt: number;
+  lastAt: number;
+}
+
+export async function listErrors(): Promise<ErrorRow[]> {
+  await requireUser('admin');
+  return plain(
+    db()
+      .prepare(
+        `SELECT fp, message, stack, path, route, kind, digest, count, first_at AS firstAt, last_at AS lastAt
+         FROM errors ORDER BY last_at DESC LIMIT 200`,
+      )
+      .all() as unknown as ErrorRow[],
+  );
+}
+
+/** Anzahl offener Fehler(-gruppen) für das Badge in der Navigation. */
+export async function errorCount(): Promise<number> {
+  await requireUser('admin');
+  return (db().prepare('SELECT COUNT(*) AS n FROM errors').get() as { n: number }).n;
+}
+
+/** „Erledigt“: Eintrag entfernen — tritt der Fehler erneut auf, erscheint er wieder. */
+export async function deleteError(fp: string): Promise<Result> {
+  await requireUser('admin');
+  db().prepare('DELETE FROM errors WHERE fp = ?').run(fp);
+  return { ok: true };
+}
+
+export async function clearErrors(): Promise<Result> {
+  await requireUser('admin');
+  db().prepare('DELETE FROM errors').run();
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // Besucherstatistik (cookiefrei, nur Summen — Eingang: src/cms/stats.ts)
 // ---------------------------------------------------------------------------------------------------------------
 

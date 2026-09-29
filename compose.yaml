@@ -1,0 +1,44 @@
+# Betrieb mit Docker Compose — Website + LD Flow hinter Caddy (automatisches HTTPS über Let's Encrypt).
+# Anleitung: docs/DEPLOY.md. Vorher DOMAIN setzen (z. B. in .env): DOMAIN=loona-designs.de
+#   docker compose up -d --build
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      LDFLOW_PUBLIC_URL: https://${DOMAIN:?DOMAIN setzen}
+      # Optional (siehe docs/LD-FLOW.md → Betrieb):
+      # LDFLOW_SMTP_URL: smtps://nutzer:passwort@mail.example.com:465
+      # LDFLOW_MAIL_FROM: LD Flow <flow@example.com>
+      # LDFLOW_CONTACT_TO: du@example.com
+      # LDFLOW_ALERT_TO: du@example.com
+      LDFLOW_BACKUP_DIR: /backup
+    volumes:
+      - data:/data
+      # Sicherungen landen auf dem Host (./backup) — von dort außer Haus kopieren
+      - ./backup:/backup
+    # Kein Port nach außen: nur Caddy spricht mit der App (sonst ließe sich X-Forwarded-For fälschen).
+    expose:
+      - '3000'
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  data:
+  caddy-data:
+  caddy-config:
