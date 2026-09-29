@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { flowCsp } from './cms/csp';
 
 /**
- * LD Flow + Vorschau:
+ * LD Flow + Vorschau (deutsch /flow-preview, englisch /en/flow-preview):
  * 1. Strenge Content-Security-Policy mit frischem Nonce je Request (src/cms/csp.ts). Next liest den Nonce aus dem
  *    CSP-Header der Anfrage und setzt ihn an seine Skripte (Next-Doku „Content Security Policy“).
  * 2. Optimistische Prüfung: ohne Session-Cookie direkt zur Anmeldung. Die echte Prüfung (Session in der DB, Rolle)
@@ -11,7 +11,7 @@ import { flowCsp } from './cms/csp';
 export function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
-  const csp = flowCsp(nonce, { preview: pathname.startsWith('/flow-preview') });
+  const csp = flowCsp(nonce, { preview: pathname.startsWith('/flow-preview') || pathname.startsWith('/en/flow-preview') });
   const pass = () => {
     const headers = new Headers(req.headers);
     headers.set('x-nonce', nonce);
@@ -31,4 +31,4 @@ export function proxy(req: NextRequest) {
   return pass();
 }
 
-export const config = { matcher: ['/flow/:path*', '/flow', '/flow-preview/:path*'] };
+export const config = { matcher: ['/flow/:path*', '/flow', '/flow-preview/:path*', '/en/flow-preview/:path*'] };

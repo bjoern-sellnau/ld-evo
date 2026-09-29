@@ -7,6 +7,7 @@ import { useContent } from '../content/ContentProvider';
 import { mono } from '../cards/ProjectCard';
 import { useSite } from '../settings/SiteProvider';
 import { ScrollRail, useScrollSpy } from './ScrollRail';
+import { useT } from '../i18n/LocaleProvider';
 
 // Prototyp: ohne Unterstreichung. Links im Fließtext brauchen ein Merkmal außer der Farbe (WCAG 1.4.1).
 const link: CSSProperties = { color: 'var(--accent)', textDecoration: 'underline', textUnderlineOffset: 3 };
@@ -16,6 +17,7 @@ const para: CSSProperties = { margin: '10px 0 0', fontSize: 13.5, lineHeight: 1.
 export function ImprintPage() {
   const { settings, mob } = useSite();
   const { imprint: IMPRINT } = useContent();
+  const t = useT();
   // Inhalte aus LD Flow → Impressum; die Rail ergibt sich aus den Abschnitten.
   const PRIVACY_SECTIONS = useMemo(
     () => IMPRINT.sections.map((sec) => ({ id: sec.id, blocks: sec.blocks.map(toBlock) })),
@@ -23,10 +25,10 @@ export function ImprintPage() {
   );
   const IMPRINT_RAIL = useMemo(
     () => [
-      { id: 'i-impressum', label: 'Impressum' },
+      { id: 'i-impressum', label: t('imprint.railImprint') },
       ...IMPRINT.sections.map((sec) => ({ id: sec.id, label: sec.rail, sub: sec.sub || undefined })),
     ],
-    [IMPRINT.sections],
+    [IMPRINT.sections, t],
   );
   const RAIL_IDS = useMemo(() => IMPRINT_RAIL.map((r) => r.id), [IMPRINT_RAIL]);
   const active = useScrollSpy(RAIL_IDS);
@@ -55,7 +57,7 @@ export function ImprintPage() {
               <br />
             </Fragment>
           ))}
-          E-Mail:{' '}
+          {t('imprint.email')}{' '}
           <a href={`mailto:${IMPRINT.email}`} style={link}>
             {IMPRINT.email}
           </a>
@@ -84,7 +86,7 @@ export function ImprintPage() {
           ))}
         </section>
       ))}
-      <ScrollRail targets={IMPRINT_RAIL} active={active} label="Bereiche" />
+      <ScrollRail targets={IMPRINT_RAIL} active={active} label={t('imprint.rail')} />
     </div>
   );
 }

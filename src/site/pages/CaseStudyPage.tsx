@@ -11,6 +11,7 @@ import { useCoverColor } from '../lib/useCoverColor';
 import { useSite } from '../settings/SiteProvider';
 import { Chapter, GallerySlots, RelatedCard, related } from './detail';
 import styles from './detail.module.css';
+import { useHref, useT } from '../i18n/LocaleProvider';
 
 /** Case Study (Kapitel 01–06 + Verwandte). Markup/Werte: Prototyp Zeile 535–619. */
 export function CaseStudyPage({ p }: { p: Project }) {
@@ -22,12 +23,14 @@ export function CaseStudyPage({ p }: { p: Project }) {
   const { projects } = useContent();
   const list = projects.filter((x) => x.kind === p.kind);
   const rel = related(list, p);
+  const t = useT();
+  const lh = useHref();
   const listHref = p.kind === 'labs' ? '/labs' : '/projekte';
   const facts = [
-    { k: 'WERKZEUG', v: p.tool || '—' },
-    { k: 'ZEITRAUM', v: p.datum || '—' },
-    { k: 'KATEGORIE', v: p.kat || '—' },
-    { k: 'STATUS', v: p.link ? 'Live · spielbar' : p.tag || '—' },
+    { k: t('case.tool'), v: p.tool || '—' },
+    { k: t('case.period'), v: p.datum || '—' },
+    { k: t('case.category'), v: p.kat || '—' },
+    { k: t('case.status'), v: p.link ? t('case.livePlayable') : p.tag || '—' },
   ];
   const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
@@ -105,7 +108,7 @@ export function CaseStudyPage({ p }: { p: Project }) {
                 className={styles.pill}
                 style={{ background: ink, color: p.color }}
               >
-                {p.linkLabel || 'Jetzt spielen ↗'}
+                {p.linkLabel || t('catalog.play')}
               </a>
             )}
             <span style={{ fontFamily: mono, fontSize: 10.5, opacity: readableAlpha(p.color, ink, 0.75) }}>
@@ -150,11 +153,11 @@ export function CaseStudyPage({ p }: { p: Project }) {
           ))}
         </dl>
 
-        <Chapter n="01" label="DIE AUSGANGSLAGE" color={acc} first />
+        <Chapter n="01" label={t('case.ch1')} color={acc} first />
         <p className="ld-dropcap" style={{ margin: '12px 0 0', fontSize: 18.5, lineHeight: 1.65, color: 'var(--ink)', textWrap: 'pretty' }}>
           <EText path="ueberblick" value={p.ueberblick} multiline />
         </p>
-        <Chapter n="02" label="DER ANSATZ" color={acc} />
+        <Chapter n="02" label={t('case.ch2')} color={acc} />
         <p style={{ margin: '12px 0 0', fontSize: 16, lineHeight: 1.75, color: 'var(--muted)' }}>
           <EText path="ansatz" value={p.ansatz} multiline />
         </p>
@@ -177,7 +180,7 @@ export function CaseStudyPage({ p }: { p: Project }) {
             <EText path="zitat" value={p.zitat} multiline />
           </blockquote>
         </figure>
-        <Chapter n="03" label="DIE WERKZEUGE" color={acc} first />
+        <Chapter n="03" label={t('case.ch3')} color={acc} first />
         <ul style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '14px 0 0', padding: 0, listStyle: 'none' }}>
           {p.stack.map((c) => (
             <li
@@ -195,7 +198,7 @@ export function CaseStudyPage({ p }: { p: Project }) {
             </li>
           ))}
         </ul>
-        <Chapter n="04" label="DAS ERGEBNIS" color={acc} />
+        <Chapter n="04" label={t('case.ch4')} color={acc} />
         <p
           style={{
             margin: '14px 0 0',
@@ -209,22 +212,22 @@ export function CaseStudyPage({ p }: { p: Project }) {
         >
           <EText path="ergebnis" value={p.ergebnis} multiline />
         </p>
-        <Chapter n="05" label="GELERNT" color={acc} />
+        <Chapter n="05" label={t('case.ch5')} color={acc} />
         <p style={{ margin: '12px 0 0', fontSize: 15.5, lineHeight: 1.75, color: 'var(--muted)' }}>
           <EText path="learnings" value={p.learnings} multiline />
         </p>
-        <Chapter n="06" label="EINDRÜCKE" color={acc} />
+        <Chapter n="06" label={t('case.ch6')} color={acc} />
         <GallerySlots
           wide={320}
           small={200}
           cols2={mob ? '1fr' : '1fr 1fr'}
           images={p.gallery}
-          labels={['Screenshot / Hero-Shot', 'Detail-Screenshot', 'Making-of / Skizze']}
+          labels={[t('case.slot1'), t('case.slot2'), t('case.slot3')]}
         />
 
         <section style={{ marginTop: 56 }} aria-labelledby="rel-title">
           <h2 id="rel-title" style={{ fontFamily: mono, fontSize: 10.5, fontWeight: 400, letterSpacing: '0.18em', color: acc, margin: 0 }}>
-            {p.kind === 'labs' ? 'VERWANDTE EXPERIMENTE' : 'VERWANDTE PROJEKTE'}
+            {p.kind === 'labs' ? t('case.relatedLabs') : t('case.relatedProjects')}
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(3,1fr)', gap: 12, marginTop: 16 }}>
             {rel.map((r) => (
@@ -260,11 +263,11 @@ export function CaseStudyPage({ p }: { p: Project }) {
             flexWrap: 'wrap',
           }}
         >
-          <a href={listHref} onClick={go(listHref)} className={styles.textLink} style={{ color: acc }}>
-            ‹ Alle ansehen
+          <a href={lh(listHref)} onClick={go(listHref)} className={styles.textLink} style={{ color: acc }}>
+            {t('case.all')}
           </a>
           <button type="button" onClick={() => setOverlay('kontakt')} className={styles.textLink} style={{ color: acc }}>
-            Ähnliches Projekt? Sag hallo ›
+            {t('case.similar')}
           </button>
         </div>
       </div>

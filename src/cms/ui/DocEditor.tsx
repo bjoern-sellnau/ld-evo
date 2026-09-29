@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { setAtPath } from '@/site/cms/editing';
 import {
   cancelScheduleAction,
+  copyFromGermanAction,
   deleteDocAction,
   discardDraftAction,
   publishAction,
@@ -19,6 +20,8 @@ import {
 import { COLLECTIONS, fieldsFor, type Errors } from '../schema';
 import { DiffView } from './DiffView';
 import { Field, type Relations } from './Fields';
+import type { TranslationState } from '../repo';
+import type { Locale } from '@/site/i18n/locale';
 
 type Doc = Record<string, unknown>;
 const DESKTOP_W = 1280;
@@ -27,6 +30,12 @@ type SaveState = 'saved' | 'dirty' | 'saving' | 'error';
 export interface EditorProps {
   collection: string;
   id: string;
+  /** Sprache dieser Fassung (de = Original, en = Übersetzung). */
+  locale: Locale;
+  /** Englisch: gibt es schon einen eigenen Entwurf/eine Live-Fassung? Sonst ist `initial` die deutsche Arbeitskopie. */
+  startedTranslation: boolean;
+  /** Stand der englischen Übersetzung (für den Sprachumschalter). */
+  translation?: TranslationState;
   initial: Doc;
   live: boolean;
   hasDraft: boolean;
@@ -46,7 +55,8 @@ export interface EditorProps {
  * Jede Änderung wird nach 1,2 s als Entwurf gespeichert; „Veröffentlichen“ bringt sie live.
  */
 export function DocEditor(props: EditorProps) {
-  const { collection, id, isAdmin, relations, revisions, publicHref } = props;
+  const { collection, id, locale, isAdmin, relations, revisions, publicHref, translation } = props;
+  const en = locale !== 'de';
   const def = COLLECTIONS[collection];
   const router = useRouter();
   const [doc, setDoc] = useState<Doc>(props.initial);
@@ -102,7 +112,7 @@ export function DocEditor(props: EditorProps) {
       if (conflictRef.current && !force) return setSave('dirty');
       const seq = ++saveSeq.current;
       setSave('saving');
-      const res = await saveDraftAction(collection, id, docRef.current, force ? undefined : revRef.current);
+      const res = await saveDraftAction(collection, id, docRef.current, force ? undefined : revRef.current, locale);
       track(res);
       if (force && res.ok) {
         conflictRef.current = false;
@@ -120,7 +130,7 @@ export function DocEditor(props: EditorProps) {
         if (!('conflict' in res && res.conflict)) setMsg({ kind: 'error', text: res.error });
       }
     },
-    [collection, id],
+    [collection, id, locale],
   );
 
   const change = useCallback(
@@ -195,7 +205,7 @@ export function DocEditor(props: EditorProps) {
   const publish = () =>
     start(async () => {
       clearTimeout(timer.current);
-      const res = await publishAction(collection, id, docRef.current, conflictRef.current ? -1 : revRef.current);
+      const res = await publishAction(collection, id, docRef.current, conflictRef.current ? -1 : revRef.current, locale);
       track(res);
       if (res.ok) {
         setLive(true);
@@ -213,7 +223,7 @@ export function DocEditor(props: EditorProps) {
   const schedule = (at: number) =>
     start(async () => {
       clearTimeout(timer.current);
-      const res = await scheduleAction(collection, id, at, docRef.current, conflictRef.current ? -1 : revRef.current);
+      const res = await scheduleAction(collection, id, at, docRef.current, conflictRef.current ? -1 : revRef.current, locale);
       track(res);
       if (res.ok) {
         setScheduledAt(at);
@@ -266,6 +276,25 @@ export function DocEditor(props: EditorProps) {
             </span>
           </div>
           <h1 style={{ margin: 0, fontSize: 19, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</h1>
+          <LanguageTabs collection={collection} id={id} locale={locale} translation={translation} />
+          {en && (
+            <TranslationHint
+              started={props.startedTranslation}
+              live={live}
+              outdated={!!translation?.outdated}
+              busy={busy}
+              onCopy={() =>
+                window.confirm(
+                  'Englischen Entwurf mit der deutschen Fassung überschreiben? (Bilder und Struktur werden übernommen, Texte danach übersetzen.)',
+                ) &&
+                act(
+                  () => copyFromGermanAction(collection, id, locale),
+                  'Deutsche Fassung übernommen.',
+                  () => window.location.reload(),
+                )
+              }
+            />
+          )}
           <div className="f-row">
             <button className="f-btn primary" type="button" onClick={publish} disabled={busy}>
               Veröffentlichen
@@ -284,7 +313,7 @@ export function DocEditor(props: EditorProps) {
                 onClick={() =>
                   window.confirm('Entwurf verwerfen und zur Live-Fassung zurückkehren?') &&
                   act(
-                    () => discardDraftAction(collection, id),
+                    () => discardDraftAction(collection, id, locale),
                     'Entwurf verworfen.',
                     () => window.location.reload(),
                   )
@@ -323,7 +352,7 @@ export function DocEditor(props: EditorProps) {
                 disabled={busy}
                 onClick={() =>
                   act(
-                    () => cancelScheduleAction(collection, id),
+                    () => cancelScheduleAction(collection, id, locale),
                     'Zeitplan aufgehoben — der Entwurf bleibt erhalten.',
                     () => setScheduledAt(null),
                   )
@@ -374,7 +403,7 @@ export function DocEditor(props: EditorProps) {
                         compare?.rid === r.rid
                           ? setCompare(null)
                           : start(async () => {
-                              const res = await revisionAction(collection, id, r.rid);
+                              const res = await revisionAction(collection, id, r.rid, locale);
                               if (res.ok) setCompare({ rid: r.rid, data: (res as { data: Doc }).data });
                               else setMsg({ kind: 'error', text: res.error });
                             })
@@ -389,7 +418,7 @@ export function DocEditor(props: EditorProps) {
                       onClick={() =>
                         window.confirm('Diese Version als Entwurf laden? (Danach prüfen und veröffentlichen.)') &&
                         act(
-                          () => restoreRevisionAction(collection, id, r.rid),
+                          () => restoreRevisionAction(collection, id, r.rid, locale),
                           'Version geladen.',
                           () => window.location.reload(),
                         )
@@ -410,7 +439,7 @@ export function DocEditor(props: EditorProps) {
               ))}
             </ul>
           </details>
-          {def.kind === 'collection' && (
+          {(def.kind === 'collection' || (en && live)) && (
             <div className="f-group" style={{ marginTop: 12 }}>
               <div className="f-group-head">Gefahrenzone</div>
               <div className="f-row">
@@ -420,9 +449,13 @@ export function DocEditor(props: EditorProps) {
                     type="button"
                     disabled={busy}
                     onClick={() =>
-                      window.confirm('Von der Site nehmen? Der Inhalt bleibt als Entwurf erhalten.') &&
+                      window.confirm(
+                        en
+                          ? 'Englische Fassung von der Site nehmen? /en zeigt dann wieder die deutsche. Der Inhalt bleibt als Entwurf erhalten.'
+                          : 'Von der Site nehmen? Der Inhalt bleibt als Entwurf erhalten.',
+                      ) &&
                       act(
-                        () => unpublishAction(collection, id).then((r) => (track(r), r)),
+                        () => unpublishAction(collection, id, locale).then((r) => (track(r), r)),
                         'Offline genommen.',
                         () => {
                           setLive(false);
@@ -434,13 +467,13 @@ export function DocEditor(props: EditorProps) {
                     Offline nehmen
                   </button>
                 )}
-                {isAdmin && (
+                {isAdmin && !en && def.kind === 'collection' && (
                   <button
                     className="f-btn sm danger"
                     type="button"
                     disabled={busy}
                     onClick={() =>
-                      window.confirm(`„${title}“ endgültig löschen? Das lässt sich nicht rückgängig machen.`) &&
+                      window.confirm(`„${title}“ endgültig löschen — in allen Sprachen? Das lässt sich nicht rückgängig machen.`) &&
                       act(
                         () => deleteDocAction(collection, id),
                         'Gelöscht.',
@@ -478,7 +511,7 @@ export function DocEditor(props: EditorProps) {
         <div ref={box} className={`f-preview-frame ${device}`}>
           <iframe
             ref={frame}
-            src={`/flow-preview/${collection}/${id}`}
+            src={`${en ? '/en' : ''}/flow-preview/${collection}/${id}`}
             title="Vorschau"
             onLoad={() => post(docRef.current)}
             style={
@@ -496,6 +529,63 @@ export function DocEditor(props: EditorProps) {
           />
         </div>
       </section>
+    </div>
+  );
+}
+
+/** DE | EN — Umschalter zwischen Original und Übersetzung (eigene URL je Sprache: ?lang=en). */
+function LanguageTabs({
+  collection,
+  id,
+  locale,
+  translation,
+}: {
+  collection: string;
+  id: string;
+  locale: Locale;
+  translation?: TranslationState;
+}) {
+  const state = !translation || translation.state === 'none' ? 'fehlt' : translation.state === 'live' ? 'live' : 'Entwurf';
+  return (
+    <nav className="f-row" aria-label="Sprache der Fassung" style={{ gap: 6 }}>
+      <Link href={`/flow/c/${collection}/${id}`} className="f-btn sm" aria-current={locale === 'de' ? 'page' : undefined}>
+        Deutsch <span className="f-help">· Original</span>
+      </Link>
+      <Link href={`/flow/c/${collection}/${id}?lang=en`} className="f-btn sm" aria-current={locale === 'en' ? 'page' : undefined}>
+        English <span className="f-help">· {state}</span>
+        {translation?.outdated && <span className="f-badge draft">veraltet</span>}
+      </Link>
+    </nav>
+  );
+}
+
+/** Hinweise im englischen Editor: Rückfall, veraltete Übersetzung, „Aus Deutsch übernehmen“. */
+function TranslationHint({
+  started,
+  live,
+  outdated,
+  busy,
+  onCopy,
+}: {
+  started: boolean;
+  live: boolean;
+  outdated: boolean;
+  busy: boolean;
+  onCopy: () => void;
+}) {
+  return (
+    <div className="f-msg" role="note" style={{ margin: 0 }}>
+      {!started
+        ? 'Noch keine englische Fassung — hier steht die deutsche als Ausgangspunkt. Beim ersten Speichern entsteht der englische Entwurf.'
+        : live
+          ? 'Englische Fassung. Änderungen gehen erst mit „Veröffentlichen“ live.'
+          : 'Englischer Entwurf — noch nicht veröffentlicht. Bis dahin zeigt die englische Site (/en) die deutsche Fassung.'}
+      {outdated && ' Achtung: Die deutsche Fassung wurde nach der letzten englischen Veröffentlichung geändert — Übersetzung prüfen.'}
+      <span className="f-row" style={{ marginTop: 8 }}>
+        <button className="f-btn sm ghost" type="button" disabled={busy} onClick={onCopy}>
+          Aus Deutsch übernehmen
+        </button>
+      </span>
     </div>
   );
 }

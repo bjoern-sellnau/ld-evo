@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
-import { listDocs, publishedPatterns, workingCopy } from '@/cms/repo';
+import { listDocs, publishedPatterns, translationStates, workingCopy } from '@/cms/repo';
 import { COLLECTIONS, PAGE_TEMPLATES } from '@/cms/schema';
 import { CollectionList, type ListRow } from '@/cms/ui/CollectionList';
 
@@ -8,6 +8,7 @@ export default async function Page({ params }: { params: Promise<{ collection: s
   const def = COLLECTIONS[collection];
   if (!def) notFound();
   if (def.kind === 'singleton') redirect(`/flow/c/${collection}/${collection}`);
+  const en = await translationStates(collection, 'en');
   const rows: ListRow[] = (await listDocs(collection)).map((r) => {
     const d = workingCopy(r);
     const sub = def.subtitleField ? d[def.subtitleField] : '';
@@ -21,6 +22,7 @@ export default async function Page({ params }: { params: Promise<{ collection: s
       updatedAt: r.updatedAt,
       updatedBy: r.updatedBy,
       href: def.href({ ...d, id: r.id }),
+      en: en[r.id] ? { state: en[r.id].state, outdated: en[r.id].outdated } : undefined,
     };
   });
   return (

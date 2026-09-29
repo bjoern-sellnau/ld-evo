@@ -1,17 +1,19 @@
 import { ABOUT_CAPTIONS, ABOUT_IMAGES, LOONA_PROJECTS, STATIONS, type RailTarget } from '@content/about';
 import type { AboutContent, CmsStation, CmsStationProject } from '@/cms/types';
+import { translate, type UiKey } from '@/site/i18n/dict';
+import type { Locale } from '@/site/i18n/locale';
 
 /**
  * Über mich: Rail, Bilder und Bildzeilen werden aus den (in LD Flow gepflegten) Stationen abgeleitet — so wie der
  * Prototyp sie aufbaut (uDefs/imgIdx/captions): 5 feste Abschnitte, je Station ein Unterpunkt + ihre Projekte,
  * dann Loona! mit Projekten. Bild 0–3 sind fest (Porträt, Werkzeuge, Arbeit, Loona!), ab 4 je Station eins.
  */
-const FIXED: { id: string; label: string; img: number }[] = [
-  { id: 'u-intro', label: 'Intro', img: 0 },
-  { id: 'u-vita', label: 'Vita', img: 0 },
-  { id: 'u-werkzeuge', label: 'Werkzeuge', img: 1 },
-  { id: 'u-skills', label: 'Skills', img: 1 },
-  { id: 'u-zertifikate', label: 'Zertifikate', img: 2 },
+const FIXED: { id: string; label: UiKey; img: number }[] = [
+  { id: 'u-intro', label: 'about.railIntro', img: 0 },
+  { id: 'u-vita', label: 'about.vita', img: 0 },
+  { id: 'u-werkzeuge', label: 'about.tools', img: 1 },
+  { id: 'u-skills', label: 'about.skills', img: 1 },
+  { id: 'u-zertifikate', label: 'about.certs', img: 2 },
 ];
 
 export interface AboutImage {
@@ -21,7 +23,7 @@ export interface AboutImage {
   placeholder: string;
 }
 
-export function buildAbout(about: AboutContent) {
+export function buildAbout(about: AboutContent, locale: Locale = 'de') {
   const stations: CmsStation[] =
     about.stations ??
     STATIONS.map((s, i) => ({ ...s, caption: ABOUT_CAPTIONS[4 + i], placeholder: ABOUT_IMAGES[4 + i]?.placeholder, projekte: s.projekte }));
@@ -35,11 +37,16 @@ export function buildAbout(about: AboutContent) {
 
   const images: AboutImage[] = [
     ...fixedImages,
-    ...stations.map((s) => ({ key: s.anchor, src: s.image?.src, alt: s.image?.alt, placeholder: s.placeholder || `${s.firma} — Foto` })),
+    ...stations.map((s) => ({
+      key: s.anchor,
+      src: s.image?.src,
+      alt: s.image?.alt,
+      placeholder: s.placeholder || translate(locale, 'about.photo', { name: s.firma }),
+    })),
   ];
   const captions = [...fixedCaptions, ...stations.map((s) => s.caption || s.firma)];
 
-  const rail: RailTarget[] = FIXED.map(({ id, label }) => ({ id, label }));
+  const rail: RailTarget[] = FIXED.map(({ id, label }) => ({ id, label: translate(locale, label) }));
   const imageFor: Record<string, number> = Object.fromEntries(FIXED.map((f) => [f.id, f.img]));
   stations.forEach((s, i) => {
     rail.push({ id: s.anchor, label: s.railLabel || s.firma, sub: true });

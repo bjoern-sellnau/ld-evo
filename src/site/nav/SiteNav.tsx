@@ -10,6 +10,8 @@ import styles from './SiteNav.module.css';
 import { useContent } from '../content/ContentProvider';
 import { isActiveHref } from './pages';
 import { useBack } from './useBack';
+import { useHref, useT } from '../i18n/LocaleProvider';
+import { canonicalPath } from '../i18n/locale';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -29,9 +31,11 @@ const iconBtn: CSSProperties = {
 /** Liquid-Glass-Nav: Top-Pille (Desktop) bzw. Glas-Sidebar (Wide). Markup/Werte aus dem Prototyp, Zeile 328 ff. */
 export function SiteNav() {
   const { settings, mob, sideActive, isWide, frame, narrow, toggleTheme, toggleAnim, setOverlay, navigate, set } = useSiteNav();
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname());
   const { navigation } = useContent();
   const back = useBack();
+  const t = useT();
+  const href = useHref();
 
   if (mob && settings.mobModern) return null;
 
@@ -48,7 +52,7 @@ export function SiteNav() {
 
   return (
     <nav
-      aria-label="Hauptnavigation"
+      aria-label={t('nav.main')}
       className="ldnavvt"
       style={{
         position: 'fixed',
@@ -88,7 +92,7 @@ export function SiteNav() {
             <button
               type="button"
               onClick={back.go}
-              aria-label="Zurück"
+              aria-label={t('nav.back')}
               className={cx(styles.reset, styles.back)}
               style={{
                 display: 'inline-flex',
@@ -110,9 +114,9 @@ export function SiteNav() {
           </span>
         )}
         <Link
-          href="/"
+          href={href('/')}
           onClick={go('/')}
-          aria-label="Loona! Designs — Startseite"
+          aria-label={t('nav.home')}
           className={cx(styles.reset, styles.logo)}
           style={{
             display: 'flex',
@@ -143,7 +147,7 @@ export function SiteNav() {
               return (
                 <Link
                   key={p.href + p.label}
-                  href={p.href}
+                  href={href(p.href)}
                   {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   onClick={go(p.href)}
                   aria-current={on ? 'page' : undefined}
@@ -172,7 +176,7 @@ export function SiteNav() {
                 type="button"
                 onClick={toggleTheme}
                 title="Light/Dark"
-                aria-label={settings.theme === 'light' ? 'Dunkles Design' : 'Helles Design'}
+                aria-label={settings.theme === 'light' ? t('nav.themeDark') : t('nav.themeLight')}
                 className={cx(styles.reset, styles.icon)}
                 style={{ ...iconBtn, fontSize: 14 }}
               >
@@ -181,8 +185,8 @@ export function SiteNav() {
               <button
                 type="button"
                 onClick={() => setOverlay('search')}
-                title="Suche (⌘K)"
-                aria-label="Suche"
+                title={t('nav.searchTitle')}
+                aria-label={t('nav.search')}
                 className={cx(styles.reset, styles.icon)}
                 style={{ ...iconBtn, fontSize: 15 }}
               >
@@ -191,8 +195,8 @@ export function SiteNav() {
               <button
                 type="button"
                 onClick={toggleAnim}
-                title="Animationen an/aus"
-                aria-label={settings.anim ? 'Animationen pausieren' : 'Animationen starten'}
+                title={t('nav.animTitle')}
+                aria-label={settings.anim ? t('nav.animPause') : t('nav.animStart')}
                 aria-pressed={!settings.anim}
                 className={cx(styles.reset, styles.icon)}
                 style={{ ...iconBtn, fontSize: 12 }}
@@ -202,8 +206,8 @@ export function SiteNav() {
               <button
                 type="button"
                 onClick={() => setOverlay('settings')}
-                title="Einstellungen"
-                aria-label="Einstellungen"
+                title={t('nav.settings')}
+                aria-label={t('nav.settings')}
                 className={cx(styles.reset, styles.icon)}
                 style={{ ...iconBtn, fontSize: 15 }}
               >
@@ -213,8 +217,8 @@ export function SiteNav() {
                 <button
                   type="button"
                   onClick={() => set('navSide', !settings.navSide)}
-                  title="Menü an die Seite"
-                  aria-label={sideActive ? 'Menü nach oben' : 'Menü an die Seite'}
+                  title={t('nav.sideTitle')}
+                  aria-label={sideActive ? t('nav.sideTop') : t('nav.sideTitle')}
                   aria-pressed={settings.navSide}
                   className={cx(styles.reset, styles.icon)}
                   style={{ ...iconBtn, fontSize: 14 }}
@@ -246,7 +250,7 @@ export function SiteNav() {
               transition: 'transform 0.25s',
             }}
           >
-            Kontakt
+            {t('nav.contact')}
           </button>
         )}
       </GlassSurface>

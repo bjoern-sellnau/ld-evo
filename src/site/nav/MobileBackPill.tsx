@@ -3,6 +3,7 @@
 import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
 import { useBack } from './useBack';
+import { useT } from '../i18n/LocaleProvider';
 
 /**
  * Schwebende Glas-Zurück-Pille über der Tab-Bar (Modern Mobile-Nav, Detailseiten). bottom 92 px,
@@ -11,6 +12,7 @@ import { useBack } from './useBack';
 export function MobileBackPill({ tabBarHidden }: { tabBarHidden: boolean }) {
   const { mob, settings } = useSite();
   const back = useBack();
+  const t = useT();
   if (!(mob && settings.mobModern && back.show)) return null;
   return (
     <div
@@ -29,7 +31,7 @@ export function MobileBackPill({ tabBarHidden }: { tabBarHidden: boolean }) {
         type="button"
         id="ld-backpill"
         onClick={back.go}
-        aria-label="Zurück"
+        aria-label={t('nav.back')}
         className={`${styles.reset} ${styles.backPill}`}
         style={{
           pointerEvents: 'auto',

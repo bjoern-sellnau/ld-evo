@@ -11,10 +11,12 @@ import { heroInk, heroMode } from '../hero/heroInk';
 import { HERO_MODES, heroFxBgOf, heroFxSampleOf } from '../hero/modes';
 import { useHeroShader } from '../hero/useHeroShader';
 import { useSite } from '../settings/SiteProvider';
+import { useLocale, useT } from '../i18n/LocaleProvider';
+import { intlLocale, type Locale } from '../i18n/locale';
 
 const CAREER_START = new Date('2007-09-01T09:00:00').getTime();
 
-const careerSeconds = () => Math.floor((Date.now() - CAREER_START) / 1000).toLocaleString('de-DE');
+const careerSeconds = (l: Locale) => Math.floor((Date.now() - CAREER_START) / 1000).toLocaleString(intlLocale(l));
 
 /** Rotierende Rolle: alle 4,2 s ausblenden (7 px nach unten), 340 ms später nächste Rolle einblenden. */
 function useRole(roles: string[], active: boolean) {
@@ -37,11 +39,12 @@ function useRole(roles: string[], active: boolean) {
 
 function useCareerSeconds() {
   const [v, setV] = useState<string | null>(null);
+  const locale = useLocale();
   useEffect(() => {
-    setV(careerSeconds());
-    const iv = setInterval(() => setV(careerSeconds()), 1000);
+    setV(careerSeconds(locale));
+    const iv = setInterval(() => setV(careerSeconds(locale)), 1000);
     return () => clearInterval(iv);
-  }, []);
+  }, [locale]);
   return v;
 }
 
@@ -63,6 +66,7 @@ export function HalloPage() {
   const def = HERO_MODES[hm] ?? HERO_MODES.flow;
   const ink = heroInk(s);
   const { home, projects, articles } = useContent();
+  const t = useT();
   // Featured in der im CMS gewählten Reihenfolge; News = gepinnte Artikel (Prototyp: renderVals).
   const FEATURED = home.featured.map((id) => projects.find((p) => p.id === id)).filter((p) => !!p);
   const NEWS = articles.filter((a) => a.pinned);
@@ -268,7 +272,7 @@ export function HalloPage() {
                 boxShadow: ink.btn1.shadow,
               }}
             >
-              Projekte ansehen <span aria-hidden>›</span>
+              {t('home.ctaProjects')} <span aria-hidden>›</span>
             </button>
             <button
               type="button"
@@ -292,7 +296,7 @@ export function HalloPage() {
                 boxShadow: ink.btn2.shadow,
               }}
             >
-              Sag hallo <span aria-hidden>›</span>
+              {t('home.ctaHello')} <span aria-hidden>›</span>
             </button>
           </div>
         </div>
@@ -316,14 +320,14 @@ export function HalloPage() {
           <span data-live style={{ fontFamily: mono, fontSize: mob ? 22 : 26, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
             {seconds ?? ' '}
           </span>
-          <span style={{ fontSize: 13, color: 'var(--muted)' }}>Sekunden im Dienst des Webs — läuft seit September 2007.</span>
+          <span style={{ fontSize: 13, color: 'var(--muted)' }}>{t('home.seconds')}</span>
         </div>
         <div style={{ display: 'flex', gap: mob ? 22 : 32, fontSize: 13, color: 'var(--muted)' }}>
           <span>
-            <span style={{ fontWeight: 700, color: 'var(--ink)' }}>18+</span> Jahre
+            <span style={{ fontWeight: 700, color: 'var(--ink)' }}>18+</span> {t('home.years')}
           </span>
           <span>
-            <span style={{ fontWeight: 700, color: 'var(--ink)' }}>10</span> Zertifikate
+            <span style={{ fontWeight: 700, color: 'var(--ink)' }}>10</span> {t('home.certs')}
           </span>
           <span>
             <span style={{ fontWeight: 700, color: 'var(--ink)' }}>Berlin</span> &amp; Remote
@@ -333,10 +337,10 @@ export function HalloPage() {
 
       <section style={{ padding: '64px 0 8px' }} aria-labelledby="featured-title">
         <SectionHead
-          kicker="FEATURED"
-          title="Ausgewählte Arbeiten"
+          kicker={t('home.featuredKicker')}
+          title={t('home.featuredTitle')}
           id="featured-title"
-          link="Alle Projekte ›"
+          link={t('home.featuredLink')}
           onLink={() => navigate('/projekte')}
         />
         <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: 14, marginTop: 26 }}>
@@ -348,10 +352,10 @@ export function HalloPage() {
 
       <section style={{ padding: '64px 0 80px' }} aria-labelledby="news-title">
         <SectionHead
-          kicker="NEWS — AUS DEM BLOG"
-          title=".Tech, frisch gepinnt"
+          kicker={t('home.newsKicker')}
+          title={t('home.newsTitle')}
           id="news-title"
-          link="Zum Blog ›"
+          link={t('home.newsLink')}
           onLink={() => navigate('/tech')}
         />
         <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: 14, marginTop: 26 }}>

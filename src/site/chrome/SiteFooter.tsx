@@ -5,11 +5,16 @@ import Link from 'next/link';
 import { mono } from '../cards/ProjectCard';
 import { useSite } from '../settings/SiteProvider';
 import styles from './chrome.module.css';
+import { useHref, useT } from '../i18n/LocaleProvider';
+import { canonicalPath } from '../i18n/locale';
+import { LanguageSwitch } from '../i18n/LanguageSwitch';
 
 /** Footer (Prototyp Zeile 900 ff.) — auf „Meine Reise“ ausgeblendet (Vollbild-Timeline). */
 export function SiteFooter() {
   const { navigate } = useSite();
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname());
+  const t = useT();
+  const href = useHref();
   if (pathname === '/reise') return null;
   return (
     <footer
@@ -36,7 +41,7 @@ export function SiteFooter() {
           GitHub
         </a>
         <Link
-          href="/impressum"
+          href={href('/impressum')}
           className={styles.footLink}
           onClick={(e) => {
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
@@ -44,8 +49,9 @@ export function SiteFooter() {
             navigate('/impressum');
           }}
         >
-          Impressum
+          {t('footer.imprint')}
         </Link>
+        <LanguageSwitch className={styles.footLink} />
       </span>
     </footer>
   );

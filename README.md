@@ -38,6 +38,12 @@ npm run widgets        # Widget-Registry neu erzeugen (läuft vor dev/build/test
 npm run brand:sync     # finale Logo-Assets aus dem Handoff nach public/ kopieren
 ```
 
+## Sprachen
+
+Deutsch an der Wurzel, Englisch unter `/en` (`/en/projects`, `/en/about` …). Englische Inhalte pflegt man in LD Flow
+je Eintrag (Umschalter im Editor); ohne veröffentlichte Übersetzung zeigt `/en` die deutsche Fassung (noindex).
+Details: [docs/LD-FLOW.md → Mehrsprachigkeit](docs/LD-FLOW.md).
+
 ## Livegang
 
 `docker compose up -d --build` (Website + LD Flow hinter Caddy mit HTTPS) — oder Node + systemd + nginx.

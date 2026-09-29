@@ -3,6 +3,7 @@ import { timingSafeEqual, randomBytes, createHash } from 'node:crypto';
 import { db } from './db';
 import { commitPublish } from './publish';
 import { validateDoc } from './schema';
+import type { Locale } from '@/site/i18n/locale';
 
 /**
  * Geplantes Veröffentlichen — Systemjob ohne Nutzer. Erreichbar nur über POST /flow-cron mit dem geheimen Header
@@ -30,19 +31,23 @@ export function checkCronSecret(given: string | null): boolean {
  */
 export function runDuePublications(now = Date.now()): { published: string[]; failed: string[] } {
   const rows = db()
-    .prepare('SELECT collection, id, draft, publish_by FROM docs WHERE publish_at IS NOT NULL AND publish_at <= ? ORDER BY publish_at')
-    .all(now) as { collection: string; id: string; draft: string | null; publish_by: string | null }[];
+    .prepare(
+      'SELECT collection, id, locale, draft, publish_by FROM docs WHERE publish_at IS NOT NULL AND publish_at <= ? ORDER BY publish_at',
+    )
+    .all(now) as { collection: string; id: string; locale: Locale; draft: string | null; publish_by: string | null }[];
   const published: string[] = [];
   const failed: string[] = [];
   for (const r of rows) {
-    const key = `${r.collection}/${r.id}`;
+    const key = `${r.collection}/${r.id}${r.locale === 'de' ? '' : `@${r.locale}`}`;
     const { value, errors } = r.draft ? validateDoc(r.collection, JSON.parse(r.draft)) : { value: null, errors: { _: 'leer' } };
     if (!value || Object.keys(errors).length) {
-      db().prepare('UPDATE docs SET publish_at = NULL, publish_by = NULL WHERE collection = ? AND id = ?').run(r.collection, r.id);
+      db()
+        .prepare('UPDATE docs SET publish_at = NULL, publish_by = NULL WHERE collection = ? AND id = ? AND locale = ?')
+        .run(r.collection, r.id, r.locale);
       failed.push(key);
       continue;
     }
-    commitPublish(r.collection, r.id, value, `Zeitplan (${r.publish_by ?? 'LD Flow'})`);
+    commitPublish(r.collection, r.id, value, `Zeitplan (${r.publish_by ?? 'LD Flow'})`, r.locale);
     published.push(key);
   }
   return { published, failed };

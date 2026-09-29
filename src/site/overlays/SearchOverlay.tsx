@@ -8,6 +8,7 @@ import { search, type SearchDoc } from '../lib/search';
 import { useSite } from '../settings/SiteProvider';
 import { ModalOverlay } from './GlassPanel';
 import styles from './overlays.module.css';
+import { useT } from '../i18n/LocaleProvider';
 
 /**
  * Suchindex wie im Prototyp (Seiten, Projekte/Labs ohne Archiv, Artikel, freie CMS-Seiten) — erweitert um den Volltext:
@@ -15,6 +16,7 @@ import styles from './overlays.module.css';
  */
 function useIndex(): SearchDoc[] {
   const { projects, articles, pages, navigation, about, journey } = useContent();
+  const t = useT();
   return useMemo(() => {
     const T = (text: string | undefined, w: number) => (text ? [{ text, w }] : []);
     const aboutText = [about.introTitle, about.intro, ...about.vita, about.loona].join(' ');
@@ -29,7 +31,7 @@ function useIndex(): SearchDoc[] {
         .filter((p) => p.href.startsWith('/'))
         .map((p) => ({
           label: p.label,
-          kind: 'SEITE',
+          kind: t('search.kindPage'),
           href: p.href,
           fields: [
             ...T(p.label, 10),
@@ -40,7 +42,7 @@ function useIndex(): SearchDoc[] {
         .filter((p) => p.kind !== 'archiv')
         .map((p) => ({
           label: p.name,
-          kind: p.kind === 'labs' ? 'LAB' : 'PROJEKT',
+          kind: p.kind === 'labs' ? t('search.kindLab') : t('search.kindProject'),
           href: projectHref(p),
           fields: [
             ...T(p.name, 10),
@@ -51,13 +53,13 @@ function useIndex(): SearchDoc[] {
         })),
       ...articles.map((a) => ({
         label: a.titel,
-        kind: 'ARTIKEL',
+        kind: t('search.kindArticle'),
         href: articleHref(a),
         fields: [...T(a.titel, 10), ...T(a.kat, 4), ...T(a.teaser, 3), ...a.body.flatMap((x) => T(x, 1))],
       })),
       ...journey.map((j) => ({
         label: `${j.year} · ${j.title}`,
-        kind: 'REISE',
+        kind: t('search.kindJourney'),
         href: '/reise',
         fields: [
           ...T(`${j.year} ${j.title}`, 10),
@@ -69,14 +71,15 @@ function useIndex(): SearchDoc[] {
       })),
       ...pages
         .filter((p) => !navigation.some((n) => n.href === `/${p.id}`))
-        .map((p) => ({ label: p.title, kind: 'SEITE', href: `/${p.id}`, fields: T(p.title, 10) })),
+        .map((p) => ({ label: p.title, kind: t('search.kindPage'), href: `/${p.id}`, fields: T(p.title, 10) })),
     ];
-  }, [projects, articles, pages, navigation, about, journey]);
+  }, [projects, articles, pages, navigation, about, journey, t]);
 }
 
 /** Suche (⌘K / Strg+K, Esc). Treffer: Teilstring, max. 8. Markup: Prototyp Zeile 1241 ff. */
 export function SearchOverlay() {
   const { overlay, setOverlay, navigate } = useSite();
+  const t = useT();
   const INDEX = useIndex();
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
@@ -98,7 +101,7 @@ export function SearchOverlay() {
   };
 
   return (
-    <ModalOverlay label="Suche" onClose={() => setOverlay(null)} align="top" width={520} radius="var(--radL,20px)">
+    <ModalOverlay label={t('search.label')} onClose={() => setOverlay(null)} align="top" width={520} radius="var(--radL,20px)">
       <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '15px 18px', borderBottom: '1px solid var(--hair)' }}>
         <span aria-hidden style={{ color: 'var(--soft)', fontSize: 16 }}>
           ⌕
@@ -110,8 +113,8 @@ export function SearchOverlay() {
             setSel(0);
           }}
           onKeyDown={onKey}
-          placeholder="Seiten, Projekte, Artikel …"
-          aria-label="Suchbegriff"
+          placeholder={t('search.placeholder')}
+          aria-label={t('search.term')}
           role="combobox"
           aria-expanded="true"
           aria-controls="ld-search-results"
@@ -129,7 +132,7 @@ export function SearchOverlay() {
         <Kbd>⌘K</Kbd>
         <Kbd>esc</Kbd>
       </div>
-      <div id="ld-search-results" role="listbox" aria-label="Treffer" style={{ padding: 8, maxHeight: 340, overflow: 'auto' }}>
+      <div id="ld-search-results" role="listbox" aria-label={t('search.results')} style={{ padding: 8, maxHeight: 340, overflow: 'auto' }}>
         {results.map((r, i) => (
           <button
             key={`${r.kind}${r.href}${r.label}`}

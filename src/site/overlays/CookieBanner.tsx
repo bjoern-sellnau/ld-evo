@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSite } from '../settings/SiteProvider';
 import { GlassLayers, panelGlass } from './GlassPanel';
 import styles from './overlays.module.css';
+import { useHref, useT } from '../i18n/LocaleProvider';
 
 /**
  * Cookie-Hinweis („Keine Krümel, versprochen.“): erscheint 900 ms nach dem Laden, solange ld-cookie fehlt;
@@ -13,6 +14,8 @@ import styles from './overlays.module.css';
 export function CookieBanner() {
   const { settings, hydrated, set, mob, navigate } = useSite();
   const [show, setShow] = useState(false);
+  const t = useT();
+  const href = useHref();
 
   useEffect(() => {
     if (!hydrated || settings.cookie) return;
@@ -35,7 +38,7 @@ export function CookieBanner() {
   return (
     <div
       role="region"
-      aria-label="Hinweis zu Cookies"
+      aria-label={t('cookie.region')}
       style={{
         ...panelGlass(radius),
         position: 'fixed',
@@ -79,10 +82,8 @@ export function CookieBanner() {
         />
       </span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700 }}>Keine Krümel, versprochen.</div>
-        <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5, marginTop: 3 }}>
-          Diese Seite trackt nicht. Gespeichert wird nur lokal auf deinem Gerät: Theme, Animations-Einstellung — und dieser Klick.
-        </div>
+        <div style={{ fontSize: 13.5, fontWeight: 700 }}>{t('cookie.title')}</div>
+        <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5, marginTop: 3 }}>{t('cookie.text')}</div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7, flex: 'none' }}>
         <button
@@ -93,17 +94,17 @@ export function CookieBanner() {
             setShow(false);
           }}
         >
-          Alles klar
+          {t('cookie.ok')}
         </button>
         <Link
-          href="/impressum"
+          href={href('/impressum')}
           className={styles.quiet}
           onClick={(e) => {
             e.preventDefault();
             navigate('/impressum');
           }}
         >
-          Details
+          {t('cookie.details')}
         </Link>
       </div>
     </div>

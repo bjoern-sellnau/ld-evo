@@ -18,7 +18,9 @@ const remove = [
   'src/app/media',
   'src/app/health',
   'src/app/(main)/(site)/flow-preview',
+  'src/app/(en)/en/flow-preview',
   'src/app/(main)/(site)/[slug]',
+  'src/app/(en)/en/[slug]',
   'src/proxy.ts',
   'src/instrumentation.ts',
 ];

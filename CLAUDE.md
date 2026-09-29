@@ -36,7 +36,12 @@ Ausführlich und interaktiv: **LD Flow → Guide** (`/flow/guide`).
 4. **Keine Scroll-Locks auf `body`**, echte `<button>`s, `prefers-reduced-motion`/„Animationen aus“ respektieren,
    Kontrast ≥ 4.5:1.
 5. Neue Inhaltsfelder: Schema (`src/cms/schema.ts`) → Typ (`content/*.ts` bzw. `src/cms/types.ts`) → Darstellung;
-   der Test „Startinhalte bestehen das Schema“ muss grün bleiben.
+   der Test „Startinhalte bestehen das Schema“ muss grün bleiben. Startinhalte immer auch in `content/en/*.ts`
+   (gleiche Struktur/IDs — Test „Englische Startinhalte“).
+6. **Mehrsprachigkeit:** Interne Pfade im Code und in Daten immer **kanonisch deutsch** (`/ueber-mich`) — Links über
+   `useHref()`/`<LocalLink>`, Navigation über `navigate()` (übersetzen selbst, Routentabelle `src/site/i18n/locale.ts`).
+   Sichtbare UI-Texte der Site nur über `useT()` aus `src/site/i18n/dict.ts` (DE + EN). Neue Seiten: Fabrik in
+   `src/site/routes.tsx`, dünne Route-Dateien unter `src/app/(main)/(site)` **und** `src/app/(en)/en`.
 
 ## Befehle
 

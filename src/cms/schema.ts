@@ -11,6 +11,7 @@
 import { WIDGETS } from '@/widgets';
 import { controlDefaults } from '@/widgets/define';
 import { isSafeHref, isSafeMediaSrc } from './safe';
+import { LOCALE_RESERVED_SLUGS } from '@/site/i18n/locale';
 
 export { isSafeHref, isSafeMediaSrc };
 
@@ -512,6 +513,8 @@ export const RESERVED_SLUGS = new Set([
   'flow-cron',
   'api',
   '_next',
+  // Sprachpräfix und englische Abschnittsnamen (src/site/i18n/locale.ts)
+  ...LOCALE_RESERVED_SLUGS,
 ]);
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -7,6 +7,8 @@ import { REVEAL_MODES, pageVtClasses, runVt, trackVtOrigin } from '../vt/runVt';
 import { applyBody, applyThemeColor } from './applyBody';
 import { DEFAULT_SETTINGS, readSettings, writeSetting, type Settings } from './schema';
 import { useHitCounter } from '../stats/useHitCounter';
+import { useLocale } from '../i18n/LocaleProvider';
+import { canonicalPath, localizePath } from '../i18n/locale';
 
 type Overlay = 'search' | 'settings' | 'kontakt' | 'mobileNav' | null;
 
@@ -42,8 +44,8 @@ interface SiteContextValue {
 
 const SiteContext = createContext<SiteContextValue | null>(null);
 
-/** Detailseiten: /projekte/<slug>, /labs/<slug>, /tech/<slug>. */
-export const isDetailPath = (p: string) => /^\/(projekte|labs|tech)\/[^/]+\/?$/.test(p);
+/** Detailseiten: /projekte/<slug>, /labs/<slug>, /tech/<slug> (in jeder Sprache, z. B. /en/projects/<slug>). */
+export const isDetailPath = (p: string) => /^\/(projekte|labs|tech)\/[^/]+\/?$/.test(canonicalPath(p));
 
 export function useSite(): SiteContextValue {
   const ctx = useContext(SiteContext);
@@ -58,6 +60,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   const [overlay, setOverlay] = useState<Overlay>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const locale = useLocale();
   useHitCounter(pathname);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -133,9 +136,11 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   const [from, setFrom] = useState<string | null>(null);
 
   const navigate = useCallback(
-    (href: string, opts?: { keepVt?: boolean }) => {
+    (target: string, opts?: { keepVt?: boolean }) => {
       const s = settingsRef.current;
       setOverlay(null);
+      // Aufrufer übergeben kanonische (deutsche) Pfade; hier wird daraus die Adresse der aktuellen Sprache.
+      const href = localizePath(target, locale);
       const current = window.location.pathname;
       if (href === current) return;
       const detailNav = isDetailPath(href) || isDetailPath(current);
@@ -157,7 +162,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
         { anim: s.anim, hold: 130 },
       );
     },
-    [router],
+    [router, locale],
   );
 
   const openItem = useCallback(

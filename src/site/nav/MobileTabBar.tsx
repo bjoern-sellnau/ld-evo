@@ -9,26 +9,29 @@ import { useSite } from '../settings/SiteProvider';
 import { MobileBackPill } from './MobileBackPill';
 import styles from './SiteNav.module.css';
 import { SITE_PAGES, pageForPath, type SitePageId } from './pages';
+import { useHref, useT } from '../i18n/LocaleProvider';
+import { canonicalPath } from '../i18n/locale';
+import type { UiKey } from '../i18n/dict';
 
 interface Tab {
   id: SitePageId;
-  label: string;
+  label: UiKey;
   icon: string;
   logo?: boolean;
 }
 
 // Prototyp: renderVals → tabItems (Modern: Logo-Home mittig; klassisch: Home zuerst).
 const MODERN: Tab[] = [
-  { id: 'projekte', label: 'Projekte', icon: '▦' },
-  { id: 'ueber', label: 'Über mich', icon: '◉' },
-  { id: 'hallo', label: 'Home', icon: '', logo: true },
-  { id: 'labs', label: 'Labs', icon: '⚗' },
+  { id: 'projekte', label: 'tab.projects', icon: '▦' },
+  { id: 'ueber', label: 'tab.about', icon: '◉' },
+  { id: 'hallo', label: 'tab.home', icon: '', logo: true },
+  { id: 'labs', label: 'tab.labs', icon: '⚗' },
 ];
 const CLASSIC: Tab[] = [
-  { id: 'hallo', label: 'Home', icon: '⌂' },
-  { id: 'projekte', label: 'Projekte', icon: '▦' },
-  { id: 'ueber', label: 'Über mich', icon: '◉' },
-  { id: 'labs', label: 'Labs', icon: '⚗' },
+  { id: 'hallo', label: 'tab.home', icon: '⌂' },
+  { id: 'projekte', label: 'tab.projects', icon: '▦' },
+  { id: 'ueber', label: 'tab.about', icon: '◉' },
+  { id: 'labs', label: 'tab.labs', icon: '⚗' },
 ];
 
 const hrefOf = (id: SitePageId) => SITE_PAGES.find((p) => p.id === id)!.href;
@@ -68,8 +71,9 @@ function useNavHidden(enabled: boolean) {
 /** Floating-Tab-Bar (iOS-26-Insel): bottom 18 px, Breite calc(100% − 44px) max. 386 px, Radius 28 px. */
 export function MobileTabBar() {
   const { settings, mob, overlay, setOverlay, navigate } = useSite();
-  const pathname = usePathname();
-  const page = pageForPath(pathname);
+  const page = pageForPath(canonicalPath(usePathname()));
+  const tr = useT();
+  const href = useHref();
   const hidden = useNavHidden(mob && settings.scrollHide);
   const menuOpen = overlay === 'mobileNav';
 
@@ -102,7 +106,7 @@ export function MobileTabBar() {
         <GlassSurface
           as="nav"
           id="ld-tabbar"
-          aria-label="Hauptnavigation"
+          aria-label={tr('nav.main')}
           radius="28px"
           lite
           style={{
@@ -122,10 +126,10 @@ export function MobileTabBar() {
             return (
               <Link
                 key={t.id}
-                href={hrefOf(t.id)}
+                href={href(hrefOf(t.id))}
                 onClick={go(hrefOf(t.id))}
                 aria-current={page === t.id ? 'page' : undefined}
-                aria-label={t.logo ? 'Home' : undefined}
+                aria-label={t.logo ? tr('tab.home') : undefined}
                 data-navactive={on}
                 className={styles.reset}
                 style={{
@@ -143,7 +147,7 @@ export function MobileTabBar() {
                 }}
               >
                 <TabIcon icon={t.icon} logo={t.logo} color={on ? 'var(--accent)' : 'var(--muted)'} />
-                {!t.logo && <TabLabel color={on ? 'var(--accent)' : 'var(--muted)'}>{t.label}</TabLabel>}
+                {!t.logo && <TabLabel color={on ? 'var(--accent)' : 'var(--muted)'}>{tr(t.label)}</TabLabel>}
               </Link>
             );
           })}
@@ -168,7 +172,7 @@ export function MobileTabBar() {
             }}
           >
             <TabIcon icon={menuOpen ? '✕' : '☰'} color={menuOpen ? 'var(--accent)' : 'var(--muted)'} />
-            <TabLabel color={menuOpen ? 'var(--accent)' : 'var(--muted)'}>Menü</TabLabel>
+            <TabLabel color={menuOpen ? 'var(--accent)' : 'var(--muted)'}>{tr('tab.menu')}</TabLabel>
           </button>
         </GlassSurface>
       </div>

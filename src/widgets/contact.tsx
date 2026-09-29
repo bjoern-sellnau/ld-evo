@@ -1,7 +1,8 @@
 import { EText } from '@/site/cms/editing';
-import Link from 'next/link';
 import { ContactForm } from '@/site/widgets/ContactForm';
 import { defineWidget, text, textarea } from './define';
+import { LocalLink } from '@/site/i18n/LocalLink';
+import { useT } from '@/site/i18n/LocaleProvider';
 
 export default defineWidget({
   id: 'contact',
@@ -14,23 +15,23 @@ export default defineWidget({
     success: textarea({ label: 'Danke-Text', max: 300, inline: true }),
     notice: textarea({ label: 'Datenschutz-Hinweis', max: 400, inline: true }),
   },
-  render: ({ submitLabel, success, notice, path, accent }) => (
-    <ContactForm
-      accent={accent}
-      submitLabel={<EText path={`${path}.submitLabel`} value={submitLabel || 'Nachricht senden'} />}
-      success={<EText path={`${path}.success`} value={success || 'Danke! Ich melde mich so bald wie möglich.'} multiline />}
-      notice={
-        <>
-          <EText
-            path={`${path}.notice`}
-            value={notice || 'Deine Angaben werden nur zur Beantwortung deiner Anfrage gespeichert.'}
-            multiline
-          />{' '}
-          <Link href="/impressum#i-datenschutz" style={{ color: 'inherit', textDecoration: 'underline' }}>
-            Datenschutz
-          </Link>
-        </>
-      }
-    />
-  ),
+  render: function Contact({ submitLabel, success, notice, path, accent }) {
+    // Leere Felder: Standardtexte in der Sprache der Seite.
+    const t = useT();
+    return (
+      <ContactForm
+        accent={accent}
+        submitLabel={<EText path={`${path}.submitLabel`} value={submitLabel || t('form.submit')} />}
+        success={<EText path={`${path}.success`} value={success || t('form.success')} multiline />}
+        notice={
+          <>
+            <EText path={`${path}.notice`} value={notice || t('form.notice')} multiline />{' '}
+            <LocalLink href="/impressum#i-datenschutz" style={{ color: 'inherit', textDecoration: 'underline' }}>
+              {t('form.privacy')}
+            </LocalLink>
+          </>
+        }
+      />
+    );
+  },
 });

@@ -16,7 +16,7 @@ export interface MediaItem {
   /** Anzahl gespeicherter WebP-Varianten (0 = nur Original). */
   variants: number;
   /** Dokumente, die das Medium (live oder im Entwurf) verwenden. */
-  usedIn: { collection: string; id: string; title: string }[];
+  usedIn: { collection: string; id: string; locale: string; title: string }[];
 }
 
 /** Suche über Dateiname und Alternativtext (Groß-/Kleinschreibung egal). */
@@ -312,9 +312,12 @@ export function MediaLibrary({ initial }: { initial: MediaItem[] }) {
                 <>
                   Verwendet in:{' '}
                   {m.usedIn.map((u, i) => (
-                    <span key={`${u.collection}/${u.id}`}>
+                    <span key={`${u.collection}/${u.id}/${u.locale}`}>
                       {i > 0 && ', '}
-                      <a href={`/flow/c/${u.collection}/${u.id}`}>{u.title}</a>
+                      <a href={`/flow/c/${u.collection}/${u.id}${u.locale === 'de' ? '' : `?lang=${u.locale}`}`}>
+                        {u.title}
+                        {u.locale !== 'de' && ` (${u.locale.toUpperCase()})`}
+                      </a>
                     </span>
                   ))}
                 </>

@@ -26,6 +26,7 @@ import {
   addMediaVariants,
   cancelSchedule,
   createDoc,
+  copyFromGerman,
   createPattern,
   publishedPatterns,
   deleteDoc,
@@ -47,6 +48,7 @@ import {
   uploadMedia,
 } from './repo';
 import type { Errors } from './schema';
+import type { Locale } from '@/site/i18n/locale';
 
 /**
  * LD Flow. — Server Actions. Bewusst dünn: Anmeldung/Rechte prüft der Datenzugriff (repo.ts/auth.ts) bei jedem
@@ -141,12 +143,12 @@ export async function createDocAction(_: ActionState, fd: FormData): Promise<Act
 }
 
 /** `rev`: der Stand, den der Editor kennt (Konfliktschutz); undefined = ohne Prüfung speichern. */
-export async function saveDraftAction(collection: string, id: string, data: unknown, rev?: number) {
-  return guard(() => saveDraft(collection, id, data, rev));
+export async function saveDraftAction(collection: string, id: string, data: unknown, rev?: number, locale: Locale = 'de') {
+  return guard(() => saveDraft(collection, id, data, rev, locale));
 }
 
-export async function publishAction(collection: string, id: string, data?: unknown, rev?: number) {
-  const res = await guard(() => publishDoc(collection, id, data, rev));
+export async function publishAction(collection: string, id: string, data?: unknown, rev?: number, locale: Locale = 'de') {
+  const res = await guard(() => publishDoc(collection, id, data, rev, locale));
   if (res.ok) refreshSite();
   return res;
 }
@@ -160,24 +162,29 @@ export async function savePatternAction(title: string, global: boolean, block: u
 }
 
 /** Veröffentlichen planen (`at` = Zeitpunkt in ms, vom Browser aus der lokalen Zeit umgerechnet). */
-export async function scheduleAction(collection: string, id: string, at: number, data?: unknown, rev?: number) {
-  return guard(() => schedulePublish(collection, id, at, data, rev));
+export async function scheduleAction(collection: string, id: string, at: number, data?: unknown, rev?: number, locale: Locale = 'de') {
+  return guard(() => schedulePublish(collection, id, at, data, rev, locale));
 }
 
-export async function cancelScheduleAction(collection: string, id: string) {
-  return guard(() => cancelSchedule(collection, id));
+export async function cancelScheduleAction(collection: string, id: string, locale: Locale = 'de') {
+  return guard(() => cancelSchedule(collection, id, locale));
 }
 
-export async function revisionAction(collection: string, id: string, rid: number) {
-  return guard(() => getRevision(collection, id, rid));
+export async function revisionAction(collection: string, id: string, rid: number, locale: Locale = 'de') {
+  return guard(() => getRevision(collection, id, rid, locale));
 }
 
-export async function discardDraftAction(collection: string, id: string) {
-  return guard(() => discardDraft(collection, id));
+export async function discardDraftAction(collection: string, id: string, locale: Locale = 'de') {
+  return guard(() => discardDraft(collection, id, locale));
 }
 
-export async function unpublishAction(collection: string, id: string) {
-  const res = await guard(() => unpublishDoc(collection, id));
+/** Übersetzung neu aus der deutschen Arbeitskopie beginnen (überschreibt den englischen Entwurf). */
+export async function copyFromGermanAction(collection: string, id: string, locale: Locale = 'en') {
+  return guard(() => copyFromGerman(collection, id, locale));
+}
+
+export async function unpublishAction(collection: string, id: string, locale: Locale = 'de') {
+  const res = await guard(() => unpublishDoc(collection, id, locale));
   if (res.ok) refreshSite();
   return res;
 }
@@ -197,8 +204,8 @@ export async function moveDocAction(collection: string, id: string, dir: -1 | 1)
   return res;
 }
 
-export async function restoreRevisionAction(collection: string, id: string, rid: number) {
-  return guard(() => restoreRevision(collection, id, rid));
+export async function restoreRevisionAction(collection: string, id: string, rid: number, locale: Locale = 'de') {
+  return guard(() => restoreRevision(collection, id, rid, locale));
 }
 
 // ---- Medien ----------------------------------------------------------------------------------------------------

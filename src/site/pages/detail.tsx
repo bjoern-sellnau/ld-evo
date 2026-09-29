@@ -8,6 +8,7 @@ import overlayStyles from '../overlays/overlays.module.css';
 import styles from './detail.module.css';
 import { mediaSrcSet } from '@/cms/media';
 import { readableAlpha } from '../lib/color';
+import { useHref, useT } from '../i18n/LocaleProvider';
 
 /** Kapitel-Kopf „01 DIE AUSGANGSLAGE“ (Prototyp: Detail, Zeile 556 ff.). */
 export function Chapter({ n, label, color, first }: { n: string; label: string; color: string; first?: boolean }) {
@@ -69,6 +70,7 @@ function Slot({
   onZoom: () => void;
   style?: CSSProperties;
 }) {
+  const t = useT();
   const box: CSSProperties = {
     position: 'relative',
     height,
@@ -91,8 +93,8 @@ function Slot({
         />
         <button
           type="button"
-          title="Vergrößern"
-          aria-label={`${image.alt || label} vergrößern`}
+          title={t('detail.zoom')}
+          aria-label={t('detail.zoomItem', { label: image.alt || label })}
           onClick={onZoom}
           className={overlayStyles.zoom}
         >
@@ -104,7 +106,7 @@ function Slot({
   return (
     <div
       role="img"
-      aria-label={`${label} (Bild folgt)`}
+      aria-label={t('detail.pending', { label })}
       style={{ ...box, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
       <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.12em', color: 'var(--soft)' }}>{label.toUpperCase()}</span>
@@ -130,8 +132,9 @@ export function RelatedCard({
   meta: string;
   stripes?: boolean;
 }) {
+  const lh = useHref();
   return (
-    <a href={href} onClick={onClick} className={styles.rel} style={{ background: color, color: ink }}>
+    <a href={lh(href)} onClick={onClick} className={styles.rel} style={{ background: color, color: ink }}>
       {stripes && (
         <div
           aria-hidden

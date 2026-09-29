@@ -8,13 +8,18 @@ import { useSite } from '../settings/SiteProvider';
 import styles from './MobileMenu.module.css';
 import { useContent } from '../content/ContentProvider';
 import { isActiveHref } from './pages';
+import { useHref, useT } from '../i18n/LocaleProvider';
+import { canonicalPath } from '../i18n/locale';
+import { LanguageSwitch } from '../i18n/LanguageSwitch';
 
 const item = (delay: string): CSSProperties => ({ animation: `ldMenuItem 0.45s ${delay} cubic-bezier(0.22,1,0.32,1) both` });
 
 /** Mobile-Menü als Vollbild-Glas-Page (slide-up 0.45 s, gestaffelte Items). Markup: Prototyp Zeile 913 ff. */
 export function MobileMenu() {
   const { settings, mob, isMobile, overlay, setOverlay, toggleTheme, toggleAnim, navigate } = useSite();
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname());
+  const t = useT();
+  const href = useHref();
   // Prototyp: menuSheetItems — was nicht in der Tab-Bar steht (pflegbar in LD Flow → Navigation).
   const ITEMS = useContent().navigation.filter((n) => n.inMenu);
   const open = mob && overlay === 'mobileNav';
@@ -51,7 +56,7 @@ export function MobileMenu() {
         ref={panel}
         role="dialog"
         aria-modal="true"
-        aria-label="Menü"
+        aria-label={t('menu.label')}
         style={{
           position: 'fixed',
           ...(framed
@@ -83,7 +88,7 @@ export function MobileMenu() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, ...item('0.05s') }}>
             <LoonaTile product="ld" variant="color" size={26} decorative style={{ display: 'block' }} />
             <span style={{ fontFamily: 'var(--ld-font-mono),monospace', fontSize: 10, letterSpacing: '0.2em', color: 'var(--soft)' }}>
-              MENÜ
+              {t('menu.kicker')}
             </span>
           </div>
 
@@ -93,7 +98,7 @@ export function MobileMenu() {
               return (
                 <Link
                   key={x.href + x.label}
-                  href={x.href}
+                  href={href(x.href)}
                   onClick={go(x.href)}
                   aria-current={on ? 'page' : undefined}
                   className={styles.sheetItem}
@@ -109,15 +114,15 @@ export function MobileMenu() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 26, ...item('0.22s') }}>
-            <Tile icon={settings.theme === 'light' ? '☾' : '☀'} iconSize={17} label="THEME" onClick={toggleTheme} />
-            <Tile icon="⌕" iconSize={18} label="SUCHE" onClick={() => setOverlay('search')} />
-            <Tile icon={settings.anim ? '⏸' : '▶'} iconSize={15} label="ANIMATION" onClick={toggleAnim} pressed={!settings.anim} />
-            <Tile icon="⚙" iconSize={18} label="OPTIONEN" onClick={() => setOverlay('settings')} />
+            <Tile icon={settings.theme === 'light' ? '☾' : '☀'} iconSize={17} label={t('menu.theme')} onClick={toggleTheme} />
+            <Tile icon="⌕" iconSize={18} label={t('menu.search')} onClick={() => setOverlay('search')} />
+            <Tile icon={settings.anim ? '⏸' : '▶'} iconSize={15} label={t('menu.anim')} onClick={toggleAnim} pressed={!settings.anim} />
+            <Tile icon="⚙" iconSize={18} label={t('menu.options')} onClick={() => setOverlay('settings')} />
           </div>
 
           <div style={{ marginTop: 'auto', paddingTop: 26, ...item('0.3s') }}>
             <button type="button" onClick={() => setOverlay('kontakt')} className={styles.kontakt}>
-              Kontakt aufnehmen
+              {t('menu.contact')}
             </button>
             <div
               style={{
@@ -131,6 +136,7 @@ export function MobileMenu() {
               }}
             >
               <span>© 2026 BJÖRN SELLNAU</span>
+              <LanguageSwitch variant="mono" />
               <span>/// THE WEB. MY PASSION</span>
             </div>
           </div>

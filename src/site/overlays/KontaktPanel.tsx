@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSite } from '../settings/SiteProvider';
 import { ModalOverlay } from './GlassPanel';
 import styles from './overlays.module.css';
+import { useT } from '../i18n/LocaleProvider';
 
 const MAIL = 'info@loona-designs.de';
 
@@ -13,21 +14,30 @@ export function KontaktPanel() {
   const [name, setName] = useState('');
   const [mail, setMail] = useState('');
   const [msg, setMsg] = useState('');
+  const t = useT();
   if (overlay !== 'kontakt') return null;
 
   const href =
     `mailto:${MAIL}?subject=` +
-    encodeURIComponent(`Anfrage über loona-designs — ${name || 'Portfolio'}`) +
+    encodeURIComponent(t('contact.subject', { name: name || 'Portfolio' })) +
     '&body=' +
     encodeURIComponent(`${msg}\n\n— ${name}${mail ? ` (${mail})` : ''}`);
 
   return (
-    <ModalOverlay label="Kontakt" onClose={() => setOverlay(null)} align="center" width={440} radius="var(--radL,22px)" padding="26px 28px">
+    <ModalOverlay
+      label={t('contact.label')}
+      onClose={() => setOverlay(null)}
+      align="center"
+      width={440}
+      radius="var(--radL,22px)"
+      padding="26px 28px"
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 style={{ fontSize: 21, fontWeight: 700, margin: 0 }}>
-          Sag hallo<span style={{ color: 'var(--accent)' }}>.</span>
+          {t('contact.title')}
+          <span style={{ color: 'var(--accent)' }}>.</span>
         </h2>
-        <button type="button" onClick={() => setOverlay(null)} aria-label="Schließen" className={styles.close}>
+        <button type="button" onClick={() => setOverlay(null)} aria-label={t('contact.close')} className={styles.close}>
           ✕
         </button>
       </div>
@@ -35,16 +45,16 @@ export function KontaktPanel() {
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Dein Name"
-          aria-label="Dein Name"
+          placeholder={t('contact.name')}
+          aria-label={t('contact.name')}
           autoComplete="name"
           className={styles.field}
         />
         <input
           value={mail}
           onChange={(e) => setMail(e.target.value)}
-          placeholder="Deine E-Mail"
-          aria-label="Deine E-Mail"
+          placeholder={t('contact.email')}
+          aria-label={t('contact.email')}
           type="email"
           autoComplete="email"
           className={styles.field}
@@ -52,16 +62,16 @@ export function KontaktPanel() {
         <textarea
           value={msg}
           onChange={(e) => setMsg(e.target.value)}
-          placeholder="Worum geht's?"
-          aria-label="Nachricht"
+          placeholder={t('contact.messagePh')}
+          aria-label={t('contact.message')}
           rows={4}
           className={styles.field}
           style={{ resize: 'vertical' }}
         />
         <a href={href} className={styles.send}>
-          Nachricht senden ✉
+          {t('contact.send')}
         </a>
-        <div style={{ fontSize: 10.5, color: 'var(--soft)', textAlign: 'center' }}>öffnet dein Mail-Programm — an {MAIL}</div>
+        <div style={{ fontSize: 10.5, color: 'var(--soft)', textAlign: 'center' }}>{t('contact.hint', { mail: MAIL })}</div>
       </div>
       <div style={{ display: 'flex', gap: 10, marginTop: 16, borderTop: '1px solid var(--hair)', paddingTop: 16 }}>
         <a href="https://github.com/bjoern-sellnau/" target="_blank" rel="noopener noreferrer" className={styles.social}>

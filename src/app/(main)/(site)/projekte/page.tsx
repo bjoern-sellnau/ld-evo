@@ -1,9 +1,5 @@
-import type { Metadata } from 'next';
-import { alternatesFor } from '@/site/seo/seo';
-import { CatalogPage } from '@/site/pages/CatalogPage';
+import { catalogRoute } from '@/site/routes';
 
-export const metadata: Metadata = { alternates: alternatesFor('/projekte') };
-
-export default function Page() {
-  return <CatalogPage kind="projekte" />;
-}
+const r = catalogRoute('projekte', 'de');
+export const generateMetadata = r.generateMetadata;
+export default r.Page;

@@ -192,7 +192,7 @@ check('Planen: im Dashboard gelistet', (await p.locator('.f-kicker', { hasText: 
 {
   const { DatabaseSync } = await import('node:sqlite');
   const sdb = new DatabaseSync(process.env.LDFLOW_DB);
-  sdb.prepare("UPDATE docs SET publish_at = ? WHERE collection = 'home'").run(Date.now() - 1000);
+  sdb.prepare("UPDATE docs SET publish_at = ? WHERE collection = 'home' AND locale = 'de'").run(Date.now() - 1000);
   sdb.close();
 }
 check(
@@ -344,13 +344,73 @@ check(
   check('Aufräum-Job gelaufen', !!(await sql((d) => d.prepare("SELECT value FROM meta WHERE key = 'maintenance_at'").get())));
 }
 
+// Mehrsprachigkeit: /en zeigt die englische UI; Inhalte fallen auf Deutsch zurück (lang="de", noindex), bis die
+// Übersetzung in LD Flow veröffentlicht ist. Englische Startinhalte liegen als Entwurf bereit (content/en).
+{
+  const en = await ctx.newPage();
+  watchCsp(en);
+  en.on('pageerror', (e) => errs.push(`EN: ${e.message}`));
+  await en.goto(U + '/en/labs/corefall');
+  const robots = async () =>
+    (await en
+      .locator('meta[name="robots"]')
+      .getAttribute('content')
+      .catch(() => null)) ?? '';
+  check(
+    'EN: lang=en, englische UI, deutscher Rückfall ausgezeichnet und noindex',
+    (await en.getAttribute('html', 'lang')) === 'en' &&
+      (await en.getByRole('button', { name: 'Contact', exact: true }).count()) > 0 &&
+      (await en.locator('#inhalt [lang="de"]:not([hreflang])').count()) > 0 &&
+      (await robots()).includes('noindex'),
+  );
+  const enDraft = await sql((d) =>
+    JSON.parse(d.prepare("SELECT draft FROM docs WHERE collection = 'projects' AND id = 'corefall' AND locale = 'en'").get().draft),
+  );
+  await p.goto(U + '/flow/c/projects/corefall?lang=en');
+  await fr.locator('[data-flow-field="desc"]').first().waitFor({ timeout: 20000 });
+  check(
+    'EN-Editor: Übersetzungsentwurf im Formular, englische Vorschau',
+    (await p.getByLabel('Kurzbeschreibung').inputValue()) === enDraft.desc &&
+      (await p.locator('iframe[title=Vorschau]').getAttribute('src')).startsWith('/en/flow-preview/') &&
+      (await fr.locator('html').getAttribute('lang')) === 'en',
+  );
+  await p.getByRole('button', { name: 'Veröffentlichen' }).click();
+  await p.locator('.f-editor-bar .f-msg.ok').waitFor();
+  await en.goto(U + '/en/labs/corefall');
+  check(
+    'EN veröffentlicht → englischer Inhalt live, indexierbar',
+    (await en.locator('body').innerText()).includes(enDraft.desc.slice(0, 40)) &&
+      (await en.locator('#inhalt [lang="de"]:not([hreflang])').count()) === 0 &&
+      !(await robots()).includes('noindex'),
+  );
+  await en.goto(U + '/labs/corefall');
+  check(
+    'DE unverändert + hreflang auf die Übersetzung',
+    !(await en.locator('body').innerText()).includes(enDraft.desc.slice(0, 40)) &&
+      (await en.locator('link[rel="alternate"][hreflang="en"]').getAttribute('href')).endsWith('/en/labs/corefall'),
+  );
+  await en.getByRole('link', { name: 'English', exact: true }).click();
+  await en.waitForURL('**/en/labs/corefall');
+  check('Sprachumschalter führt zur selben Seite', (await en.getAttribute('html', 'lang')) === 'en');
+  const sm = await (await ctx.request.get(U + '/sitemap.xml')).text();
+  check('Sitemap: englische Seite nur mit Übersetzung', sm.includes('/en/labs/corefall') && !sm.includes('/en/labs/covert'));
+  await p.goto(U + '/flow/c/projects');
+  check(
+    'Liste zeigt Übersetzungsstand',
+    (await p.locator('tr', { hasText: 'corefall' }).locator('a[href$="?lang=en"] .f-badge.live').count()) === 1,
+  );
+  await en.close();
+}
+
 // Gleichzeitiges Bearbeiten: jemand anders speichert dazwischen → kein Überschreiben, bewusste Entscheidung
 await p.goto(U + '/flow/c/home/home');
 await fr.locator('[data-flow-field="intro"]').waitFor({ timeout: 20000 });
-await sql((d) => d.prepare("UPDATE docs SET updated_at = ?, updated_by = 'rita@example.com' WHERE collection = 'home'").run(Date.now()));
+await sql((d) =>
+  d.prepare("UPDATE docs SET updated_at = ?, updated_by = 'rita@example.com' WHERE collection = 'home' AND locale = 'de'").run(Date.now()),
+);
 await p.getByLabel('Einleitung').fill('Konflikt-Test.');
 await p.locator('.f-msg[role=alert]', { hasText: 'rita@example.com' }).waitFor({ timeout: 8000 });
-const homeDraft = () => sql((d) => d.prepare("SELECT draft FROM docs WHERE collection = 'home'").get()?.draft ?? '');
+const homeDraft = () => sql((d) => d.prepare("SELECT draft FROM docs WHERE collection = 'home' AND locale = 'de'").get()?.draft ?? '');
 check('Konflikt erkannt, nichts überschrieben', !(await homeDraft()).includes('Konflikt-Test.'));
 p.once('dialog', (d) => d.accept());
 await p.getByRole('button', { name: 'Trotzdem speichern' }).click();
@@ -419,10 +479,10 @@ check('Nicht-Bild abgelehnt', (await alert().textContent()).includes('Nur'));
 const bigId = bigSrc.split('/').pop();
 await sql((d) => d.prepare('DELETE FROM media_variants WHERE media_id = ?').run(bigId));
 await sql((d) => {
-  const r = d.prepare("SELECT published FROM docs WHERE collection = 'pages' AND id = 'kontakt-info'").get();
+  const r = d.prepare("SELECT published FROM docs WHERE collection = 'pages' AND id = 'kontakt-info' AND locale = 'de'").get();
   const doc = JSON.parse(r.published);
   doc.blocks.push({ type: 'image', _id: 'imgtest01', image: { src: bigSrc, alt: 'Test' } });
-  d.prepare("UPDATE docs SET draft = ? WHERE collection = 'pages' AND id = 'kontakt-info'").run(JSON.stringify(doc));
+  d.prepare("UPDATE docs SET draft = ? WHERE collection = 'pages' AND id = 'kontakt-info' AND locale = 'de'").run(JSON.stringify(doc));
 });
 await p.goto(U + '/flow/media');
 await p.fill('input[aria-label="Medien durchsuchen"]', 'gross');

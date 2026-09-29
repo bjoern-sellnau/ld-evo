@@ -26,6 +26,13 @@ const SITE = [
   '/projekte/neuewebsite',
   '/labs/corefall',
   '/tech/a1',
+  // Englisch (UI übersetzt; Inhalte bis zur Freigabe als deutscher Rückfall mit lang="de")
+  '/en',
+  '/en/projects',
+  '/en/about',
+  '/en/journey',
+  '/en/imprint',
+  '/en/labs/corefall',
 ];
 const FLOW_PUBLIC = ['/flow/login', '/flow/forgot'];
 const FLOW_APP = [
@@ -33,6 +40,7 @@ const FLOW_APP = [
   '/flow/c/home/home',
   '/flow/c/projects',
   '/flow/c/projects/corefall',
+  '/flow/c/projects/corefall?lang=en',
   '/flow/media',
   '/flow/messages',
   '/flow/stats',

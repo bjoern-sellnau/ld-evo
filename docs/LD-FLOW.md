@@ -157,6 +157,26 @@ Formular, Validierung, Speichern und Vorschau ergeben sich automatisch aus der D
   Setup-Token, WYSIWYG-Sync, Entwurf vs. live, neue Seite, reservierte Kennungen, Navigation, Widgets, Kontaktformular,
   geplantes Veröffentlichen, Bildvarianten, Passwort-Reset, Logout, Sperre. Braucht **frischen Build und frische DB**.
 
+## Mehrsprachigkeit (Deutsch · Englisch)
+
+- **Adressen:** Deutsch an der Wurzel (`/projekte`), Englisch unter `/en` mit englischen Abschnittsnamen
+  (`/en/projects`, `/en/about`, `/en/journey`, `/en/imprint`; `labs`/`tech` gleich). Einzelseiten behalten ihren
+  Kurznamen. Die eine Routentabelle ist `src/site/i18n/locale.ts` — Links, Navigation, hreflang, Sitemap und der
+  Sprachumschalter (Footer, mobiles Menü, Einstellungen) lesen daraus. Pfade werden immer **deutsch** gespeichert
+  (z. B. Menüpunkt `/ueber-mich`); die Site übersetzt sie beim Anzeigen.
+- **Inhalte:** Jedes Dokument gibt es je Sprache (Tabelle `docs`, Spalte `locale`). Deutsch ist das Original und trägt
+  die Struktur (Anlegen, Reihenfolge, Löschen in allen Sprachen); Englisch hat eigenen Entwurf, eigene Live-Fassung,
+  Versionen und Zeitplan. Im Editor oben **Deutsch · Original / English**; die Liste zeigt je Eintrag den Stand
+  („— fehlt“, „Entwurf“, „Live“, „veraltet“ = Deutsch wurde nach der englischen Veröffentlichung geändert).
+  „Aus Deutsch übernehmen“ setzt den englischen Entwurf auf den deutschen Stand (Bilder/Struktur; Texte übersetzen).
+- **Rückfall:** Ohne veröffentlichte englische Fassung zeigt `/en` die deutsche — mit `lang="de"` ausgezeichnet und
+  `noindex`; die deutsche Seite verweist dann nicht per hreflang auf Englisch, die Sitemap lässt sie aus.
+- **Startinhalte:** `content/en/*.ts` ist ein Übersetzungsentwurf (gleiche Struktur/IDs, Test „Englische
+  Startinhalte“). Er wird einmalig je Datenbank als ENTWURF angelegt — live erst nach Prüfung. Ausnahme: die
+  Menü-Beschriftungen (Navigation) sind UI-Texte und sofort live.
+- **UI-Texte** (Buttons, Hinweise, Beschriftungen): `src/site/i18n/dict.ts`, beide Sprachen Pflicht (TypeScript prüft).
+  LD Flow selbst bleibt deutsch.
+
 ## Offene Punkte
 
 - Mehrere Server-Instanzen: SQLite ist für eine Instanz gedacht; für horizontales Skalieren den Speicher in
@@ -165,7 +185,8 @@ Formular, Validierung, Speichern und Vorschau ergeben sich automatisch aus der D
   erwähnen — die Texte pflegst du in LD Flow unter „Impressum & Datenschutz“.
 - Optional später: experimentelles SRI (`experimental.sri`) könnte der Site eine
   strengere Policy ohne `'unsafe-inline'` erlauben — erst prüfen, wenn es stabil ist.
-- Mehrsprachigkeit ist nicht umgesetzt — es gibt keine Quelltexte in anderen Sprachen; vorher klären: Sprachen,
-  URL-Schema (`/en/…`), wer übersetzt, `hreflang`.
+- Englische Übersetzung prüfen: Die Startinhalte liegen als Entwurf in LD Flow (Übersetzungsentwurf, siehe
+  „Mehrsprachigkeit“). Auffällig: Die deutsche Datenschutzerklärung hat eine Überschrift „Sicherheitsmaßnahmen“ über
+  einem Absatz zur Aktualisierung der Erklärung — im Original prüfen.
 - Bildvarianten entstehen im Browser beim Upload; ältere Uploads (vor dieser Funktion) haben keine und werden im
   Original ausgeliefert.

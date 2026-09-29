@@ -12,6 +12,7 @@ import { useSite } from '../settings/SiteProvider';
 import { ScrollRail, useScrollSpy } from './ScrollRail';
 import detailStyles from './detail.module.css';
 import { mediaSrcSet } from '@/cms/media';
+import { useHref, useLocale, useT } from '../i18n/LocaleProvider';
 
 const h2: CSSProperties = { fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', margin: 0 };
 const para: CSSProperties = { margin: '12px 0 0', fontSize: 15, lineHeight: 1.75, color: 'var(--muted)' };
@@ -20,8 +21,11 @@ const para: CSSProperties = { margin: '12px 0 0', fontSize: 15, lineHeight: 1.75
 export function AboutPage() {
   const { settings: s, mob, navigate } = useSite();
   const { about } = useContent();
+  const t = useT();
+  const lh = useHref();
+  const locale = useLocale();
   // Alles aus LD Flow; Rail, Bildreihenfolge und Bildzeilen werden aus den Stationen abgeleitet.
-  const model = useMemo(() => buildAbout(about), [about]);
+  const model = useMemo(() => buildAbout(about, locale), [about, locale]);
   const { stations: STATIONS, loonaProjects: LOONA_PROJECTS, images, captions: ABOUT_CAPTIONS, rail: ABOUT_RAIL, imageFor } = model;
   const RAIL_IDS = useMemo(() => ABOUT_RAIL.map((r) => r.id), [ABOUT_RAIL]);
   const active = useScrollSpy(RAIL_IDS);
@@ -67,7 +71,7 @@ export function AboutPage() {
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.12em', color: 'var(--soft)' }} title={img.placeholder}>
-                      FOTO FOLGT
+                      {t('about.photoPending')}
                     </span>
                   </div>
                 )}
@@ -109,7 +113,7 @@ export function AboutPage() {
           </section>
 
           <section id="u-vita" style={{ marginTop: 64 }}>
-            <h2 style={h2}>Vita</h2>
+            <h2 style={h2}>{t('about.vita')}</h2>
             {about.vita.map((p, i) => (
               <p key={i} style={{ ...para, marginTop: i === 0 ? 14 : 12 }}>
                 <EText path={`vita.${i}`} value={p} multiline />
@@ -118,7 +122,7 @@ export function AboutPage() {
           </section>
 
           <section id="u-werkzeuge" style={{ marginTop: 64 }}>
-            <h2 style={h2}>Werkzeuge</h2>
+            <h2 style={h2}>{t('about.tools')}</h2>
             <ul style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '16px 0 0', padding: 0, listStyle: 'none' }}>
               {about.tools.map((t) => (
                 <li
@@ -139,7 +143,7 @@ export function AboutPage() {
           </section>
 
           <section id="u-skills" style={{ marginTop: 64 }}>
-            <h2 style={h2}>Skills</h2>
+            <h2 style={h2}>{t('about.skills')}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : '1fr 1fr', gap: 12, marginTop: 16 }}>
               {about.skills.map((g) => (
                 <div key={g.titel} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 18 }}>
@@ -167,7 +171,7 @@ export function AboutPage() {
           </section>
 
           <section id="u-zertifikate" style={{ marginTop: 64 }}>
-            <h2 style={h2}>Zertifikate</h2>
+            <h2 style={h2}>{t('about.certs')}</h2>
             <ul
               style={{
                 background: 'var(--card)',
@@ -194,7 +198,7 @@ export function AboutPage() {
           </section>
 
           <section id="u-stationen" style={{ marginTop: 64 }}>
-            <h2 style={h2}>Stationen</h2>
+            <h2 style={h2}>{t('about.stations')}</h2>
             {STATIONS.map((st) => (
               <div
                 key={st.anchor}
@@ -239,7 +243,7 @@ export function AboutPage() {
                   <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 400, color: 'var(--soft)' }}>/// the web. my passion</span>
                 </h2>
                 <span style={{ marginLeft: 'auto', fontFamily: mono, fontSize: 10.5, color: 'var(--soft)', whiteSpace: 'nowrap' }}>
-                  seit 2001
+                  {t('about.since')}
                 </span>
               </div>
               <p style={{ margin: '14px 0 0', fontSize: 14.5, lineHeight: 1.7, color: 'var(--muted)' }}>
@@ -249,7 +253,7 @@ export function AboutPage() {
                 <ProjectBox key={sp.anchor} sp={sp} />
               ))}
               <Link
-                href="/labs"
+                href={lh('/labs')}
                 onClick={(e) => {
                   if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
                   e.preventDefault();
@@ -258,13 +262,13 @@ export function AboutPage() {
                 className={detailStyles.textLink}
                 style={{ display: 'inline-block', marginTop: 16, color: 'var(--accent)' }}
               >
-                Zu den Labs ›
+                {t('about.toLabs')}
               </Link>
             </div>
           </section>
         </div>
       </div>
-      <ScrollRail targets={ABOUT_RAIL} active={active} label="Abschnitte" />
+      <ScrollRail targets={ABOUT_RAIL} active={active} label={t('about.rail')} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { RichInline, RichText } from '@/cms/schema';
+import { LocalLink } from '@/site/i18n/LocalLink';
 
 const mono = 'var(--ld-font-mono),monospace';
 
@@ -13,7 +14,12 @@ function Inline({ c }: { c: RichInline[] }) {
         if (x.b) n = <strong style={{ color: 'var(--ink)' }}>{n}</strong>;
         if (x.href) {
           const ext = /^https?:/i.test(x.href);
-          n = (
+          // Interne Links (kanonisch gespeichert) in die Adresse der aktuellen Sprache übersetzen.
+          n = x.href.startsWith('/') ? (
+            <LocalLink href={x.href} style={{ color: 'var(--accent)' }}>
+              {n}
+            </LocalLink>
+          ) : (
             <a href={x.href} style={{ color: 'var(--accent)' }} {...(ext ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
               {n}
             </a>

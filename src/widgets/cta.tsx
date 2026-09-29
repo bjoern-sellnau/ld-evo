@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import { EText } from '@/site/cms/editing';
 import detailStyles from '@/site/pages/detail.module.css';
 import { defineWidget, link, segment, text } from './define';
+import { LocalLink } from '@/site/i18n/LocalLink';
 
 export default defineWidget({
   id: 'cta',
@@ -27,7 +27,7 @@ export default defineWidget({
   },
   render: ({ label, href, path, controls }) => (
     <div style={{ textAlign: controls.align === 'mitte' ? 'center' : 'left' }}>
-      <Link
+      <LocalLink
         href={href || '#'}
         className={detailStyles.pill}
         style={
@@ -37,7 +37,7 @@ export default defineWidget({
         }
       >
         <EText path={`${path}.label`} value={label} />
-      </Link>
+      </LocalLink>
     </div>
   ),
 });

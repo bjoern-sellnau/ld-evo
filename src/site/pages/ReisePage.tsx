@@ -6,6 +6,7 @@ import { LoonaTile } from '@/components/brand';
 import { useContent } from '../content/ContentProvider';
 import { useSite } from '../settings/SiteProvider';
 import { mediaSrcSet } from '@/cms/media';
+import { useT } from '../i18n/LocaleProvider';
 
 const mono = 'var(--ld-font-mono),monospace';
 const GAP = 172; // depthGap-Default des Prototyps
@@ -28,6 +29,7 @@ type IntroPhase = 'run' | 'out' | 'done';
 export function ReisePage() {
   const { settings, hydrated } = useSite();
   const JOURNEY = useContent().journey;
+  const t = useT();
   const LAST = JOURNEY.length - 1;
   const rm = !settings.anim; // reduceMotion = Animationen aus (Prototyp: reiseReduce)
   const [cur, setCur] = useState(rm ? LAST : 0);
@@ -492,7 +494,7 @@ export function ReisePage() {
         {/* Jahres-Rail rechts */}
         <nav
           data-ldt-rail="1"
-          aria-label="Stationen"
+          aria-label={t('journey.stations')}
           onWheel={(e) => e.stopPropagation()}
           style={{
             position: 'absolute',
@@ -517,7 +519,7 @@ export function ReisePage() {
             <button
               type="button"
               onClick={() => step(-1)}
-              aria-label="Frühere Station"
+              aria-label={t('journey.earlier')}
               disabled={cur === 0}
               className="ldt-btn"
               style={{ ...roundBtn, opacity: cur === 0 ? 0.4 : 1, pointerEvents: cur === 0 ? 'none' : 'auto' }}
@@ -527,7 +529,7 @@ export function ReisePage() {
             <button
               type="button"
               onClick={() => step(1)}
-              aria-label="Spätere Station"
+              aria-label={t('journey.later')}
               disabled={cur === LAST}
               className="ldt-btn"
               style={{ ...roundBtn, opacity: cur === LAST ? 0.4 : 1, pointerEvents: cur === LAST ? 'none' : 'auto' }}
@@ -535,7 +537,7 @@ export function ReisePage() {
               ↑
             </button>
           </div>
-          <span style={railLabel}>Heute</span>
+          <span style={railLabel}>{t('journey.today')}</span>
           {JOURNEY.map((y, i) => ({ y, i }))
             .reverse()
             .map(({ y, i }) => {
@@ -639,7 +641,7 @@ export function ReisePage() {
                 </span>
               );
             })}
-          <span style={railLabel}>Start</span>
+          <span style={railLabel}>{t('journey.start')}</span>
         </nav>
 
         {/* Info-Panel links */}
@@ -647,7 +649,7 @@ export function ReisePage() {
         <section
           id="ldt-panel"
           tabIndex={0}
-          aria-label={`Station ${st.year}`}
+          aria-label={t('journey.station', { year: st.year })}
           style={{
             position: 'absolute',
             left: 30,
@@ -720,7 +722,7 @@ export function ReisePage() {
               <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.62, color: 'var(--tmut)' }}>{st.story}</p>
             </div>
             <div style={{ marginTop: 15, paddingTop: 14, borderTop: '1px solid var(--thair)' }}>
-              <div style={sectionLabel}>Tech-Stack dieser Station</div>
+              <div style={sectionLabel}>{t('journey.stack')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gridTemplateRows: 'repeat(3,42px)', gap: 7 }}>
                 {st.stack.slice(0, 5).map((name, j) => {
                   const p = BENTO[j] ?? BENTO[4];
@@ -752,7 +754,7 @@ export function ReisePage() {
                             color: 'rgba(36,20,0,0.62)',
                           }}
                         >
-                          Kern-Stack
+                          {t('journey.coreStack')}
                         </span>
                       )}
                       <span
@@ -772,10 +774,10 @@ export function ReisePage() {
               </div>
             </div>
             <div style={{ marginTop: 15, paddingTop: 14, borderTop: '1px solid var(--thair)' }}>
-              <div style={sectionLabel}>Einblicke</div>
+              <div style={sectionLabel}>{t('journey.insights')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <MiniSlot media={mini1} label="Bild/Video 1" />
-                <MiniSlot media={mini2} label="Bild/Video 2" />
+                <MiniSlot media={mini1} label={t('journey.media1')} />
+                <MiniSlot media={mini2} label={t('journey.media2')} />
               </div>
             </div>
           </div>
@@ -798,7 +800,7 @@ export function ReisePage() {
         >
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, fontFamily: mono }}>
             <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#FFB224' }}>
-              STATION {String(cur + 1).padStart(2, '0')} / {JOURNEY.length}
+              {t('journey.counter', { n: String(cur + 1).padStart(2, '0'), total: JOURNEY.length })}
             </span>
             <span style={{ fontSize: 11, color: 'var(--tsoft)' }}>
               {st.role} · {st.partner}
@@ -836,7 +838,7 @@ export function ReisePage() {
                 textDecoration: 'none',
               }}
             >
-              Projekt starten →
+              {t('journey.cta')}
             </a>
           </div>
         </div>
@@ -858,7 +860,7 @@ export function ReisePage() {
               animation: rm ? 'none' : 'ldtFloat 4s ease-in-out infinite',
             }}
           >
-            ↕ SCROLLEN · ← → PFEILTASTEN · EBENE WÄHLEN
+            {t('journey.hint')}
           </div>
         )}
 
@@ -958,7 +960,7 @@ export function ReisePage() {
                 backdropFilter: 'blur(10px)',
               }}
             >
-              Überspringen →
+              {t('journey.skip')}
             </button>
           </div>
         )}

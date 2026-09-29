@@ -2,6 +2,11 @@
 
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useEditing } from '@/site/cms/editing';
+import { useLocale, useT } from '@/site/i18n/LocaleProvider';
+import type { UiKey } from '@/site/i18n/dict';
+
+/** Feldfehler des Servers (deutsch) in der Sprache der Seite. */
+const FIELD_ERROR: Record<string, UiKey> = { name: 'form.errName', email: 'form.errEmail', message: 'form.errMessage' };
 
 type State = { kind: 'idle' | 'sending' | 'sent' } | { kind: 'error'; text: string; field?: string };
 
@@ -34,6 +39,8 @@ export function ContactForm({
   accent: string;
 }) {
   const editing = useEditing();
+  const t = useT();
+  const locale = useLocale();
   const [state, setState] = useState<State>({ kind: 'idle' });
   const shownAt = useRef(0);
   const uid = useId(); // mehrere Formulare auf einer Seite → eindeutige IDs
@@ -73,10 +80,14 @@ export function ContactForm({
           });
           const data = (await res.json().catch(() => null)) as { ok?: boolean; error?: string; field?: string } | null;
           if (data?.ok) setState({ kind: 'sent' });
-          else
-            setState({ kind: 'error', text: data?.error ?? 'Senden gerade nicht möglich — bitte per E-Mail melden.', field: data?.field });
+          else {
+            const field = data?.field;
+            const text =
+              locale === 'de' && data?.error ? data.error : field && FIELD_ERROR[field] ? t(FIELD_ERROR[field]) : t('form.failed');
+            setState({ kind: 'error', text, field });
+          }
         } catch {
-          setState({ kind: 'error', text: 'Senden gerade nicht möglich — bitte per E-Mail melden.' });
+          setState({ kind: 'error', text: t('form.failed') });
         }
       }}
       style={{ display: 'grid', gap: 14 }}
@@ -84,7 +95,7 @@ export function ContactForm({
       <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         <div>
           <label htmlFor={`${uid}-name`} style={label}>
-            Name
+            {t('form.name')}
           </label>
           <input
             id={`${uid}-name`}
@@ -98,7 +109,7 @@ export function ContactForm({
         </div>
         <div>
           <label htmlFor={`${uid}-email`} style={label}>
-            E-Mail
+            {t('form.email')}
           </label>
           <input
             id={`${uid}-email`}
@@ -114,7 +125,7 @@ export function ContactForm({
       </div>
       <div>
         <label htmlFor={`${uid}-msg`} style={label}>
-          Nachricht
+          {t('form.message')}
         </label>
         <textarea
           id={`${uid}-msg`}

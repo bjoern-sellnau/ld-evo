@@ -3,8 +3,8 @@
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isDetailPath, useSite } from '../settings/SiteProvider';
-
-const FULL = '‹ Zurück';
+import { useT } from '../i18n/LocaleProvider';
+import { canonicalPath } from '../i18n/locale';
 
 /**
  * Zurück-Pille auf Detailseiten (Prototyp: navBack / typeBack / typeBackOut / backGo):
@@ -13,9 +13,10 @@ const FULL = '‹ Zurück';
  */
 export function useBack() {
   const { from, navigate, settings } = useSite();
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname());
+  const FULL = useT()('nav.backPill');
   const show = isDetailPath(pathname);
-  const [text, setText] = useState(FULL);
+  const [text, setText] = useState<string>(FULL);
   const timer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const wasDetail = useRef(show);
 
@@ -32,7 +33,7 @@ export function useBack() {
       setText(FULL.slice(0, i));
       if (i >= FULL.length) clearInterval(timer.current);
     }, 55);
-  }, [show, settings.anim]);
+  }, [show, settings.anim, FULL]);
 
   useEffect(() => () => clearInterval(timer.current), []);
 
@@ -52,7 +53,7 @@ export function useBack() {
         done();
       }
     }, 36);
-  }, [navigate, target, settings.anim]);
+  }, [navigate, target, settings.anim, FULL]);
 
   // Cover-Farbe-Vollmodus: Zurück in Textfarbe statt Akzent.
   const color = settings.coverFull ? 'var(--ink)' : 'var(--accent)';

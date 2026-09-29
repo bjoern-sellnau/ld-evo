@@ -5,6 +5,7 @@ import { db, tx } from './db';
 import { VARIANT_WIDTHS, webpSize } from './media';
 import { commitPublish } from './publish';
 import { COLLECTIONS, RESERVED_SLUGS, SLUG_RE, emptyDoc, validateDoc, type Errors } from './schema';
+import { isLocale, type Locale } from '@/site/i18n/locale';
 
 /**
  * LD Flow. — Datenzugriff (Data Access Layer). Jede schreibende Funktion prüft Anmeldung/Rolle selbst;
@@ -59,41 +60,100 @@ function assertCollection(c: string) {
   if (!COLLECTIONS[c]) throw new Error('Unbekannte Collection');
 }
 
+/**
+ * Sprachen: Jedes Dokument gibt es je Sprache als eigene Zeile (docs.locale). Deutsch ist das Original und trägt die
+ * Struktur (Position, Anlegen, Löschen); Englisch ist die Übersetzung desselben Dokuments mit eigenem Entwurf,
+ * eigener Live-Fassung, eigenen Versionen und eigenem Zeitplan. Fehlt die englische Live-Fassung, zeigt die
+ * englische Site die deutsche (Rückfall).
+ */
+const lc = (l: unknown): Locale => (isLocale(l) ? l : 'de');
+
 // ---------------------------------------------------------------------------------------------------------------
 // Öffentliche Lesezugriffe (nur veröffentlichte Fassungen) — für die Site
 // ---------------------------------------------------------------------------------------------------------------
 
-export function publishedDocs(collection: string): (Record<string, unknown> & { id: string })[] {
+/** Kennzeichnung eines Rückfalls: das Dokument erscheint auf der englischen Site in deutscher Fassung. */
+export const FALLBACK_KEY = '_lang';
+
+export function publishedDocs(collection: string, locale: Locale = 'de'): (Record<string, unknown> & { id: string })[] {
   assertCollection(collection);
   const rows = db()
-    .prepare('SELECT id, published FROM docs WHERE collection = ? AND published IS NOT NULL ORDER BY position, id')
-    .all(collection) as { id: string; published: string }[];
-  return rows.map((r) => ({ ...JSON.parse(r.published), id: r.id }));
+    .prepare(
+      `SELECT d.id, COALESCE(t.published, d.published) AS published, (t.published IS NULL AND ? <> 'de') AS fallback
+       FROM docs d LEFT JOIN docs t ON t.collection = d.collection AND t.id = d.id AND t.locale = ?
+       WHERE d.collection = ? AND d.locale = 'de' AND COALESCE(t.published, d.published) IS NOT NULL
+       ORDER BY d.position, d.id`,
+    )
+    .all(locale, locale, collection) as { id: string; published: string; fallback: number }[];
+  return rows.map((r) => ({ ...JSON.parse(r.published), id: r.id, ...(r.fallback ? { [FALLBACK_KEY]: 'de' } : {}) }));
 }
 
-export function publishedDoc(collection: string, id: string): (Record<string, unknown> & { id: string }) | null {
+export function publishedDoc(collection: string, id: string, locale: Locale = 'de'): (Record<string, unknown> & { id: string }) | null {
   assertCollection(collection);
-  const r = db().prepare('SELECT published FROM docs WHERE collection = ? AND id = ? AND published IS NOT NULL').get(collection, id) as
-    { published: string } | undefined;
-  return r ? { ...JSON.parse(r.published), id } : null;
+  const get = (l: Locale) =>
+    (
+      db()
+        .prepare('SELECT published FROM docs WHERE collection = ? AND id = ? AND locale = ? AND published IS NOT NULL')
+        .get(collection, id, l) as { published: string } | undefined
+    )?.published;
+  const own = get(locale);
+  if (own) return { ...JSON.parse(own), id };
+  const de = locale === 'de' ? undefined : get('de');
+  return de ? { ...JSON.parse(de), id, [FALLBACK_KEY]: 'de' } : null;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
 // Redaktion
 // ---------------------------------------------------------------------------------------------------------------
 
+/** Dokumente einer Collection (deutsche Zeilen = Struktur und Reihenfolge). */
 export async function listDocs(collection: string): Promise<DocRow[]> {
   await requireUser();
   assertCollection(collection);
-  const rows = db().prepare('SELECT * FROM docs WHERE collection = ? ORDER BY position, id').all(collection) as unknown as RawRow[];
+  const rows = db()
+    .prepare("SELECT * FROM docs WHERE collection = ? AND locale = 'de' ORDER BY position, id")
+    .all(collection) as unknown as RawRow[];
   return rows.map(toRow);
 }
 
-export async function getDoc(collection: string, id: string): Promise<DocRow | null> {
+export async function getDoc(collection: string, id: string, locale: Locale = 'de'): Promise<DocRow | null> {
   await requireUser();
   assertCollection(collection);
-  const r = db().prepare('SELECT * FROM docs WHERE collection = ? AND id = ?').get(collection, id) as RawRow | undefined;
+  const r = db().prepare('SELECT * FROM docs WHERE collection = ? AND id = ? AND locale = ?').get(collection, id, lc(locale)) as
+    RawRow | undefined;
   return r ? toRow(r) : null;
+}
+
+/** Stand der Übersetzung je Dokument (für Listen und den Sprachumschalter im Editor). */
+export interface TranslationState {
+  /** none = noch keine englische Fassung; draft = nur Entwurf; live = veröffentlicht (ggf. mit neuerem Entwurf). */
+  state: 'none' | 'draft' | 'live';
+  hasDraft: boolean;
+  /** Deutsche Live-Fassung ist neuer als die englische → Übersetzung prüfen. */
+  outdated: boolean;
+}
+
+export async function translationStates(collection: string, locale: Locale = 'en'): Promise<Record<string, TranslationState>> {
+  await requireUser();
+  assertCollection(collection);
+  const rows = db()
+    .prepare(
+      `SELECT d.id, t.id IS NOT NULL AS has, t.published IS NOT NULL AS live, t.draft IS NOT NULL AS draft,
+         COALESCE(d.published_at, 0) > COALESCE(t.published_at, 0) AS outdated
+       FROM docs d LEFT JOIN docs t ON t.collection = d.collection AND t.id = d.id AND t.locale = ?
+       WHERE d.collection = ? AND d.locale = 'de'`,
+    )
+    .all(lc(locale), collection) as { id: string; has: number; live: number; draft: number; outdated: number }[];
+  return Object.fromEntries(
+    rows.map((r) => [
+      r.id,
+      {
+        state: r.live ? 'live' : r.draft ? 'draft' : 'none',
+        hasDraft: !!r.draft,
+        outdated: !!r.live && !!r.outdated,
+      } satisfies TranslationState,
+    ]),
+  );
 }
 
 /** Arbeitskopie = Entwurf, sonst die veröffentlichte Fassung. */
@@ -108,10 +168,11 @@ type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string; error
  * anders gespeichert, wird nicht überschrieben — der Editor zeigt, wer wann geändert hat. `expectedRev` undefined
  * = ohne Prüfung (z. B. „trotzdem speichern“). Aufruf synchron direkt vor dem Schreiben (kein await dazwischen).
  */
-function conflictWith(collection: string, id: string, expectedRev: number | undefined) {
+function conflictWith(collection: string, id: string, locale: Locale, expectedRev: number | undefined) {
   if (expectedRev === undefined) return null;
-  const r = db().prepare('SELECT updated_at, updated_by FROM docs WHERE collection = ? AND id = ?').get(collection, id) as
-    { updated_at: number; updated_by: string | null } | undefined;
+  const r = db()
+    .prepare('SELECT updated_at, updated_by FROM docs WHERE collection = ? AND id = ? AND locale = ?')
+    .get(collection, id, locale) as { updated_at: number; updated_by: string | null } | undefined;
   if (!r || r.updated_at === expectedRev) return null;
   return {
     ok: false as const,
@@ -120,9 +181,29 @@ function conflictWith(collection: string, id: string, expectedRev: number | unde
   };
 }
 
-const revOf = (collection: string, id: string) =>
-  (db().prepare('SELECT updated_at FROM docs WHERE collection = ? AND id = ?').get(collection, id) as { updated_at: number } | undefined)
-    ?.updated_at ?? 0;
+const revOf = (collection: string, id: string, locale: Locale) =>
+  (
+    db().prepare('SELECT updated_at FROM docs WHERE collection = ? AND id = ? AND locale = ?').get(collection, id, locale) as
+      { updated_at: number } | undefined
+  )?.updated_at ?? 0;
+
+/**
+ * Übersetzungszeile anlegen, falls es sie noch nicht gibt (nur zu einem bestehenden deutschen Dokument). Leer —
+ * Inhalte kommen per Entwurf oder „Aus Deutsch übernehmen“.
+ */
+function ensureTranslationRow(collection: string, id: string, locale: Locale, by: string): boolean {
+  if (locale === 'de') return !!db().prepare("SELECT 1 FROM docs WHERE collection = ? AND id = ? AND locale = 'de'").get(collection, id);
+  const de = db().prepare("SELECT position FROM docs WHERE collection = ? AND id = ? AND locale = 'de'").get(collection, id) as
+    { position: number } | undefined;
+  if (!de) return false;
+  const now = Date.now();
+  db()
+    .prepare(
+      'INSERT OR IGNORE INTO docs (collection, id, locale, position, published, draft, created_at, updated_at, updated_by) VALUES (?, ?, ?, ?, NULL, NULL, ?, ?, ?)',
+    )
+    .run(collection, id, locale, de.position, now, now, by);
+  return true;
+}
 
 export async function createDoc(
   collection: string,
@@ -141,8 +222,11 @@ export async function createDoc(
   const exists = db().prepare('SELECT 1 FROM docs WHERE collection = ? AND id = ?').get(collection, id);
   if (exists) return { ok: false, error: 'Diese Kennung ist schon vergeben.' };
   const now = Date.now();
-  const pos = (db().prepare('SELECT COALESCE(MAX(position), -1) + 1 AS p FROM docs WHERE collection = ?').get(collection) as { p: number })
-    .p;
+  const pos = (
+    db().prepare("SELECT COALESCE(MAX(position), -1) + 1 AS p FROM docs WHERE collection = ? AND locale = 'de'").get(collection) as {
+      p: number;
+    }
+  ).p;
   const data = emptyDoc(collection, template);
   // Seite aus einer Vorlage starten: deren Widgets als unabhängige Kopie übernehmen.
   if (fromPattern && 'blocks' in data) {
@@ -151,42 +235,78 @@ export async function createDoc(
   }
   db()
     .prepare(
-      'INSERT INTO docs (collection, id, position, published, draft, created_at, updated_at, updated_by) VALUES (?, ?, ?, NULL, ?, ?, ?, ?)',
+      "INSERT INTO docs (collection, id, locale, position, published, draft, created_at, updated_at, updated_by) VALUES (?, ?, 'de', ?, NULL, ?, ?, ?, ?)",
     )
     .run(collection, id, pos, JSON.stringify(data), now, now, user.email);
   return { ok: true, id };
 }
 
-/** Entwurf speichern (validiert, aber noch nicht live). */
-export async function saveDraft(collection: string, id: string, input: unknown, expectedRev?: number): Promise<Result<{ rev: number }>> {
+/** Entwurf speichern (validiert, aber noch nicht live). Englisch: legt die Übersetzung bei Bedarf an. */
+export async function saveDraft(
+  collection: string,
+  id: string,
+  input: unknown,
+  expectedRev?: number,
+  locale: Locale = 'de',
+): Promise<Result<{ rev: number }>> {
   const user = await requireUser();
   assertCollection(collection);
+  const l = lc(locale);
   const { value, errors } = validateDoc(collection, input);
   // Entwürfe dürfen unvollständig sein — nur Formatfehler blockieren; Pflichtfelder prüft erst das Veröffentlichen.
   const blocking = Object.fromEntries(Object.entries(errors).filter(([, m]) => m !== 'Pflichtfeld'));
   if (Object.keys(blocking).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors: blocking };
-  const conflict = conflictWith(collection, id, expectedRev);
+  const conflict = conflictWith(collection, id, l, expectedRev);
   if (conflict) return conflict;
+  if (!ensureTranslationRow(collection, id, l, user.email)) return { ok: false, error: 'Eintrag nicht gefunden.' };
   const now = Date.now();
   const res = db()
-    .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ?')
-    .run(JSON.stringify(value), now, user.email, collection, id);
+    .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ? AND locale = ?')
+    .run(JSON.stringify(value), now, user.email, collection, id, l);
   if (!res.changes) return { ok: false, error: 'Eintrag nicht gefunden.' };
   return { ok: true, rev: now };
 }
 
-/** Entwurf (bzw. übergebene Daten) veröffentlichen; alte Live-Fassung wandert in die Versionen. */
-export async function publishDoc(collection: string, id: string, input?: unknown, expectedRev?: number): Promise<Result<{ rev: number }>> {
+/**
+ * Übersetzung aus der deutschen Arbeitskopie neu beginnen: Der englische Entwurf wird mit dem deutschen Inhalt
+ * überschrieben (Bilder, Farben, Struktur übernommen; Texte dann übersetzen). Live-Fassung bleibt unberührt.
+ */
+export async function copyFromGerman(collection: string, id: string, locale: Locale = 'en'): Promise<Result<{ rev: number }>> {
   const user = await requireUser();
   assertCollection(collection);
-  const row = await getDoc(collection, id);
+  const l = lc(locale);
+  if (l === 'de') return { ok: false, error: 'Nur für Übersetzungen.' };
+  const de = await getDoc(collection, id, 'de');
+  if (!de) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  ensureTranslationRow(collection, id, l, user.email);
+  const now = Date.now();
+  db()
+    .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ? AND locale = ?')
+    .run(JSON.stringify(workingCopy(de)), now, user.email, collection, id, l);
+  return { ok: true, rev: now };
+}
+
+/** Entwurf (bzw. übergebene Daten) veröffentlichen; alte Live-Fassung wandert in die Versionen. */
+export async function publishDoc(
+  collection: string,
+  id: string,
+  input?: unknown,
+  expectedRev?: number,
+  locale: Locale = 'de',
+): Promise<Result<{ rev: number }>> {
+  const user = await requireUser();
+  assertCollection(collection);
+  const l = lc(locale);
+  if (!ensureTranslationRow(collection, id, l, user.email)) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  const row = await getDoc(collection, id, l);
   if (!row) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  if (input === undefined && !row.draft && !row.published) return { ok: false, error: 'Noch kein Inhalt in dieser Sprache.' };
   const { value, errors } = validateDoc(collection, input ?? workingCopy(row));
   if (Object.keys(errors).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors };
-  const conflict = conflictWith(collection, id, expectedRev);
+  const conflict = conflictWith(collection, id, l, expectedRev);
   if (conflict) return conflict;
-  commitPublish(collection, id, value, user.email);
-  return { ok: true, rev: revOf(collection, id) };
+  commitPublish(collection, id, value, user.email, l);
+  return { ok: true, rev: revOf(collection, id, l) };
 }
 
 /** Frühester/spätester Zeitpunkt fürs Planen (1 Minute Vorlauf, höchstens ein Jahr). */
@@ -203,29 +323,36 @@ export async function schedulePublish(
   at: number,
   input?: unknown,
   expectedRev?: number,
+  locale: Locale = 'de',
 ): Promise<Result<{ rev: number }>> {
   const user = await requireUser();
   assertCollection(collection);
+  const l = lc(locale);
   const now = Date.now();
   if (!Number.isFinite(at) || at < now + SCHEDULE_MIN)
     return { ok: false, error: 'Zeitpunkt muss mindestens eine Minute in der Zukunft liegen.' };
   if (at > now + SCHEDULE_MAX) return { ok: false, error: 'Höchstens ein Jahr im Voraus planen.' };
-  const row = await getDoc(collection, id);
+  if (!ensureTranslationRow(collection, id, l, user.email)) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  const row = await getDoc(collection, id, l);
   if (!row) return { ok: false, error: 'Eintrag nicht gefunden.' };
   const { value, errors } = validateDoc(collection, input ?? workingCopy(row));
   if (Object.keys(errors).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors };
-  const conflict = conflictWith(collection, id, expectedRev);
+  const conflict = conflictWith(collection, id, l, expectedRev);
   if (conflict) return conflict;
   db()
-    .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ?, publish_at = ?, publish_by = ? WHERE collection = ? AND id = ?')
-    .run(JSON.stringify(value), now, user.email, Math.round(at), user.email, collection, id);
+    .prepare(
+      'UPDATE docs SET draft = ?, updated_at = ?, updated_by = ?, publish_at = ?, publish_by = ? WHERE collection = ? AND id = ? AND locale = ?',
+    )
+    .run(JSON.stringify(value), now, user.email, Math.round(at), user.email, collection, id, l);
   return { ok: true, rev: now };
 }
 
-export async function cancelSchedule(collection: string, id: string): Promise<Result> {
+export async function cancelSchedule(collection: string, id: string, locale: Locale = 'de'): Promise<Result> {
   await requireUser();
   assertCollection(collection);
-  db().prepare('UPDATE docs SET publish_at = NULL, publish_by = NULL WHERE collection = ? AND id = ?').run(collection, id);
+  db()
+    .prepare('UPDATE docs SET publish_at = NULL, publish_by = NULL WHERE collection = ? AND id = ? AND locale = ?')
+    .run(collection, id, lc(locale));
   return { ok: true };
 }
 
@@ -235,34 +362,41 @@ export async function listScheduled() {
   return plain(
     db()
       .prepare(
-        'SELECT collection, id, publish_at AS publishAt, publish_by AS publishBy FROM docs WHERE publish_at IS NOT NULL ORDER BY publish_at',
+        'SELECT collection, id, locale, publish_at AS publishAt, publish_by AS publishBy FROM docs WHERE publish_at IS NOT NULL ORDER BY publish_at',
       )
-      .all() as { collection: string; id: string; publishAt: number; publishBy: string | null }[],
+      .all() as { collection: string; id: string; locale: Locale; publishAt: number; publishBy: string | null }[],
   );
 }
 
-export async function discardDraft(collection: string, id: string): Promise<Result> {
+export async function discardDraft(collection: string, id: string, locale: Locale = 'de'): Promise<Result> {
   await requireUser();
   assertCollection(collection);
   const r = db()
-    .prepare('UPDATE docs SET draft = NULL, publish_at = NULL, publish_by = NULL WHERE collection = ? AND id = ? AND published IS NOT NULL')
-    .run(collection, id);
+    .prepare(
+      'UPDATE docs SET draft = NULL, publish_at = NULL, publish_by = NULL WHERE collection = ? AND id = ? AND locale = ? AND published IS NOT NULL',
+    )
+    .run(collection, id, lc(locale));
   return r.changes ? { ok: true } : { ok: false, error: 'Nichts zu verwerfen (noch nie veröffentlicht).' };
 }
 
-/** Von der Site nehmen, Inhalt bleibt als Entwurf erhalten. */
-export async function unpublishDoc(collection: string, id: string): Promise<Result<{ rev: number }>> {
+/**
+ * Von der Site nehmen, Inhalt bleibt als Entwurf erhalten. Übersetzungen dürfen auch bei Singletons offline gehen —
+ * die englische Site zeigt dann wieder die deutsche Fassung.
+ */
+export async function unpublishDoc(collection: string, id: string, locale: Locale = 'de'): Promise<Result<{ rev: number }>> {
   const user = await requireUser();
   const def = COLLECTIONS[collection];
-  if (!def || def.kind === 'singleton') return { ok: false, error: 'Singletons bleiben immer online.' };
+  const l = lc(locale);
+  if (!def || (def.kind === 'singleton' && l === 'de')) return { ok: false, error: 'Singletons bleiben immer online.' };
   const r = db()
     .prepare(
-      'UPDATE docs SET draft = COALESCE(draft, published), published = NULL, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ?',
+      'UPDATE docs SET draft = COALESCE(draft, published), published = NULL, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ? AND locale = ?',
     )
-    .run(Date.now(), user.email, collection, id);
-  return r.changes ? { ok: true, rev: revOf(collection, id) } : { ok: false, error: 'Eintrag nicht gefunden.' };
+    .run(Date.now(), user.email, collection, id, l);
+  return r.changes ? { ok: true, rev: revOf(collection, id, l) } : { ok: false, error: 'Eintrag nicht gefunden.' };
 }
 
+/** Löscht das Dokument in allen Sprachen samt Versionen. */
 export async function deleteDoc(collection: string, id: string): Promise<Result> {
   await requireUser('admin');
   const def = COLLECTIONS[collection];
@@ -281,6 +415,7 @@ export async function moveDoc(collection: string, id: string, dir: -1 | 1): Prom
   const j = i + dir;
   if (i < 0 || j < 0 || j >= rows.length) return { ok: true };
   tx(() => {
+    // Reihenfolge gilt für alle Sprachen.
     const upd = db().prepare('UPDATE docs SET position = ? WHERE collection = ? AND id = ?');
     rows.forEach((r, k) => upd.run(k === i ? j : k === j ? i : k, collection, r.id));
   });
@@ -295,7 +430,7 @@ export async function createPattern(title: string, block: unknown, global: boole
   const base = t
     .toLowerCase()
     .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 40);
@@ -306,49 +441,60 @@ export async function createPattern(title: string, block: unknown, global: boole
   return res.ok ? { ok: true, id } : res;
 }
 
-export function publishedPatterns() {
-  return publishedDocs('patterns');
+export function publishedPatterns(locale: Locale = 'de') {
+  return publishedDocs('patterns', locale);
 }
 
-export async function listRevisions(collection: string, id: string) {
+export async function listRevisions(collection: string, id: string, locale: Locale = 'de') {
   await requireUser();
   return plain(
     db()
       .prepare(
-        'SELECT rid, created_at AS createdAt, created_by AS createdBy FROM revisions WHERE collection = ? AND doc_id = ? ORDER BY rid DESC',
+        'SELECT rid, created_at AS createdAt, created_by AS createdBy FROM revisions WHERE collection = ? AND doc_id = ? AND locale = ? ORDER BY rid DESC',
       )
-      .all(collection, id) as { rid: number; createdAt: number; createdBy: string | null }[],
+      .all(collection, id, lc(locale)) as { rid: number; createdAt: number; createdBy: string | null }[],
   );
 }
 
 /** Inhalt einer Version (für den Vergleich im Editor). */
-export async function getRevision(collection: string, id: string, rid: number): Promise<Result<{ data: Record<string, unknown> }>> {
+export async function getRevision(
+  collection: string,
+  id: string,
+  rid: number,
+  locale: Locale = 'de',
+): Promise<Result<{ data: Record<string, unknown> }>> {
   await requireUser();
   assertCollection(collection);
-  const r = db().prepare('SELECT data FROM revisions WHERE rid = ? AND collection = ? AND doc_id = ?').get(rid, collection, id) as
-    { data: string } | undefined;
+  const r = db()
+    .prepare('SELECT data FROM revisions WHERE rid = ? AND collection = ? AND doc_id = ? AND locale = ?')
+    .get(rid, collection, id, lc(locale)) as { data: string } | undefined;
   return r ? { ok: true, data: JSON.parse(r.data) as Record<string, unknown> } : { ok: false, error: 'Version nicht gefunden.' };
 }
 
 /** Version als Entwurf zurückholen (zum Prüfen, danach veröffentlichen). */
-export async function restoreRevision(collection: string, id: string, rid: number): Promise<Result> {
+export async function restoreRevision(collection: string, id: string, rid: number, locale: Locale = 'de'): Promise<Result> {
   const user = await requireUser();
-  const r = db().prepare('SELECT data FROM revisions WHERE rid = ? AND collection = ? AND doc_id = ?').get(rid, collection, id) as
-    { data: string } | undefined;
+  const l = lc(locale);
+  const r = db()
+    .prepare('SELECT data FROM revisions WHERE rid = ? AND collection = ? AND doc_id = ? AND locale = ?')
+    .get(rid, collection, id, l) as { data: string } | undefined;
   if (!r) return { ok: false, error: 'Version nicht gefunden.' };
   db()
-    .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ?')
-    .run(r.data, Date.now(), user.email, collection, id);
+    .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ? AND locale = ?')
+    .run(r.data, Date.now(), user.email, collection, id, l);
   return { ok: true };
 }
 
+/** Zähler je Collection (deutsch) plus offene Übersetzungen (englischer Entwurf vorhanden). */
 export async function counts() {
   await requireUser();
   const rows = db()
     .prepare(
-      `SELECT collection, COUNT(*) AS n, SUM(draft IS NOT NULL) AS drafts, SUM(published IS NULL) AS offline FROM docs GROUP BY collection`,
+      `SELECT collection, SUM(locale = 'de') AS n, SUM(locale = 'de' AND draft IS NOT NULL) AS drafts,
+         SUM(locale = 'de' AND published IS NULL) AS offline, SUM(locale = 'en' AND draft IS NOT NULL) AS enDrafts
+       FROM docs GROUP BY collection`,
     )
-    .all() as { collection: string; n: number; drafts: number; offline: number }[];
+    .all() as { collection: string; n: number; drafts: number; offline: number; enDrafts: number }[];
   return Object.fromEntries(rows.map((r) => [r.collection, r]));
 }
 
@@ -425,14 +571,16 @@ export async function uploadMedia(file: File, alt: string, variants: File[] = []
 export interface MediaUse {
   collection: string;
   id: string;
+  locale: Locale;
   title: string;
 }
 
 /** Wo wird welches Medium verwendet? (veröffentlichte Fassungen und Entwürfe aller Dokumente) */
 function mediaUsage(): Map<string, MediaUse[]> {
-  const rows = db().prepare('SELECT collection, id, published, draft FROM docs').all() as {
+  const rows = db().prepare('SELECT collection, id, locale, published, draft FROM docs').all() as {
     collection: string;
     id: string;
+    locale: Locale;
     published: string | null;
     draft: string | null;
   }[];
@@ -444,7 +592,7 @@ function mediaUsage(): Map<string, MediaUse[]> {
     const def = COLLECTIONS[r.collection];
     const data = parse(r.draft) ?? parse(r.published) ?? {};
     const t = def && typeof data[def.titleField] === 'string' ? (data[def.titleField] as string) : '';
-    const use = { collection: r.collection, id: r.id, title: t || def?.singular || r.id };
+    const use = { collection: r.collection, id: r.id, locale: r.locale, title: t || def?.singular || r.id };
     for (const mid of ids) out.set(mid, [...(out.get(mid) ?? []), use]);
   }
   return out;

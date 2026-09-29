@@ -4,6 +4,8 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { isDetailPath, useSite } from '../settings/SiteProvider';
 import styles from './chrome.module.css';
+import { useT } from '../i18n/LocaleProvider';
+import { canonicalPath } from '../i18n/locale';
 
 /**
  * Scroll-Scrim (Scroll-BG: weicher Blur-Verlauf hinter der Nav ab 24 px, nur mit Auto-Kontrast),
@@ -13,7 +15,8 @@ import styles from './chrome.module.css';
  */
 export function ScrollChrome() {
   const { settings, mob, isMobile, sideActive } = useSite();
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname());
+  const t = useT();
   const detail = isDetailPath(pathname);
   const bar = useRef<HTMLDivElement>(null);
   const [showTop, setShowTop] = useState(false);
@@ -80,8 +83,8 @@ export function ScrollChrome() {
       {showTop && (
         <button
           type="button"
-          title="Nach oben"
-          aria-label="Nach oben"
+          title={t('chrome.toTop')}
+          aria-label={t('chrome.toTop')}
           onClick={() => window.scrollTo({ top: 0, behavior: settings.anim ? 'smooth' : 'auto' })}
           className={styles.toTop}
           style={{ right: mob && !isMobile ? 'calc(50vw - 202px)' : 24, bottom: mob ? 92 : 24 }}

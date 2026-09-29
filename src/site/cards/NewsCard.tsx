@@ -7,6 +7,7 @@ import { articleHref } from '../lib/routes';
 import { useSite } from '../settings/SiteProvider';
 import styles from './cards.module.css';
 import { mono, useOpenItem } from './ProjectCard';
+import { useHref, useT } from '../i18n/LocaleProvider';
 
 /**
  * News-Karte der Startseite (Prototyp Zeile 452 ff., mkArt). Kategorie in Artikelfarbe, bei dunkler Farbe Amber —
@@ -17,9 +18,11 @@ export function NewsCard({ a }: { a: Article }) {
   const href = articleHref(a);
   const onClick = useOpenItem(href, a.id);
   const katColor = inkOn(a.color) === '#FFFFFF' ? 'var(--accent)' : a.color;
+  const lh = useHref();
+  const t = useT();
   return (
     <Link
-      href={href}
+      href={lh(href)}
       onClick={onClick}
       className={styles.card}
       style={{
@@ -51,7 +54,7 @@ export function NewsCard({ a }: { a: Article }) {
       </div>
       <div style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.3, flex: 1 }}>{a.titel}</div>
       <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.6 }}>{a.teaser}</div>
-      <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--accent)' }}>Lesen ›</span>
+      <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--accent)' }}>{t('card.read')}</span>
     </Link>
   );
 }

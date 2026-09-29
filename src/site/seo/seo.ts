@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { translate } from '../i18n/dict';
+import { localizePath, ogLocale, type Locale } from '../i18n/locale';
 
 /**
  * Suchmaschinen-Helfer: absolute URLs, Metadaten je Seite, strukturierte Daten (JSON-LD, schema.org).
@@ -9,13 +11,29 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 export const absUrl = (path: string) => `${SITE_URL}${BASE}${path === '/' ? '' : path}` || SITE_URL;
 
+/** RSS des .Tech-Blogs je Sprache (/tech/feed.xml bzw. /en/tech/feed.xml). */
+export const feedAlternate = (locale: Locale) => ({
+  'application/rss+xml': [{ url: `${BASE}${localizePath('/tech/feed.xml', locale)}`, title: translate(locale, 'seo.feedTitle') }],
+});
+
 /**
- * Canonical-URL plus RSS-Hinweis. Next ersetzt `alternates` je Seite komplett — ohne die `types` hier verlöre jede Seite
- * mit eigener Canonical-URL den Feed-Link aus dem Layout.
+ * Canonical-URL, Sprachversionen (hreflang) und RSS-Hinweis. `path` ist kanonisch (deutsch). Next ersetzt `alternates`
+ * je Seite komplett — ohne die `types` hier verlöre jede Seite mit eigener Canonical-URL den Feed-Link aus dem Layout.
+ * `translated` = es gibt eine echte englische Fassung; sonst verweist die deutsche Seite nicht auf Englisch (die
+ * englische zeigt dann nur den deutschen Rückfall und ist noindex, siehe pageMeta).
  */
-export const alternatesFor = (path: string) => ({
-  canonical: absUrl(path),
-  types: { 'application/rss+xml': [{ url: `${BASE}/tech/feed.xml`, title: '.Tech — der Blog' }] },
+export const alternatesFor = (path: string, locale: Locale = 'de', translated = true) => ({
+  canonical: absUrl(localizePath(path, locale)),
+  ...(translated
+    ? {
+        languages: {
+          de: absUrl(localizePath(path, 'de')),
+          en: absUrl(localizePath(path, 'en')),
+          'x-default': absUrl(localizePath(path, 'de')),
+        },
+      }
+    : {}),
+  types: feedAlternate(locale),
 });
 
 /** Personendaten nur aus vorhandenen Quellen: content/home.ts (Name), Footer/Kontakt-Panel (Profile), Impressum (Ort). */
@@ -38,25 +56,33 @@ export function isoMonth(datum: string): string | undefined {
  * locale hier wiederholen; das Bild kommt aus opengraph-image.tsx bzw. dem Layout.
  */
 export function pageMeta(o: {
-  title: string;
+  title?: string;
   description?: string;
+  /** Kanonischer (deutscher) Pfad. */
   path: string;
   type?: 'website' | 'article';
   noindex?: boolean;
+  locale?: Locale;
+  /** Englische Fassung vorhanden? (Standard: ja) — englische Seiten ohne Übersetzung sind noindex. */
+  translated?: boolean;
 }): Metadata {
+  const locale = o.locale ?? 'de';
+  const translated = o.translated ?? true;
+  const noindex = o.noindex || (locale !== 'de' && !translated);
   return {
-    title: o.title,
-    description: o.description,
-    alternates: alternatesFor(o.path),
+    ...(o.title ? { title: o.title } : {}),
+    ...(o.description ? { description: o.description } : {}),
+    alternates: alternatesFor(o.path, locale, translated),
     openGraph: {
-      title: o.title,
-      description: o.description,
-      url: absUrl(o.path),
+      ...(o.title ? { title: o.title } : {}),
+      ...(o.description ? { description: o.description } : {}),
+      url: absUrl(localizePath(o.path, locale)),
       siteName: 'Loona! Designs',
-      locale: 'de_DE',
+      locale: ogLocale(locale),
+      ...(translated ? { alternateLocale: [ogLocale(locale === 'de' ? 'en' : 'de')] } : {}),
       type: o.type ?? 'website',
     },
-    ...(o.noindex ? { robots: { index: false } } : {}),
+    ...(noindex ? { robots: { index: false } } : {}),
   };
 }
 

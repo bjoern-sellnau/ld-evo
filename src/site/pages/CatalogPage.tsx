@@ -8,13 +8,17 @@ import styles from './catalog.module.css';
 import { inkOn, readableAlpha } from '../lib/color';
 import { projectHref } from '../lib/routes';
 import { useSite } from '../settings/SiteProvider';
+import { useHref, useT } from '../i18n/LocaleProvider';
 
 const TRANS = 'transform 0.6s cubic-bezier(0.3,0.8,0.3,1)';
 
 const COPY = {
-  projekte: { kicker: 'PROJEKTE — DAS PORTFOLIO', title: 'Webseiten, Shops und Spiele seit 2002 — die Arbeiten der Loona!-Plattform.' },
-  labs: { kicker: 'LABS — DIE WERKBANK', title: 'Experimente in Arbeit — zuschauen erlaubt.' },
+  projekte: { kicker: 'catalog.projectsKicker', title: 'catalog.projectsTitle' },
+  labs: { kicker: 'catalog.labsKicker', title: 'catalog.labsTitle' },
 } as const;
+
+/** Filter „Alle“ (Beschriftung je Sprache). */
+const ALL = '';
 
 /**
  * Endlos-Slider der Featured-Items (Prototyp: advanceSlide): Klon des ersten Slides am Ende; beim Erreichen
@@ -66,9 +70,10 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
   const { projects } = useContent();
   const cat = projects.filter((p) => p.kind === kind);
   const slides = cat.filter((p) => p.featured);
-  const kats = ['Alle', ...cat.map((p) => p.kat).filter((v, i, a) => a.indexOf(v) === i)];
-  const [filter, setFilter] = useState('Alle');
-  const grid = cat.filter((p) => filter === 'Alle' || p.kat === filter);
+  const t = useT();
+  const kats = [ALL, ...cat.map((p) => p.kat).filter((v, i, a) => a.indexOf(v) === i)];
+  const [filter, setFilter] = useState(ALL);
+  const grid = cat.filter((p) => filter === ALL || p.kat === filter);
   const slider = useSlider(slides.length, settings.anim && overlay === null);
   const touch = useRef<{ x: number; y: number } | null>(null);
 
@@ -92,14 +97,14 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
   return (
     <div data-screen-label="Katalog" style={{ paddingTop: mob && settings.mobModern ? 84 : 140 }}>
       <h1 style={{ fontFamily: mono, fontSize: 11, fontWeight: 400, letterSpacing: '0.18em', color: 'var(--accent)', margin: 0 }}>
-        {COPY[kind].kicker}
+        {t(COPY[kind].kicker)}
       </h1>
-      <p style={{ fontSize: 15, color: 'var(--muted)', margin: '8px 0 0', maxWidth: 560, lineHeight: 1.6 }}>{COPY[kind].title}</p>
+      <p style={{ fontSize: 15, color: 'var(--muted)', margin: '8px 0 0', maxWidth: 560, lineHeight: 1.6 }}>{t(COPY[kind].title)}</p>
 
       {slides.length > 0 && (
         <section
-          aria-roledescription="Karussell"
-          aria-label="Ausgewählte Arbeiten"
+          aria-roledescription={t('catalog.carousel')}
+          aria-label={t('catalog.featured')}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           style={{
@@ -117,10 +122,10 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
               <Slide key={`${p.id}-${i}`} p={p} mob={mob} hidden={i !== slider.slide} />
             ))}
           </div>
-          <button type="button" aria-label="Vorheriges Projekt" onClick={() => slider.go(-1)} className={styles.arrow} style={{ left: 14 }}>
+          <button type="button" aria-label={t('catalog.prev')} onClick={() => slider.go(-1)} className={styles.arrow} style={{ left: 14 }}>
             ‹
           </button>
-          <button type="button" aria-label="Nächstes Projekt" onClick={() => slider.go(1)} className={styles.arrow} style={{ right: 14 }}>
+          <button type="button" aria-label={t('catalog.next')} onClick={() => slider.go(1)} className={styles.arrow} style={{ right: 14 }}>
             ›
           </button>
           <span aria-hidden style={{ position: 'absolute', top: 14, right: 14, width: 36, height: 36, pointerEvents: 'none' }}>
@@ -148,7 +153,7 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
               <button
                 key={p.id}
                 type="button"
-                aria-label={`Slide ${i + 1}: ${p.name}`}
+                aria-label={t('catalog.slide', { n: i + 1, name: p.name })}
                 aria-current={i === active}
                 onClick={() => slider.jump(i)}
                 className={styles.dot}
@@ -160,7 +165,7 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
         </section>
       )}
 
-      <div role="group" aria-label="Kategorie filtern" style={{ display: 'flex', gap: 8, margin: '34px 0 22px', flexWrap: 'wrap' }}>
+      <div role="group" aria-label={t('catalog.filter')} style={{ display: 'flex', gap: 8, margin: '34px 0 22px', flexWrap: 'wrap' }}>
         {kats.map((k) => {
           const on = filter === k;
           return (
@@ -176,7 +181,7 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
                 color: on ? 'var(--on-accent)' : 'var(--muted)',
               }}
             >
-              {k}
+              {k === ALL ? t('catalog.all') : k}
             </button>
           );
         })}
@@ -192,6 +197,8 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
 }
 
 function Slide({ p, mob, hidden }: { p: Project; mob: boolean; hidden: boolean }) {
+  const t = useT();
+  const lh = useHref();
   const href = projectHref(p);
   const onClick = useOpenItem(href, p.id);
   const ink = inkOn(p.color);
@@ -218,8 +225,8 @@ function Slide({ p, mob, hidden }: { p: Project; mob: boolean; hidden: boolean }
         <h2 style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.025em', margin: 0 }}>{p.name}</h2>
         <div style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.65, maxWidth: 400 }}>{p.desc}</div>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginTop: 10 }}>
-          <a href={href} onClick={onClick} className={styles.caseBtn}>
-            Case ansehen ›
+          <a href={lh(href)} onClick={onClick} className={styles.caseBtn}>
+            {t('catalog.viewCase')}
           </a>
           {p.link && (
             <a
@@ -228,7 +235,7 @@ function Slide({ p, mob, hidden }: { p: Project; mob: boolean; hidden: boolean }
               rel="noopener noreferrer"
               style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)', textDecoration: 'none' }}
             >
-              {p.linkLabel || 'Jetzt spielen ↗'}
+              {p.linkLabel || t('catalog.play')}
             </a>
           )}
         </div>

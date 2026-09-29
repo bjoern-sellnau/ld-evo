@@ -15,6 +15,8 @@ export interface ListRow {
   updatedAt: number;
   updatedBy: string | null;
   href: string | null;
+  /** Englische Übersetzung: none | draft | live, ggf. veraltet (deutsch neuer veröffentlicht). */
+  en?: { state: 'none' | 'draft' | 'live'; outdated: boolean };
 }
 
 export function CollectionList({
@@ -100,6 +102,7 @@ export function CollectionList({
               <th>Titel</th>
               <th>Kennung</th>
               <th>Status</th>
+              <th>Englisch</th>
               <th>Geändert</th>
               <th aria-label="Reihenfolge" />
             </tr>
@@ -107,7 +110,7 @@ export function CollectionList({
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ color: 'var(--f-soft)' }}>
+                <td colSpan={6} style={{ color: 'var(--f-soft)' }}>
                   Noch keine Einträge.
                 </td>
               </tr>
@@ -129,6 +132,19 @@ export function CollectionList({
                     {r.live ? <span className="f-badge live">● Live</span> : <span className="f-badge off">○ Offline</span>}
                     {r.draft && <span className="f-badge draft">Entwurf</span>}
                   </span>
+                </td>
+                <td>
+                  <Link href={`/flow/c/${collection}/${r.id}?lang=en`} className="f-row" style={{ gap: 6, textDecoration: 'none' }}>
+                    {r.en?.state === 'live' ? (
+                      <span className="f-badge live">● Live</span>
+                    ) : r.en?.state === 'draft' ? (
+                      <span className="f-badge draft">Entwurf</span>
+                    ) : (
+                      <span className="f-badge off">— fehlt</span>
+                    )}
+                    {r.en?.outdated && <span className="f-badge draft">veraltet</span>}
+                    <span className="f-visually-hidden">englische Fassung von {r.title} bearbeiten</span>
+                  </Link>
                 </td>
                 <td style={{ fontSize: 12, color: 'var(--f-soft)', whiteSpace: 'nowrap' }}>
                   {new Date(r.updatedAt).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })}

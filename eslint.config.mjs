@@ -121,7 +121,7 @@ export default defineConfig([
   {
     // Geprüfte Ausnahmen: Theme-Boot-Skript (konstant, CSP-Hash), generiertes Orbit-/Skizzen-Markup, JSON-LD mit Escaping.
     files: [
-      'src/app/(main)/layout.tsx',
+      'src/site/RootDocument.tsx',
       'src/app/(orbit)/orbit/OrbitWallpaper.tsx',
       'src/site/splash/Splash.tsx',
       'src/site/seo/JsonLd.tsx',

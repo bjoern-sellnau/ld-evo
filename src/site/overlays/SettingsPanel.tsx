@@ -9,6 +9,10 @@ import { useSite } from '../settings/SiteProvider';
 import { ACCENTS, type Settings } from '../settings/schema';
 import { GlassLayers, panelGlass } from './GlassPanel';
 import styles from './settings.module.css';
+import { useRouter, usePathname } from 'next/navigation';
+import { useLocale } from '../i18n/LocaleProvider';
+import { switchLocalePath, type Locale } from '../i18n/locale';
+import { LANGUAGE_NAME } from '../i18n/LanguageSwitch';
 
 // Segment-Reihenfolge der Hero-Modi wie im Prototyp (heroSegs).
 const HERO_SEGS = [
@@ -87,6 +91,109 @@ const STYLE_OPTS = [
   ['liquid', 'Liquid'],
 ] as const;
 
+/**
+ * Beschriftungen des Panels: deutsch im Code (Prototyp), englisch über diese Tabelle. Row/Seg/Toggle/Range übersetzen
+ * ihre Texte selbst; unbekannte (Eigennamen wie „Flow“, „Liquid“) bleiben unverändert.
+ */
+const EN_LABELS: Record<string, string> = {
+  '30 fps Hero': '30 fps hero',
+  Akzentfarbe: 'Accent color',
+  Animationen: 'Animations',
+  Ansicht: 'View',
+  'Aurora-Preset': 'Aurora preset',
+  'Auto-Kontrast': 'Auto contrast',
+  Blitzgewitter: 'Thunderstorm',
+  Breite: 'Width',
+  'Browser-Farbe': 'Browser color',
+  'Browser-Farbe (theme-color)': 'Browser color (theme-color)',
+  'Cinematic-Text 1': 'Cinematic text 1',
+  'Cinematic-Text 2': 'Cinematic text 2',
+  'Cinematic-Texte (Matrix)': 'Cinematic texts (Matrix)',
+  'Cover-Farbe': 'Cover color',
+  Darstellung: 'Appearance',
+  'Detailseiten immer schlicht (Fade)': 'Detail pages always plain (fade)',
+  'DNA-Helix': 'DNA helix',
+  'Eigene Farbe': 'Custom color',
+  'Eigene Hero-Textfarbe': 'Custom hero text color',
+  Einstellungen: 'Settings',
+  Farben: 'Colors',
+  Farbpalette: 'Color palette',
+  Feuer: 'Fire',
+  Feuerwerk: 'Fireworks',
+  'Full-Hero: Stats-Leiste': 'Full hero: stats bar',
+  'Funken-Dichte': 'Spark density',
+  'Funken-Farbe': 'Spark color',
+  Galaxie: 'Galaxy',
+  Gerät: 'Device',
+  Glas: 'Glass',
+  Glühwürmchen: 'Fireflies',
+  Größe: 'Size',
+  'Hero-Animation': 'Hero animation',
+  'Hero-Text': 'Hero text',
+  'Hero-Text danach': 'Hero text afterwards',
+  'Hintergrund transparent': 'Transparent background',
+  'Job-Leiste': 'Job bar',
+  Jobtitel: 'Job title',
+  Kometenschweif: 'Comet tail',
+  'Kontr.': 'Contr.',
+  Kontrast: 'Contrast',
+  'Kontrast-Schatten': 'Contrast shadow',
+  Kreis: 'Circle',
+  'Links / Rechts': 'Left / right',
+  Marke: 'Brand',
+  'Modern Mobile-Nav': 'Modern mobile nav',
+  'Neon-Grid': 'Neon grid',
+  'Nordlicht-Sturm': 'Aurora storm',
+  'Oben / Unten': 'Top / bottom',
+  Ozeanwellen: 'Ocean waves',
+  'Performance-Modus': 'Performance mode',
+  'Rauch-Dichte': 'Smoke density',
+  'Rauch-Farbe': 'Smoke color',
+  Regen: 'Rain',
+  Sanduhr: 'Hourglass',
+  Schatten: 'Shadows',
+  'Schatten-Stärke': 'Shadow strength',
+  Schließen: 'Close',
+  Schnee: 'Snow',
+  'Schw.': 'Black',
+  Schwarm: 'Swarm',
+  Schwarz: 'Black',
+  'Splash-Animation': 'Splash animation',
+  'Splash-Screen': 'Splash screen',
+  Sternschnuppen: 'Shooting stars',
+  'Text-Größe': 'Text size',
+  Tintenfluss: 'Ink flow',
+  'Titel 1': 'Title 1',
+  'Titel 2': 'Title 2',
+  Transparenz: 'Transparency',
+  Vorhang: 'Curtain',
+  Weiß: 'White',
+  Winkel: 'Angle',
+  Wolken: 'Clouds',
+  'LOKAL GESPEICHERT': 'STORED LOCALLY',
+  klar: 'clear',
+  deckend: 'opaque',
+  'Sehr klar': 'Very clear',
+  Klar: 'Clear',
+  Standard: 'Default',
+  Milchig: 'Frosted',
+  Deckend: 'Opaque',
+  'Hero-Text pro Element': 'Hero text per element',
+  '↳ Stil': '↳ Style',
+  Stil: 'style',
+  'Default wiederherstellen': 'Restore default',
+  Farbe: 'Color',
+  Gelb: 'Yellow',
+  Blau: 'Blue',
+  Sprache: 'Language',
+  'Page-Transition': 'Page transition',
+};
+
+function useSl() {
+  const locale = useLocale();
+  return (de: string) => (locale === 'en' ? (EN_LABELS[de] ?? de) : de);
+}
+
 // Welche Modi welche Konfig-Zeilen zeigen (Prototyp: showFxPal / showFxCfg / showFxAng / showFxReset).
 const NO_PAL = ['orbit'];
 const SIZE_POS = ['flow', 'blackhole', 'nova', 'orbit', 'ribbon'];
@@ -96,6 +203,10 @@ export function SettingsPanel() {
   const site = useSite();
   const { settings: s, set, overlay, setOverlay, mob, isMobile, sideActive } = site;
   const [partsOpen, setPartsOpen] = useState(false);
+  const sl = useSl();
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
   if (overlay !== 'settings') return null;
 
   const hm = heroMode(s);
@@ -161,7 +272,7 @@ export function SettingsPanel() {
       <div aria-hidden onClick={() => setOverlay(null)} style={{ position: 'fixed', inset: 0, zIndex: 74 }} />
       <div
         role="dialog"
-        aria-label="Einstellungen"
+        aria-label={sl('Einstellungen')}
         style={{
           ...panelGlass(radius),
           position: 'fixed',
@@ -178,17 +289,28 @@ export function SettingsPanel() {
       >
         <GlassLayers radius={radius} glow />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flex: 'none' }}>
-          <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>Einstellungen</h2>
+          <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>{sl('Einstellungen')}</h2>
           <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontFamily: mono, fontSize: 9, color: 'var(--soft)' }}>LOKAL GESPEICHERT</span>
+            <span style={{ fontFamily: mono, fontSize: 9, color: 'var(--soft)' }}>{sl('LOKAL GESPEICHERT')}</span>
             {mob && (
-              <button type="button" onClick={() => setOverlay(null)} aria-label="Schließen" className={styles.close}>
+              <button type="button" onClick={() => setOverlay(null)} aria-label={sl('Schließen')} className={styles.close}>
                 ✕
               </button>
             )}
           </span>
         </div>
         <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, overscrollBehavior: 'contain', marginRight: -10, paddingRight: 10 }}>
+          <Row label="Sprache">
+            <Seg
+              options={(['de', 'en'] as const).map((l) => [l, LANGUAGE_NAME[l]] as const)}
+              value={locale}
+              onChange={(v) => {
+                setOverlay(null);
+                if (v !== locale) router.push(switchLocalePath(pathname, v as Locale));
+              }}
+              label="Sprache"
+            />
+          </Row>
           <Row label="Ansicht">
             <Seg
               options={[
@@ -229,7 +351,7 @@ export function SettingsPanel() {
             />
           </Row>
           <Row label="Akzentfarbe">
-            <span role="radiogroup" aria-label="Akzentfarbe" style={{ display: 'flex', gap: 8 }}>
+            <span role="radiogroup" aria-label={sl('Akzentfarbe')} style={{ display: 'flex', gap: 8 }}>
               {ACCENTS.map((a) => {
                 const shown = s.theme === 'light' ? a.light : a.dark;
                 const on = (s.accentSel || '#FFB224') === a.key;
@@ -239,8 +361,8 @@ export function SettingsPanel() {
                     type="button"
                     role="radio"
                     aria-checked={on}
-                    title={a.name}
-                    aria-label={a.name}
+                    title={sl(a.name)}
+                    aria-label={sl(a.name)}
                     onClick={() => set('accentSel', a.key)}
                     className={styles.swatch}
                     style={{
@@ -253,8 +375,8 @@ export function SettingsPanel() {
             </span>
           </Row>
           <Row label="Transparenz">
-            <span role="radiogroup" aria-label="Transparenz" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 9.5, color: 'var(--soft)' }}>klar</span>
+            <span role="radiogroup" aria-label={sl('Transparenz')} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 9.5, color: 'var(--soft)' }}>{sl('klar')}</span>
               {[1, 2, 3, 4, 5].map((n) => {
                 const on = (s.glassLvl || 3) === n;
                 return (
@@ -263,8 +385,8 @@ export function SettingsPanel() {
                     type="button"
                     role="radio"
                     aria-checked={on}
-                    title={['Sehr klar', 'Klar', 'Standard', 'Milchig', 'Deckend'][n - 1]}
-                    aria-label={['Sehr klar', 'Klar', 'Standard', 'Milchig', 'Deckend'][n - 1]}
+                    title={sl(['Sehr klar', 'Klar', 'Standard', 'Milchig', 'Deckend'][n - 1])}
+                    aria-label={sl(['Sehr klar', 'Klar', 'Standard', 'Milchig', 'Deckend'][n - 1])}
                     onClick={() => set('glassLvl', n)}
                     className={styles.step}
                     style={{
@@ -275,7 +397,7 @@ export function SettingsPanel() {
                   />
                 );
               })}
-              <span style={{ fontSize: 9.5, color: 'var(--soft)' }}>deckend</span>
+              <span style={{ fontSize: 9.5, color: 'var(--soft)' }}>{sl('deckend')}</span>
             </span>
           </Row>
           <Row label="Material">
@@ -328,7 +450,7 @@ export function SettingsPanel() {
           )}
           {!NO_PAL.includes(hm) && (
             <Row label="Farben" column>
-              <span role="radiogroup" aria-label="Farbpalette" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <span role="radiogroup" aria-label={sl('Farbpalette')} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {(Object.keys(PALETTES) as PaletteName[]).map((pk) => (
                   <button
                     key={pk}
@@ -370,7 +492,7 @@ export function SettingsPanel() {
                       key={i}
                       type="color"
                       value={c}
-                      aria-label={`Farbe ${i + 1}`}
+                      aria-label={`${sl('Farbe')} ${i + 1}`}
                       onChange={(e) => setCustom(i, e.target.value)}
                       className={styles.color}
                     />
@@ -397,15 +519,15 @@ export function SettingsPanel() {
                 type="color"
                 value={s.heroInk.startsWith('#') ? s.heroInk : '#FFB224'}
                 onChange={(e) => set('heroInk', e.target.value)}
-                title="Eigene Farbe"
-                aria-label="Eigene Hero-Textfarbe"
+                title={sl('Eigene Farbe')}
+                aria-label={sl('Eigene Hero-Textfarbe')}
                 className={styles.color}
                 style={{ width: 30, height: 26, padding: 1 }}
               />
             </span>
           </Row>
           <button type="button" onClick={() => setPartsOpen((o) => !o)} aria-expanded={partsOpen} className={styles.rowBtn}>
-            <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>Hero-Text pro Element</span>
+            <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>{sl('Hero-Text pro Element')}</span>
             <span
               aria-hidden
               style={{ fontSize: 10, color: 'var(--soft)', transform: `rotate(${partsOpen ? 180 : 0}deg)`, transition: 'transform 0.25s' }}
@@ -417,7 +539,7 @@ export function SettingsPanel() {
             HERO_PARTS.map((pd) => (
               <div key={pd.key}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '5px 0 5px 10px' }}>
-                  <span style={{ fontSize: 11, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{pd.label}</span>
+                  <span style={{ fontSize: 11, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{sl(pd.label)}</span>
                   <Seg
                     options={INK_OPTS}
                     value={s.heroParts[pd.key] || 'auto'}
@@ -430,12 +552,12 @@ export function SettingsPanel() {
                   <div
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '1px 0 8px 22px' }}
                   >
-                    <span style={{ fontSize: 10, color: 'var(--soft)', whiteSpace: 'nowrap' }}>↳ Stil</span>
+                    <span style={{ fontSize: 10, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{sl('↳ Stil')}</span>
                     <Seg
                       options={STYLE_OPTS}
                       value={s.heroParts[pd.sk] || pd.sd}
                       onChange={(v) => setPart(pd.sk, v)}
-                      label={`${pd.label} Stil`}
+                      label={`${sl(pd.label)} ${sl('Stil')}`}
                       tiny
                     />
                   </div>
@@ -453,18 +575,18 @@ export function SettingsPanel() {
                 value={s.mxT1 ?? ''}
                 onChange={(e) => set('mxT1', e.target.value)}
                 placeholder="Text 1"
-                aria-label="Cinematic-Text 1"
+                aria-label={sl('Cinematic-Text 1')}
                 className={styles.text}
               />
               <input
                 value={s.mxT2 ?? ''}
                 onChange={(e) => set('mxT2', e.target.value)}
                 placeholder="Text 2"
-                aria-label="Cinematic-Text 2"
+                aria-label={sl('Cinematic-Text 2')}
                 className={styles.text}
               />
               <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 11.5, color: 'var(--soft)', whiteSpace: 'nowrap' }}>Text-Größe</span>
+                <span style={{ fontSize: 11.5, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{sl('Text-Größe')}</span>
                 <Range min={50} max={200} step={10} value={s.mxSize} onChange={(v) => set('mxSize', v)} label="Text-Größe" max2={160} />
               </span>
             </Row>
@@ -496,7 +618,7 @@ export function SettingsPanel() {
                   type="color"
                   value={(cfg.smc as string) || '#151318'}
                   onChange={(e) => setCfg('fire', 'smc', e.target.value)}
-                  aria-label="Rauch-Farbe"
+                  aria-label={sl('Rauch-Farbe')}
                   className={styles.color}
                   style={{ width: 44 }}
                 />
@@ -506,7 +628,7 @@ export function SettingsPanel() {
                   type="color"
                   value={(cfg.spc as string) || pal[0]}
                   onChange={(e) => setCfg('fire', 'spc', e.target.value)}
-                  aria-label="Funken-Farbe"
+                  aria-label={sl('Funken-Farbe')}
                   className={styles.color}
                   style={{ width: 44 }}
                 />
@@ -536,7 +658,7 @@ export function SettingsPanel() {
           )}
           <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '7px 0', borderTop: '1px solid var(--hair)' }}>
             <button type="button" onClick={() => setCfg(hm, null)} className={styles.reset}>
-              Default wiederherstellen
+              {sl('Default wiederherstellen')}
             </button>
           </div>
           {switches.map((sw) => (
@@ -551,6 +673,7 @@ export function SettingsPanel() {
 /** Telefonrahmen der Desktop-Simulation: Clear/Island/Hole/Notch + Breite bzw. Position. */
 function FrameRow() {
   const { settings: s, set } = useSite();
+  const sl = useSl();
   const fc = s.frameCfg as { hole?: number; notch?: number; island?: number };
   const slider =
     s.frame === 'hole'
@@ -575,7 +698,7 @@ function FrameRow() {
       />
       {s.frame !== 'clear' && (
         <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 11.5, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{slider.label}</span>
+          <span style={{ fontSize: 11.5, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{sl(slider.label)}</span>
           <Range
             min={slider.min}
             max={slider.max}
@@ -592,6 +715,7 @@ function FrameRow() {
 }
 
 function Row({ label, column, children }: { label: string; column?: boolean; children: ReactNode }) {
+  const sl = useSl();
   return (
     <div
       style={{
@@ -603,7 +727,7 @@ function Row({ label, column, children }: { label: string; column?: boolean; chi
         borderTop: '1px solid var(--hair)',
       }}
     >
-      <span style={{ fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'nowrap' }}>{label}</span>
+      <span style={{ fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'nowrap' }}>{sl(label)}</span>
       {children}
     </div>
   );
@@ -630,6 +754,7 @@ function Seg({
   tiny?: boolean;
   bare?: boolean;
 }) {
+  const sl = useSl();
   const btn = (id: string, text: string) => {
     const on = value === id;
     return (
@@ -649,7 +774,7 @@ function Seg({
           whiteSpace: 'nowrap',
         }}
       >
-        {text}
+        {sl(text)}
       </button>
     );
   };
@@ -657,7 +782,7 @@ function Seg({
   return (
     <span
       role="radiogroup"
-      aria-label={label}
+      aria-label={sl(label)}
       style={{
         display: 'flex',
         gap: tiny ? 2 : 4,
@@ -673,9 +798,10 @@ function Seg({
 }
 
 function Toggle({ label, on, onToggle, small }: { label: string; on: boolean; onToggle: () => void; small?: boolean }) {
+  const sl = useSl();
   return (
     <button type="button" role="switch" aria-checked={on} onClick={onToggle} className={small ? styles.toggleSmall : styles.toggleRow}>
-      <span style={{ fontSize: small ? 11.5 : 12.5, color: small ? 'var(--soft)' : 'var(--muted)' }}>{label}</span>
+      <span style={{ fontSize: small ? 11.5 : 12.5, color: small ? 'var(--soft)' : 'var(--muted)' }}>{sl(label)}</span>
       <span
         aria-hidden
         style={{
@@ -724,6 +850,7 @@ function Range({
   label: string;
   max2?: number;
 }) {
+  const sl = useSl();
   return (
     <input
       type="range"
@@ -731,7 +858,7 @@ function Range({
       max={max}
       step={step}
       value={value}
-      aria-label={label}
+      aria-label={sl(label)}
       onChange={(e) => onChange(parseInt(e.target.value, 10))}
       style={{ flex: 1, maxWidth: max2, accentColor: 'var(--accent)' }}
     />

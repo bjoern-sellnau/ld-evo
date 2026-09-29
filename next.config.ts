@@ -54,13 +54,14 @@ async function headers() {
         { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
       ],
     },
-    // CSP der Site: alles außer LD Flow (/flow, /flow/…), Vorschau (/flow-preview/…) und Medien.
-    { source: '/((?!flow$|flow/|flow-preview/|media/).*)', headers: [{ key: 'Content-Security-Policy', value: SITE_CSP }] },
+    // CSP der Site: alles außer LD Flow (/flow, /flow/…), Vorschau (/flow-preview/…, /en/flow-preview/…) und Medien.
+    { source: '/((?!flow$|flow/|flow-preview/|en/flow-preview/|media/).*)', headers: [{ key: 'Content-Security-Policy', value: SITE_CSP }] },
     {
       source: '/flow/:path*',
       headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
     },
     { source: '/flow-preview/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
+    { source: '/en/flow-preview/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
     // Hochgeladene Medien: nie als Dokument mit Skripten ausführen (Inline-Styles nur für die Bildansicht des Browsers).
     {
       source: '/media/:path*',

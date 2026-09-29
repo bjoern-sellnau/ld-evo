@@ -39,6 +39,20 @@ export const DEFAULT_NAV: NavItem[] = [
   { label: 'Impressum', href: '/impressum', inMenu: true },
 ];
 
+/**
+ * Englische Startwerte (Übersetzungsentwurf). Adressen bleiben KANONISCH (deutsch) — die Site übersetzt sie beim
+ * Rendern über die Routentabelle (src/site/i18n/locale.ts), z. B. '/ueber-mich' → '/en/about'.
+ */
+export const DEFAULT_NAV_EN: NavItem[] = [
+  { label: 'Hello', href: '/' },
+  { label: 'Projects', href: '/projekte' },
+  { label: 'About', href: '/ueber-mich' },
+  { label: 'Labs', href: '/labs' },
+  { label: 'My Journey', href: '/reise', menuLabel: 'My Journey — 18 years on the web', inMenu: true },
+  { label: '.Tech', href: '/tech', menuLabel: '.Tech — the blog', inMenu: true },
+  { label: 'Legal notice', href: '/impressum', inMenu: true },
+];
+
 /** Ist ein Menüpunkt für den Pfad aktiv? (Detailseiten gehören zu ihrer Liste.) */
 export function isActiveHref(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/';

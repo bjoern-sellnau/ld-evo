@@ -8,19 +8,19 @@ import cardStyles from '../cards/cards.module.css';
 import { inkOn, readableAlpha } from '../lib/color';
 import { articleHref } from '../lib/routes';
 import { useSite } from '../settings/SiteProvider';
+import { useHref, useT } from '../i18n/LocaleProvider';
 
 /** .Tech-Magazin: erste Karte breiter (Spalte 1,2fr, 26 px Titel), Rest 18 px. Markup: Prototyp Zeile 622–636. */
 export function TechPage() {
   const { settings, mob, isMobile } = useSite();
   const { articles } = useContent();
+  const t = useT();
   return (
     <div data-screen-label=".Tech" style={{ paddingTop: mob && settings.mobModern ? 84 : 140, paddingBottom: 80 }}>
       <h1 style={{ fontFamily: mono, fontSize: 11, fontWeight: 400, letterSpacing: '0.18em', color: 'var(--accent)', margin: 0 }}>
-        .TECH — DER BLOG
+        {t('tech.kicker')}
       </h1>
-      <p style={{ fontSize: 15, color: 'var(--muted)', margin: '8px 0 0', maxWidth: 560, lineHeight: 1.6 }}>
-        Notizen aus 18 Jahren Webentwicklung — gepinnt, was gerade zählt.
-      </p>
+      <p style={{ fontSize: 15, color: 'var(--muted)', margin: '8px 0 0', maxWidth: 560, lineHeight: 1.6 }}>{t('tech.lead')}</p>
       <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : '1.2fr 1fr 1fr', gap: 14, marginTop: 36, alignItems: 'stretch' }}>
         {articles.map((a, i) => (
           <MagCard key={a.id} a={a} lead={!isMobile && i === 0} />
@@ -35,9 +35,11 @@ function MagCard({ a, lead }: { a: Article; lead: boolean }) {
   const href = articleHref(a);
   const onClick = useOpenItem(href, a.id);
   const fg = inkOn(a.color);
+  const t = useT();
+  const lh = useHref();
   return (
     <Link
-      href={href}
+      href={lh(href)}
       onClick={onClick}
       className={cardStyles.card}
       style={{
@@ -74,7 +76,7 @@ function MagCard({ a, lead }: { a: Article; lead: boolean }) {
         {a.titel}
       </h2>
       <div style={{ fontSize: 13, lineHeight: 1.6, opacity: readableAlpha(a.color, fg, 0.8) }}>{a.teaser}</div>
-      <span style={{ fontSize: 12.5, fontWeight: 700 }}>Lesen ›</span>
+      <span style={{ fontSize: 12.5, fontWeight: 700 }}>{t('card.read')}</span>
     </Link>
   );
 }

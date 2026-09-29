@@ -1,8 +1,8 @@
-import Link from 'next/link';
 import { EText } from '@/site/cms/editing';
 import { mono } from '@/site/cards/ProjectCard';
 import detailStyles from '@/site/pages/detail.module.css';
 import { defineWidget, link, segment, strings, text, toggle } from './define';
+import { LocalLink } from '@/site/i18n/LocalLink';
 
 /** Beispiel-Widget aus dem Guide: Felder + Controls + Inline-Editing in einer Datei. */
 export default defineWidget({
@@ -70,7 +70,7 @@ export default defineWidget({
           ))}
         </ul>
         {cta && (
-          <Link
+          <LocalLink
             href={cta}
             className={detailStyles.pill}
             style={{
@@ -80,7 +80,7 @@ export default defineWidget({
             }}
           >
             <EText path={`${path}.ctaLabel`} value={ctaLabel ?? 'Anfragen'} />
-          </Link>
+          </LocalLink>
         )}
       </div>
     );

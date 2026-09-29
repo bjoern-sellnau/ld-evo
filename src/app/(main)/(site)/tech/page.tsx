@@ -1,9 +1,5 @@
-import type { Metadata } from 'next';
-import { alternatesFor } from '@/site/seo/seo';
-import { TechPage } from '@/site/pages/TechPage';
+import { techRoute } from '@/site/routes';
 
-export const metadata: Metadata = { alternates: alternatesFor('/tech') };
-
-export default function Page() {
-  return <TechPage />;
-}
+const r = techRoute('de');
+export const generateMetadata = r.generateMetadata;
+export default r.Page;

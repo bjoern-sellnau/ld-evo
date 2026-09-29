@@ -12,7 +12,7 @@ import { seedDocs } from './seed';
  * Dokumente liegen als JSON: `published` = Live-Fassung, `draft` = Arbeitskopie (null = keine offenen Änderungen).
  */
 
-const SCHEMA_VERSION = 7;
+const SCHEMA_VERSION = 8;
 
 const MIGRATIONS: string[] = [
   `CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -142,6 +142,31 @@ const MIGRATIONS: string[] = [
      last_at INTEGER NOT NULL,
      notified_at INTEGER
    );`,
+  // 8: Mehrsprachigkeit — jedes Dokument je Sprache (de = Original/Struktur, en = Übersetzung). Tabelle neu
+  //    aufbauen, weil sich der Primärschlüssel ändert; bestehende Zeilen werden Deutsch.
+  `CREATE TABLE docs_v8 (
+     collection TEXT NOT NULL,
+     id TEXT NOT NULL,
+     locale TEXT NOT NULL DEFAULT 'de',
+     position INTEGER NOT NULL DEFAULT 0,
+     published TEXT,
+     draft TEXT,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL,
+     updated_by TEXT,
+     published_at INTEGER,
+     publish_at INTEGER,
+     publish_by TEXT,
+     PRIMARY KEY (collection, id, locale)
+   );
+   INSERT INTO docs_v8 (collection, id, locale, position, published, draft, created_at, updated_at, updated_by, published_at, publish_at, publish_by)
+     SELECT collection, id, 'de', position, published, draft, created_at, updated_at, updated_by, published_at, publish_at, publish_by FROM docs;
+   DROP TABLE docs;
+   ALTER TABLE docs_v8 RENAME TO docs;
+   CREATE INDEX IF NOT EXISTS docs_publish_at ON docs(publish_at) WHERE publish_at IS NOT NULL;
+   ALTER TABLE revisions ADD COLUMN locale TEXT NOT NULL DEFAULT 'de';
+   DROP INDEX IF EXISTS revisions_doc;
+   CREATE INDEX IF NOT EXISTS revisions_doc ON revisions(collection, doc_id, locale, rid);`,
 ];
 
 type G = typeof globalThis & { __ldflowDb?: DatabaseSync };
@@ -178,6 +203,7 @@ function migrate(db: DatabaseSync) {
     }
     seedIfEmpty(db);
     backfillSingletons(db);
+    seedTranslations(db);
     db.exec('COMMIT');
   } catch (e) {
     db.exec('ROLLBACK');
@@ -188,7 +214,7 @@ function migrate(db: DatabaseSync) {
 
 /** Erststart: die Inhalte aus content/*.ts (1:1 aus dem Prototyp) werden als veröffentlichte Fassung übernommen. */
 function seedIfEmpty(db: DatabaseSync) {
-  const n = (db.prepare('SELECT COUNT(*) AS n FROM docs').get() as { n: number }).n;
+  const n = (db.prepare("SELECT COUNT(*) AS n FROM docs WHERE locale = 'de'").get() as { n: number }).n;
   if (n > 0) return;
   const now = Date.now();
   const ins = db.prepare(
@@ -206,8 +232,9 @@ function backfillSingletons(db: DatabaseSync) {
   const now = Date.now();
   for (const d of seedDocs()) {
     if (COLLECTIONS[d.collection]?.kind !== 'singleton') continue;
-    const row = db.prepare('SELECT published, draft FROM docs WHERE collection = ? AND id = ?').get(d.collection, d.id) as
-      { published: string | null; draft: string | null } | undefined;
+    const row = db
+      .prepare("SELECT published, draft FROM docs WHERE collection = ? AND id = ? AND locale = 'de'")
+      .get(d.collection, d.id) as { published: string | null; draft: string | null } | undefined;
     if (!row) {
       db.prepare(
         'INSERT INTO docs (collection, id, position, published, draft, created_at, updated_at, published_at) VALUES (?, ?, 0, ?, NULL, ?, ?, ?)',
@@ -224,9 +251,32 @@ function backfillSingletons(db: DatabaseSync) {
     };
     const pub = fill(row.published);
     const dr = fill(row.draft);
-    if (pub) db.prepare('UPDATE docs SET published = ? WHERE collection = ? AND id = ?').run(pub, d.collection, d.id);
-    if (dr) db.prepare('UPDATE docs SET draft = ? WHERE collection = ? AND id = ?').run(dr, d.collection, d.id);
+    if (pub) db.prepare("UPDATE docs SET published = ? WHERE collection = ? AND id = ? AND locale = 'de'").run(pub, d.collection, d.id);
+    if (dr) db.prepare("UPDATE docs SET draft = ? WHERE collection = ? AND id = ? AND locale = 'de'").run(dr, d.collection, d.id);
   }
+}
+
+/**
+ * Englische Fassung als ENTWURF anlegen (content/en/*.ts) — einmalig je Datenbank (meta.seed_en), nur für Dokumente,
+ * die es auf Deutsch gibt und die noch keine englische Zeile haben. Veröffentlicht wird erst nach Prüfung in LD Flow;
+ * bis dahin zeigt die englische Site die deutsche Fassung. Ausnahme: die Navigation (Menü-Beschriftungen) ist sofort live.
+ */
+function seedTranslations(db: DatabaseSync) {
+  if (db.prepare("SELECT 1 FROM meta WHERE key = 'seed_en'").get()) return;
+  const now = Date.now();
+  const hasDe = db.prepare("SELECT 1 FROM docs WHERE collection = ? AND id = ? AND locale = 'de'");
+  const ins = db.prepare(
+    "INSERT OR IGNORE INTO docs (collection, id, locale, position, published, draft, created_at, updated_at, updated_by, published_at) VALUES (?, ?, 'en', ?, ?, ?, ?, ?, 'Übersetzungsentwurf', ?)",
+  );
+  for (const d of seedDocs('en')) {
+    if (!hasDe.get(d.collection, d.id)) continue;
+    const json = JSON.stringify(d.data);
+    // Ausnahme Navigation: Menü-Beschriftungen sind UI-Texte (wie src/site/i18n/dict.ts) und gehen direkt live —
+    // sonst stünde auf der englischen Site ein deutsches Menü. Alle Inhalte bleiben Entwurf bis zur Prüfung.
+    const live = d.collection === 'navigation';
+    ins.run(d.collection, d.id, d.position, live ? json : null, live ? null : json, now, now, live ? now : null);
+  }
+  db.prepare("INSERT INTO meta (key, value) VALUES ('seed_en', ?)").run(String(now));
 }
 
 /**

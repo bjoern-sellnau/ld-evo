@@ -7,6 +7,7 @@ import { inkOn, readableAlpha } from '../lib/color';
 import { projectHref } from '../lib/routes';
 import { useSite } from '../settings/SiteProvider';
 import styles from './cards.module.css';
+import { useHref } from '../i18n/LocaleProvider';
 
 export const mono = 'var(--ld-font-mono),monospace';
 
@@ -60,9 +61,10 @@ export function ProjectCard({ p, prefix, variant = 'featured' }: { p: Project; p
   const href = projectHref(p);
   const onClick = useOpenItem(href, p.id);
   const ink = inkOn(p.color);
+  const lh = useHref();
   return (
     <Link
-      href={href}
+      href={lh(href)}
       onClick={onClick}
       className={styles.card}
       style={{

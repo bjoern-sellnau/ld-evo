@@ -12,6 +12,7 @@ import { useCoverColor } from '../lib/useCoverColor';
 import { useSite } from '../settings/SiteProvider';
 import { GallerySlots, RelatedCard, related } from './detail';
 import styles from './detail.module.css';
+import { useHref, useT } from '../i18n/LocaleProvider';
 
 /** Artikel-Detail. Markup/Werte: Prototyp Zeile 640–686. */
 export function ArticlePage({ a }: { a: Article }) {
@@ -23,6 +24,8 @@ export function ArticlePage({ a }: { a: Article }) {
   const { articles } = useContent();
   const rel = related(articles, a);
   const padX = mob ? 18 : 32;
+  const t = useT();
+  const lh = useHref();
   const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
@@ -62,7 +65,7 @@ export function ArticlePage({ a }: { a: Article }) {
             {a.draft && (
               <>
                 <span aria-hidden>·</span>
-                <span style={{ border: `1px solid ${ink}`, borderRadius: 999, padding: '3px 9px' }}>ENTWURF</span>
+                <span style={{ border: `1px solid ${ink}`, borderRadius: 999, padding: '3px 9px' }}>{t('article.draft')}</span>
               </>
             )}
           </div>
@@ -87,13 +90,13 @@ export function ArticlePage({ a }: { a: Article }) {
             small={180}
             cols2={mob ? '1fr' : '1fr 1fr'}
             images={a.gallery}
-            labels={['Artikel-Bild', 'Screenshot / Diagramm', 'Code-Ausschnitt / Foto']}
+            labels={[t('article.slot1'), t('article.slot2'), t('article.slot3')]}
           />
         </div>
 
         <section style={{ marginTop: 44 }} aria-labelledby="rel-title">
           <h2 id="rel-title" style={{ fontFamily: mono, fontSize: 10.5, fontWeight: 400, letterSpacing: '0.18em', color: acc, margin: 0 }}>
-            VERWANDTE ARTIKEL
+            {t('article.related')}
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(3,1fr)', gap: 12, marginTop: 16 }}>
             {rel.map((r) => (
@@ -116,10 +119,10 @@ export function ArticlePage({ a }: { a: Article }) {
         <div
           style={{ borderTop: '1px solid var(--hair)', marginTop: 28, paddingTop: 22, display: 'flex', justifyContent: 'space-between' }}
         >
-          <Link href="/tech" onClick={go('/tech')} className={styles.textLink} style={{ color: acc }}>
-            ‹ Mehr Artikel
+          <Link href={lh('/tech')} onClick={go('/tech')} className={styles.textLink} style={{ color: acc }}>
+            {t('article.more')}
           </Link>
-          <span style={{ fontFamily: mono, fontSize: 10.5, color: 'var(--soft)' }}>— Björn Sellnau, Berlin</span>
+          <span style={{ fontFamily: mono, fontSize: 10.5, color: 'var(--soft)' }}>{t('article.byline')}</span>
         </div>
       </div>
     </article>

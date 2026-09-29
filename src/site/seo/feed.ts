@@ -1,5 +1,7 @@
 import type { Article } from '@content/articles';
 import { absUrl, isoMonth } from './seo';
+import { translate } from '../i18n/dict';
+import { intlLocale, localizePath, type Locale } from '../i18n/locale';
 
 export const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -13,13 +15,14 @@ function rfc822(datum: string): string | undefined {
  * RSS 2.0 des .Tech-Blogs: veröffentlichte Artikel ohne Entwürfe, neueste zuerst. Titel/Beschreibung des Kanals aus
  * der .Tech-Seite („.Tech — der Blog“, Untertitel). Volltext (alle Absätze) im Element description.
  */
-export function buildFeed(articles: Article[]): string {
+export function buildFeed(articles: Article[], locale: Locale = 'de'): string {
   const items = articles
-    .filter((a) => !a.draft)
+    // Englisch: nur übersetzte Artikel (deutsche Rückfälle gehören in den deutschen Feed).
+    .filter((a) => !a.draft && !(locale !== 'de' && (a as { _lang?: string })._lang))
     .map((a) => ({ a, key: isoMonth(a.datum) ?? '' }))
     .sort((x, y) => y.key.localeCompare(x.key))
     .map(({ a }) => {
-      const url = absUrl(`/tech/${a.id}`);
+      const url = absUrl(localizePath(`/tech/${a.id}`, locale));
       const date = rfc822(a.datum);
       const body = [a.teaser, ...a.body].map((p) => `<p>${esc(p)}</p>`).join('');
       return [
@@ -37,11 +40,11 @@ export function buildFeed(articles: Article[]): string {
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
     '<channel>',
-    '<title>.Tech — der Blog · Loona! Designs</title>',
-    `<link>${esc(absUrl('/tech'))}</link>`,
-    `<atom:link href="${esc(absUrl('/tech/feed.xml'))}" rel="self" type="application/rss+xml"/>`,
-    '<description>Notizen aus 18 Jahren Webentwicklung — gepinnt, was gerade zählt.</description>',
-    '<language>de-DE</language>',
+    `<title>${esc(translate(locale, 'seo.feedChannel'))}</title>`,
+    `<link>${esc(absUrl(localizePath('/tech', locale)))}</link>`,
+    `<atom:link href="${esc(absUrl(localizePath('/tech/feed.xml', locale)))}" rel="self" type="application/rss+xml"/>`,
+    `<description>${esc(translate(locale, 'tech.lead'))}</description>`,
+    `<language>${intlLocale(locale)}</language>`,
     ...items,
     '</channel>',
     '</rss>',

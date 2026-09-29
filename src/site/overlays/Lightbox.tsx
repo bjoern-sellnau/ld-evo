@@ -6,6 +6,7 @@ import type { GalleryImage } from '@content/projects';
 import { mono } from '../cards/ProjectCard';
 import styles from './overlays.module.css';
 import { mediaUrl } from '@/cms/media';
+import { useT } from '../i18n/LocaleProvider';
 
 interface Anim {
   x: string;
@@ -31,6 +32,7 @@ const btn: CSSProperties = {
  * Swipe horizontal > 48 px blättert, vertikal > 90 px schließt; Esc/✕/Backdrop schließen.
  */
 export function Lightbox({ images, start, onClose }: { images: GalleryImage[]; start: number; onClose: () => void }) {
+  const t = useT();
   const [idx, setIdx] = useState(start);
   const [anim, setAnim] = useState<Anim>(REST);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -90,7 +92,7 @@ export function Lightbox({ images, start, onClose }: { images: GalleryImage[]; s
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Galerie"
+      aria-label={t('gallery.label')}
       onClick={close}
       onTouchStart={(e) => {
         const t = e.touches[0];
@@ -135,7 +137,7 @@ export function Lightbox({ images, start, onClose }: { images: GalleryImage[]; s
       {/* Bild als background-image-Fläche (README: kein <img> mit Template-Hole). */}
       <div
         role="img"
-        aria-label={img.alt || 'Galerie-Bild'}
+        aria-label={img.alt || t('gallery.image')}
         onClick={(e) => {
           if (swiped.current) {
             e.stopPropagation();
@@ -163,7 +165,7 @@ export function Lightbox({ images, start, onClose }: { images: GalleryImage[]; s
       <button
         ref={closeBtn}
         type="button"
-        aria-label="Schließen"
+        aria-label={t('gallery.close')}
         onClick={(e) => {
           e.stopPropagation();
           close();
@@ -177,7 +179,7 @@ export function Lightbox({ images, start, onClose }: { images: GalleryImage[]; s
         <>
           <button
             type="button"
-            aria-label="Vorheriges Bild"
+            aria-label={t('gallery.prev')}
             onClick={(e) => {
               e.stopPropagation();
               nav(-1);
@@ -189,7 +191,7 @@ export function Lightbox({ images, start, onClose }: { images: GalleryImage[]; s
           </button>
           <button
             type="button"
-            aria-label="Nächstes Bild"
+            aria-label={t('gallery.next')}
             onClick={(e) => {
               e.stopPropagation();
               nav(1);

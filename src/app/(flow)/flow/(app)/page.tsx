@@ -39,6 +39,7 @@ export default async function Page() {
                 {def.kind === 'singleton' ? 'Einzelseite' : `${s?.n ?? 0} Einträge`}
                 {s?.drafts ? ` · ${s.drafts} mit Entwurf` : ''}
                 {s?.offline && def.kind !== 'singleton' ? ` · ${s.offline} offline` : ''}
+                {s?.enDrafts ? ` · EN: ${s.enDrafts} ${s.enDrafts === 1 ? 'Übersetzung' : 'Übersetzungen'} offen` : ''}
               </p>
             </Link>
           );
@@ -49,9 +50,14 @@ export default async function Page() {
           <div className="f-kicker">Geplant</div>
           <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0' }}>
             {scheduled.map((s) => (
-              <li key={`${s.collection}/${s.id}`} className="f-row" style={{ justifyContent: 'space-between', padding: '6px 0' }}>
-                <Link href={`/flow/c/${s.collection}/${s.id}`}>
+              <li
+                key={`${s.collection}/${s.id}/${s.locale}`}
+                className="f-row"
+                style={{ justifyContent: 'space-between', padding: '6px 0' }}
+              >
+                <Link href={`/flow/c/${s.collection}/${s.id}${s.locale === 'de' ? '' : `?lang=${s.locale}`}`}>
                   {COLLECTIONS[s.collection]?.singular ?? s.collection} · {s.id}
+                  {s.locale !== 'de' && ` · ${s.locale.toUpperCase()}`}
                 </Link>
                 <span className="f-help">
                   {new Date(s.publishAt).toLocaleString('de-DE', {
