@@ -1,6 +1,7 @@
 'use client';
 
 import type { MouseEvent } from 'react';
+import Link from 'next/link';
 import type { Article } from '@content/articles';
 import { useContent } from '../content/ContentProvider';
 import { EText } from '../cms/editing';
@@ -115,9 +116,9 @@ export function ArticlePage({ a }: { a: Article }) {
         <div
           style={{ borderTop: '1px solid var(--hair)', marginTop: 28, paddingTop: 22, display: 'flex', justifyContent: 'space-between' }}
         >
-          <a href="/tech" onClick={go('/tech')} className={styles.textLink} style={{ color: acc }}>
+          <Link href="/tech" onClick={go('/tech')} className={styles.textLink} style={{ color: acc }}>
             ‹ Mehr Artikel
-          </a>
+          </Link>
           <span style={{ fontFamily: mono, fontSize: 10.5, color: 'var(--soft)' }}>— Björn Sellnau, Berlin</span>
         </div>
       </div>

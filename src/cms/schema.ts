@@ -524,7 +524,6 @@ const MAX_TEXTAREA = 20000;
 function cleanString(v: unknown): string | null {
   if (typeof v !== 'string') return null;
   // Steuerzeichen außer Zeilenumbruch/Tab entfernen.
-  // eslint-disable-next-line no-control-regex
   return v.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
 }
 

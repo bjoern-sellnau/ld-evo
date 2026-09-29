@@ -51,7 +51,7 @@ Geplantes. Spätere Entwurfsänderungen gehen mit. Ist der Entwurf zum Zeitpunkt
 - **Node ≥ 22.13** (für `node:sqlite`; die Warnung „ExperimentalWarning: SQLite“ ist unkritisch, `NODE_NO_WARNINGS=1` blendet sie aus).
 - Start als Node-Server: `npm run build && npm start`. Ein statischer Export ist mit CMS nicht möglich.
 - **Persistentes Verzeichnis** für die Datenbank: standardmäßig `./data/flow.db`, sonst `LDFLOW_DB=/pfad/flow.db`.
-  Backup = diese eine Datei (bei laufendem Server `sqlite3 flow.db ".backup ziel.db"`). `data/` ist in `.gitignore`.
+  Sie enthält alles inkl. Medien; Sicherung siehe unten. `data/` ist in `.gitignore`.
 - **HTTPS** verwenden; Cookies sind in Produktion `Secure`. Nur für Tests ohne TLS: `LDFLOW_INSECURE_COOKIES=1`.
 - Hinter einem Reverse-Proxy muss dieser `X-Forwarded-For` setzen (für das Rate-Limit).
 
@@ -69,6 +69,29 @@ Geplantes. Spätere Entwurfsänderungen gehen mit. Ist der Entwurf zum Zeitpunkt
 | `LDFLOW_CRON_SECRET` | festes Geheimnis für den externen Cron (sonst zufällig je Prozess) |
 | `LDFLOW_SCHEDULER_INTERVAL_MS` | Takt in ms (Standard 60000; E2E nutzt 2000) |
 | `LDFLOW_SECRET_KEY` | Schlüssel für die verschlüsselten 2FA-Geheimnisse (sonst `flow-secret.key` neben der DB — getrennt sichern!) |
+
+### Sicherung
+
+`npm run backup` sichert die Datenbank im laufenden Betrieb (`VACUUM INTO`, konsistent inkl. WAL), prüft die Kopie
+(`integrity_check`, Schema-Version) und behält die neuesten Stände. Schlägt die Prüfung fehl, endet das Skript mit
+Fehlercode und die Kopie wird verworfen.
+
+| Variable | Zweck |
+| --- | --- |
+| `LDFLOW_BACKUP_DIR` | Zielordner (Standard `backups/` neben der DB — besser ein anderes Laufwerk/Volume) |
+| `LDFLOW_BACKUP_KEEP` | Anzahl aufbewahrter Stände (Standard 14) |
+| `LDFLOW_BACKUP_KEY_DIR` | eigener Ordner für `flow-secret.key` — **nicht** neben den DB-Sicherungen |
+
+Nächtlich per cron (Pfade anpassen; Node ≥ 22.13 im `PATH`):
+
+```cron
+15 3 * * * cd /srv/ld-evo && LDFLOW_DB=/srv/data/flow.db LDFLOW_BACKUP_DIR=/mnt/backup/ldflow LDFLOW_BACKUP_KEY_DIR=/root/ldflow-key npm run -s backup >> /var/log/ldflow-backup.log 2>&1
+```
+
+Die Sicherungen zusätzlich außer Haus kopieren (z. B. `rclone`/`restic`), den Schlüssel getrennt davon aufbewahren.
+**Wiederherstellen:** Server stoppen, Sicherung als `flow.db` ablegen, `flow.db-wal`/`flow.db-shm` löschen, Server starten.
+Fehlt `flow-secret.key` (bzw. `LDFLOW_SECRET_KEY`), funktioniert alles außer 2FA — Betroffene richten sie neu ein
+(Admin: **Nutzer → 2FA zurücksetzen**).
 
 Ohne Mailversand funktioniert „Passwort vergessen“ weiterhin über Admins: **Nutzer → Reset-Link** erzeugt einen
 Einmal-Link (1 h), der auf sicherem Weg weitergegeben wird.

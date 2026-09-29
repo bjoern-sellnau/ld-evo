@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, type CSSProperties } from 'react';
+import Link from 'next/link';
 import type { CmsStationProject as StationProject } from '@/cms/types';
 import { LoonaTile } from '@/components/brand';
 import { mono } from '../cards/ProjectCard';
@@ -247,7 +248,7 @@ export function AboutPage() {
               {LOONA_PROJECTS.map((sp) => (
                 <ProjectBox key={sp.anchor} sp={sp} />
               ))}
-              <a
+              <Link
                 href="/labs"
                 onClick={(e) => {
                   if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
@@ -258,7 +259,7 @@ export function AboutPage() {
                 style={{ display: 'inline-block', marginTop: 16, color: 'var(--accent)' }}
               >
                 Zu den Labs ›
-              </a>
+              </Link>
             </div>
           </section>
         </div>

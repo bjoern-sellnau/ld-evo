@@ -1,4 +1,5 @@
 import { EText } from '@/site/cms/editing';
+import Link from 'next/link';
 import { ContactForm } from '@/site/widgets/ContactForm';
 import { defineWidget, text, textarea } from './define';
 
@@ -25,9 +26,9 @@ export default defineWidget({
             value={notice || 'Deine Angaben werden nur zur Beantwortung deiner Anfrage gespeichert.'}
             multiline
           />{' '}
-          <a href="/impressum#i-datenschutz" style={{ color: 'inherit', textDecoration: 'underline' }}>
+          <Link href="/impressum#i-datenschutz" style={{ color: 'inherit', textDecoration: 'underline' }}>
             Datenschutz
-          </a>
+          </Link>
         </>
       }
     />

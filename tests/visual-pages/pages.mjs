@@ -11,6 +11,7 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
+import { launchOptions } from '../browser.mjs';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 
@@ -25,7 +26,7 @@ const PAGES = ['/', '/projekte', '/labs', '/tech', '/reise', '/ueber-mich', '/im
 
 rmSync(DIFF, { recursive: true, force: true });
 mkdirSync(BASE, { recursive: true });
-const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? '/opt/pw-browsers/chromium' });
+const b = await chromium.launch(launchOptions());
 let failed = 0;
 const DEVICES = [
   { prefix: '', opts: { viewport: { width: 1280, height: 800 } } },

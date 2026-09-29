@@ -8,7 +8,8 @@ Ausführlich und interaktiv: **LD Flow → Guide** (`/flow/guide`).
 - **Quellen prüfen, nichts erfinden.** Formen, Farben, Maße, Texte kommen aus den Handoffs in `design/` und `docs/`
   (Prototypen `*.dc.html`, READMEs mit Nachträgen). Bei Widerspruch gilt der Prototyp; Abweichungen im Code kommentieren.
 - Kommunikation und Kommentare auf **Deutsch**.
-- Kleine, überprüfbare Schritte; nach jeder Änderung `npm run typecheck && npm test`.
+- Kleine, überprüfbare Schritte; nach jeder Änderung `npm run typecheck && npm test`
+  (vor dem Push auch `npm run lint && npm run format:check` — die CI prüft alles, siehe `.github/workflows/ci.yml`).
 
 ## Architektur in einem Satz je Teil
 
@@ -44,9 +45,11 @@ Ausführlich und interaktiv: **LD Flow → Guide** (`/flow/guide`).
 | `npm run dev` | Entwicklung (generiert vorher die Widget-Registry) |
 | `npm run build && npm start` | Produktion (Node ≥ 22.13, Datenordner `data/` bzw. `LDFLOW_DB`) |
 | `npm run typecheck` · `npm test` | TypeScript · Unit-Tests (Vitest) |
+| `npm run lint` · `npm run format:check` | ESLint (inkl. Projektregeln: Widgets, `requireUser`, festes SQL, `no-danger`) · Prettier |
 | `npm run test:visual` | Pixeltests der Logo-Komponenten |
 | `npm run test:e2e` | LD-Flow-Durchlauf gegen laufenden Server mit frischem Build + frischer DB (Anleitung im Dateikopf) |
 | `npm run test:a11y` | Barrierefreiheit (axe, WCAG 2.2 AA): Site Desktop + Mobil, hell/dunkel; LD Flow angemeldet |
 | `npm run test:pages` | Pixelvergleich der Hauptseiten, Desktop + Mobil (`UPDATE=1` erneuert die Referenzbilder bewusst) |
 | `npm run test:perf` | Ladezeit mobil (LCP, CLS, TBT, Datenmenge) gegen Budgets |
 | `npm run format` | Prettier |
+| `npm run backup` | Datenbank im Betrieb sichern + prüfen, Aufbewahrung (`docs/LD-FLOW.md` → Sicherung) |

@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { mono } from '../cards/ProjectCard';
 import { useSite } from '../settings/SiteProvider';
 import styles from './chrome.module.css';
@@ -34,7 +35,7 @@ export function SiteFooter() {
         <a href="https://github.com/bjoern-sellnau/" target="_blank" rel="noopener noreferrer" className={styles.footLink}>
           GitHub
         </a>
-        <a
+        <Link
           href="/impressum"
           className={styles.footLink}
           onClick={(e) => {
@@ -44,7 +45,7 @@ export function SiteFooter() {
           }}
         >
           Impressum
-        </a>
+        </Link>
       </span>
     </footer>
   );

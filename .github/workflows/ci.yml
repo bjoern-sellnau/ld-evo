@@ -1,0 +1,93 @@
+# Automatische Prüfung bei jedem Push und Pull Request (Befehle wie lokal, siehe CLAUDE.md).
+#  1. check    — Formatierung, ESLint, TypeScript, Unit- und Logo-Pixeltests (schnell, blockiert alles Weitere)
+#  2. browser  — gegen einen echten Server mit frischem Build und frischer DB, je Suite ein eigener Job:
+#                e2e (LD Flow), a11y (axe), pages (Pixelvergleich), perf (Ladezeit-Budgets)
+# Frischer Build je Suite ist Absicht: `next start` schreibt revalidierte Seiten nach .next zurück.
+name: CI
+
+on:
+  push:
+    branches-ignore: [gh-pages]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_NO_WARNINGS: '1'
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Formatierung (Prettier)
+        run: npm run format:check
+      - name: ESLint
+        run: npm run lint
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Unit-Tests
+        run: npm test
+      - name: Pixeltests Logo
+        run: npm run test:visual
+
+  browser:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [e2e, a11y, pages, perf]
+    env:
+      LDFLOW_DB: ${{ github.workspace }}/.ci-data/flow.db
+      LDFLOW_SCHEDULER_INTERVAL_MS: '2000'
+      SHOTS: ${{ github.workspace }}/.ci-shots
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Server starten (frische DB)
+        run: |
+          mkdir -p .ci-data "$SHOTS"
+          nohup npx next start -p 3123 > .ci-data/server.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:3123/ && exit 0
+            sleep 1
+          done
+          cat .ci-data/server.log
+          exit 1
+      - name: test:${{ matrix.suite }}
+        run: npm run test:${{ matrix.suite }}
+      - name: Server-Log
+        if: failure()
+        run: tail -n 200 .ci-data/server.log
+      - name: Differenzbilder und Screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.suite }}-ergebnisse
+          path: |
+            tests/visual-pages/diff/
+            .ci-shots/
+          if-no-files-found: ignore
+          retention-days: 7

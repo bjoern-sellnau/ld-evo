@@ -25,15 +25,24 @@ Sicherheit, Hosting, AI-Prompts). Kurzfassung für AI-Assistenten: [`CLAUDE.md`]
 npm run dev            # Dev-Server
 npm run build && npm start   # Produktion (Node ≥ 22.13, Datenordner data/ bzw. LDFLOW_DB)
 npm run typecheck      # TypeScript
+npm run lint           # ESLint (Next, Hooks, jsx-a11y + Projektregeln aus CLAUDE.md)
+npm run format:check   # Prettier prüfen (npm run format korrigiert)
 npm test               # Unit-Tests (Logo-Geometrie, Tokens/Kontrast, Schema, Auth, Widgets …)
 npm run test:visual    # Pixel-Vergleich der Logos (Chromium + pixelmatch, Toleranz 0.1 %)
 npm run test:e2e       # LD Flow im Browser (Anleitung im Dateikopf von tests/e2e/flow.e2e.mjs)
 npm run test:a11y      # Barrierefreiheit aller Seiten (axe-core, hell/dunkel)
 npm run test:pages     # Pixelvergleich der Hauptseiten mit Referenzbildern (Desktop + Mobil)
 npm run test:perf      # Ladezeit mobil (LCP, CLS, TBT, Datenmenge) gegen Budgets
+npm run backup         # Datenbank sichern, prüfen, alte Stände aufräumen (docs/LD-FLOW.md → Sicherung)
 npm run widgets        # Widget-Registry neu erzeugen (läuft vor dev/build/test automatisch)
 npm run brand:sync     # finale Logo-Assets aus dem Handoff nach public/ kopieren
 ```
+
+## Automatische Prüfung (CI)
+
+`.github/workflows/ci.yml` läuft bei jedem Push und Pull Request: Prettier, ESLint, TypeScript, Unit- und
+Logo-Pixeltests; danach je ein Job mit frischem Build und frischer DB für E2E, Barrierefreiheit, Seiten-Pixel und
+Ladezeit. Bei Fehlern hängen Differenzbilder/Screenshots als Artefakt am Lauf.
 
 ## GitHub Pages (Website-Vorschau)
 

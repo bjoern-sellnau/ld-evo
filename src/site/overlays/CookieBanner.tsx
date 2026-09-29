@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useSite } from '../settings/SiteProvider';
 import { GlassLayers, panelGlass } from './GlassPanel';
 import styles from './overlays.module.css';
@@ -94,7 +95,7 @@ export function CookieBanner() {
         >
           Alles klar
         </button>
-        <a
+        <Link
           href="/impressum"
           className={styles.quiet}
           onClick={(e) => {
@@ -103,7 +104,7 @@ export function CookieBanner() {
           }}
         >
           Details
-        </a>
+        </Link>
       </div>
     </div>
   );

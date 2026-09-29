@@ -8,6 +8,7 @@
  * Passwort-Reset, Logout und Brute-Force-Sperre.
  */
 import { chromium } from '@playwright/test';
+import { launchOptions } from '../browser.mjs';
 import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -21,7 +22,7 @@ const check = (name, ok, detail = '') => {
   if (!ok) failed++;
 };
 
-const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? '/opt/pw-browsers/chromium' });
+const b = await chromium.launch(launchOptions());
 // Breit genug, dass die Desktop-Vorschau (1280 px) unskaliert bleibt — Playwright rechnet Klicks in skalierten iframes ungenau um.
 const ctx = await b.newContext({ viewport: { width: 2000, height: 1000 } });
 await ctx.addInitScript(() => {

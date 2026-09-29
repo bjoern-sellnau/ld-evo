@@ -608,7 +608,7 @@ export const CHAPTERS: Chapter[] = [
           'Persistenten Ordner für die Datenbank anlegen und `LDFLOW_DB=/pfad/flow.db` setzen.',
           'Reverse-Proxy mit HTTPS davor (z. B. Caddy/nginx), der `X-Forwarded-For` setzt.',
           'Erster Aufruf von `/flow` → Setup-Token aus `flow-setup-token.txt` neben der DB → Admin anlegen.',
-          'Backup einrichten: `sqlite3 flow.db ".backup backup.db"` regelmäßig (eine Datei = alles inkl. Medien).',
+          'Backup einrichten: `npm run backup` nächtlich per cron (prüft die Kopie, behält 14 Stände; eine Datei = alles inkl. Medien). `flow-secret.key` getrennt sichern (`LDFLOW_BACKUP_KEY_DIR`) — Details in docs/LD-FLOW.md.',
           '`NODE_NO_WARNINGS=1` blendet die unkritische SQLite-Warnung aus.',
         ],
       },

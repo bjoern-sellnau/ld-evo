@@ -3,7 +3,7 @@ import type { HomeContent } from '@content/home';
 import type { JourneyStation } from '@content/journey';
 import type { Project } from '@content/projects';
 import type { NavItem } from '@/site/nav/pages';
-import type { MediaRef, RichText } from './schema';
+import type { MediaRef } from './schema';
 
 export interface AboutContent {
   introKicker: string;

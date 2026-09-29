@@ -12,6 +12,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from '@playwright/test';
+import { launchOptions } from '../browser.mjs';
 
 const U = process.env.BASE_URL ?? 'http://localhost:3123';
 const SITE = [
@@ -44,7 +45,7 @@ const DEVICES = {
   mobil: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 },
 };
 
-const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? '/opt/pw-browsers/chromium' });
+const b = await chromium.launch(launchOptions());
 let serious = 0;
 
 async function audit(p, label) {

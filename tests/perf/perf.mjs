@@ -7,6 +7,7 @@
  * Hinweis: Chromium in CI/Container ist langsamer als ein echtes Telefon mit derselben Drosselung — Budgets mit Reserve.
  */
 import { chromium } from '@playwright/test';
+import { launchOptions } from '../browser.mjs';
 
 const U = process.env.BASE_URL ?? 'http://localhost:3123';
 const PAGES = ['/', '/projekte', '/tech', '/reise', '/ueber-mich', '/projekte/neuewebsite', '/tech/a1'];
@@ -25,7 +26,7 @@ const BUDGET = {
  */
 const EXCEPTIONS = { '/reise': { cls: 0.4 } };
 
-const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? '/opt/pw-browsers/chromium' });
+const b = await chromium.launch(launchOptions());
 let failed = 0;
 const rows = [];
 for (const route of PAGES) {
