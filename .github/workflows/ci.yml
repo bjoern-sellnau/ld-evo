@@ -3,6 +3,9 @@
 #  2. browser  — gegen einen echten Server mit frischem Build und frischer DB, je Suite ein eigener Job:
 #                e2e (LD Flow), a11y (axe), pages (Pixelvergleich), perf (Ladezeit-Budgets)
 # Frischer Build je Suite ist Absicht: `next start` schreibt revalidierte Seiten nach .next zurück.
+#  3. referenzbilder — nur manuell (Actions → CI → Run workflow, Haken „Referenzbilder erneuern“): erzeugt die
+#                Seiten-Referenzbilder für diese Umgebung (tests/visual-pages/baseline/ci/) und committet sie auf den
+#                gewählten Branch. Nur nach gewollten Design-Änderungen oder einem Browser-Update nutzen.
 name: CI
 
 on:
@@ -10,6 +13,11 @@ on:
     branches-ignore: [gh-pages]
   pull_request:
   workflow_dispatch:
+    inputs:
+      referenzbilder:
+        description: 'Referenzbilder der Seiten für die CI-Umgebung neu erzeugen und committen'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -21,6 +29,7 @@ concurrency:
 env:
   NODE_NO_WARNINGS: '1'
   NEXT_TELEMETRY_DISABLED: '1'
+  PIXEL_ENV: ci
 
 jobs:
   check:
@@ -47,6 +56,7 @@ jobs:
 
   browser:
     needs: check
+    if: ${{ !inputs.referenzbilder }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
@@ -91,3 +101,41 @@ jobs:
             .ci-shots/
           if-no-files-found: ignore
           retention-days: 7
+
+  referenzbilder:
+    if: ${{ inputs.referenzbilder }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      LDFLOW_DB: ${{ github.workspace }}/.ci-data/flow.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Server starten (frische DB)
+        run: |
+          mkdir -p .ci-data
+          nohup npx next start -p 3123 > .ci-data/server.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:3123/ && exit 0
+            sleep 1
+          done
+          cat .ci-data/server.log
+          exit 1
+      - name: Referenzbilder erzeugen
+        run: UPDATE=1 npm run test:pages
+      - name: Committen
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/visual-pages/baseline/ci
+          if git diff --cached --quiet; then echo 'Keine Änderungen.'; exit 0; fi
+          git commit -m 'Referenzbilder (CI-Umgebung) erneuert'
+          git push

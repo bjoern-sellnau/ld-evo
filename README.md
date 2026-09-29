@@ -42,7 +42,9 @@ npm run brand:sync     # finale Logo-Assets aus dem Handoff nach public/ kopiere
 
 `.github/workflows/ci.yml` läuft bei jedem Push und Pull Request: Prettier, ESLint, TypeScript, Unit- und
 Logo-Pixeltests; danach je ein Job mit frischem Build und frischer DB für E2E, Barrierefreiheit, Seiten-Pixel und
-Ladezeit. Bei Fehlern hängen Differenzbilder/Screenshots als Artefakt am Lauf.
+Ladezeit. Bei Fehlern hängen Differenzbilder/Screenshots als Artefakt am Lauf. Die Seiten-Pixeltests haben je
+Umgebung eigene Referenzbilder (`tests/visual-pages/baseline/local|ci`); die der CI erneuert man nach gewollten
+Design-Änderungen über **Actions → CI → Run workflow → „Referenzbilder erneuern“** (committet auf den Branch).
 
 ## GitHub Pages (Website-Vorschau)
 

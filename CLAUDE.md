@@ -49,7 +49,7 @@ Ausführlich und interaktiv: **LD Flow → Guide** (`/flow/guide`).
 | `npm run test:visual` | Pixeltests der Logo-Komponenten |
 | `npm run test:e2e` | LD-Flow-Durchlauf gegen laufenden Server mit frischem Build + frischer DB (Anleitung im Dateikopf) |
 | `npm run test:a11y` | Barrierefreiheit (axe, WCAG 2.2 AA): Site Desktop + Mobil, hell/dunkel; LD Flow angemeldet |
-| `npm run test:pages` | Pixelvergleich der Hauptseiten, Desktop + Mobil (`UPDATE=1` erneuert die Referenzbilder bewusst) |
+| `npm run test:pages` | Pixelvergleich der Hauptseiten, Desktop + Mobil (`UPDATE=1` erneuert die lokalen Referenzbilder bewusst; die der CI per Actions → CI → „Referenzbilder erneuern“) |
 | `npm run test:perf` | Ladezeit mobil (LCP, CLS, TBT, Datenmenge) gegen Budgets |
 | `npm run format` | Prettier |
 | `npm run backup` | Datenbank im Betrieb sichern + prüfen, Aufbewahrung (`docs/LD-FLOW.md` → Sicherung) |

@@ -1,7 +1,7 @@
 /**
  * Pixel-Regression der Hauptseiten (erster Bildschirm: Desktop 1280×800, Mobil 390×844) in dunkel und hell — gegen
  * Referenzbilder in
- * tests/visual-pages/baseline/. Gleiches Verfahren wie die Logo-Tests (pixelmatch, Schwelle 0.1).
+ * tests/visual-pages/baseline/<umgebung>/ (siehe PIXEL_ENV). Gleiches Verfahren wie die Logo-Tests (pixelmatch, Schwelle 0.1).
  *   npm run build && npx next start -p 3123   (frische DB — Inhalte = Startinhalte)
  *   npm run test:pages            vergleichen (Differenzbilder bei Abweichung: tests/visual-pages/diff/)
  *   UPDATE=1 npm run test:pages   Referenzbilder bewusst neu erzeugen (nach gewollten Design-Änderungen)
@@ -17,7 +17,14 @@ import { PNG } from 'pngjs';
 
 const U = process.env.BASE_URL ?? 'http://localhost:3123';
 const DIR = import.meta.dirname;
-const BASE = path.join(DIR, 'baseline');
+/**
+ * Referenzbilder je Umgebung: Browser-Version und Systemschriften verändern Kantenglättung und Laufweiten, ein
+ * Vergleich ist nur innerhalb derselben Umgebung aussagekräftig. `local` = Entwicklungs-Container
+ * (/opt/pw-browsers/chromium), `ci` = GitHub Actions (Chromium von Playwright auf ubuntu-latest; erneuern über
+ * Actions → CI → „Run workflow“ mit „Referenzbilder erneuern“).
+ */
+const PIXEL_ENV = process.env.PIXEL_ENV ?? 'local';
+const BASE = path.join(DIR, 'baseline', PIXEL_ENV);
 const DIFF = path.join(DIR, 'diff');
 const UPDATE = process.env.UPDATE === '1';
 /** Höchstens 0,5 % abweichende Pixel (Kantenglättung/Schrift-Hinting schwanken minimal). */
@@ -52,6 +59,11 @@ for (const { prefix, opts } of DEVICES)
       );
       const name = `${prefix}${theme}${route === '/' ? '_home' : route.replace(/\//g, '_')}.png`;
       const file = path.join(BASE, name);
+      if (!UPDATE && !existsSync(file) && process.env.CI === 'true') {
+        failed++;
+        console.log(`✗ ${name} — keine Referenz für „${PIXEL_ENV}“ (Workflow CI mit „Referenzbilder erneuern“ starten)`);
+        continue;
+      }
       if (UPDATE || !existsSync(file)) {
         writeFileSync(file, PNG.sync.write(shot));
         console.log(`↻ ${name} (Referenz ${UPDATE ? 'erneuert' : 'angelegt'})`);
