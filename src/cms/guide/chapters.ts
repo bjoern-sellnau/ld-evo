@@ -639,7 +639,10 @@ export const CHAPTERS: Chapter[] = [
           ['LDFLOW_DB', 'Pfad der SQLite-Datei (Standard ./data/flow.db)'],
           ['LDFLOW_SETUP_TOKEN', 'optional festes Setup-Token statt generierter Datei'],
           ['LDFLOW_INSECURE_COOKIES', '1 = Cookies ohne Secure (nur lokal/Tests)'],
-          ['LDFLOW_PUBLIC_URL', 'öffentliche Adresse, z. B. https://loona-designs.de — Basis für Links in Mails, Canonical, hreflang, Sitemap und Vorschaubilder (zur Laufzeit)'],
+          [
+            'LDFLOW_PUBLIC_URL',
+            'öffentliche Adresse, z. B. https://loona-designs.de — Basis für Links in Mails, Canonical, hreflang, Sitemap und Vorschaubilder (zur Laufzeit)',
+          ],
           ['LDFLOW_SMTP_URL', 'Mailversand: smtps://nutzer:pass@host:465 oder smtp://…:587 (STARTTLS erzwungen)'],
           ['LDFLOW_MAIL_FROM', 'Absender, z. B. "LD Flow <flow@loona-designs.de>"'],
           ['LDFLOW_CONTACT_TO', 'optional: Adresse für Benachrichtigungen über neue Kontakt-Nachrichten'],
