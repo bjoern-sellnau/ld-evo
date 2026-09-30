@@ -363,6 +363,11 @@ check(
       (await en.locator('#inhalt [lang="de"]:not([hreflang])').count()) > 0 &&
       (await robots()).includes('noindex'),
   );
+  await en.goto(U + '/labs/corefall');
+  check(
+    'DE verweist ohne Übersetzung nicht per hreflang auf Englisch',
+    (await en.locator('link[rel="alternate"][hreflang="en"]').count()) === 0,
+  );
   const enDraft = await sql((d) =>
     JSON.parse(d.prepare("SELECT draft FROM docs WHERE collection = 'projects' AND id = 'corefall' AND locale = 'en'").get().draft),
   );

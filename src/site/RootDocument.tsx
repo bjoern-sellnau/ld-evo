@@ -5,7 +5,7 @@ import { siteIcons } from '@/lib/site-icons';
 import { instrumentSans, jetbrainsMono } from '@/site/fonts';
 import { translate } from '@/site/i18n/dict';
 import { htmlLang, ogLocale, type Locale } from '@/site/i18n/locale';
-import { feedAlternate } from '@/site/seo/seo';
+import { feedAlternate, metadataBase } from '@/site/seo/seo';
 import { BRAND_THEME_COLOR, THEME_BOOT_SCRIPT } from '@/site/settings/applyBody';
 import '@/styles/globals.css';
 import '@/site/styles/site.css';
@@ -21,7 +21,7 @@ const { ogImage, ...icons } = siteIcons();
 export function rootMetadata(locale: Locale): Metadata {
   const t = (k: Parameters<typeof translate>[1]) => translate(locale, k);
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+    metadataBase: metadataBase(),
     title: t('seo.siteTitle'),
     description: t('seo.siteDescription'),
     applicationName: 'Loona! Designs',

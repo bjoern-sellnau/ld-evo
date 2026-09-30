@@ -4,16 +4,27 @@ import { localizePath, ogLocale, type Locale } from '../i18n/locale';
 
 /**
  * Suchmaschinen-Helfer: absolute URLs, Metadaten je Seite, strukturierte Daten (JSON-LD, schema.org).
- * Basis-URL wie im Site-Layout: NEXT_PUBLIC_SITE_URL (+ Basispfad beim statischen Export).
+ *
+ * Öffentliche Adresse: im Server-Betrieb LDFLOW_PUBLIC_URL — zur LAUFZEIT gelesen (dieselbe Variable wie für Links in
+ * Mails). NEXT_PUBLIC_*-Variablen baut Next dagegen beim Build fest ein; ein Docker-Image ohne sie hätte sonst
+ * „localhost“ in Canonical, hreflang, Sitemap und og:image. Die beim Build vorgerenderten Seiten erneuert der Server
+ * kurz nach dem Start (/flow-cron). Beim statischen Export (GitHub Pages) gilt NEXT_PUBLIC_SITE_URL zur Build-Zeit.
  */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+export const SITE_URL = (process.env.LDFLOW_PUBLIC_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
+/**
+ * Basis für relative Metadaten-URLs (u. a. og:image aus opengraph-image.tsx). Next hängt relative Pfade an den
+ * Pfadanteil an — mit Basispfad (/ld-evo) landen die Vorschaubilder so unter der richtigen Adresse.
+ */
+export const metadataBase = () => new URL(`${SITE_URL}${BASE}/`);
 
 export const absUrl = (path: string) => `${SITE_URL}${BASE}${path === '/' ? '' : path}` || SITE_URL;
 
 /** RSS des .Tech-Blogs je Sprache (/tech/feed.xml bzw. /en/tech/feed.xml). */
 export const feedAlternate = (locale: Locale) => ({
-  'application/rss+xml': [{ url: `${BASE}${localizePath('/tech/feed.xml', locale)}`, title: translate(locale, 'seo.feedTitle') }],
+  // Relativ: Next löst gegen metadataBase (inkl. Basispfad) auf.
+  'application/rss+xml': [{ url: localizePath('/tech/feed.xml', locale), title: translate(locale, 'seo.feedTitle') }],
 });
 
 /**

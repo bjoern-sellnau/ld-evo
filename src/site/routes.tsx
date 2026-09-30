@@ -5,6 +5,7 @@ import { getPage, getPageSlugs, getSiteContent, isFallback } from '@/cms/content
 import { PageRenderer } from '@/site/cms/PageRenderer';
 import { translate, type UiKey } from '@/site/i18n/dict';
 import type { Locale } from '@/site/i18n/locale';
+import type { SiteContent } from '@/cms/types';
 import { localizePath } from '@/site/i18n/locale';
 import { AboutPage } from '@/site/pages/AboutPage';
 import { ArticlePage } from '@/site/pages/ArticlePage';
@@ -41,11 +42,19 @@ function Lang({ de, children }: { de: boolean; children: ReactNode }) {
   );
 }
 const t = (l: Locale, k: UiKey) => translate(l, k);
-const translatedAll = (l: Locale, docs: unknown[]) => l === 'de' || !docs.some(isFallback);
+/**
+ * Gibt es eine echte englische Fassung? Immer gegen die ENGLISCHEN Inhalte prüfen — auch auf deutschen Seiten, denn
+ * dort entscheidet es, ob hreflang auf Englisch verweist. Listen: jeder Eintrag muss übersetzt sein.
+ */
+function enReady(pick: (c: SiteContent) => unknown): boolean {
+  const v = pick(getSiteContent('en'));
+  const docs = Array.isArray(v) ? v : [v];
+  return docs.length > 0 && docs.every((d) => !!d && !isFallback(d));
+}
 
 export function homeRoute(locale: Locale) {
   return {
-    generateMetadata: (): Metadata => pageMeta({ path: '/', locale, translated: translatedAll(locale, [getSiteContent(locale).home]) }),
+    generateMetadata: (): Metadata => pageMeta({ path: '/', locale, translated: enReady((c) => c.home) }),
     Page: function Page() {
       return (
         <>
@@ -81,10 +90,7 @@ export function catalogRoute(kind: 'projekte' | 'labs', locale: Locale) {
         title: t(locale, kind === 'labs' ? 'seo.labsTitle' : 'seo.projectsTitle'),
         path,
         locale,
-        translated: translatedAll(
-          locale,
-          getSiteContent(locale).projects.filter((p) => p.kind === kind),
-        ),
+        translated: enReady((c) => c.projects.filter((p) => p.kind === kind)),
       }),
     Page: function Page() {
       return <CatalogPage kind={kind} />;
@@ -108,7 +114,7 @@ export function projectRoute(kind: 'projekte' | 'labs', locale: Locale) {
             path: `${base}/${p.id}`,
             type: 'article',
             locale,
-            translated: translatedAll(locale, [p]),
+            translated: enReady((c) => c.projects.find((x) => x.id === p.id)),
           })
         : {};
     },
@@ -160,7 +166,7 @@ export function techRoute(locale: Locale) {
         description: t(locale, 'tech.lead'),
         path: '/tech',
         locale,
-        translated: translatedAll(locale, getSiteContent(locale).articles),
+        translated: enReady((c) => c.articles),
       }),
     Page: function Page() {
       return <TechPage />;
@@ -183,7 +189,7 @@ export function articleRoute(locale: Locale) {
             type: 'article',
             noindex: a.draft,
             locale,
-            translated: translatedAll(locale, [a]),
+            translated: enReady((c) => c.articles.find((x) => x.id === a.id)),
           })
         : {};
     },
@@ -232,7 +238,7 @@ export function aboutRoute(locale: Locale) {
         title: t(locale, 'seo.aboutTitle'),
         path: '/ueber-mich',
         locale,
-        translated: translatedAll(locale, [getSiteContent(locale).about]),
+        translated: enReady((c) => c.about),
       }),
     Page: function Page() {
       const fallback = isFallback(getSiteContent(locale).about) && locale !== 'de';
@@ -253,7 +259,7 @@ export function journeyRoute(locale: Locale) {
         description: t(locale, 'seo.journeyDescription'),
         path: '/reise',
         locale,
-        translated: translatedAll(locale, getSiteContent(locale).journey),
+        translated: enReady((c) => c.journey),
       }),
     Page: function Page() {
       return <ReisePage />;
@@ -268,7 +274,7 @@ export function imprintRoute(locale: Locale) {
         title: t(locale, 'seo.imprintTitle'),
         path: '/impressum',
         locale,
-        translated: translatedAll(locale, [getSiteContent(locale).imprint]),
+        translated: enReady((c) => c.imprint),
       }),
     Page: function Page() {
       const fallback = isFallback(getSiteContent(locale).imprint) && locale !== 'de';
@@ -293,7 +299,7 @@ export function cmsPageRoute(locale: Locale) {
             description: p.description || undefined,
             path: `/${p.id}`,
             locale,
-            translated: translatedAll(locale, [p]),
+            translated: ((en) => !!en && !isFallback(en))(getPage(p.id, 'en')),
           })
         : {};
     },

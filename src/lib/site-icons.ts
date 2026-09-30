@@ -28,6 +28,7 @@ export function siteIcons(): Pick<Metadata, 'icons' | 'manifest'> & { ogImage?: 
       apple: has('apple-touch-icon-180.png') ? [{ url: `${B}/apple-touch-icon-180.png`, sizes: '180x180' }] : [],
     },
     manifest: has('site.webmanifest') ? `${B}/site.webmanifest` : undefined,
-    ogImage: has('og-image-1200x630.png') ? `${B}/og-image-1200x630.png` : undefined,
+    // Ohne Basispfad: Open-Graph-Bilder löst Next gegen metadataBase auf, das den Basispfad schon enthält.
+    ogImage: has('og-image-1200x630.png') ? '/og-image-1200x630.png' : undefined,
   };
 }
