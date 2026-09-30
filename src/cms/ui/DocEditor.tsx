@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useTransition } from 'react';
 import { setAtPath } from '@/site/cms/editing';
 import {
   cancelScheduleAction,
@@ -85,8 +85,11 @@ export function DocEditor(props: EditorProps) {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  // Neuester Stand für Autosave/Nachrichten; change() setzt ihn zusätzlich sofort (vor dem nächsten Rendern).
   const docRef = useRef(doc);
-  docRef.current = doc;
+  useLayoutEffect(() => {
+    docRef.current = doc;
+  });
   // Konfliktschutz: bekannter Stand; bei Konflikt pausiert das automatische Speichern, bis entschieden ist.
   const revRef = useRef<number | undefined>(props.rev);
   const [conflict, setConflict] = useState<{ by: string | null; at: number } | null>(null);

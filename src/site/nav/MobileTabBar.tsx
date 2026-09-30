@@ -44,6 +44,7 @@ function useNavHidden(enabled: boolean) {
   const acc = useRef({ last: 0, down: 0, up: 0 });
   useEffect(() => {
     if (!enabled) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Abschalten des Scrollhide soll die Leiste sofort wieder zeigen
       setHidden(false);
       return;
     }

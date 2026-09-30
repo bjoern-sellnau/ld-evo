@@ -22,7 +22,7 @@
     "test:a11y": "node tests/a11y/axe.mjs",
     "test:pages": "node tests/visual-pages/pages.mjs",
     "test:perf": "node tests/perf/perf.mjs",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" scripts eslint.config.mjs",
     "backup": "node --no-warnings scripts/backup-db.mjs"
   },

@@ -26,6 +26,7 @@ export function Splash() {
   useEffect(() => {
     if (!hydrated) return;
     if (!s.splashOn && run === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Splash-Ablauf hängt an Einstellungen aus localStorage, erst nach der Hydration bekannt
       setPhase(0);
       return;
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type TouchEvent } from 'react';
 import type { Project } from '@content/projects';
 import { useContent } from '../content/ContentProvider';
 import { ProjectCard, mono, useOpenItem } from '../cards/ProjectCard';
@@ -27,7 +27,9 @@ const ALL = '';
 function useSlider(n: number, auto: boolean) {
   const [st, setSt] = useState({ slide: 0, trans: TRANS, tick: 0 });
   const ref = useRef(st);
-  ref.current = st;
+  useLayoutEffect(() => {
+    ref.current = st;
+  });
 
   const go = useCallback(
     (dir: 1 | -1) => {

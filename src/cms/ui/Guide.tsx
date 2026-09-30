@@ -29,6 +29,7 @@ function useProgress(): [Progress, (fn: (p: Progress) => Progress) => void] {
   useEffect(() => {
     try {
       const raw = JSON.parse(localStorage.getItem(KEY) || 'null');
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Fortschritt aus localStorage erst nach der Hydration lesen (Server kennt ihn nicht)
       if (raw && typeof raw === 'object') setP({ read: raw.read ?? [], steps: raw.steps ?? {}, quiz: raw.quiz ?? {} });
     } catch {
       // kein Speicher verfügbar → Fortschritt nur für diese Sitzung

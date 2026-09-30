@@ -132,6 +132,7 @@ export function StatsView({ stats }: { stats: SiteStats }) {
   const [excluded, setExcluded] = useState<boolean | null>(null);
   useEffect(() => {
     try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Opt-out steht nur im Browser (localStorage) — nach der Hydration übernehmen
       setExcluded(localStorage.getItem(NO_STATS_KEY) === '1');
     } catch {
       setExcluded(false);

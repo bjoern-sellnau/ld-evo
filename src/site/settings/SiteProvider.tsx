@@ -63,7 +63,9 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   const locale = useLocale();
   useHitCounter(pathname);
   const settingsRef = useRef(settings);
-  settingsRef.current = settings;
+  useLayoutEffect(() => {
+    settingsRef.current = settings;
+  });
 
   // CLS-Schutz (site.css): sobald das Layout mit echter Bildschirmbreite gerendert ist — vor dem Zeichnen — sichtbar machen.
   useLayoutEffect(() => {
@@ -72,6 +74,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
 
   // Client-Sync nach der Hydration (SSR rendert immer die Defaults: dark, Animationen an).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Einstellungen stehen nur im Browser (localStorage) — SSR rendert Defaults, danach übernehmen
     setSettings(readSettings(localStorage));
     setHydrated(true);
     const onResize = () =>

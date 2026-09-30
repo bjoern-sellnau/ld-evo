@@ -108,13 +108,14 @@ export default defineConfig([
       'react/no-danger': 'error',
       // Der Markenslogan „/// the web. my passion“ steht bewusst als Text im JSX (Prototyp).
       'react/jsx-no-comment-textnodes': 'off',
-      // Regeln für den React Compiler (react-hooks 7). Das Projekt nutzt ihn nicht; die gemeldeten Muster (Ref mit
-      // aktuellem Wert, Sync aus localStorage nach der Hydration) sind bewusst. Als Hinweis sichtbar, nicht blockierend.
-      'react-hooks/refs': 'warn',
+      // Regeln für den React Compiler (react-hooks 7) blockieren: Refs nie während des Renderns schreiben (stattdessen
+      // useLayoutEffect), setState nicht synchron im Effekt. Begründete Ausnahmen (Sync aus localStorage nach der
+      // Hydration, Animationen) stehen einzeln mit „eslint-disable-next-line … -- Grund“ im Code.
+      'react-hooks/refs': 'error',
+      'react-hooks/set-state-in-effect': 'error',
       // Bilder laufen bewusst über <img> mit eigenem srcset (mediaSrcSet, /media/<id>?w=…) — next/image bräuchte im
       // statischen Export einen Loader und würde die Varianten aus LD Flow doppeln.
       '@next/next/no-img-element': 'off',
-      'react-hooks/set-state-in-effect': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' }],
     },
   },

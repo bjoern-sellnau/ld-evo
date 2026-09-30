@@ -106,9 +106,16 @@ function useMedia() {
     const r = await listMediaAction();
     if (r.ok) setItems((r as { items: MediaItem[] }).items);
   }, []);
+  // Erstes Laden: Ergebnis im Callback übernehmen (nicht synchron im Effekt), bei Verlassen verwerfen.
   useEffect(() => {
-    reload();
-  }, [reload]);
+    let alive = true;
+    void listMediaAction().then((r) => {
+      if (alive && r.ok) setItems((r as { items: MediaItem[] }).items);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
   return { items, reload };
 }
 

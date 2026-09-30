@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Settings } from '../settings/schema';
 import { HeroEngine, type HeroEngineState } from './engine/heroEngine';
 
@@ -12,8 +12,8 @@ import { HeroEngine, type HeroEngineState } from './engine/heroEngine';
 export function useHeroShader(s: Settings): boolean {
   const [cineDone, setCineDone] = useState(false);
   const engine = useRef<HeroEngine | null>(null);
-  const state = useRef<HeroEngineState>(null as unknown as HeroEngineState);
-  state.current = {
+  // Neuester Zustand für die Engine (liest ihn im Animations-Frame); cineDone-Patches kommen sofort hinzu.
+  const next: HeroEngineState = {
     page: 'hallo',
     heroAnim: s.heroAnim,
     anim: s.anim,
@@ -27,6 +27,10 @@ export function useHeroShader(s: Settings): boolean {
     mxSize: s.mxSize,
     cineDone,
   };
+  const state = useRef(next);
+  useLayoutEffect(() => {
+    state.current = next;
+  });
 
   useEffect(() => {
     const e = new HeroEngine(

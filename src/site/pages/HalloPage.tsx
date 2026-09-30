@@ -41,6 +41,7 @@ function useCareerSeconds() {
   const [v, setV] = useState<string | null>(null);
   const locale = useLocale();
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Live-Zähler erst im Browser (Server-HTML ohne Uhrzeit → keine Hydration-Abweichung)
     setV(careerSeconds(locale));
     const iv = setInterval(() => setV(careerSeconds(locale)), 1000);
     return () => clearInterval(iv);

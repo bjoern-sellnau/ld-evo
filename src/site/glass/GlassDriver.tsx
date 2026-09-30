@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useSite } from '../settings/SiteProvider';
 import { adjustNavContrast, createContrastMemo } from './navContrast';
 import { createRefractionMemo, refreshGlassFilters } from './refraction';
@@ -14,15 +14,18 @@ import { createRefractionMemo, refreshGlassFilters } from './refraction';
 export function GlassDriver() {
   const site = useSite();
   const pathname = usePathname();
-  const live = useRef({ s: site.settings, overlayOpen: false });
-  live.current = { s: site.settings, overlayOpen: site.overlay !== null };
+  const live = useRef({ s: site.settings, overlayOpen: site.overlay !== null });
   const contrast = useRef(createContrastMemo());
   const refr = useRef(createRefractionMemo());
 
   const runContrast = () => adjustNavContrast(() => live.current, contrast.current);
   const runRefr = () => refreshGlassFilters(live.current.s, refr.current);
   const fns = useRef({ runContrast, runRefr });
-  fns.current = { runContrast, runRefr };
+  // Neueste Werte nach dem Rendern übernehmen (nicht währenddessen — React-Regel „refs“).
+  useLayoutEffect(() => {
+    live.current = { s: site.settings, overlayOpen: site.overlay !== null };
+    fns.current = { runContrast, runRefr };
+  });
 
   // Wie componentDidUpdate: nach jeder relevanten Änderung.
   useEffect(() => {

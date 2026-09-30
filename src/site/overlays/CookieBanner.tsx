@@ -22,7 +22,7 @@ export function CookieBanner() {
     const t = setTimeout(() => setShow(true), 900);
     return () => clearTimeout(t);
     // Nur beim ersten Laden prüfen.
-  }, [hydrated]);
+  }, [hydrated, settings.cookie]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

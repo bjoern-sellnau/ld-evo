@@ -25,6 +25,7 @@ export function useBack() {
     wasDetail.current = show;
     if (!entering) return;
     clearInterval(timer.current);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Schreibmaschinen-Effekt startet beim Betreten einer Detailseite (Animation, kein abgeleiteter Zustand)
     if (!settings.anim) return setText(FULL);
     let i = 1;
     setText(FULL.slice(0, 1));

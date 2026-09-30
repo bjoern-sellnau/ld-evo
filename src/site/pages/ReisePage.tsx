@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { JOURNEY_MEDIA } from '@content/journeyMedia';
 import { LoonaTile } from '@/components/brand';
 import { useContent } from '../content/ContentProvider';
@@ -49,7 +49,9 @@ export function ReisePage() {
     swap?: ReturnType<typeof setTimeout>;
   }>({});
   const live = useRef({ cur, intro, rm });
-  live.current = { cur, intro, rm };
+  useLayoutEffect(() => {
+    live.current = { cur, intro, rm };
+  });
   const lastWheel = useRef(0);
 
   // Intro: 3,6 s ease-out-cubic von 2004 bis 2026, 1,9 s halten, 0,7 s ausblenden. Startet nach der Hydration,
@@ -84,7 +86,7 @@ export function ReisePage() {
       clearTimeout(t.out);
       clearTimeout(t.swap);
     };
-  }, [hydrated]);
+  }, [hydrated, LAST]);
 
   const goStation = useCallback((n: number) => {
     const { cur: c, intro: i, rm: r } = live.current;
@@ -106,7 +108,7 @@ export function ReisePage() {
     }, 190);
   }, []);
 
-  const step = useCallback((dir: number) => goStation(Math.max(0, Math.min(LAST, live.current.cur + dir))), [goStation]);
+  const step = useCallback((dir: number) => goStation(Math.max(0, Math.min(LAST, live.current.cur + dir))), [goStation, LAST]);
 
   const jump = useCallback(
     (idx: number) => {
@@ -168,7 +170,7 @@ export function ReisePage() {
       document.removeEventListener('keydown', onKey);
       window.removeEventListener('resize', onSize);
     };
-  }, [step, jump]);
+  }, [step, jump, LAST]);
 
   const skipIntro = () => {
     const t = timers.current;
