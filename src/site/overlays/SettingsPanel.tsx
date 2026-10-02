@@ -200,6 +200,8 @@ const EN_LABELS: Record<string, string> = {
   'Page-Transition': 'Page transition',
   'Zähler-Animation': 'Counter animation',
   'Mobil-Logo': 'Mobile logo',
+  'Mobil-Design': 'Mobile design',
+  Prototyp: 'Prototype',
   Pille: 'Pill',
   Wortmarke: 'Wordmark',
   Kachel: 'Tile',
@@ -460,6 +462,22 @@ export function SettingsPanel() {
             />
           </Row>
           {mob && (
+            <Row label="Mobil-Design" column>
+              <Seg
+                options={[
+                  ['proto', 'Prototyp'],
+                  ['app', 'App'],
+                  ['editorial', 'Editorial'],
+                  ['lab', 'Lab'],
+                ]}
+                value={s.mobDesign}
+                onChange={(v) => set('mobDesign', v as Settings['mobDesign'])}
+                label="Mobil-Design"
+                wrap
+              />
+            </Row>
+          )}
+          {mob && s.mobDesign === 'proto' && (
             <Row label="Mobil-Logo" column>
               <Seg
                 options={[

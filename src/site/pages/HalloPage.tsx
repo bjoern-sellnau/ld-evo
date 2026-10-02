@@ -348,7 +348,7 @@ export function HalloPage() {
           link={t('home.featuredLink')}
           onLink={() => navigate('/projekte')}
         />
-        <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: 14, marginTop: 26 }}>
+        <div data-m-rail style={{ display: 'grid', gridTemplateColumns: cols3, gap: 14, marginTop: 26 }}>
           {FEATURED.map((p) => (
             <ProjectCard key={p.id} p={p} prefix="cf-" />
           ))}
@@ -363,7 +363,7 @@ export function HalloPage() {
           link={t('home.newsLink')}
           onLink={() => navigate('/tech')}
         />
-        <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: 14, marginTop: 26 }}>
+        <div data-m-rail style={{ display: 'grid', gridTemplateColumns: cols3, gap: 14, marginTop: 26 }}>
           {NEWS.map((a) => (
             <NewsCard key={a.id} a={a} />
           ))}

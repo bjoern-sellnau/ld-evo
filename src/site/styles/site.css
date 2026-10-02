@@ -1472,3 +1472,83 @@ html.ldvt-portal::view-transition-new(root) {
     animation: none !important;
   }
 }
+
+/*
+ * Mobil-Designs 2 (neu, nicht im Prototyp — Einstellung „Mobil-Design“; Body-Klassen setzt SiteProvider nur mobil).
+ * Die Seiten sind inline gestylt; hier wird gezielt über Daten-Attribute umgestaltet (data-m-card, data-m-rail).
+ */
+@keyframes ldSheetUp {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes ldLabPop {
+  from {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.3);
+  }
+}
+@keyframes ldCaret {
+  50% {
+    opacity: 0;
+  }
+}
+.ld-caret {
+  animation: ldCaret 1s steps(1) infinite;
+}
+
+/* App: Karten-Reihen zum Wischen, weichere Karten */
+body.md-app [data-m-rail] {
+  display: flex !important;
+  gap: 12px !important;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  margin-left: -18px;
+  margin-right: -18px;
+  padding: 2px 18px 8px;
+  scrollbar-width: none;
+}
+body.md-app [data-m-rail] > * {
+  flex: 0 0 82%;
+  scroll-snap-align: center;
+}
+body.md-app [data-m-card] {
+  border-radius: 24px !important;
+}
+
+/* Editorial: Linien statt Kacheln, eckig, ohne Schatten */
+body.md-editorial [data-m-card] {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+body.md-editorial [data-m-card] * {
+  border-radius: 0 !important;
+}
+body.md-editorial [data-m-rail] {
+  gap: 0 !important;
+}
+body.md-editorial [data-m-rail] > * + * {
+  margin-top: 22px;
+}
+body.md-editorial main#inhalt h1 {
+  letter-spacing: -0.045em;
+}
+
+/* Lab: Rasterpapier, Neon-Konturen, Mono-Überschriften */
+body.md-lab {
+  background-image: linear-gradient(var(--hair) 1px, transparent 1px), linear-gradient(90deg, var(--hair) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+body.md-lab [data-m-card] {
+  border-radius: 10px !important;
+  outline: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: -1px;
+  box-shadow: 0 0 26px -10px var(--accent) !important;
+}
+body.md-lab main#inhalt h1,
+body.md-lab main#inhalt h2 {
+  font-family: var(--ld-font-mono), monospace;
+  letter-spacing: -0.04em;
+}

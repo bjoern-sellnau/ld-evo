@@ -46,6 +46,8 @@ export function SiteNav() {
   const scrolled = useScrolledPast(140, mob && mobLogo === 'scroll');
 
   if (mob && settings.mobModern) return null;
+  // Mobil-Designs 2 bringen eigene Kopf-/Navigationsleisten mit (MobileChrome2).
+  if (site2(settings.mobDesign, mob)) return null;
 
   // Kachel: das App-Icon pur — ohne Glas, damit es nicht die Farben der Hero-Grafik annimmt (Logo-Handoff: keine Schatten).
   if (mobLogo === 'tile' && !back.show)
@@ -320,3 +322,5 @@ function useScrolledPast(y: number, on: boolean) {
   }, [y, on]);
   return past;
 }
+
+const site2 = (d: string, mob: boolean) => mob && d !== 'proto';

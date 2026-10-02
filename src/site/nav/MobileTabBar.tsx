@@ -71,14 +71,17 @@ function useNavHidden(enabled: boolean) {
 
 /** Floating-Tab-Bar (iOS-26-Insel): bottom 18 px, Breite calc(100% − 44px) max. 386 px, Radius 28 px. */
 export function MobileTabBar() {
-  const { settings, mob, overlay, setOverlay, navigate } = useSite();
+  const { settings, mob, isMobile, mobDesign, overlay, setOverlay, navigate } = useSite();
   const page = pageForPath(canonicalPath(usePathname()));
   const tr = useT();
   const href = useHref();
   const hidden = useNavHidden(mob && settings.scrollHide);
   const menuOpen = overlay === 'mobileNav';
 
-  if (!mob) return null;
+  // Editorial und Lab kommen ohne Tab-Leiste aus (MobileChrome2); App dockt sie unten an.
+  if (!mob || mobDesign === 'editorial' || mobDesign === 'lab') return null;
+  const docked = mobDesign === 'app';
+  const framed = !isMobile;
 
   const tabs = settings.mobModern ? MODERN : CLASSIC;
   const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
@@ -89,11 +92,11 @@ export function MobileTabBar() {
 
   return (
     <>
-      <MobileBackPill tabBarHidden={hidden} />
+      {!docked && <MobileBackPill tabBarHidden={hidden} />}
       <div
         style={{
           position: 'fixed',
-          bottom: 18,
+          bottom: docked ? (framed ? 10 : 0) : 18,
           left: 0,
           right: 0,
           display: 'flex',
@@ -108,7 +111,7 @@ export function MobileTabBar() {
           as="nav"
           id="ld-tabbar"
           aria-label={tr('nav.main')}
-          radius="28px"
+          radius={docked ? (framed ? '22px 22px 32px 32px' : '22px 22px 0 0') : '28px'}
           lite
           style={{
             pointerEvents: 'auto',
@@ -118,6 +121,13 @@ export function MobileTabBar() {
             padding: 6,
             width: 'calc(100% - 44px)',
             maxWidth: 386,
+            // App-Design: angedockt über die volle Breite, mit Platz für den Home-Indikator.
+            ...(docked && {
+              width: framed ? 430 : '100%',
+              maxWidth: 'none',
+              padding: '6px 10px calc(8px + env(safe-area-inset-bottom))',
+              boxSizing: 'border-box',
+            }),
           }}
         >
           {tabs.map((t) => {
