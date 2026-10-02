@@ -11,6 +11,8 @@ export type Frame = 'clear' | 'island' | 'hole' | 'notch';
 export type ThemeColorMode = 'brand' | 'site';
 /** Laufender Sekundenzähler auf „Hallo“: schlicht, rollende Walzen oder Fallblatt (Flughafentafel/Klapp-Radiowecker). */
 export type CounterFx = 'plain' | 'roll' | 'flap';
+/** Logo oben im Mobil-Modus: Glas-Pille mit Zeichen (Prototyp), Pille mit Wortmarke, App-Kachel, erst beim Scrollen. */
+export type MobLogo = 'pill' | 'wordmark' | 'tile' | 'scroll';
 
 export interface Settings {
   theme: Theme;
@@ -57,6 +59,7 @@ export interface Settings {
   themeColor: ThemeColorMode;
   counterFx: CounterFx;
   reiseBg: boolean;
+  mobLogo: MobLogo;
 }
 
 /** SSR-Defaults (dark, Animationen an) — entsprechen dem initialen State des Prototyps. */
@@ -105,6 +108,7 @@ export const DEFAULT_SETTINGS: Settings = {
   themeColor: 'brand',
   counterFx: 'plain',
   reiseBg: false,
+  mobLogo: 'pill',
 };
 
 interface Codec<T> {
@@ -192,6 +196,11 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
     write: (v) => (v === 'plain' ? null : v),
   },
   reiseBg: offUnlessOn('ld-reisebg'),
+  mobLogo: {
+    key: 'ld-moblogo',
+    read: (r) => (r === 'wordmark' || r === 'tile' || r === 'scroll' ? r : 'pill'),
+    write: (v) => (v === 'pill' ? null : v),
+  },
 };
 
 export function readSettings(storage: Pick<Storage, 'getItem'>): Settings {

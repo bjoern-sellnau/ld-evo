@@ -66,6 +66,17 @@ const VT_SEGS = [
   ['glitch', 'Glitch'],
   ['cinema', 'Cinema'],
   ['swap', 'Swap'],
+  // Neu (nicht im Prototyp)
+  ['tv', 'TV'],
+  ['cube', 'Würfel'],
+  ['vortex', 'Strudel'],
+  ['warp', 'Warp'],
+  ['drop', 'Absturz'],
+  ['fold', 'Origami'],
+  ['jelly', 'Wackelpudding'],
+  ['star', 'Stern'],
+  ['melt', 'Schmelzen'],
+  ['portal', 'Portal'],
 ] as const;
 
 const HERO_PARTS = [
@@ -188,6 +199,17 @@ const EN_LABELS: Record<string, string> = {
   Sprache: 'Language',
   'Page-Transition': 'Page transition',
   'Zähler-Animation': 'Counter animation',
+  'Mobil-Logo': 'Mobile logo',
+  Pille: 'Pill',
+  Wortmarke: 'Wordmark',
+  Kachel: 'Tile',
+  'Beim Scrollen': 'On scroll',
+  Würfel: 'Cube',
+  Strudel: 'Vortex',
+  Absturz: 'Drop',
+  Wackelpudding: 'Jelly',
+  Stern: 'Star',
+  Schmelzen: 'Melt',
   'Reise: Bild-Hintergrund': 'Journey: image background',
   Schlicht: 'Plain',
   Walze: 'Rolling',
@@ -437,6 +459,22 @@ export function SettingsPanel() {
               label="Splash-Animation"
             />
           </Row>
+          {mob && (
+            <Row label="Mobil-Logo" column>
+              <Seg
+                options={[
+                  ['pill', 'Pille'],
+                  ['wordmark', 'Wortmarke'],
+                  ['tile', 'Kachel'],
+                  ['scroll', 'Beim Scrollen'],
+                ]}
+                value={s.mobLogo}
+                onChange={(v) => set('mobLogo', v as Settings['mobLogo'])}
+                label="Mobil-Logo"
+                wrap
+              />
+            </Row>
+          )}
           <Row label="Zähler-Animation">
             <Seg
               options={[

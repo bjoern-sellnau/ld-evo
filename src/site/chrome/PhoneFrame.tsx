@@ -15,8 +15,10 @@ export function PhoneFrame() {
   const frame = s.frame || 'clear';
   return (
     <>
+      {/* data-ldphone: eigener View-Transition-Schnappschuss — Seitenübergänge bewegen nur den Inhalt (site.css). */}
       <div
         aria-hidden
+        data-ldphone
         style={{
           position: 'fixed',
           top: 10,

@@ -159,7 +159,9 @@ export function trackVtOrigin(e: PointerEvent) {
 
 /** Clip-basierte Modi ohne Element-Morphs (Nachtrag v20). */
 export const REVEAL_MODES = ['wipe', 'circle', 'iris', 'curtain', 'blinds', 'split', 'diagonal', 'stack', 'push', 'flip', 'glitch'];
+/** Neue Modi (nicht im Prototyp) — bewegen die ganze Seite stark, daher ebenfalls ohne Element-Morphs. */
+export const WILD_MODES = ['tv', 'cube', 'vortex', 'warp', 'drop', 'fold', 'jelly', 'star', 'melt', 'portal'];
 
 export function pageVtClasses(mode: string): string[] {
-  return REVEAL_MODES.includes(mode) ? ['ldvt', `ldvt-${mode}`, 'ldvt-nomorph'] : ['ldvt', `ldvt-${mode}`];
+  return REVEAL_MODES.includes(mode) || WILD_MODES.includes(mode) ? ['ldvt', `ldvt-${mode}`, 'ldvt-nomorph'] : ['ldvt', `ldvt-${mode}`];
 }
