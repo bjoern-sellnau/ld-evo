@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { NewsCard } from '../cards/NewsCard';
+import { CareerCounter } from './CareerCounter';
 import { ProjectCard, mono } from '../cards/ProjectCard';
 import styles from '../cards/cards.module.css';
 import { useContent } from '../content/ContentProvider';
@@ -318,9 +319,12 @@ export function HalloPage() {
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
           {/* data-live: läuft sekündlich weiter — die Seiten-Pixeltests maskieren solche Stellen */}
-          <span data-live style={{ fontFamily: mono, fontSize: mob ? 22 : 26, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-            {seconds ?? ' '}
-          </span>
+          <CareerCounter
+            value={seconds ?? ' '}
+            fx={s.counterFx}
+            anim={s.anim}
+            style={{ fontFamily: mono, fontSize: mob ? 22 : 26, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}
+          />
           <span style={{ fontSize: 13, color: 'var(--muted)' }}>{t('home.seconds')}</span>
         </div>
         <div style={{ display: 'flex', gap: mob ? 22 : 32, fontSize: 13, color: 'var(--muted)' }}>

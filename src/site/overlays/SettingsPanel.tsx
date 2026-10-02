@@ -187,6 +187,11 @@ const EN_LABELS: Record<string, string> = {
   Blau: 'Blue',
   Sprache: 'Language',
   'Page-Transition': 'Page transition',
+  'Zähler-Animation': 'Counter animation',
+  'Reise: Bild-Hintergrund': 'Journey: image background',
+  Schlicht: 'Plain',
+  Walze: 'Rolling',
+  Fallblatt: 'Split-flap',
 };
 
 function useSl() {
@@ -251,6 +256,7 @@ export function SettingsPanel() {
     { label: 'Full-Hero', key: 'fullHero', on: s.fullHero },
     { label: 'Full-Hero: Stats-Leiste', key: 'heroStats', on: s.heroStats },
     { label: 'Splash-Screen', key: 'splashOn', on: s.splashOn },
+    { label: 'Reise: Bild-Hintergrund', key: 'reiseBg', on: s.reiseBg },
     { label: 'Performance-Modus', key: 'perfMode', on: s.perfMode },
     { label: '30 fps Hero', key: 'fpsHalf', on: s.fpsHalf },
     ...(hm === 'matrix'
@@ -429,6 +435,18 @@ export function SettingsPanel() {
                 window.dispatchEvent(new Event(SPLASH_REPLAY_EVENT));
               }}
               label="Splash-Animation"
+            />
+          </Row>
+          <Row label="Zähler-Animation">
+            <Seg
+              options={[
+                ['plain', 'Schlicht'],
+                ['roll', 'Walze'],
+                ['flap', 'Fallblatt'],
+              ]}
+              value={s.counterFx}
+              onChange={(v) => set('counterFx', v as Settings['counterFx'])}
+              label="Zähler-Animation"
             />
           </Row>
           <Row label="Page-Transition" column>

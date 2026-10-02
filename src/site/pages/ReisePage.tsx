@@ -32,6 +32,10 @@ export function ReisePage() {
   const t = useT();
   const LAST = JOURNEY.length - 1;
   const rm = !settings.anim; // reduceMotion = Animationen aus (Prototyp: reiseReduce)
+  // Neu (nicht im Prototyp): Einstellung „Reise: Bild-Hintergrund“ — unscharfes Kapitelbild hinter der Bühne,
+  // Infofeld, Rail und Knöpfe dann als Liquid Glass (Tokens --tgl* in site.css, Kontrast ≥ 4,5:1 auch über Weiß/Schwarz).
+  const bgOn = settings.reiseBg;
+  const glass = bgOn ? liquidGlass : undefined;
   const [cur, setCur] = useState(rm ? LAST : 0);
   const [stepIdx, setStepIdx] = useState<number | null>(null);
   const [intro, setIntro] = useState<{ phase: IntroPhase; year: number; p: number }>(
@@ -209,6 +213,7 @@ export function ReisePage() {
       <div
         id="ldt-stage"
         ref={stage}
+        className={bgOn ? 'ldt-bgon' : undefined}
         data-screen-label="LD Timeline"
         style={{
           position: 'relative',
@@ -229,6 +234,32 @@ export function ReisePage() {
               'radial-gradient(70% 60% at 62% 28%,var(--tfx1) 0%,transparent 60%),radial-gradient(50% 40% at 60% 0%,rgba(255,178,36,0.08),transparent 70%),radial-gradient(80% 55% at 50% 105%,var(--tfx2) 20%,transparent 70%)',
           }}
         />
+        {bgOn && (
+          <div aria-hidden style={{ ...fill, overflow: 'hidden', pointerEvents: 'none' }}>
+            {JOURNEY.map((c, i) => {
+              const m = chapterBg(c);
+              return (
+                <div
+                  key={c.year}
+                  style={{
+                    ...fill,
+                    opacity: i === cur ? 1 : 0,
+                    transition: rm ? 'none' : 'opacity 0.9s ease',
+                    background: m ? undefined : fallbackBg(i),
+                  }}
+                >
+                  {/* Nur Nachbarn laden; kleine Variante genügt, das Bild ist ohnehin stark unscharf. */}
+                  {m && Math.abs(i - cur) <= 1 && (
+                    <>
+                      <img src={m.src} srcSet={mediaSrcSet(m.src)} sizes="480px" alt="" className="ldt-bgimg" />
+                      <div style={{ ...fill, background: 'var(--tbgdim)' }} />
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
         <div
           aria-hidden
           style={{
@@ -515,6 +546,15 @@ export function ReisePage() {
             WebkitOverflowScrolling: 'touch',
             overscrollBehavior: 'contain',
             paddingBottom: 4,
+            // Mit Glas: Säule nur so hoch wie ihr Inhalt (scrollt weiterhin, wenn es eng wird).
+            ...(glass && {
+              ...glass,
+              bottom: 'auto',
+              maxHeight: `calc(100% - ${92 + (embeddedNarrow ? 110 : 36)}px)`,
+              borderRadius: 22,
+              padding: '12px 14px',
+              boxSizing: 'border-box',
+            }),
           }}
         >
           <div style={{ display: 'flex', gap: 8, flex: 'none', marginBottom: 6 }}>
@@ -524,7 +564,7 @@ export function ReisePage() {
               aria-label={t('journey.earlier')}
               disabled={cur === 0}
               className="ldt-btn"
-              style={{ ...roundBtn, opacity: cur === 0 ? 0.4 : 1, pointerEvents: cur === 0 ? 'none' : 'auto' }}
+              style={{ ...roundBtn, ...glass, opacity: cur === 0 ? 0.4 : 1, pointerEvents: cur === 0 ? 'none' : 'auto' }}
             >
               ↓
             </button>
@@ -534,7 +574,7 @@ export function ReisePage() {
               aria-label={t('journey.later')}
               disabled={cur === LAST}
               className="ldt-btn"
-              style={{ ...roundBtn, opacity: cur === LAST ? 0.4 : 1, pointerEvents: cur === LAST ? 'none' : 'auto' }}
+              style={{ ...roundBtn, ...glass, opacity: cur === LAST ? 0.4 : 1, pointerEvents: cur === LAST ? 'none' : 'auto' }}
             >
               ↑
             </button>
@@ -669,6 +709,7 @@ export function ReisePage() {
             boxShadow: '0 0 0 1px color-mix(in srgb,#FFB224 12%,transparent),0 18px 40px -12px var(--tshadow)',
             padding: '20px 24px 22px',
             backdropFilter: 'blur(14px)',
+            ...glass,
           }}
         >
           <div key={swapKey} style={{ animation: swapAnim }}>
@@ -688,6 +729,7 @@ export function ReisePage() {
                   borderRadius: 12,
                   background: 'var(--tbtn)',
                   border: '1px solid var(--thair)',
+                  ...(glass && innerGlass),
                   animation: rm ? 'none' : 'ldtPanelIn 0.42s cubic-bezier(0.2,0.7,0.2,1)',
                 }}
               >
@@ -744,6 +786,7 @@ export function ReisePage() {
                         border: `1px solid ${lead ? 'transparent' : 'var(--thair)'}`,
                         padding: lead ? '11px 13px' : '9px 12px',
                         overflow: 'hidden',
+                        ...(glass && !lead && innerGlass),
                       }}
                     >
                       {lead && (
@@ -838,6 +881,12 @@ export function ReisePage() {
                 fontWeight: 700,
                 cursor: 'pointer',
                 textDecoration: 'none',
+                ...(glass && {
+                  ...glass,
+                  color: 'var(--tink)',
+                  border: '1px solid color-mix(in srgb,#FFB224 60%,transparent)',
+                  boxShadow: `${glass.boxShadow},0 0 24px -6px color-mix(in srgb,#FFB224 55%,transparent)`,
+                }),
               }}
             >
               {t('journey.cta')}
@@ -960,6 +1009,7 @@ export function ReisePage() {
                 fontSize: 13,
                 fontWeight: 600,
                 backdropFilter: 'blur(10px)',
+                ...glass,
               }}
             >
               {t('journey.skip')}
@@ -972,6 +1022,40 @@ export function ReisePage() {
 }
 
 const fill: CSSProperties = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 };
+
+/** Liquid Glass der Reise (Option „Bild-Hintergrund“): Glanzstreif + Film über getönter, unscharfer Fläche. */
+const liquidGlass: CSSProperties = {
+  background:
+    'linear-gradient(115deg,transparent 28%,var(--tglsheen) 40%,transparent 52%),linear-gradient(180deg,var(--tgl1),var(--tgl2)),var(--tgltint)',
+  border: '1px solid var(--tglbrd)',
+  backdropFilter: 'blur(26px) saturate(1.8) brightness(1.04)',
+  WebkitBackdropFilter: 'blur(26px) saturate(1.8) brightness(1.04)',
+  boxShadow:
+    'inset 0 1.5px 1px var(--tglhi),inset 1px 0 1px var(--tglside),inset -1px 0 1px var(--tglside),inset 0 -10px 18px -12px rgba(0,0,0,0.35),0 18px 40px -12px var(--tshadow)',
+};
+/** Kacheln im Glas: nur Film + Lichtkante, kein zweiter Blur. */
+const innerGlass: CSSProperties = {
+  background: 'linear-gradient(180deg,var(--tglin1),var(--tglin2))',
+  border: '1px solid var(--tglinbrd)',
+  boxShadow: 'inset 0 1px 1px var(--tglhi)',
+};
+
+/** Hintergrund eines Kapitels: eigenes Bild aus LD Flow, sonst Karten-Screenshot, sonst erstes Einblick-Bild. */
+function chapterBg(c: { bg?: MediaRefLike; shot?: MediaRefLike; insights?: (MediaRefLike | null)[] }): MediaRefLike | null {
+  const m = c.bg ?? c.shot ?? c.insights?.find((x) => !!x && !x.video) ?? null;
+  return m && !m.video ? m : null;
+}
+type MediaRefLike = { src: string; alt?: string; video?: boolean };
+
+/** Ohne Bild: Farbfeld je Station (Akzentfarben der Site, Lage wechselt) — keine Stock-Fotos. */
+const BG_HUES = [38, 22, 215, 262, 172, 330];
+function fallbackBg(i: number): string {
+  const h = BG_HUES[i % BG_HUES.length];
+  const h2 = BG_HUES[(i + 2) % BG_HUES.length];
+  const x = 30 + ((i * 37) % 45);
+  const y = 20 + ((i * 23) % 50);
+  return `radial-gradient(65% 70% at ${x}% ${y}%,hsl(${h} 90% 55% / var(--tbga)),transparent 72%),radial-gradient(60% 65% at ${100 - x}% ${100 - y}%,hsl(${h2} 85% 55% / var(--tbga)),transparent 74%)`;
+}
 const roundBtn: CSSProperties = {
   width: 44,
   height: 44,
@@ -1023,7 +1107,8 @@ function MiniSlot({ media, label }: { media?: { src: string; alt: string; video?
           <img src={media.src} srcSet={mediaSrcSet(media.src)} sizes="240px" alt={media.alt} style={mediaFill} />
         )
       ) : (
-        <span style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.12em', color: 'var(--tsoft)' }}>{label.toUpperCase()}</span>
+        // Abweichung vom Prototyp: --tmut statt --tsoft — --tsoft auf --tshot erreicht hell nur 4,14:1 (axe), --tmut ≥ 7:1.
+        <span style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.12em', color: 'var(--tmut)' }}>{label.toUpperCase()}</span>
       )}
     </div>
   );

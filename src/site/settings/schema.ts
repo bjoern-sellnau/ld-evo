@@ -9,6 +9,8 @@ export type ViewMode = 'auto' | 'desktop' | 'mobile' | 'wide';
 export type Frame = 'clear' | 'island' | 'hole' | 'notch';
 /** Browser-UI-Farbe: Marken-Ink (Logo-Handoff) oder Seitenhintergrund (--bg). */
 export type ThemeColorMode = 'brand' | 'site';
+/** Laufender Sekundenzähler auf „Hallo“: schlicht, rollende Walzen oder Fallblatt (Flughafentafel/Klapp-Radiowecker). */
+export type CounterFx = 'plain' | 'roll' | 'flap';
 
 export interface Settings {
   theme: Theme;
@@ -53,6 +55,8 @@ export interface Settings {
   mxSize: number;
   cookie: string | null;
   themeColor: ThemeColorMode;
+  counterFx: CounterFx;
+  reiseBg: boolean;
 }
 
 /** SSR-Defaults (dark, Animationen an) — entsprechen dem initialen State des Prototyps. */
@@ -99,6 +103,8 @@ export const DEFAULT_SETTINGS: Settings = {
   mxSize: 100,
   cookie: null,
   themeColor: 'brand',
+  counterFx: 'plain',
+  reiseBg: false,
 };
 
 interface Codec<T> {
@@ -179,6 +185,13 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   cookie: nullableStr('ld-cookie'),
   // Neu (nicht im Prototyp): wählbare theme-color
   themeColor: str<ThemeColorMode>('ld-themecolor', 'brand'),
+  // Neu (nicht im Prototyp): Zähler-Animation und Reise mit unscharfem Kapitel-Hintergrundbild
+  counterFx: {
+    key: 'ld-counterfx',
+    read: (r) => (r === 'roll' || r === 'flap' ? r : 'plain'),
+    write: (v) => (v === 'plain' ? null : v),
+  },
+  reiseBg: offUnlessOn('ld-reisebg'),
 };
 
 export function readSettings(storage: Pick<Storage, 'getItem'>): Settings {

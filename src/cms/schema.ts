@@ -197,6 +197,13 @@ const JOURNEY_FIELDS: FieldDef[] = [
   { key: 'story', label: 'Geschichte (Panel)', type: 'textarea', max: 1200 },
   { key: 'stack', label: 'Tech-Stack (max. 5)', type: 'strings', max: 5 },
   { key: 'shot', label: 'Karten-Screenshot', type: 'media' },
+  // Neu (nicht im Prototyp): Kapitel-Hintergrund, unscharf hinter der Bühne — nur mit Einstellung „Reise: Bild-Hintergrund“.
+  {
+    key: 'bg',
+    label: 'Hintergrundbild (optional)',
+    type: 'media',
+    help: 'Erscheint stark unscharf hinter der ganzen Station, wenn Besucher „Reise: Bild-Hintergrund“ einschalten. Leer → Karten-Screenshot bzw. Farbverlauf.',
+  },
   { key: 'insights', label: 'Einblicke (2 Bilder)', type: 'gallery' },
   {
     key: 'steps',

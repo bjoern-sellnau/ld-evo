@@ -9,6 +9,7 @@ import { DEFAULT_SETTINGS, readSettings, writeSetting, type Settings } from './s
 import { useHitCounter } from '../stats/useHitCounter';
 import { useLocale } from '../i18n/LocaleProvider';
 import { canonicalPath, localizePath } from '../i18n/locale';
+import { sitePath } from '../lib/routes';
 
 type Overlay = 'search' | 'settings' | 'kontakt' | 'mobileNav' | null;
 
@@ -144,7 +145,9 @@ export function SiteProvider({ children }: { children: ReactNode }) {
       setOverlay(null);
       // Aufrufer übergeben kanonische (deutsche) Pfade; hier wird daraus die Adresse der aktuellen Sprache.
       const href = localizePath(target, locale);
-      const current = window.location.pathname;
+      // Ohne Basispfad (GitHub-Pages-Vorschau: /ld-evo/…) und ohne abschließenden Schrägstrich (trailingSlash im
+      // statischen Export) — sonst führte „Zurück“ zu /ld-evo/ld-evo/…, und der Vergleich mit href schlüge fehl.
+      const current = sitePath(window.location.pathname);
       if (href === current) return;
       const detailNav = isDetailPath(href) || isDetailPath(current);
       if (isDetailPath(href) && !isDetailPath(current)) setFrom(current);

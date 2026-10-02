@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalPath, localizePath, pathLocale, switchLocalePath } from '@/site/i18n/locale';
+import { sitePath } from '@/site/lib/routes';
 
 describe('Routentabelle (src/site/i18n/locale.ts)', () => {
   it('bildet deutsche Pfade auf englische Adressen ab — und zurück', () => {
@@ -39,5 +40,16 @@ describe('Routentabelle (src/site/i18n/locale.ts)', () => {
       expect(localizePath(p, 'en')).toBe(p);
     expect(pathLocale('/entwurf')).toBe('de'); // nur /en bzw. /en/… ist Englisch
     expect(switchLocalePath('/en/about', 'de')).toBe('/ueber-mich');
+  });
+});
+
+describe('sitePath (Adresszeile → Site-Pfad)', () => {
+  it('entfernt Basispfad und End-Schrägstrich (GitHub-Pages-Vorschau: „Zurück“ führte zu /ld-evo/ld-evo/…)', () => {
+    expect(sitePath('/ld-evo/projekte/', '/ld-evo')).toBe('/projekte');
+    expect(sitePath('/ld-evo/', '/ld-evo')).toBe('/');
+    expect(sitePath('/ld-evo', '/ld-evo')).toBe('/');
+    expect(sitePath('/ld-evolution/x', '/ld-evo')).toBe('/ld-evolution/x');
+    expect(sitePath('/en/projects/corefall/', '')).toBe('/en/projects/corefall');
+    expect(sitePath('/', '')).toBe('/');
   });
 });

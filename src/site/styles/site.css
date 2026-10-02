@@ -1079,6 +1079,20 @@ body.ldnosplash [data-ldsplash] {
   --tcta: #ffffff;
   --tctatx: #0a1220;
   --tshadow: rgba(0, 0, 0, 0.6);
+  /* Option „Reise: Bild-Hintergrund“ (neu): Abdunklung über Bildern, Farbfeld-Deckkraft, Liquid-Glass-Tokens.
+     Gerechnet für den ungünstigsten Fall (rein weißes Bild bzw. hellstes Farbfeld): --tsoft im Glas ≥ 4,5:1. */
+  --tbgdim: color-mix(in srgb, var(--tbg) 65%, transparent);
+  --tbga: 0.4;
+  --tgltint: rgba(13, 22, 38, 0.8);
+  --tgl1: rgba(255, 255, 255, 0.06);
+  --tgl2: rgba(255, 255, 255, 0.01);
+  --tglsheen: rgba(255, 255, 255, 0.05);
+  --tglbrd: rgba(255, 255, 255, 0.18);
+  --tglhi: rgba(255, 255, 255, 0.32);
+  --tglside: rgba(255, 255, 255, 0.08);
+  --tglin1: rgba(255, 255, 255, 0.08);
+  --tglin2: rgba(255, 255, 255, 0.02);
+  --tglinbrd: rgba(255, 255, 255, 0.14);
 }
 body.light #ldt-stage {
   --tbg: #eef2f7;
@@ -1106,6 +1120,35 @@ body.light #ldt-stage {
   --tcta: #101b2c;
   --tctatx: #ffffff;
   --tshadow: rgba(16, 27, 44, 0.22);
+  --tbgdim: color-mix(in srgb, var(--tbg) 78%, transparent);
+  --tbga: 0.3;
+  --tgltint: rgba(255, 255, 255, 0.82);
+  --tgl1: rgba(255, 255, 255, 0.5);
+  --tgl2: rgba(255, 255, 255, 0.1);
+  --tglsheen: rgba(255, 255, 255, 0.35);
+  --tglbrd: rgba(255, 255, 255, 0.75);
+  --tglhi: rgba(255, 255, 255, 0.95);
+  --tglside: rgba(255, 255, 255, 0.4);
+  --tglin1: rgba(255, 255, 255, 0.75);
+  --tglin2: rgba(255, 255, 255, 0.35);
+  --tglinbrd: rgba(16, 27, 44, 0.1);
+}
+/* Kapitel-Hintergrundbild: groß, stark unscharf, leicht abgedunkelt (dunkel) bzw. aufgehellt (hell) */
+#ldt-stage .ldt-bgimg {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 120%;
+  height: 120%;
+  object-fit: cover;
+  filter: blur(44px) saturate(1.4) brightness(0.8);
+}
+body.light #ldt-stage .ldt-bgimg {
+  filter: blur(44px) saturate(1.3) brightness(1.1);
+}
+#ldt-stage.ldt-bgon .ldt-btn:hover,
+#ldt-stage.ldt-bgon .ldt-skip:hover {
+  filter: brightness(1.15);
 }
 /* style-hover-Regeln des Prototyps */
 #ldt-stage .ldt-btn:hover,
