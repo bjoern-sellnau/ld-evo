@@ -1,0 +1,141 @@
+/* Sekundenzähler auf „Hallo“ — Walze und Fallblatt (CareerCounter.tsx). Neu, nicht im Prototyp. */
+.row {
+  display: inline-flex;
+  align-items: center;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.sep {
+  display: inline-block;
+}
+
+/* Walze: alte Ziffer rollt nach oben hinaus, neue rollt von unten nach */
+.roll {
+  position: relative;
+  display: inline-block;
+  width: 1ch;
+  height: 1.2em;
+  line-height: 1.2em;
+  overflow: hidden;
+  text-align: center;
+}
+.rollGlyph {
+  display: block;
+}
+.rollOut {
+  position: absolute;
+  inset: 0;
+  animation: rollOut 0.45s cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
+.rollIn {
+  animation: rollIn 0.45s cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
+@keyframes rollOut {
+  to {
+    transform: translateY(-100%);
+    opacity: 0.2;
+  }
+}
+@keyframes rollIn {
+  from {
+    transform: translateY(100%);
+    opacity: 0.2;
+  }
+}
+
+/* Fallblatt: zwei Hälften je Ziffer, Blätter klappen um die Mittelachse */
+.flap {
+  --h: 1.34em;
+  --r: 0.16em;
+  --tile: color-mix(in srgb, var(--ink) 10%, var(--bg));
+  position: relative;
+  display: inline-block;
+  width: calc(1ch + 0.34em);
+  height: var(--h);
+  margin: 0 0.04em;
+  perspective: 4em;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  border-radius: var(--r);
+}
+/* Trennfuge in der Mitte (wie die Achse der Blätter) */
+.flap::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% - 0.5px);
+  height: 1px;
+  background: var(--bg);
+  opacity: 0.7;
+  z-index: 3;
+}
+.half {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+  background: var(--tile);
+  backface-visibility: hidden;
+}
+.half > span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--h);
+  line-height: var(--h);
+  text-align: center;
+}
+.top {
+  top: 0;
+  border-radius: var(--r) var(--r) 0 0;
+  transform-origin: 50% 100%;
+}
+.top > span {
+  top: 0;
+}
+.bottom {
+  bottom: 0;
+  border-radius: 0 0 var(--r) var(--r);
+  transform-origin: 50% 0;
+}
+.bottom > span {
+  bottom: 0;
+}
+.leafTop {
+  z-index: 2;
+  animation: leafTop 0.26s ease-in both;
+}
+.leafBottom {
+  z-index: 2;
+  animation: leafBottom 0.26s ease-out 0.26s both;
+}
+@keyframes leafTop {
+  to {
+    transform: rotateX(-90deg);
+    filter: brightness(0.7);
+  }
+}
+@keyframes leafBottom {
+  from {
+    transform: rotateX(90deg);
+    filter: brightness(1.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rollOut,
+  .leafTop {
+    display: none;
+  }
+  .rollIn,
+  .leafBottom {
+    animation: none;
+  }
+}

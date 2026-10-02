@@ -1079,6 +1079,20 @@ body.ldnosplash [data-ldsplash] {
   --tcta: #ffffff;
   --tctatx: #0a1220;
   --tshadow: rgba(0, 0, 0, 0.6);
+  /* Option „Reise: Bild-Hintergrund“ (neu): Abdunklung über Bildern, Farbfeld-Deckkraft, Liquid-Glass-Tokens.
+     Gerechnet für den ungünstigsten Fall (rein weißes Bild bzw. hellstes Farbfeld): --tsoft im Glas ≥ 4,5:1. */
+  --tbgdim: color-mix(in srgb, var(--tbg) 65%, transparent);
+  --tbga: 0.4;
+  --tgltint: rgba(13, 22, 38, 0.8);
+  --tgl1: rgba(255, 255, 255, 0.06);
+  --tgl2: rgba(255, 255, 255, 0.01);
+  --tglsheen: rgba(255, 255, 255, 0.05);
+  --tglbrd: rgba(255, 255, 255, 0.18);
+  --tglhi: rgba(255, 255, 255, 0.32);
+  --tglside: rgba(255, 255, 255, 0.08);
+  --tglin1: rgba(255, 255, 255, 0.08);
+  --tglin2: rgba(255, 255, 255, 0.02);
+  --tglinbrd: rgba(255, 255, 255, 0.14);
 }
 body.light #ldt-stage {
   --tbg: #eef2f7;
@@ -1106,6 +1120,35 @@ body.light #ldt-stage {
   --tcta: #101b2c;
   --tctatx: #ffffff;
   --tshadow: rgba(16, 27, 44, 0.22);
+  --tbgdim: color-mix(in srgb, var(--tbg) 78%, transparent);
+  --tbga: 0.3;
+  --tgltint: rgba(255, 255, 255, 0.82);
+  --tgl1: rgba(255, 255, 255, 0.5);
+  --tgl2: rgba(255, 255, 255, 0.1);
+  --tglsheen: rgba(255, 255, 255, 0.35);
+  --tglbrd: rgba(255, 255, 255, 0.75);
+  --tglhi: rgba(255, 255, 255, 0.95);
+  --tglside: rgba(255, 255, 255, 0.4);
+  --tglin1: rgba(255, 255, 255, 0.75);
+  --tglin2: rgba(255, 255, 255, 0.35);
+  --tglinbrd: rgba(16, 27, 44, 0.1);
+}
+/* Kapitel-Hintergrundbild: groß, stark unscharf, leicht abgedunkelt (dunkel) bzw. aufgehellt (hell) */
+#ldt-stage .ldt-bgimg {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 120%;
+  height: 120%;
+  object-fit: cover;
+  filter: blur(44px) saturate(1.4) brightness(0.8);
+}
+body.light #ldt-stage .ldt-bgimg {
+  filter: blur(44px) saturate(1.3) brightness(1.1);
+}
+#ldt-stage.ldt-bgon .ldt-btn:hover,
+#ldt-stage.ldt-bgon .ldt-skip:hover {
+  filter: brightness(1.15);
 }
 /* style-hover-Regeln des Prototyps */
 #ldt-stage .ldt-btn:hover,
@@ -1134,4 +1177,378 @@ body.light #ldt-stage {
   html:not(.ldvp) [data-ld-vp] {
     visibility: hidden;
   }
+}
+
+/*
+ * Zehn zusätzliche Seitenübergänge (neu, nicht im Prototyp — Einstellungen → Page-Transition).
+ * Alle animieren nur Schnappschüsse (root) und laufen ohne Element-Morphs (REVEAL_MODES in runVt.ts).
+ */
+/* TV: alter Röhrenfernseher schaltet ab (Strich → Punkt) und die neue Seite wieder an */
+html.ldvt-tv::view-transition {
+  background: #000;
+}
+html.ldvt-tv::view-transition-old(root) {
+  animation: ldVtTvOff 0.42s cubic-bezier(0.6, 0, 0.8, 0.4) both;
+}
+html.ldvt-tv::view-transition-new(root) {
+  animation: ldVtTvOn 0.5s 0.38s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes ldVtTvOff {
+  55% {
+    transform: scale(1, 0.006);
+    filter: brightness(3);
+  }
+  100% {
+    transform: scale(0, 0.006);
+    filter: brightness(5);
+    opacity: 0;
+  }
+}
+@keyframes ldVtTvOn {
+  0% {
+    transform: scale(0, 0.006);
+    filter: brightness(5);
+    opacity: 0;
+  }
+  45% {
+    transform: scale(1, 0.006);
+    filter: brightness(3);
+    opacity: 1;
+  }
+}
+/* Würfel: die Seite dreht sich wie ein Würfel zur Seite weg */
+html.ldvt-cube::view-transition {
+  perspective: 1600px;
+}
+html.ldvt-cube::view-transition-old(root) {
+  transform-origin: 100% 50%;
+  animation: ldVtCubeOut 0.7s cubic-bezier(0.55, 0, 0.25, 1) both;
+}
+html.ldvt-cube::view-transition-new(root) {
+  transform-origin: 0% 50%;
+  animation: ldVtCubeIn 0.7s cubic-bezier(0.55, 0, 0.25, 1) both;
+}
+@keyframes ldVtCubeOut {
+  to {
+    transform: perspective(1600px) translateX(-100%) rotateY(-90deg);
+    filter: brightness(0.45);
+  }
+}
+@keyframes ldVtCubeIn {
+  from {
+    transform: perspective(1600px) translateX(100%) rotateY(90deg);
+    filter: brightness(0.45);
+  }
+}
+/* Strudel: die neue Seite wirbelt aus der Mitte heran */
+html.ldvt-vortex::view-transition-old(root) {
+  animation: ldVtVortexOut 0.5s cubic-bezier(0.5, 0, 0.8, 0.3) both;
+}
+html.ldvt-vortex::view-transition-new(root) {
+  animation: ldVtVortexIn 0.75s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes ldVtVortexOut {
+  to {
+    transform: rotate(160deg) scale(0.5);
+    filter: blur(10px);
+    opacity: 0;
+  }
+}
+@keyframes ldVtVortexIn {
+  from {
+    transform: rotate(-540deg) scale(0);
+    filter: blur(8px);
+    opacity: 0;
+  }
+}
+/* Warp: Sprung in den Hyperraum — alt rast auf einen zu, neu kommt aus der Tiefe */
+html.ldvt-warp::view-transition {
+  background: #02040a;
+}
+html.ldvt-warp::view-transition-old(root) {
+  animation: ldVtWarpOut 0.45s cubic-bezier(0.7, 0, 1, 0.5) both;
+}
+html.ldvt-warp::view-transition-new(root) {
+  animation: ldVtWarpIn 0.6s 0.18s cubic-bezier(0.1, 0.9, 0.2, 1) both;
+}
+@keyframes ldVtWarpOut {
+  to {
+    transform: scale(2.8);
+    filter: blur(16px) brightness(1.9);
+    opacity: 0;
+  }
+}
+@keyframes ldVtWarpIn {
+  from {
+    transform: scale(0.12);
+    filter: blur(10px) brightness(2.2);
+    opacity: 0;
+  }
+}
+/* Absturz: die alte Seite reißt oben links aus der Halterung und fällt aus dem Bild */
+html.ldvt-drop::view-transition-old(root) {
+  z-index: 1;
+  transform-origin: 0 0;
+  animation: ldVtDrop 0.8s cubic-bezier(0.5, 0, 0.9, 0.5) both;
+}
+html.ldvt-drop::view-transition-new(root) {
+  animation: ldVtDropBehind 0.8s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+@keyframes ldVtDrop {
+  25% {
+    transform: rotate(5deg);
+  }
+  100% {
+    transform: translateY(115vh) rotate(24deg);
+  }
+}
+@keyframes ldVtDropBehind {
+  from {
+    transform: scale(0.92);
+    filter: brightness(0.5);
+  }
+}
+/* Origami: alt faltet sich oben weg, neu klappt von unten auf */
+html.ldvt-fold::view-transition {
+  perspective: 1400px;
+}
+html.ldvt-fold::view-transition-old(root) {
+  transform-origin: 50% 0;
+  animation: ldVtFoldOut 0.42s cubic-bezier(0.6, 0, 0.9, 0.4) both;
+}
+html.ldvt-fold::view-transition-new(root) {
+  transform-origin: 50% 100%;
+  animation: ldVtFoldIn 0.55s 0.36s cubic-bezier(0.15, 0.85, 0.3, 1.15) both;
+}
+@keyframes ldVtFoldOut {
+  to {
+    transform: perspective(1400px) rotateX(88deg);
+    filter: brightness(0.35);
+  }
+}
+@keyframes ldVtFoldIn {
+  from {
+    transform: perspective(1400px) rotateX(-88deg);
+    filter: brightness(0.35);
+  }
+}
+/* Wackelpudding: die neue Seite plumpst herein und wabbelt nach */
+html.ldvt-jelly::view-transition-old(root) {
+  animation: ldVtOut 0.25s cubic-bezier(0.3, 0, 0.7, 0.2) both;
+}
+html.ldvt-jelly::view-transition-new(root) {
+  animation: ldVtJelly 0.9s 0.1s linear both;
+}
+@keyframes ldVtJelly {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  28% {
+    transform: scale(1.12, 0.86);
+    opacity: 1;
+  }
+  44% {
+    transform: scale(0.9, 1.1);
+  }
+  60% {
+    transform: scale(1.05, 0.95);
+  }
+  76% {
+    transform: scale(0.98, 1.02);
+  }
+  100% {
+    transform: none;
+  }
+}
+/* Stern: die neue Seite bricht als Stern aus der Mitte auf */
+html.ldvt-star::view-transition-old(root) {
+  animation: ldVtDimBack 0.65s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+html.ldvt-star::view-transition-new(root) {
+  animation: ldVtStar 0.65s cubic-bezier(0.7, 0, 0.25, 1) both;
+}
+@keyframes ldVtStar {
+  from {
+    clip-path: polygon(
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%,
+      50% 50%
+    );
+    transform: rotate(-25deg);
+  }
+  to {
+    clip-path: polygon(
+      50% -110%,
+      76.8% -14.7%,
+      163.1% -63.1%,
+      114.7% 23.2%,
+      210% 50%,
+      114.7% 76.8%,
+      163.1% 163.1%,
+      76.8% 114.7%,
+      50% 210%,
+      23.2% 114.7%,
+      -63.1% 163.1%,
+      -14.7% 76.8%,
+      -110% 50%,
+      -14.7% 23.2%,
+      -63.1% -63.1%,
+      23.2% -14.7%
+    );
+    transform: none;
+  }
+}
+/* Schmelzen: die alte Seite zerläuft nach unten */
+html.ldvt-melt::view-transition-old(root) {
+  z-index: 1;
+  transform-origin: 50% 0;
+  animation: ldVtMelt 0.65s cubic-bezier(0.55, 0, 0.9, 0.4) both;
+}
+html.ldvt-melt::view-transition-new(root) {
+  animation: ldVtIn 0.5s 0.25s cubic-bezier(0.22, 0.9, 0.24, 1) both;
+}
+@keyframes ldVtMelt {
+  to {
+    transform: translateY(35%) scaleY(1.7) scaleX(0.96);
+    filter: blur(14px) saturate(1.6);
+    opacity: 0;
+  }
+}
+/* Portal: vom Klickpunkt öffnet sich ein farbverdrehtes, kreisendes Tor */
+html.ldvt-portal::view-transition-old(root) {
+  animation: ldVtPortalBack 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+html.ldvt-portal::view-transition-new(root) {
+  animation: ldVtPortal 0.8s cubic-bezier(0.5, 0, 0.2, 1) both;
+}
+@keyframes ldVtPortalBack {
+  to {
+    transform: scale(0.85) rotate(8deg);
+    filter: blur(6px) brightness(0.5);
+  }
+}
+@keyframes ldVtPortal {
+  from {
+    clip-path: circle(0px at var(--vt-x, 50vw) var(--vt-y, 40vh));
+    filter: hue-rotate(180deg) saturate(3);
+    transform: rotate(-14deg) scale(1.25);
+  }
+  to {
+    clip-path: circle(var(--vt-r, 125vmax) at var(--vt-x, 50vw) var(--vt-y, 40vh));
+    filter: none;
+    transform: none;
+  }
+}
+/* Telefonrahmen (simulierter Mobil-Modus): eigener Schnappschuss, steht still — nur der Inhalt wechselt */
+[data-ldphone] {
+  view-transition-name: ldphone;
+}
+::view-transition-group(ldphone),
+::view-transition-old(ldphone),
+::view-transition-new(ldphone) {
+  animation: none;
+}
+::view-transition-old(ldphone) {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/*
+ * Mobil-Designs 2 (neu, nicht im Prototyp — Einstellung „Mobil-Design“; Body-Klassen setzt SiteProvider nur mobil).
+ * Die Seiten sind inline gestylt; hier wird gezielt über Daten-Attribute umgestaltet (data-m-card, data-m-rail).
+ */
+@keyframes ldSheetUp {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes ldLabPop {
+  from {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.3);
+  }
+}
+@keyframes ldCaret {
+  50% {
+    opacity: 0;
+  }
+}
+.ld-caret {
+  animation: ldCaret 1s steps(1) infinite;
+}
+
+/* App: Karten-Reihen zum Wischen, weichere Karten */
+body.md-app [data-m-rail] {
+  display: flex !important;
+  gap: 12px !important;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  margin-left: -18px;
+  margin-right: -18px;
+  padding: 2px 18px 8px;
+  scrollbar-width: none;
+}
+body.md-app [data-m-rail] > * {
+  flex: 0 0 82%;
+  scroll-snap-align: center;
+}
+body.md-app [data-m-card] {
+  border-radius: 24px !important;
+}
+
+/* Editorial: Linien statt Kacheln, eckig, ohne Schatten */
+body.md-editorial [data-m-card] {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+body.md-editorial [data-m-card] * {
+  border-radius: 0 !important;
+}
+body.md-editorial [data-m-rail] {
+  gap: 0 !important;
+}
+body.md-editorial [data-m-rail] > * + * {
+  margin-top: 22px;
+}
+body.md-editorial main#inhalt h1 {
+  letter-spacing: -0.045em;
+}
+
+/* Lab: Rasterpapier, Neon-Konturen, Mono-Überschriften */
+body.md-lab {
+  background-image: linear-gradient(var(--hair) 1px, transparent 1px), linear-gradient(90deg, var(--hair) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+body.md-lab [data-m-card] {
+  border-radius: 10px !important;
+  outline: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: -1px;
+  box-shadow: 0 0 26px -10px var(--accent) !important;
+}
+body.md-lab main#inhalt h1,
+body.md-lab main#inhalt h2 {
+  font-family: var(--ld-font-mono), monospace;
+  letter-spacing: -0.04em;
 }

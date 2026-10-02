@@ -9,6 +9,16 @@ export type ViewMode = 'auto' | 'desktop' | 'mobile' | 'wide';
 export type Frame = 'clear' | 'island' | 'hole' | 'notch';
 /** Browser-UI-Farbe: Marken-Ink (Logo-Handoff) oder Seitenhintergrund (--bg). */
 export type ThemeColorMode = 'brand' | 'site';
+/** Laufender Sekundenzähler auf „Hallo“: schlicht, rollende Walzen oder Fallblatt (Flughafentafel/Klapp-Radiowecker). */
+export type CounterFx = 'plain' | 'roll' | 'flap';
+/** Logo oben im Mobil-Modus: Glas-Pille mit Zeichen (Prototyp), Pille mit Wortmarke, App-Kachel, erst beim Scrollen. */
+export type MobLogo = 'pill' | 'wordmark' | 'tile' | 'scroll';
+/**
+ * Mobil-Design (neu, nicht im Prototyp): 'proto' = Prototyp; 'app' = App-artig (Kopfzeile, angedockte Tab-Leiste,
+ * Bottom-Sheet, Karten zum Wischen); 'editorial' = Magazin (Wortmarke, Vollbild-Menü, Linien statt Kacheln);
+ * 'lab' = Experiment (Dock mit Fächermenü, Pfadanzeige, Neon-Konturen).
+ */
+export type MobDesign = 'proto' | 'app' | 'editorial' | 'lab';
 
 export interface Settings {
   theme: Theme;
@@ -53,6 +63,10 @@ export interface Settings {
   mxSize: number;
   cookie: string | null;
   themeColor: ThemeColorMode;
+  counterFx: CounterFx;
+  reiseBg: boolean;
+  mobLogo: MobLogo;
+  mobDesign: MobDesign;
 }
 
 /** SSR-Defaults (dark, Animationen an) — entsprechen dem initialen State des Prototyps. */
@@ -99,6 +113,10 @@ export const DEFAULT_SETTINGS: Settings = {
   mxSize: 100,
   cookie: null,
   themeColor: 'brand',
+  counterFx: 'plain',
+  reiseBg: false,
+  mobLogo: 'pill',
+  mobDesign: 'proto',
 };
 
 interface Codec<T> {
@@ -179,6 +197,23 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   cookie: nullableStr('ld-cookie'),
   // Neu (nicht im Prototyp): wählbare theme-color
   themeColor: str<ThemeColorMode>('ld-themecolor', 'brand'),
+  // Neu (nicht im Prototyp): Zähler-Animation und Reise mit unscharfem Kapitel-Hintergrundbild
+  counterFx: {
+    key: 'ld-counterfx',
+    read: (r) => (r === 'roll' || r === 'flap' ? r : 'plain'),
+    write: (v) => (v === 'plain' ? null : v),
+  },
+  reiseBg: offUnlessOn('ld-reisebg'),
+  mobLogo: {
+    key: 'ld-moblogo',
+    read: (r) => (r === 'wordmark' || r === 'tile' || r === 'scroll' ? r : 'pill'),
+    write: (v) => (v === 'pill' ? null : v),
+  },
+  mobDesign: {
+    key: 'ld-mobdesign',
+    read: (r) => (r === 'app' || r === 'editorial' || r === 'lab' ? r : 'proto'),
+    write: (v) => (v === 'proto' ? null : v),
+  },
 };
 
 export function readSettings(storage: Pick<Storage, 'getItem'>): Settings {

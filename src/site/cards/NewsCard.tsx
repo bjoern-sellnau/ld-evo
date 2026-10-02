@@ -25,6 +25,7 @@ export function NewsCard({ a }: { a: Article }) {
       href={lh(href)}
       onClick={onClick}
       className={styles.card}
+      data-m-card
       style={{
         viewTransitionName: morphOk && vtTarget === a.id ? `artn-${a.id}` : 'none',
         background: 'var(--card)',

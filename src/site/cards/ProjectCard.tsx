@@ -67,6 +67,7 @@ export function ProjectCard({ p, prefix, variant = 'featured' }: { p: Project; p
       href={lh(href)}
       onClick={onClick}
       className={styles.card}
+      data-m-card
       style={{
         background: 'var(--card)',
         border: '1px solid var(--border)',
