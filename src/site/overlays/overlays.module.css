@@ -1,0 +1,196 @@
+/* Hover-/Fokus-Zustände der Overlays (Prototyp style-hover). */
+.result {
+  font: inherit;
+  appearance: none;
+  border: 0;
+  background: none;
+  color: inherit;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px; /* Abstand Titel/Ausschnitt ↔ Typ-Plakette (Volltextsuche) */
+  padding: 11px 12px;
+  border-radius: 11px;
+  cursor: pointer;
+}
+
+.result:hover,
+.result:focus-visible,
+.result[aria-selected='true'] {
+  background: var(--pill);
+  outline: none;
+}
+
+.field {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 12px 14px;
+  font-family: var(--ld-font-sans), sans-serif;
+  font-size: 13.5px;
+  color: var(--ink);
+  outline: none;
+}
+
+.field:focus-visible {
+  border-color: var(--accent);
+}
+
+.send {
+  display: block;
+  text-align: center;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 999px;
+  padding: 13px 0;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.25s;
+}
+
+.send:hover {
+  transform: scale(1.03);
+}
+
+.social {
+  flex: 1;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 11px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.25s;
+}
+
+.social:hover {
+  border-color: var(--accent);
+}
+
+.close {
+  font: inherit;
+  appearance: none;
+  border: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  transition: transform 0.2s;
+}
+
+.close:hover {
+  transform: scale(1.1);
+}
+
+.accept {
+  font: inherit;
+  appearance: none;
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.2s;
+}
+
+.accept:hover {
+  transform: scale(1.05);
+}
+
+.quiet {
+  font-size: 11.5px;
+  color: var(--soft);
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+}
+
+.quiet:hover {
+  color: var(--accent);
+}
+
+.send:focus-visible,
+.social:focus-visible,
+.close:focus-visible,
+.accept:focus-visible,
+.quiet:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Lightbox (Prototyp Zeile 304–313) */
+.lbBtn,
+.zoom {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+  appearance: none;
+  transition: transform 0.2s;
+}
+
+.lbBtn:hover,
+.zoom:hover {
+  transform: scale(1.12);
+}
+
+.lbSide {
+  transform: translateY(-50%);
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+
+.lbSide:hover {
+  transform: translateY(-50%) scale(1.1);
+  background: rgba(255, 255, 255, 0.22) !important;
+}
+
+.zoom {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(10, 14, 22, 0.55);
+  color: #ffffff;
+  backdrop-filter: blur(8px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.lbBtn:focus-visible,
+.zoom:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Fundstelle im Treffer-Ausschnitt: Text bleibt in Schriftfarbe (Kontrast), Markierung nur als Hinterlegung. */
+.hit {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--ink);
+  border-radius: 3px;
+  padding: 0 1px;
+}

@@ -1,0 +1,77 @@
+/* Werte aus dem Prototyp (Katalog, Zeile 468 ff.). */
+.arrow {
+  font: inherit;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--glassbrd);
+  backdrop-filter: blur(14px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 17px;
+  color: var(--ink);
+  box-shadow: inset 0 1px 0 var(--glasshi);
+  padding: 0;
+}
+
+.arrow:hover {
+  background: var(--pill);
+}
+
+.dot {
+  /* Sichtbar 7px (Prototyp), klickbar 24×24 (WCAG 2.5.8): Innenabstand + background-clip. */
+  box-sizing: content-box;
+  height: 7px;
+  border-radius: 999px;
+  border: 0;
+  padding: 8.5px;
+  background-clip: content-box;
+  cursor: pointer;
+  transition:
+    width 0.3s,
+    background 0.3s;
+}
+
+.chip {
+  font: inherit;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.chip:hover {
+  transform: scale(1.05);
+}
+
+.caseBtn {
+  background: var(--btn);
+  color: var(--btn-ink);
+  border-radius: 999px;
+  padding: 11px 22px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.25s;
+}
+
+.caseBtn:hover {
+  transform: scale(1.05);
+}
+
+.arrow:focus-visible,
+.dot:focus-visible,
+.chip:focus-visible,
+.caseBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

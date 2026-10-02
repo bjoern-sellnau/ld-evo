@@ -1,0 +1,41 @@
+/*
+ * Design-Tokens — Loona! Designs Logo-System.
+ * Quelle: docs/design_handoff_loona_logo/README.md §2 + §9, assets/manifest.json.
+ * Keine eigenen Werte; Spiegel von src/components/brand/products.ts (geprüft in tests/unit/tokens.test.ts).
+ */
+:root {
+  /* Neutrale */
+  --loona-ink: #171310;
+  --loona-cream: #f7f2ea;
+  --loona-paper: #faf7f2;
+  --loona-muted-dark: #b3a78f;
+  --loona-muted-light: #6e6455;
+  --loona-sand: #e8dcc4;
+
+  /* Produktfarben + Deep-Variante (auf hellem Grund) */
+  --loona-orange: #ff7816;
+  --loona-orange-deep: #c2410c;
+  --loona-violet: #a78bfa;
+  --loona-violet-deep: #6d28d9;
+  --loona-sky: #38bdf8;
+  --loona-sky-deep: #0369a1;
+  --loona-rose: #f472b6;
+  --loona-rose-deep: #be185d;
+  --loona-green: #3ddc84;
+  --loona-green-deep: #15803d;
+
+  /* Produkt-Aliase */
+  --loona-ld: var(--loona-orange);
+  --loona-ld-deep: var(--loona-orange-deep);
+  --loona-flow: var(--loona-violet);
+  --loona-flow-deep: var(--loona-violet-deep);
+  --loona-nova: var(--loona-sky);
+  --loona-nova-deep: var(--loona-sky-deep);
+  --loona-buddy: var(--loona-rose);
+  --loona-buddy-deep: var(--loona-rose-deep);
+  --loona-ivy: var(--loona-green);
+  --loona-ivy-deep: var(--loona-green-deep);
+
+  /* Schrift: --loona-font-space-grotesk wird von next/font gesetzt (src/lib/fonts.ts) */
+  --loona-font-sans: var(--loona-font-space-grotesk), system-ui, sans-serif;
+}

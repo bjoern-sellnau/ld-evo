@@ -1,0 +1,76 @@
+/*
+ * Maße als Anteil der Zeichenhöhe m, abgeleitet aus den Lockup-Assets (Zeichen 40 hoch):
+ *   Produkte  family/<key>/lockup-*.svg  Abstand 16 → 0.4 · Zeile 1 22px, Baseline 20 → 0.55 / 0.5
+ *                                        Zeile 2 10px, Baseline 36 → 0.25 / 0.9 · letter-spacing 3.2px = 0.32em
+ *   Kernmarke assets/lockup-*.svg        Abstand 20 → 0.5  · Zeile 1 30px, Baseline 24 → 0.75 / 0.6
+ *                                        Zeile 2 11px, Baseline 42 → 0.275 / 1.05, Einzug 2px → 0.05
+ *                                        letter-spacing 3.5px = 0.318em
+ * Bei line-height 1 liegt die Baseline von Space Grotesk bei 0.846·font-size
+ * ((1 + ascent 0.984 − descent 0.292) / 2, hhea-Metriken der Google-Fonts-Datei).
+ */
+.lockup {
+  --loona-baseline: 0.846;
+  --gap: 0.4;
+  --l1: 0.55;
+  --l1-base: 0.5;
+  --l2: 0.25;
+  --l2-base: 0.9;
+  --l2-indent: 0;
+  --l2-track: 0.32em;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--gap) * var(--loona-m));
+  font-family: var(--loona-font-sans, system-ui, sans-serif);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.lockup[data-core] {
+  --gap: 0.5;
+  --l1: 0.75;
+  --l1-base: 0.6;
+  --l2: 0.275;
+  --l2-base: 1.05;
+  --l2-indent: 0.05;
+  --l2-track: calc(3.5em / 11);
+}
+
+.lockup[data-theme='dark'] {
+  color: var(--loona-cream);
+  --loona-lockup-muted: var(--loona-muted-dark);
+}
+
+.lockup[data-theme='light'] {
+  color: var(--loona-ink);
+  --loona-lockup-muted: var(--loona-muted-light);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  height: var(--loona-m);
+}
+
+.wordmark {
+  font-weight: 700;
+  font-size: calc(var(--l1) * var(--loona-m));
+  letter-spacing: -0.03em;
+  margin-top: calc((var(--l1-base) - var(--loona-baseline) * var(--l1)) * var(--loona-m));
+}
+
+.accent {
+  color: var(--loona-accent);
+}
+
+.tagline {
+  font-weight: 500;
+  font-size: calc(var(--l2) * var(--loona-m));
+  letter-spacing: var(--l2-track);
+  color: var(--loona-lockup-muted);
+  margin-left: calc(var(--l2-indent) * var(--loona-m));
+  /* Abstand von Unterkante Zeile 1 bis Oberkante Zeile 2, sodass die Baselines auf l1-base / l2-base liegen */
+  margin-top: calc(
+    (var(--l2-base) - var(--l1-base) - var(--loona-baseline) * var(--l2) + var(--loona-baseline) * var(--l1) - var(--l1)) * var(--loona-m)
+  );
+}

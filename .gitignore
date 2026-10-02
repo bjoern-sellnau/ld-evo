@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+test-results/
+playwright-report/
+.env*.local
+
+# LD Flow Daten (SQLite + Setup-Token) — nie committen
+/data/
+
+# Differenzbilder der Seiten-Pixeltests
+tests/visual-pages/diff/
+
+# Sicherungen aus compose.yaml (./backup)
+/backup/

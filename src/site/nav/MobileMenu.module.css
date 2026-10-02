@@ -1,0 +1,65 @@
+/* Werte aus dem Prototyp (Mobile-Menü, Zeile 913 ff.). */
+.sheetItem {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 19px 2px;
+  border-bottom: 1px solid var(--hair);
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.sheetItem:hover {
+  color: var(--accent) !important;
+}
+
+.tile {
+  font: inherit;
+  appearance: none;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  min-height: 72px;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: var(--pill);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.kontakt {
+  font: inherit;
+  appearance: none;
+  border: 0;
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 16px;
+  padding: 15px 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.2s;
+}
+
+.kontakt:hover {
+  transform: scale(1.02);
+}
+
+.sheetItem:focus-visible,
+.tile:focus-visible,
+.kontakt:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

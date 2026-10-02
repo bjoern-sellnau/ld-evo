@@ -1,0 +1,7 @@
+# Reverse-Proxy für compose.yaml: HTTPS, Komprimierung, Weiterleitung an die App.
+# Caddy setzt X-Forwarded-For selbst (fremde Werte vom Client werden nicht übernommen) — LD Flow wertet den
+# letzten Eintrag aus (LDFLOW_PROXY_HOPS=1, Standard).
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:3000
+}

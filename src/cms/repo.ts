@@ -1,0 +1,851 @@
+import 'server-only';
+import { randomBytes } from 'node:crypto';
+import { requireUser, type User, createUser, passwordProblem, hashPassword, issueResetToken, clearTotp, type Role } from './auth';
+import { db, tx } from './db';
+import { VARIANT_WIDTHS, webpSize } from './media';
+import { commitPublish } from './publish';
+import { COLLECTIONS, RESERVED_SLUGS, SLUG_RE, emptyDoc, validateDoc, type Errors } from './schema';
+import { isLocale, type Locale } from '@/site/i18n/locale';
+
+/**
+ * LD Flow. — Datenzugriff (Data Access Layer). Jede schreibende Funktion prüft Anmeldung/Rolle selbst;
+ * Server Actions bleiben dünne Hüllen darum (Next-Empfehlung: „Using a Data Access Layer for mutations“).
+ */
+
+export interface DocRow {
+  collection: string;
+  id: string;
+  position: number;
+  published: Record<string, unknown> | null;
+  draft: Record<string, unknown> | null;
+  updatedAt: number;
+  updatedBy: string | null;
+  publishedAt: number | null;
+  /** Geplantes Veröffentlichen des Entwurfs (ms) und wer es geplant hat. */
+  publishAt: number | null;
+  publishBy: string | null;
+}
+
+interface RawRow {
+  collection: string;
+  id: string;
+  position: number;
+  published: string | null;
+  draft: string | null;
+  updated_at: number;
+  updated_by: string | null;
+  published_at: number | null;
+  publish_at: number | null;
+  publish_by: string | null;
+}
+
+/** node:sqlite liefert Zeilen mit Null-Prototyp — für React/Client-Props in normale Objekte umwandeln. */
+const plain = <T>(rows: T[]): T[] => rows.map((r) => ({ ...r }));
+
+const parse = (s: string | null) => (s ? (JSON.parse(s) as Record<string, unknown>) : null);
+const toRow = (r: RawRow): DocRow => ({
+  collection: r.collection,
+  id: r.id,
+  position: r.position,
+  published: parse(r.published),
+  draft: parse(r.draft),
+  updatedAt: r.updated_at,
+  updatedBy: r.updated_by,
+  publishedAt: r.published_at,
+  publishAt: r.publish_at,
+  publishBy: r.publish_by,
+});
+
+function assertCollection(c: string) {
+  if (!COLLECTIONS[c]) throw new Error('Unbekannte Collection');
+}
+
+/**
+ * Sprachen: Jedes Dokument gibt es je Sprache als eigene Zeile (docs.locale). Deutsch ist das Original und trägt die
+ * Struktur (Position, Anlegen, Löschen); Englisch ist die Übersetzung desselben Dokuments mit eigenem Entwurf,
+ * eigener Live-Fassung, eigenen Versionen und eigenem Zeitplan. Fehlt die englische Live-Fassung, zeigt die
+ * englische Site die deutsche (Rückfall).
+ */
+const lc = (l: unknown): Locale => (isLocale(l) ? l : 'de');
+
+// ---------------------------------------------------------------------------------------------------------------
+// Öffentliche Lesezugriffe (nur veröffentlichte Fassungen) — für die Site
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Kennzeichnung eines Rückfalls: das Dokument erscheint auf der englischen Site in deutscher Fassung. */
+export const FALLBACK_KEY = '_lang';
+
+export function publishedDocs(collection: string, locale: Locale = 'de'): (Record<string, unknown> & { id: string })[] {
+  assertCollection(collection);
+  const rows = db()
+    .prepare(
+      `SELECT d.id, COALESCE(t.published, d.published) AS published, (t.published IS NULL AND ? <> 'de') AS fallback
+       FROM docs d LEFT JOIN docs t ON t.collection = d.collection AND t.id = d.id AND t.locale = ?
+       WHERE d.collection = ? AND d.locale = 'de' AND COALESCE(t.published, d.published) IS NOT NULL
+       ORDER BY d.position, d.id`,
+    )
+    .all(locale, locale, collection) as { id: string; published: string; fallback: number }[];
+  return rows.map((r) => ({ ...JSON.parse(r.published), id: r.id, ...(r.fallback ? { [FALLBACK_KEY]: 'de' } : {}) }));
+}
+
+export function publishedDoc(collection: string, id: string, locale: Locale = 'de'): (Record<string, unknown> & { id: string }) | null {
+  assertCollection(collection);
+  const get = (l: Locale) =>
+    (
+      db()
+        .prepare('SELECT published FROM docs WHERE collection = ? AND id = ? AND locale = ? AND published IS NOT NULL')
+        .get(collection, id, l) as { published: string } | undefined
+    )?.published;
+  const own = get(locale);
+  if (own) return { ...JSON.parse(own), id };
+  const de = locale === 'de' ? undefined : get('de');
+  return de ? { ...JSON.parse(de), id, [FALLBACK_KEY]: 'de' } : null;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Redaktion
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Dokumente einer Collection (deutsche Zeilen = Struktur und Reihenfolge). */
+export async function listDocs(collection: string): Promise<DocRow[]> {
+  await requireUser();
+  assertCollection(collection);
+  const rows = db()
+    .prepare("SELECT * FROM docs WHERE collection = ? AND locale = 'de' ORDER BY position, id")
+    .all(collection) as unknown as RawRow[];
+  return rows.map(toRow);
+}
+
+export async function getDoc(collection: string, id: string, locale: Locale = 'de'): Promise<DocRow | null> {
+  await requireUser();
+  assertCollection(collection);
+  const r = db().prepare('SELECT * FROM docs WHERE collection = ? AND id = ? AND locale = ?').get(collection, id, lc(locale)) as
+    RawRow | undefined;
+  return r ? toRow(r) : null;
+}
+
+/** Stand der Übersetzung je Dokument (für Listen und den Sprachumschalter im Editor). */
+export interface TranslationState {
+  /** none = noch keine englische Fassung; draft = nur Entwurf; live = veröffentlicht (ggf. mit neuerem Entwurf). */
+  state: 'none' | 'draft' | 'live';
+  hasDraft: boolean;
+  /** Deutsche Live-Fassung ist neuer als die englische → Übersetzung prüfen. */
+  outdated: boolean;
+}
+
+export async function translationStates(collection: string, locale: Locale = 'en'): Promise<Record<string, TranslationState>> {
+  await requireUser();
+  assertCollection(collection);
+  const rows = db()
+    .prepare(
+      `SELECT d.id, t.id IS NOT NULL AS has, t.published IS NOT NULL AS live, t.draft IS NOT NULL AS draft,
+         COALESCE(d.published_at, 0) > COALESCE(t.published_at, 0) AS outdated
+       FROM docs d LEFT JOIN docs t ON t.collection = d.collection AND t.id = d.id AND t.locale = ?
+       WHERE d.collection = ? AND d.locale = 'de'`,
+    )
+    .all(lc(locale), collection) as { id: string; has: number; live: number; draft: number; outdated: number }[];
+  return Object.fromEntries(
+    rows.map((r) => [
+      r.id,
+      {
+        state: r.live ? 'live' : r.draft ? 'draft' : 'none',
+        hasDraft: !!r.draft,
+        outdated: !!r.live && !!r.outdated,
+      } satisfies TranslationState,
+    ]),
+  );
+}
+
+/** Arbeitskopie = Entwurf, sonst die veröffentlichte Fassung. */
+export function workingCopy(row: DocRow): Record<string, unknown> {
+  return row.draft ?? row.published ?? {};
+}
+
+type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string; errors?: Errors; conflict?: { by: string | null; at: number } };
+
+/**
+ * Gleichzeitiges Bearbeiten: Der Editor schickt den Stand (`updated_at`) mit, den er kennt. Hat inzwischen jemand
+ * anders gespeichert, wird nicht überschrieben — der Editor zeigt, wer wann geändert hat. `expectedRev` undefined
+ * = ohne Prüfung (z. B. „trotzdem speichern“). Aufruf synchron direkt vor dem Schreiben (kein await dazwischen).
+ */
+function conflictWith(collection: string, id: string, locale: Locale, expectedRev: number | undefined) {
+  if (expectedRev === undefined) return null;
+  const r = db()
+    .prepare('SELECT updated_at, updated_by FROM docs WHERE collection = ? AND id = ? AND locale = ?')
+    .get(collection, id, locale) as { updated_at: number; updated_by: string | null } | undefined;
+  if (!r || r.updated_at === expectedRev) return null;
+  return {
+    ok: false as const,
+    error: `${r.updated_by ?? 'Jemand'} hat diesen Eintrag inzwischen geändert.`,
+    conflict: { by: r.updated_by, at: r.updated_at },
+  };
+}
+
+const revOf = (collection: string, id: string, locale: Locale) =>
+  (
+    db().prepare('SELECT updated_at FROM docs WHERE collection = ? AND id = ? AND locale = ?').get(collection, id, locale) as
+      { updated_at: number } | undefined
+  )?.updated_at ?? 0;
+
+/**
+ * Übersetzungszeile anlegen, falls es sie noch nicht gibt (nur zu einem bestehenden deutschen Dokument). Leer —
+ * Inhalte kommen per Entwurf oder „Aus Deutsch übernehmen“.
+ */
+function ensureTranslationRow(collection: string, id: string, locale: Locale, by: string): boolean {
+  if (locale === 'de') return !!db().prepare("SELECT 1 FROM docs WHERE collection = ? AND id = ? AND locale = 'de'").get(collection, id);
+  const de = db().prepare("SELECT position FROM docs WHERE collection = ? AND id = ? AND locale = 'de'").get(collection, id) as
+    { position: number } | undefined;
+  if (!de) return false;
+  const now = Date.now();
+  db()
+    .prepare(
+      'INSERT OR IGNORE INTO docs (collection, id, locale, position, published, draft, created_at, updated_at, updated_by) VALUES (?, ?, ?, ?, NULL, NULL, ?, ?, ?)',
+    )
+    .run(collection, id, locale, de.position, now, now, by);
+  return true;
+}
+
+export async function createDoc(
+  collection: string,
+  idRaw: string,
+  template?: string,
+  fromPattern?: string,
+): Promise<Result<{ id: string }>> {
+  const user = await requireUser();
+  const def = COLLECTIONS[collection];
+  if (!def) return { ok: false, error: 'Unbekannte Collection' };
+  if (!def.creatable) return { ok: false, error: 'Hier können keine Einträge angelegt werden.' };
+  const id = idRaw.trim().toLowerCase();
+  if (!SLUG_RE.test(id)) return { ok: false, error: 'Kennung: nur a–z, 0–9 und Bindestrich (max. 64 Zeichen).' };
+  if (collection === 'pages' && RESERVED_SLUGS.has(id))
+    return { ok: false, error: 'Diese Kennung ist für eine bestehende Seite reserviert.' };
+  const exists = db().prepare('SELECT 1 FROM docs WHERE collection = ? AND id = ?').get(collection, id);
+  if (exists) return { ok: false, error: 'Diese Kennung ist schon vergeben.' };
+  const now = Date.now();
+  const pos = (
+    db().prepare("SELECT COALESCE(MAX(position), -1) + 1 AS p FROM docs WHERE collection = ? AND locale = 'de'").get(collection) as {
+      p: number;
+    }
+  ).p;
+  const data = emptyDoc(collection, template);
+  // Seite aus einer Vorlage starten: deren Widgets als unabhängige Kopie übernehmen.
+  if (fromPattern && 'blocks' in data) {
+    const p = publishedDoc('patterns', fromPattern);
+    if (p && Array.isArray(p.blocks)) data.blocks = validateDoc(collection, { ...data, blocks: p.blocks }).value.blocks ?? [];
+  }
+  db()
+    .prepare(
+      "INSERT INTO docs (collection, id, locale, position, published, draft, created_at, updated_at, updated_by) VALUES (?, ?, 'de', ?, NULL, ?, ?, ?, ?)",
+    )
+    .run(collection, id, pos, JSON.stringify(data), now, now, user.email);
+  return { ok: true, id };
+}
+
+/** Entwurf speichern (validiert, aber noch nicht live). Englisch: legt die Übersetzung bei Bedarf an. */
+export async function saveDraft(
+  collection: string,
+  id: string,
+  input: unknown,
+  expectedRev?: number,
+  locale: Locale = 'de',
+): Promise<Result<{ rev: number }>> {
+  const user = await requireUser();
+  assertCollection(collection);
+  const l = lc(locale);
+  const { value, errors } = validateDoc(collection, input);
+  // Entwürfe dürfen unvollständig sein — nur Formatfehler blockieren; Pflichtfelder prüft erst das Veröffentlichen.
+  const blocking = Object.fromEntries(Object.entries(errors).filter(([, m]) => m !== 'Pflichtfeld'));
+  if (Object.keys(blocking).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors: blocking };
+  const conflict = conflictWith(collection, id, l, expectedRev);
+  if (conflict) return conflict;
+  if (!ensureTranslationRow(collection, id, l, user.email)) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  const now = Date.now();
+  const res = db()
+    .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ? AND locale = ?')
+    .run(JSON.stringify(value), now, user.email, collection, id, l);
+  if (!res.changes) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  return { ok: true, rev: now };
+}
+
+/**
+ * Übersetzung aus der deutschen Arbeitskopie neu beginnen: Der englische Entwurf wird mit dem deutschen Inhalt
+ * überschrieben (Bilder, Farben, Struktur übernommen; Texte dann übersetzen). Live-Fassung bleibt unberührt.
+ */
+export async function copyFromGerman(collection: string, id: string, locale: Locale = 'en'): Promise<Result<{ rev: number }>> {
+  const user = await requireUser();
+  assertCollection(collection);
+  const l = lc(locale);
+  if (l === 'de') return { ok: false, error: 'Nur für Übersetzungen.' };
+  const de = await getDoc(collection, id, 'de');
+  if (!de) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  ensureTranslationRow(collection, id, l, user.email);
+  const now = Date.now();
+  db()
+    .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ? AND locale = ?')
+    .run(JSON.stringify(workingCopy(de)), now, user.email, collection, id, l);
+  return { ok: true, rev: now };
+}
+
+/** Entwurf (bzw. übergebene Daten) veröffentlichen; alte Live-Fassung wandert in die Versionen. */
+export async function publishDoc(
+  collection: string,
+  id: string,
+  input?: unknown,
+  expectedRev?: number,
+  locale: Locale = 'de',
+): Promise<Result<{ rev: number }>> {
+  const user = await requireUser();
+  assertCollection(collection);
+  const l = lc(locale);
+  if (!ensureTranslationRow(collection, id, l, user.email)) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  const row = await getDoc(collection, id, l);
+  if (!row) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  if (input === undefined && !row.draft && !row.published) return { ok: false, error: 'Noch kein Inhalt in dieser Sprache.' };
+  const { value, errors } = validateDoc(collection, input ?? workingCopy(row));
+  if (Object.keys(errors).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors };
+  const conflict = conflictWith(collection, id, l, expectedRev);
+  if (conflict) return conflict;
+  commitPublish(collection, id, value, user.email, l);
+  return { ok: true, rev: revOf(collection, id, l) };
+}
+
+/** Frühester/spätester Zeitpunkt fürs Planen (1 Minute Vorlauf, höchstens ein Jahr). */
+const SCHEDULE_MIN = 60 * 1000;
+const SCHEDULE_MAX = 366 * 24 * 3600 * 1000;
+
+/**
+ * Veröffentlichen planen: Daten werden sofort vollständig geprüft und als Entwurf gespeichert; zum Zeitpunkt
+ * bringt der Zeitplan (scheduler.ts) den dann aktuellen Entwurf live. Spätere Entwurfsänderungen gehen also mit.
+ */
+export async function schedulePublish(
+  collection: string,
+  id: string,
+  at: number,
+  input?: unknown,
+  expectedRev?: number,
+  locale: Locale = 'de',
+): Promise<Result<{ rev: number }>> {
+  const user = await requireUser();
+  assertCollection(collection);
+  const l = lc(locale);
+  const now = Date.now();
+  if (!Number.isFinite(at) || at < now + SCHEDULE_MIN)
+    return { ok: false, error: 'Zeitpunkt muss mindestens eine Minute in der Zukunft liegen.' };
+  if (at > now + SCHEDULE_MAX) return { ok: false, error: 'Höchstens ein Jahr im Voraus planen.' };
+  if (!ensureTranslationRow(collection, id, l, user.email)) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  const row = await getDoc(collection, id, l);
+  if (!row) return { ok: false, error: 'Eintrag nicht gefunden.' };
+  const { value, errors } = validateDoc(collection, input ?? workingCopy(row));
+  if (Object.keys(errors).length) return { ok: false, error: 'Bitte die markierten Felder prüfen.', errors };
+  const conflict = conflictWith(collection, id, l, expectedRev);
+  if (conflict) return conflict;
+  db()
+    .prepare(
+      'UPDATE docs SET draft = ?, updated_at = ?, updated_by = ?, publish_at = ?, publish_by = ? WHERE collection = ? AND id = ? AND locale = ?',
+    )
+    .run(JSON.stringify(value), now, user.email, Math.round(at), user.email, collection, id, l);
+  return { ok: true, rev: now };
+}
+
+export async function cancelSchedule(collection: string, id: string, locale: Locale = 'de'): Promise<Result> {
+  await requireUser();
+  assertCollection(collection);
+  db()
+    .prepare('UPDATE docs SET publish_at = NULL, publish_by = NULL WHERE collection = ? AND id = ? AND locale = ?')
+    .run(collection, id, lc(locale));
+  return { ok: true };
+}
+
+/** Alle geplanten Veröffentlichungen (fürs Dashboard). */
+export async function listScheduled() {
+  await requireUser();
+  return plain(
+    db()
+      .prepare(
+        'SELECT collection, id, locale, publish_at AS publishAt, publish_by AS publishBy FROM docs WHERE publish_at IS NOT NULL ORDER BY publish_at',
+      )
+      .all() as { collection: string; id: string; locale: Locale; publishAt: number; publishBy: string | null }[],
+  );
+}
+
+export async function discardDraft(collection: string, id: string, locale: Locale = 'de'): Promise<Result> {
+  await requireUser();
+  assertCollection(collection);
+  const r = db()
+    .prepare(
+      'UPDATE docs SET draft = NULL, publish_at = NULL, publish_by = NULL WHERE collection = ? AND id = ? AND locale = ? AND published IS NOT NULL',
+    )
+    .run(collection, id, lc(locale));
+  return r.changes ? { ok: true } : { ok: false, error: 'Nichts zu verwerfen (noch nie veröffentlicht).' };
+}
+
+/**
+ * Von der Site nehmen, Inhalt bleibt als Entwurf erhalten. Übersetzungen dürfen auch bei Singletons offline gehen —
+ * die englische Site zeigt dann wieder die deutsche Fassung.
+ */
+export async function unpublishDoc(collection: string, id: string, locale: Locale = 'de'): Promise<Result<{ rev: number }>> {
+  const user = await requireUser();
+  const def = COLLECTIONS[collection];
+  const l = lc(locale);
+  if (!def || (def.kind === 'singleton' && l === 'de')) return { ok: false, error: 'Singletons bleiben immer online.' };
+  const r = db()
+    .prepare(
+      'UPDATE docs SET draft = COALESCE(draft, published), published = NULL, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ? AND locale = ?',
+    )
+    .run(Date.now(), user.email, collection, id, l);
+  return r.changes ? { ok: true, rev: revOf(collection, id, l) } : { ok: false, error: 'Eintrag nicht gefunden.' };
+}
+
+/** Löscht das Dokument in allen Sprachen samt Versionen. */
+export async function deleteDoc(collection: string, id: string): Promise<Result> {
+  await requireUser('admin');
+  const def = COLLECTIONS[collection];
+  if (!def || def.kind === 'singleton') return { ok: false, error: 'Kann nicht gelöscht werden.' };
+  tx(() => {
+    db().prepare('DELETE FROM docs WHERE collection = ? AND id = ?').run(collection, id);
+    db().prepare('DELETE FROM revisions WHERE collection = ? AND doc_id = ?').run(collection, id);
+  });
+  return { ok: true };
+}
+
+export async function moveDoc(collection: string, id: string, dir: -1 | 1): Promise<Result> {
+  await requireUser();
+  const rows = await listDocs(collection);
+  const i = rows.findIndex((r) => r.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= rows.length) return { ok: true };
+  tx(() => {
+    // Reihenfolge gilt für alle Sprachen.
+    const upd = db().prepare('UPDATE docs SET position = ? WHERE collection = ? AND id = ?');
+    rows.forEach((r, k) => upd.run(k === i ? j : k === j ? i : k, collection, r.id));
+  });
+  return { ok: true };
+}
+
+/** Widget (samt verschachtelten Widgets) als neue, sofort veröffentlichte Vorlage speichern. */
+export async function createPattern(title: string, block: unknown, global: boolean): Promise<Result<{ id: string }>> {
+  await requireUser();
+  const t = title.trim().slice(0, 80);
+  if (!t) return { ok: false, error: 'Name fehlt.' };
+  const base = t
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+  const id = `${base || 'vorlage'}-${randomBytes(3).toString('hex')}`;
+  const created = await createDoc('patterns', id);
+  if (!created.ok) return created;
+  const res = await publishDoc('patterns', id, { title: t, global, blocks: [block] });
+  return res.ok ? { ok: true, id } : res;
+}
+
+export function publishedPatterns(locale: Locale = 'de') {
+  return publishedDocs('patterns', locale);
+}
+
+export async function listRevisions(collection: string, id: string, locale: Locale = 'de') {
+  await requireUser();
+  return plain(
+    db()
+      .prepare(
+        'SELECT rid, created_at AS createdAt, created_by AS createdBy FROM revisions WHERE collection = ? AND doc_id = ? AND locale = ? ORDER BY rid DESC',
+      )
+      .all(collection, id, lc(locale)) as { rid: number; createdAt: number; createdBy: string | null }[],
+  );
+}
+
+/** Inhalt einer Version (für den Vergleich im Editor). */
+export async function getRevision(
+  collection: string,
+  id: string,
+  rid: number,
+  locale: Locale = 'de',
+): Promise<Result<{ data: Record<string, unknown> }>> {
+  await requireUser();
+  assertCollection(collection);
+  const r = db()
+    .prepare('SELECT data FROM revisions WHERE rid = ? AND collection = ? AND doc_id = ? AND locale = ?')
+    .get(rid, collection, id, lc(locale)) as { data: string } | undefined;
+  return r ? { ok: true, data: JSON.parse(r.data) as Record<string, unknown> } : { ok: false, error: 'Version nicht gefunden.' };
+}
+
+/** Version als Entwurf zurückholen (zum Prüfen, danach veröffentlichen). */
+export async function restoreRevision(collection: string, id: string, rid: number, locale: Locale = 'de'): Promise<Result> {
+  const user = await requireUser();
+  const l = lc(locale);
+  const r = db()
+    .prepare('SELECT data FROM revisions WHERE rid = ? AND collection = ? AND doc_id = ? AND locale = ?')
+    .get(rid, collection, id, l) as { data: string } | undefined;
+  if (!r) return { ok: false, error: 'Version nicht gefunden.' };
+  db()
+    .prepare('UPDATE docs SET draft = ?, updated_at = ?, updated_by = ? WHERE collection = ? AND id = ? AND locale = ?')
+    .run(r.data, Date.now(), user.email, collection, id, l);
+  return { ok: true };
+}
+
+/** Zähler je Collection (deutsch) plus offene Übersetzungen (englischer Entwurf vorhanden). */
+export async function counts() {
+  await requireUser();
+  const rows = db()
+    .prepare(
+      `SELECT collection, SUM(locale = 'de') AS n, SUM(locale = 'de' AND draft IS NOT NULL) AS drafts,
+         SUM(locale = 'de' AND published IS NULL) AS offline, SUM(locale = 'en' AND draft IS NOT NULL) AS enDrafts
+       FROM docs GROUP BY collection`,
+    )
+    .all() as { collection: string; n: number; drafts: number; offline: number; enDrafts: number }[];
+  return Object.fromEntries(rows.map((r) => [r.collection, r]));
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Medien — Bytes in der DB (eine Datei = ein Backup). Typ wird an den Magic Bytes erkannt, SVG ist nicht erlaubt.
+// ---------------------------------------------------------------------------------------------------------------
+
+export const MAX_UPLOAD = 10 * 1024 * 1024;
+
+export function sniffImage(buf: Uint8Array): string | null {
+  const b = (i: number) => buf[i];
+  if (buf.length < 12) return null;
+  if (b(0) === 0x89 && b(1) === 0x50 && b(2) === 0x4e && b(3) === 0x47) return 'image/png';
+  if (b(0) === 0xff && b(1) === 0xd8 && b(2) === 0xff) return 'image/jpeg';
+  if (b(0) === 0x47 && b(1) === 0x49 && b(2) === 0x46 && b(3) === 0x38) return 'image/gif';
+  const ascii = (s: number, e: number) => String.fromCharCode(...buf.slice(s, e));
+  if (ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') return 'image/webp';
+  if (ascii(4, 8) === 'ftyp' && /^(avif|avis)$/.test(ascii(8, 12))) return 'image/avif';
+  if (ascii(4, 8) === 'ftyp' && /^(mp41|mp42|isom|iso2|avc1|M4V )$/.test(ascii(8, 12))) return 'video/mp4';
+  if (b(0) === 0x1a && b(1) === 0x45 && b(2) === 0xdf && b(3) === 0xa3) return 'video/webm';
+  return null;
+}
+
+/**
+ * Varianten (vom Browser verkleinert) prüfen: nur WebP (Magic Bytes), nur die vorgesehenen Breiten, Breite laut
+ * WebP-Kopf muss passen. Ungültige werden verworfen statt abzulehnen — das Original reicht immer.
+ */
+async function checkVariants(variants: File[]): Promise<{ width: number; bytes: Uint8Array }[]> {
+  const ok: { width: number; bytes: Uint8Array }[] = [];
+  for (const v of variants.slice(0, VARIANT_WIDTHS.length)) {
+    if (v.size > MAX_UPLOAD) continue;
+    const vb = new Uint8Array(await v.arrayBuffer());
+    const size = sniffImage(vb) === 'image/webp' ? webpSize(vb) : null;
+    if (size && (VARIANT_WIDTHS as readonly number[]).includes(size.width) && !ok.some((o) => o.width === size.width)) {
+      ok.push({ width: size.width, bytes: vb });
+    }
+  }
+  return ok;
+}
+
+/** Varianten für ein bereits hochgeladenes Bild nachrüsten (Uploads von vor der Variantenfunktion). */
+export async function addMediaVariants(id: string, variants: File[]): Promise<Result<{ count: number }>> {
+  await requireUser();
+  const m = db().prepare('SELECT mime FROM media WHERE id = ?').get(id) as { mime: string } | undefined;
+  if (!m) return { ok: false, error: 'Medium nicht gefunden.' };
+  if (!/^image\/(png|jpeg|webp)$/.test(m.mime)) return { ok: false, error: 'Varianten nur für PNG, JPEG und WebP.' };
+  const ok = await checkVariants(variants);
+  tx(() => {
+    const ins = db().prepare('INSERT OR REPLACE INTO media_variants (media_id, width, mime, bytes) VALUES (?, ?, ?, ?)');
+    for (const v of ok) ins.run(id, v.width, 'image/webp', v.bytes);
+  });
+  return { ok: true, count: ok.length };
+}
+
+export async function uploadMedia(file: File, alt: string, variants: File[] = []): Promise<Result<{ id: string; src: string }>> {
+  const user = await requireUser();
+  if (file.size > MAX_UPLOAD) return { ok: false, error: 'Datei ist größer als 10 MB.' };
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const mime = sniffImage(bytes);
+  if (!mime) return { ok: false, error: 'Nur PNG, JPEG, GIF, WebP, AVIF, MP4 oder WebM.' };
+  const ok = mime.startsWith('image/') ? await checkVariants(variants) : [];
+  const id = randomBytes(12).toString('base64url');
+  const name = file.name.replace(/[^\w.\- ]+/g, '_').slice(0, 120) || 'datei';
+  tx(() => {
+    db()
+      .prepare('INSERT INTO media (id, filename, mime, size, alt, bytes, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(id, name, mime, bytes.length, alt.slice(0, 300), bytes, Date.now(), user.email);
+    const ins = db().prepare('INSERT INTO media_variants (media_id, width, mime, bytes) VALUES (?, ?, ?, ?)');
+    for (const v of ok) ins.run(id, v.width, 'image/webp', v.bytes);
+  });
+  return { ok: true, id, src: `/media/${id}` };
+}
+
+export interface MediaUse {
+  collection: string;
+  id: string;
+  locale: Locale;
+  title: string;
+}
+
+/** Wo wird welches Medium verwendet? (veröffentlichte Fassungen und Entwürfe aller Dokumente) */
+function mediaUsage(): Map<string, MediaUse[]> {
+  const rows = db().prepare('SELECT collection, id, locale, published, draft FROM docs').all() as {
+    collection: string;
+    id: string;
+    locale: Locale;
+    published: string | null;
+    draft: string | null;
+  }[];
+  const out = new Map<string, MediaUse[]>();
+  for (const r of rows) {
+    const text = `${r.published ?? ''}\n${r.draft ?? ''}`;
+    const ids = new Set([...text.matchAll(/\/media\/([\w-]{8,32})/g)].map((m) => m[1]));
+    if (!ids.size) continue;
+    const def = COLLECTIONS[r.collection];
+    const data = parse(r.draft) ?? parse(r.published) ?? {};
+    const t = def && typeof data[def.titleField] === 'string' ? (data[def.titleField] as string) : '';
+    const use = { collection: r.collection, id: r.id, locale: r.locale, title: t || def?.singular || r.id };
+    for (const mid of ids) out.set(mid, [...(out.get(mid) ?? []), use]);
+  }
+  return out;
+}
+
+export async function listMedia() {
+  await requireUser();
+  const usage = mediaUsage();
+  const rows = db()
+    .prepare(
+      `SELECT id, filename, mime, size, alt, created_at AS createdAt,
+       (SELECT COUNT(*) FROM media_variants v WHERE v.media_id = media.id) AS variants
+       FROM media ORDER BY created_at DESC`,
+    )
+    .all() as { id: string; filename: string; mime: string; size: number; alt: string; createdAt: number; variants: number }[];
+  return rows.map((r) => ({ ...r, usedIn: usage.get(r.id) ?? [] }));
+}
+
+export async function updateMediaAlt(id: string, alt: string): Promise<Result> {
+  await requireUser();
+  db().prepare('UPDATE media SET alt = ? WHERE id = ?').run(alt.slice(0, 300), id);
+  return { ok: true };
+}
+
+/** Löschen; wird das Medium noch verwendet, nur mit `force` (die Seiten zeigen es danach nicht mehr). */
+export async function deleteMedia(id: string, force = false): Promise<Result> {
+  await requireUser();
+  const used = mediaUsage().get(id) ?? [];
+  if (used.length && !force) return { ok: false, error: `Wird noch verwendet: ${used.map((u) => u.title).join(', ')}.` };
+  tx(() => {
+    db().prepare('DELETE FROM media_variants WHERE media_id = ?').run(id);
+    db().prepare('DELETE FROM media WHERE id = ?').run(id);
+  });
+  return { ok: true };
+}
+
+/**
+ * Öffentlich (von /media/[id]): Medien sind wie Dateien in public/ frei abrufbar, IDs sind nicht erratbar.
+ * Mit `width` die kleinste Variante, die mindestens so breit ist; gibt es keine, das Original.
+ */
+export function readMedia(id: string, width?: number): { mime: string; bytes: Uint8Array } | null {
+  if (!/^[\w-]{8,32}$/.test(id)) return null;
+  if (width) {
+    const v = db()
+      .prepare('SELECT mime, bytes FROM media_variants WHERE media_id = ? AND width >= ? ORDER BY width LIMIT 1')
+      .get(id, width) as { mime: string; bytes: Uint8Array } | undefined;
+    if (v) return v;
+  }
+  const r = db().prepare('SELECT mime, bytes FROM media WHERE id = ?').get(id) as { mime: string; bytes: Uint8Array } | undefined;
+  return r ?? null;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Nutzerverwaltung (nur Admins)
+// ---------------------------------------------------------------------------------------------------------------
+
+export async function listUsers() {
+  await requireUser('admin');
+  return plain(
+    db()
+      .prepare(
+        'SELECT id, email, name, role, disabled, created_at AS createdAt, (totp_secret IS NOT NULL) AS twoFactor FROM users ORDER BY created_at',
+      )
+      .all() as {
+      id: string;
+      email: string;
+      name: string;
+      role: Role;
+      disabled: number;
+      createdAt: number;
+      twoFactor: number;
+    }[],
+  );
+}
+
+export async function adminCreateUser(input: { email: string; name: string; password: string; role: Role }) {
+  await requireUser('admin');
+  return createUser(input);
+}
+
+function otherActiveAdmins(me: User) {
+  return (db().prepare("SELECT COUNT(*) AS n FROM users WHERE role = 'admin' AND disabled = 0 AND id != ?").get(me.id) as { n: number }).n;
+}
+
+export async function adminUpdateUser(
+  id: string,
+  patch: { role?: Role; disabled?: boolean; password?: string; resetTwoFactor?: boolean },
+): Promise<Result> {
+  const me = await requireUser('admin');
+  if (id === me.id && (patch.role === 'editor' || patch.disabled) && otherActiveAdmins(me) === 0)
+    return { ok: false, error: 'Der letzte aktive Admin kann sich nicht selbst herabstufen oder sperren.' };
+  if (patch.role) db().prepare('UPDATE users SET role = ?, updated_at = ? WHERE id = ?').run(patch.role, Date.now(), id);
+  if (patch.disabled !== undefined) {
+    db()
+      .prepare('UPDATE users SET disabled = ?, updated_at = ? WHERE id = ?')
+      .run(patch.disabled ? 1 : 0, Date.now(), id);
+    if (patch.disabled) db().prepare('DELETE FROM sessions WHERE user_id = ?').run(id);
+  }
+  if (patch.password !== undefined) {
+    const p = passwordProblem(patch.password);
+    if (p) return { ok: false, error: `Passwort: ${p}.` };
+    db()
+      .prepare('UPDATE users SET pass_hash = ?, updated_at = ? WHERE id = ?')
+      .run(await hashPassword(patch.password), Date.now(), id);
+    db().prepare('DELETE FROM sessions WHERE user_id = ?').run(id);
+  }
+  // Telefon verloren: Admin entfernt 2FA; die Person richtet sie danach neu ein. Sitzungen enden mit.
+  if (patch.resetTwoFactor) {
+    clearTotp(id);
+    db().prepare('DELETE FROM sessions WHERE user_id = ?').run(id);
+  }
+  return { ok: true };
+}
+
+/** Admin: Einmal-Link zum Zurücksetzen erzeugen (1 h gültig) — z. B. wenn kein Mailversand eingerichtet ist. */
+export async function adminResetLink(id: string): Promise<Result<{ path: string }>> {
+  await requireUser('admin');
+  const u = db().prepare('SELECT id FROM users WHERE id = ? AND disabled = 0').get(id);
+  if (!u) return { ok: false, error: 'Nutzer nicht gefunden oder gesperrt.' };
+  return { ok: true, path: issueResetToken(id) };
+}
+
+export async function adminDeleteUser(id: string): Promise<Result> {
+  const me = await requireUser('admin');
+  if (id === me.id) return { ok: false, error: 'Das eigene Konto kann nicht gelöscht werden.' };
+  db().prepare('DELETE FROM users WHERE id = ?').run(id);
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Nachrichten aus dem Kontaktformular (Eingang: src/cms/contact.ts)
+// ---------------------------------------------------------------------------------------------------------------
+
+export interface MessageRow {
+  id: string;
+  createdAt: number;
+  name: string;
+  email: string;
+  message: string;
+  page: string;
+  read: number;
+}
+
+export async function listMessages(): Promise<MessageRow[]> {
+  await requireUser();
+  return plain(
+    db()
+      .prepare('SELECT id, created_at AS createdAt, name, email, message, page, read FROM messages ORDER BY created_at DESC LIMIT 500')
+      .all() as unknown as MessageRow[],
+  );
+}
+
+export async function unreadMessages(): Promise<number> {
+  await requireUser();
+  return (db().prepare('SELECT COUNT(*) AS n FROM messages WHERE read = 0').get() as { n: number }).n;
+}
+
+export async function markMessage(id: string, read: boolean): Promise<Result> {
+  await requireUser();
+  db()
+    .prepare('UPDATE messages SET read = ? WHERE id = ?')
+    .run(read ? 1 : 0, id);
+  return { ok: true };
+}
+
+export async function deleteMessage(id: string): Promise<Result> {
+  await requireUser();
+  db().prepare('DELETE FROM messages WHERE id = ?').run(id);
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Fehler-Eingang (nur Admins — Eingang: src/cms/errors.ts)
+// ---------------------------------------------------------------------------------------------------------------
+
+export interface ErrorRow {
+  fp: string;
+  message: string;
+  stack: string;
+  path: string;
+  route: string;
+  kind: string;
+  digest: string | null;
+  count: number;
+  firstAt: number;
+  lastAt: number;
+}
+
+export async function listErrors(): Promise<ErrorRow[]> {
+  await requireUser('admin');
+  return plain(
+    db()
+      .prepare(
+        `SELECT fp, message, stack, path, route, kind, digest, count, first_at AS firstAt, last_at AS lastAt
+         FROM errors ORDER BY last_at DESC LIMIT 200`,
+      )
+      .all() as unknown as ErrorRow[],
+  );
+}
+
+/** Anzahl offener Fehler(-gruppen) für das Badge in der Navigation. */
+export async function errorCount(): Promise<number> {
+  await requireUser('admin');
+  return (db().prepare('SELECT COUNT(*) AS n FROM errors').get() as { n: number }).n;
+}
+
+/** „Erledigt“: Eintrag entfernen — tritt der Fehler erneut auf, erscheint er wieder. */
+export async function deleteError(fp: string): Promise<Result> {
+  await requireUser('admin');
+  db().prepare('DELETE FROM errors WHERE fp = ?').run(fp);
+  return { ok: true };
+}
+
+export async function clearErrors(): Promise<Result> {
+  await requireUser('admin');
+  db().prepare('DELETE FROM errors').run();
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Besucherstatistik (cookiefrei, nur Summen — Eingang: src/cms/stats.ts)
+// ---------------------------------------------------------------------------------------------------------------
+
+export interface SiteStats {
+  /** Aufrufe je Tag, lückenlos (auch Tage ohne Aufrufe), ältester zuerst. */
+  days: { day: string; views: number }[];
+  pages: { path: string; views: number }[];
+  referrers: { host: string; views: number }[];
+}
+
+export async function siteStats(range = 30): Promise<SiteStats> {
+  await requireUser();
+  const n = Math.min(365, Math.max(7, Math.round(range)));
+  const tz = process.env.LDFLOW_TZ ?? 'Europe/Berlin';
+  const fmt = new Intl.DateTimeFormat('sv-SE', { timeZone: tz });
+  const days = Array.from({ length: n }, (_, i) => fmt.format(Date.now() - (n - 1 - i) * 86_400_000));
+  const from = days[0];
+  const per = new Map(
+    (db().prepare('SELECT day, SUM(views) AS v FROM page_views WHERE day >= ? GROUP BY day').all(from) as { day: string; v: number }[]).map(
+      (r) => [r.day, r.v],
+    ),
+  );
+  return {
+    days: days.map((day) => ({ day, views: per.get(day) ?? 0 })),
+    pages: plain(
+      db()
+        .prepare('SELECT path, SUM(views) AS views FROM page_views WHERE day >= ? GROUP BY path ORDER BY views DESC LIMIT 20')
+        .all(from) as { path: string; views: number }[],
+    ),
+    referrers: plain(
+      db()
+        .prepare('SELECT host, SUM(views) AS views FROM referrers WHERE day >= ? GROUP BY host ORDER BY views DESC LIMIT 20')
+        .all(from) as { host: string; views: number }[],
+    ),
+  };
+}

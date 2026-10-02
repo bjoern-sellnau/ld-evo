@@ -1,0 +1,43 @@
+.footLink {
+  color: var(--muted);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.footLink:hover {
+  color: var(--accent);
+}
+
+.toTop {
+  font: inherit;
+  appearance: none;
+  position: fixed;
+  z-index: 65;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--glassg1), var(--glassg2)), var(--glass);
+  border: 1px solid var(--glassbrd);
+  backdrop-filter: blur(22px) saturate(1.8);
+  box-shadow:
+    inset 0 1.5px 1px var(--glasshi),
+    var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--ink);
+  animation: ldPop 0.3s ease;
+  transition: transform 0.2s;
+}
+
+.toTop:hover {
+  transform: scale(1.12);
+}
+
+.footLink:focus-visible,
+.toTop:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

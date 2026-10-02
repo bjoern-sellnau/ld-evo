@@ -1,0 +1,56 @@
+{
+  "name": "ld-evo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:visual": "vitest run --config vitest.visual.config.ts",
+    "brand:sync": "node scripts/sync-brand-assets.mjs",
+    "brand:ico": "node scripts/make-favicon-ico.mjs",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" scripts eslint.config.mjs",
+    "test:e2e": "node tests/e2e/flow.e2e.mjs",
+    "widgets": "node scripts/gen-widgets.mjs",
+    "predev": "node scripts/gen-widgets.mjs",
+    "prebuild": "node scripts/gen-widgets.mjs",
+    "pretest": "node scripts/gen-widgets.mjs",
+    "pretypecheck": "node scripts/gen-widgets.mjs",
+    "test:a11y": "node tests/a11y/axe.mjs",
+    "test:pages": "node tests/visual-pages/pages.mjs",
+    "test:perf": "node tests/perf/perf.mjs",
+    "lint": "eslint . --max-warnings 0",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" scripts eslint.config.mjs",
+    "backup": "node --no-warnings scripts/backup-db.mjs"
+  },
+  "dependencies": {
+    "next": "^16.3.6",
+    "nodemailer": "^10.0.11",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@fontsource/instrument-sans": "^5.3.0",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.3",
+    "@types/pngjs": "^6.0.5",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.6",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
+    "prettier": "^3.9.9",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}
