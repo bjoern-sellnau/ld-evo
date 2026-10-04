@@ -5,7 +5,8 @@
 
 export type Theme = 'dark' | 'light';
 export type StyleMode = 'liquid' | 'fluent' | 'glassm';
-export type ViewMode = 'auto' | 'desktop' | 'mobile' | 'wide';
+/** 'wide2' (neu, nicht im Prototyp): schmale Liquid-Glass-Icon-Leiste links statt Seitenleiste, breitere Inhalte. */
+export type ViewMode = 'auto' | 'desktop' | 'mobile' | 'wide' | 'wide2';
 export type Frame = 'clear' | 'island' | 'hole' | 'notch';
 /** Browser-UI-Farbe: Marken-Ink (Logo-Handoff) oder Seitenhintergrund (--bg). */
 export type ThemeColorMode = 'brand' | 'site';
@@ -69,8 +70,10 @@ export interface Settings {
   mobLogo: MobLogo;
   mobDesign: MobDesign;
   logoNeg: boolean;
-  /** „Logo only negative“: nur das LD (Füllung) ohne Kachel. */
+  /** „Logo only negative“: nur der Negativraum des Monogramms (L + D, ohne Spalt/Fuge). */
   logoBare: boolean;
+  /** Farbe des Negativ-Logos (Hex). */
+  logoNegColor: string;
 }
 
 /** SSR-Defaults (dark, Animationen an) — entsprechen dem initialen State des Prototyps. */
@@ -123,6 +126,7 @@ export const DEFAULT_SETTINGS: Settings = {
   mobDesign: 'proto',
   logoNeg: false,
   logoBare: false,
+  logoNegColor: '#FF7816',
 };
 
 interface Codec<T> {
@@ -222,6 +226,12 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   },
   logoNeg: offUnlessOn('ld-logoneg'),
   logoBare: offUnlessOn('ld-logobare'),
+  logoNegColor: {
+    key: 'ld-lognegcolor',
+    // nur echte Hex-Farben übernehmen (Eingabe aus localStorage)
+    read: (r) => (r && /^#[0-9a-f]{6}$/i.test(r) ? r : '#FF7816'),
+    write: (v) => (v.toUpperCase() === '#FF7816' ? null : v),
+  },
 };
 
 export function readSettings(storage: Pick<Storage, 'getItem'>): Settings {

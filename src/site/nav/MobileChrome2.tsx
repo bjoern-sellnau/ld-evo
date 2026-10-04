@@ -226,6 +226,7 @@ function EditorialChrome() {
                 markSize={22}
                 theme={settings.theme}
                 tone={logo.markTone(settings.theme)}
+                negativeColor={logo.negativeColor}
                 variant="full"
                 style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
               />

@@ -7,6 +7,8 @@ import { mono } from '../cards/ProjectCard';
 import styles from './overlays.module.css';
 import { mediaUrl } from '@/cms/media';
 import { useT } from '../i18n/LocaleProvider';
+import { useSite } from '../settings/SiteProvider';
+import { FULL_BOX, PHONE_BOX } from '../chrome/phoneBox';
 
 interface Anim {
   x: string;
@@ -33,6 +35,7 @@ const btn: CSSProperties = {
  */
 export function Lightbox({ images, start, onClose }: { images: GalleryImage[]; start: number; onClose: () => void }) {
   const t = useT();
+  const { mob, isMobile } = useSite();
   const [idx, setIdx] = useState(start);
   const [anim, setAnim] = useState<Anim>(REST);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -118,10 +121,7 @@ export function Lightbox({ images, start, onClose }: { images: GalleryImage[]; s
       }}
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        ...(mob && !isMobile ? { ...PHONE_BOX, overflow: 'hidden' } : FULL_BOX),
         zIndex: 210,
         background: 'rgba(4,8,16,0.82)',
         backdropFilter: 'blur(14px)',

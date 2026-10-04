@@ -80,7 +80,7 @@ function useIndex(): SearchDoc[] {
 
 /** Suche (⌘K / Strg+K, Esc). Treffer: Teilstring, max. 8. Markup: Prototyp Zeile 1241 ff. */
 export function SearchOverlay() {
-  const { overlay, setOverlay, navigate, mob, isMobile, mobDesign } = useSite();
+  const { overlay, setOverlay, navigate, mob, isMobile, mobDesign, settings } = useSite();
   const t = useT();
   const INDEX = useIndex();
   const [q, setQ] = useState('');
@@ -178,7 +178,7 @@ export function SearchOverlay() {
     const above =
       mobDesign === 'appv2' ? APPV2_BAR_BOTTOM + APPV2_BAR_HEIGHT + 12 : mobDesign === 'app' ? 82 : mobDesign === 'lab' ? 104 : 14;
     return (
-      <MobileSearchPanel label={t('search.label')} onClose={() => setOverlay(null)} framed={framed} bottom={above}>
+      <MobileSearchPanel label={t('search.label')} onClose={() => setOverlay(null)} framed={framed} bottom={above} theme={settings.theme}>
         {list('min(46vh, 380px)')}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderTop: '1px solid var(--hair)' }}>
           <span aria-hidden style={{ color: 'var(--soft)', fontSize: 17 }}>
@@ -245,12 +245,14 @@ function MobileSearchPanel({
   onClose,
   framed,
   bottom,
+  theme,
   children,
 }: {
   label: string;
   onClose: () => void;
   framed: boolean;
   bottom: number;
+  theme: string;
   children: ReactNode;
 }) {
   const panel = useRef<HTMLDivElement>(null);
@@ -268,6 +270,8 @@ function MobileSearchPanel({
         aria-modal="true"
         aria-label={label}
         className="ld-sheet2 ld-dense"
+        data-ldvibrant-sheet=""
+        data-scheme={theme === 'light' ? 'light' : 'dark'}
         style={{
           position: 'fixed',
           zIndex: 80,

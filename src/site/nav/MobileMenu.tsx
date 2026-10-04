@@ -60,6 +60,9 @@ export function MobileMenu() {
         id="ld-menu"
         ref={panel}
         className={solid ? 'ld-sheet2' : undefined}
+        // Vibrancy: GlassDriver misst den Grund und setzt data-scheme (hell/dunkel) — Startwert = Theme.
+        data-ldvibrant-sheet={solid ? '' : undefined}
+        data-scheme={solid ? (settings.theme === 'light' ? 'light' : 'dark') : undefined}
         role="dialog"
         aria-modal="true"
         aria-label={t('menu.label')}

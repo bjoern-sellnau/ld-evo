@@ -1,6 +1,7 @@
 export { LoonaMark, toneColor, type LoonaMarkProps, type LoonaTone } from './LoonaMark';
 export { LoonaLockup, type LoonaLockupProps } from './LoonaLockup';
 export { LoonaTile, type LoonaTileProps } from './LoonaTile';
+export { LoonaNegative } from './LoonaNegative';
 export { LoonaLetterL, LoonaLetterD } from './LoonaLetters';
 export {
   LOONA_CLEARSPACE,

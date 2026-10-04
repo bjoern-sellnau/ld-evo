@@ -6,13 +6,14 @@ import { useSite } from '../settings/SiteProvider';
 import { GlassLayers, panelGlass } from './GlassPanel';
 import styles from './overlays.module.css';
 import { useHref, useT } from '../i18n/LocaleProvider';
+import { mobBottomZone } from '../chrome/phoneBox';
 
 /**
  * Cookie-Hinweis („Keine Krümel, versprochen.“): erscheint 900 ms nach dem Laden, solange ld-cookie fehlt;
  * Strg+C ohne Textauswahl blendet ihn zum Testen ein/aus. Markup: Prototyp Zeile 1223 ff.
  */
 export function CookieBanner() {
-  const { settings, hydrated, set, mob, navigate } = useSite();
+  const { settings, hydrated, set, mob, isMobile, mobDesign, navigate } = useSite();
   const [show, setShow] = useState(false);
   const t = useT();
   const href = useHref();
@@ -43,7 +44,8 @@ export function CookieBanner() {
         ...panelGlass(radius),
         position: 'fixed',
         left: '50%',
-        bottom: 22,
+        // Mobil über der Tab-Leiste bzw. dem Dock (vorher dahinter verdeckt)
+        bottom: mob ? mobBottomZone(mobDesign) + (isMobile ? 12 : 22) : 22,
         transform: 'translateX(-50%)',
         zIndex: 70,
         width: 560,

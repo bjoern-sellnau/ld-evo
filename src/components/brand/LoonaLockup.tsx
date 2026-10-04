@@ -1,5 +1,6 @@
 import type { CSSProperties, HTMLAttributes } from 'react';
 import { LoonaMark, type LoonaTone } from './LoonaMark';
+import { LoonaNegative } from './LoonaNegative';
 import { LOONA_PRODUCTS, type LoonaProductKey } from './products';
 import styles from './LoonaLockup.module.css';
 
@@ -13,6 +14,8 @@ export interface LoonaLockupProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: 'full' | 'mark';
   /** Ton des Zeichens überschreiben (z. B. Negativ-Variante der Site); Default aus `theme`. */
   tone?: LoonaTone;
+  /** Negativ-Logo (nur L + D des Negativraums) in dieser Farbe statt des Zeichens. */
+  negativeColor?: string;
 }
 
 /**
@@ -26,6 +29,7 @@ export function LoonaLockup({
   markSize = 40,
   variant = 'full',
   tone,
+  negativeColor,
   className,
   style,
   ...rest
@@ -34,6 +38,7 @@ export function LoonaLockup({
   const accent = theme === 'dark' ? p.color : p.deep;
   const name = p.name.replace(/\.$/, '');
 
+  if (variant === 'mark' && negativeColor) return <LoonaNegative size={Math.round(markSize * 0.6)} color={negativeColor} decorative />;
   if (variant === 'mark') {
     return <LoonaMark product={product} size={markSize} tone={tone ?? (theme === 'dark' ? 'color' : 'ink')} />;
   }
@@ -47,14 +52,30 @@ export function LoonaLockup({
       style={{ '--loona-m': `${markSize}px`, '--loona-accent': accent, ...style } as CSSProperties}
     >
       {/* overflow visible wie in lockup-*.svg: das gedrehte Ivy-Blatt ragt über seine 40er-Box hinaus. */}
-      <LoonaMark
-        product={product}
-        size={markSize}
-        tone={tone ?? (theme === 'dark' ? 'color' : 'ink')}
-        decorative
-        overflow="visible"
-        style={{ flexShrink: 0 }}
-      />
+      {negativeColor ? (
+        // gleiche Fläche wie das Zeichen (m × m), Negativ ≈ 60 % der Zeichenhöhe — wie im Monogramm
+        <span
+          style={{
+            width: markSize,
+            height: markSize,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <LoonaNegative size={Math.round(markSize * 0.6)} color={negativeColor} decorative />
+        </span>
+      ) : (
+        <LoonaMark
+          product={product}
+          size={markSize}
+          tone={tone ?? (theme === 'dark' ? 'color' : 'ink')}
+          decorative
+          overflow="visible"
+          style={{ flexShrink: 0 }}
+        />
+      )}
       <span className={styles.text}>
         <span className={styles.wordmark}>
           {product === 'ld' ? (

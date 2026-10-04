@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useSite } from '../settings/SiteProvider';
+import { PHONE_BOX } from '../chrome/phoneBox';
 
 /** Glas-Schichten eines Panels (Frost, Edge, Rim + optional Glow) mit gemeinsamem Radius. */
 export function GlassLayers({ radius, glow }: { radius: string; glow?: boolean }) {
@@ -58,6 +60,8 @@ export function ModalOverlay({
   children: ReactNode;
 }) {
   const panel = useRef<HTMLDivElement>(null);
+  const { mob, isMobile } = useSite();
+  const framed = mob && !isMobile;
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
     const el = panel.current;
@@ -88,13 +92,15 @@ export function ModalOverlay({
       onClick={onClose}
       style={{
         position: 'fixed',
-        inset: 0,
+        // Simulierter Mobil-Modus: Overlay nur im Telefonrahmen, Panel höchstens Telefonbreite
+        ...(framed ? PHONE_BOX : { inset: 0 }),
         background: 'rgba(5,10,20,0.38)',
         zIndex: 80,
         display: 'flex',
         alignItems: align === 'top' ? 'flex-start' : 'center',
         justifyContent: 'center',
-        padding: align === 'top' ? '110px 24px 24px' : 24,
+        padding: align === 'top' ? (framed ? '70px 14px 14px' : '110px 24px 24px') : framed ? 14 : 24,
+        boxSizing: 'border-box',
       }}
     >
       <div
@@ -106,7 +112,8 @@ export function ModalOverlay({
         style={{
           ...panelGlass(radius),
           width,
-          maxWidth: '94vw',
+          maxWidth: framed ? '100%' : '94vw',
+          boxSizing: 'border-box',
           overflow: align === 'top' ? 'hidden' : undefined,
           padding,
           animation: 'ldPop 0.28s cubic-bezier(0.2,0.9,0.3,1)',

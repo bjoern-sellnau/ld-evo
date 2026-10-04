@@ -17,6 +17,8 @@ type FixEl = HTMLElement & { __ldFix?: string };
 
 export interface ContrastMemo {
   flip: Record<string, boolean>;
+  /** Gewähltes Material je Fläche (Vibrancy, App v2) — für die Hysterese. */
+  scheme?: Record<string, 'dark' | 'light'>;
   raf: number;
   to?: ReturnType<typeof setTimeout>;
   sampCv?: HTMLCanvasElement;
@@ -66,8 +68,22 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
     clearTimeout(memo.to);
     memo.raf = 0;
     const { s, overlayOpen } = get();
-    if (overlayOpen) return;
     const theme = s.theme || 'dark';
+    memo.scheme ??= {};
+    // Große Glasflächen (App-v2-Menü, mobile Suche) messen auch bei offenem Overlay — sie SIND das Overlay.
+    document.querySelectorAll<HTMLElement>('[data-ldvibrant-sheet]').forEach((el, i) => {
+      if (s.autoC === false) return;
+      const key = `_sheet${i}`;
+      const sc = pickScheme(
+        sampleLums(el, theme, 5, 6),
+        theme,
+        (el.dataset.scheme as 'dark' | 'light' | undefined) ?? memo.scheme![key],
+        0.56,
+      );
+      memo.scheme![key] = sc;
+      if (el.dataset.scheme !== sc) el.dataset.scheme = sc;
+    });
+    if (overlayOpen) return;
     const wrap = document.querySelector('.ldnavvt');
     const barEl = document.getElementById('ld-tabbar');
     const targets: [FixEl, string][] = [];
@@ -136,6 +152,15 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
           }
         }
         lums.push(lum);
+      }
+      // App v2 (data-ldvibrant): wie Apples Materialien — Schwarz oder Weiß, je nachdem, was über dem gemessenen
+      // Hintergrund (inkl. Glas-Tönung) den besseren schlechtesten Kontrast ergibt; Theme-Variante bevorzugt.
+      if (pill.hasAttribute('data-ldvibrant')) {
+        const sc = pickScheme(lums, theme, memo.scheme![flipKey], VIBRANT_PCT / 100);
+        memo.scheme![flipKey] = sc;
+        pill.style.textShadow = '';
+        applyNavFix(pill, sc === 'dark' ? VIBRANT_DARK : VIBRANT_LIGHT);
+        continue;
       }
       const backL = theme === 'light' ? Math.min(...lums) : Math.max(...lums);
       // Dynamische Pixel-Messung: echte Canvas-Pixel (WebGL via preserveDrawingBuffer / 2D) hinter dem Ziel
@@ -238,4 +263,86 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
   };
   memo.raf = requestAnimationFrame(run);
   memo.to = setTimeout(run, 200);
+}
+
+/* ---------------------------------------------------------------- Vibrancy (App v2) ---------------------------- */
+
+const VIBRANT_PCT = 66;
+const VIBRANT_DARK = `--glassTint:#0B1322;--glassPct:${VIBRANT_PCT}%;--ink:#F4F7FB;--muted:#E6ECF4;--soft:#D2DBE8;--pill:rgba(255,255,255,0.16);--hair:rgba(255,255,255,0.12);--glassbrd:rgba(255,255,255,0.22);--glasshi:rgba(255,255,255,0.32)`;
+const VIBRANT_LIGHT = `--glassTint:#F4F7FB;--glassPct:${VIBRANT_PCT}%;--ink:#0B1626;--muted:#1C2A40;--soft:#2E3D55;--pill:rgba(15,33,55,0.1);--hair:rgba(15,33,55,0.14);--glassbrd:rgba(15,33,55,0.16);--glasshi:rgba(255,255,255,0.8)`;
+const L_DARK_TINT = relLum({ r: 11, g: 19, b: 34, a: 1 });
+const L_LIGHT_TINT = relLum({ r: 244, g: 247, b: 251, a: 1 });
+const L_WHITE_TEXT = relLum({ r: 244, g: 247, b: 251, a: 1 });
+const L_BLACK_TEXT = relLum({ r: 11, g: 22, b: 38, a: 1 });
+const ratio = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+
+/**
+ * Wählt das Material: 'dark' (dunkle Tönung, weiße Schrift) oder 'light' (helle Tönung, schwarze Schrift).
+ * Rechnet je Messpunkt die Mischung aus Glas-Tönung (Anteil a) und Hintergrund und nimmt den schlechtesten Punkt.
+ * Die Theme-Variante bleibt, solange sie ≥ 7:1 schafft; die bisherige Wahl bleibt bei ≥ 6:1 (Hysterese, kein Flackern).
+ */
+export function pickScheme(lums: number[], theme: string, prev: 'dark' | 'light' | undefined, a: number): 'dark' | 'light' {
+  if (!lums.length) return theme === 'light' ? 'light' : 'dark';
+  const worst = (sc: 'dark' | 'light') =>
+    Math.min(
+      ...lums.map((L) =>
+        sc === 'dark' ? ratio(L_WHITE_TEXT, a * L_DARK_TINT + (1 - a) * L) : ratio(a * L_LIGHT_TINT + (1 - a) * L, L_BLACK_TEXT),
+      ),
+    );
+  const natural = theme === 'light' ? 'light' : 'dark';
+  if (prev && worst(prev) >= 6) return prev;
+  if (worst(natural) >= 7) return natural;
+  return worst('dark') >= worst('light') ? 'dark' : 'light';
+}
+
+/** Luminanz hinter einer Fläche in einem cols×rows-Raster (Hero-Shader über data-ldsample, sonst Hintergrundfarben). */
+export function sampleLums(el: Element, theme: string, cols: number, rows: number): number[] {
+  const r = el.getBoundingClientRect();
+  if (!r.width || !r.height) return [];
+  const sampleEls = [...document.querySelectorAll('[data-ldsample]')];
+  const out: number[] = [];
+  for (let i = 0; i < cols; i++)
+    for (let j = 0; j < rows; j++) {
+      const x = r.left + r.width * (0.06 + (0.88 * i) / Math.max(1, cols - 1));
+      const y = r.top + r.height * (0.06 + (0.88 * j) / Math.max(1, rows - 1));
+      let lum: number | null = null;
+      for (const se of sampleEls) {
+        const rr = se.getBoundingClientRect();
+        if (x >= rr.left && x <= rr.right && y >= rr.top && y <= rr.bottom) {
+          const parts = String(se.getAttribute('data-ldsample')).split(',');
+          lum = parseFloat(theme === 'light' && parts[1] !== undefined ? parts[1] : parts[0]);
+        }
+      }
+      if (lum === null || isNaN(lum)) {
+        const stack = document.elementsFromPoint(x, y) || [];
+        let n: Element | null | undefined = stack.find(
+          (e) =>
+            e instanceof Element &&
+            !e.closest('[data-ldvibrant-sheet]') &&
+            !e.closest('[data-ldchrome]') &&
+            !e.closest('.ldnavvt') &&
+            !e.closest('#ld-tabbar'),
+        );
+        while (n && n !== document.documentElement && lum === null) {
+          const c = getComputedStyle(n);
+          const bc = parseColor(c.backgroundColor);
+          if (bc && bc.a >= 0.45) lum = relLum(bc);
+          else if (c.backgroundImage && c.backgroundImage !== 'none') {
+            const cols2 = (c.backgroundImage.match(/rgba?\([^)]+\)/g) || [])
+              .map((s2) => parseColor(s2))
+              .filter((v): v is Rgba => !!v && v.a > 0.4);
+            if (cols2.length) lum = cols2.map((v) => relLum(v)).reduce((p, q) => p + q, 0) / cols2.length;
+          }
+          // Bilder/Video: Helligkeit unbekannt → hell annehmen (sicherer Fall für weiße Schrift)
+          if (lum === null && (n.tagName === 'IMG' || n.tagName === 'VIDEO' || n.tagName === 'CANVAS')) lum = 0.6;
+          n = n.parentElement;
+        }
+        if (lum === null) {
+          const bb = parseColor(getComputedStyle(document.body).backgroundColor);
+          lum = bb ? relLum(bb) : 0.05;
+        }
+      }
+      out.push(lum);
+    }
+  return out;
 }

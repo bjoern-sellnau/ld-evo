@@ -1554,8 +1554,9 @@ body.md-lab main#inhalt h2 {
 }
 
 /*
- * App v2: Menü und Such-Panel mit festen Farbwerten (Theme-Grundwerte), unabhängig von Cover-Farben der Seite —
- * auf farbigen Detailseiten (z. B. „Neue Webseite“, orange) war das Glas-Menü sonst kaum lesbar.
+ * App v2: Menü und Such-Panel mit festen Farbwerten je Material — data-scheme setzt die Vibrancy-Messung
+ * (navContrast.ts → pickScheme): dunkles Material mit weißer oder helles Material mit schwarzer Schrift, unabhängig
+ * von Theme und Cover-Farben der Seite.
  */
 .ld-sheet2 {
   --bg: #0a1220;
@@ -1575,7 +1576,7 @@ body.md-lab main#inhalt h2 {
   --on-accent: #241400;
   color: var(--ink);
 }
-body.light .ld-sheet2 {
+.ld-sheet2[data-scheme='light'] {
   --bg: #ffffff;
   --ink: #0f2137;
   --muted: #44516a;
@@ -1596,16 +1597,16 @@ body.light .ld-sheet2 {
 .ld-sheet2 {
   --sheetTint: clamp(56%, calc(var(--glassPct, 42%) + 16%), 96%);
 }
-body.light .ld-sheet2 {
+.ld-sheet2[data-scheme='light'] {
   --sheetTint: clamp(50%, calc(var(--glassPct, 52%) + 10%), 96%);
 }
 /* Such-Panel (dunkel) sitzt oft über hellen Hero-Flächen/Schrift: dichtere Tönung, gemessen ≥ 4,5:1 */
-body:not(.light) .ld-sheet2.ld-dense {
+.ld-sheet2.ld-dense[data-scheme='dark'] {
   --sheetTint: clamp(74%, calc(var(--glassPct, 42%) + 32%), 96%);
   --soft: var(--muted);
 }
 /* Glanz im Dunkeln dezenter — sonst hellt der wandernde Streif kurz den Grund hinter kleiner Schrift auf */
-body:not(.light) .ld-sheet2 .ld-liquid-sheen {
+.ld-sheet2[data-scheme='dark'] .ld-liquid-sheen {
   opacity: 0.55;
 }
 .ld-liquid-tint {

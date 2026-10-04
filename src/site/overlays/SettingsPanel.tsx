@@ -202,7 +202,10 @@ const EN_LABELS: Record<string, string> = {
   'Mobil-Logo': 'Mobile logo',
   'Mobil-Design': 'Mobile design',
   'Logo negativ': 'Negative logo',
-  'Logo only negative (nur LD)': 'Logo only negative (LD only)',
+  'Negativ-Farbe': 'Negative color',
+  Ink: 'Ink',
+  Cream: 'Cream',
+  'Logo only negative (nur LD)': 'Logo only negative (L + D only)',
   Prototyp: 'Prototype',
   Pille: 'Pill',
   Wortmarke: 'Wordmark',
@@ -232,7 +235,7 @@ const SIZE_POS = ['flow', 'blackhole', 'nova', 'orbit', 'ribbon'];
 /** Einstellungs-Panel (Prototyp Zeile 973–1211). Alle Werte persistieren über den SiteProvider (ld-*-Keys). */
 export function SettingsPanel() {
   const site = useSite();
-  const { settings: s, set, overlay, setOverlay, mob, isMobile, sideActive } = site;
+  const { settings: s, set, overlay, setOverlay, mob, isMobile, sideActive, railMode } = site;
   const [partsOpen, setPartsOpen] = useState(false);
   const sl = useSl();
   const locale = useLocale();
@@ -260,7 +263,7 @@ export function SettingsPanel() {
 
   const radius = 'var(--radL,22px)';
   const pos: CSSProperties = sideActive
-    ? { top: 88, left: 260 }
+    ? { top: 88, left: railMode ? 96 : 260 }
     : mob
       ? isMobile
         ? ({ top: 0, bottom: 0, left: 0, right: 0, '--radL': '0px' } as CSSProperties)
@@ -345,12 +348,13 @@ export function SettingsPanel() {
               label="Sprache"
             />
           </Row>
-          <Row label="Ansicht">
+          <Row label="Ansicht" column>
             <Seg
               options={[
                 ['auto', 'Desktop'],
                 ['mobile', 'Mobile'],
                 ['wide', 'Wide'],
+                ['wide2', 'Wide 2'],
               ]}
               value={s.viewMode === 'desktop' ? 'auto' : s.viewMode}
               onChange={(v) => {
@@ -358,6 +362,7 @@ export function SettingsPanel() {
                 setOverlay(null);
               }}
               label="Ansicht"
+              wrap
             />
           </Row>
           {mob && !isMobile && <FrameRow />}
@@ -496,6 +501,44 @@ export function SettingsPanel() {
                 label="Mobil-Logo"
                 wrap
               />
+            </Row>
+          )}
+          {s.logoBare && (
+            <Row label="Negativ-Farbe">
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {[
+                  ['#FF7816', 'Orange'],
+                  ['#171310', 'Ink'],
+                  ['#F7F2EA', 'Cream'],
+                  ['#FFB224', 'Gelb'],
+                  ['#3B82F6', 'Blau'],
+                ].map(([c, n]) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-label={`${sl('Negativ-Farbe')}: ${sl(n)}`}
+                    aria-pressed={s.logoNegColor.toUpperCase() === c}
+                    onClick={() => set('logoNegColor', c)}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      border: '1px solid var(--border)',
+                      background: c,
+                      cursor: 'pointer',
+                      boxShadow: s.logoNegColor.toUpperCase() === c ? '0 0 0 2.5px var(--accent)' : 'none',
+                    }}
+                  />
+                ))}
+                {/* freie Farbwahl */}
+                <input
+                  type="color"
+                  value={s.logoNegColor}
+                  onChange={(e) => set('logoNegColor', e.target.value.toUpperCase())}
+                  aria-label={sl('Eigene Farbe')}
+                  style={{ width: 26, height: 22, padding: 0, border: 0, background: 'transparent', cursor: 'pointer' }}
+                />
+              </span>
             </Row>
           )}
           <Row label="Zähler-Animation">
