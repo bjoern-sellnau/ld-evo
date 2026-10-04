@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { mono } from '../cards/ProjectCard';
 import { useContent } from '../content/ContentProvider';
 import { articleHref, projectHref } from '../lib/routes';
@@ -9,6 +9,7 @@ import { useSite } from '../settings/SiteProvider';
 import { ModalOverlay } from './GlassPanel';
 import styles from './overlays.module.css';
 import { useT } from '../i18n/LocaleProvider';
+import { APPV2_BAR_BOTTOM, APPV2_BAR_HEIGHT } from '../nav/AppV2Bar';
 
 /**
  * Suchindex wie im Prototyp (Seiten, Projekte/Labs ohne Archiv, Artikel, freie CMS-Seiten) — erweitert um den Volltext:
@@ -78,7 +79,7 @@ function useIndex(): SearchDoc[] {
 
 /** Suche (⌘K / Strg+K, Esc). Treffer: Teilstring, max. 8. Markup: Prototyp Zeile 1241 ff. */
 export function SearchOverlay() {
-  const { overlay, setOverlay, navigate } = useSite();
+  const { overlay, setOverlay, navigate, mob, isMobile, mobDesign } = useSite();
   const t = useT();
   const INDEX = useIndex();
   const [q, setQ] = useState('');
@@ -100,78 +101,122 @@ export function SearchOverlay() {
     }
   };
 
+  const input = (
+    <input
+      value={q}
+      onChange={(e) => {
+        setQ(e.target.value);
+        setSel(0);
+      }}
+      onKeyDown={onKey}
+      placeholder={t('search.placeholder')}
+      aria-label={t('search.term')}
+      role="combobox"
+      aria-expanded="true"
+      aria-controls="ld-search-results"
+      aria-activedescendant={results[sel] ? `ld-sr-${sel}` : undefined}
+      style={{
+        flex: 1,
+        minWidth: 0,
+        background: 'transparent',
+        border: 'none',
+        outline: 'none',
+        fontFamily: 'var(--ld-font-sans),sans-serif',
+        fontSize: 16,
+        color: 'var(--ink)',
+      }}
+    />
+  );
+  const list = (maxHeight: number | string) => (
+    <div id="ld-search-results" role="listbox" aria-label={t('search.results')} style={{ padding: 8, maxHeight, overflow: 'auto' }}>
+      {results.map((r, i) => (
+        <button
+          key={`${r.kind}${r.href}${r.label}`}
+          id={`ld-sr-${i}`}
+          type="button"
+          role="option"
+          aria-selected={i === sel}
+          tabIndex={-1}
+          onMouseEnter={() => setSel(i)}
+          onClick={() => navigate(r.href)}
+          className={styles.result}
+        >
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600 }}>{r.label}</span>
+            {r.snippet && (
+              <span style={{ display: 'block', fontSize: 12, lineHeight: 1.5, color: 'var(--muted)', marginTop: 2 }}>
+                {r.snippet.before}
+                <mark className={styles.hit}>{r.snippet.match}</mark>
+                {r.snippet.after}
+              </span>
+            )}
+          </span>
+          <span
+            style={{
+              fontFamily: mono,
+              fontSize: 9,
+              letterSpacing: '0.1em',
+              color: 'var(--soft)',
+              border: '1px solid var(--border)',
+              borderRadius: 999,
+              padding: '3px 9px',
+              flex: 'none',
+            }}
+          >
+            {r.kind}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+
+  // Mobil-Designs 2 (nicht Prototyp): kompaktes Panel, das von unten über der Leiste hochfährt — Eingabe unten im
+  // Daumenbereich, Treffer darüber. Feste Farbwerte (ld-sheet2), damit es auf jeder Cover-Farbe lesbar bleibt.
+  if (mob && mobDesign !== 'proto') {
+    const framed = !isMobile;
+    const above =
+      mobDesign === 'appv2' ? APPV2_BAR_BOTTOM + APPV2_BAR_HEIGHT + 12 : mobDesign === 'app' ? 82 : mobDesign === 'lab' ? 104 : 14;
+    return (
+      <MobileSearchPanel label={t('search.label')} onClose={() => setOverlay(null)} framed={framed} bottom={above}>
+        {list('min(46vh, 380px)')}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderTop: '1px solid var(--hair)' }}>
+          <span aria-hidden style={{ color: 'var(--soft)', fontSize: 17 }}>
+            ⌕
+          </span>
+          {input}
+          <button
+            type="button"
+            onClick={() => setOverlay(null)}
+            aria-label={t('menu.close')}
+            style={{
+              border: 0,
+              background: 'var(--pill)',
+              color: 'var(--ink)',
+              width: 36,
+              height: 36,
+              borderRadius: 999,
+              cursor: 'pointer',
+              flex: 'none',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      </MobileSearchPanel>
+    );
+  }
+
   return (
     <ModalOverlay label={t('search.label')} onClose={() => setOverlay(null)} align="top" width={520} radius="var(--radL,20px)">
       <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '15px 18px', borderBottom: '1px solid var(--hair)' }}>
         <span aria-hidden style={{ color: 'var(--soft)', fontSize: 16 }}>
           ⌕
         </span>
-        <input
-          value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setSel(0);
-          }}
-          onKeyDown={onKey}
-          placeholder={t('search.placeholder')}
-          aria-label={t('search.term')}
-          role="combobox"
-          aria-expanded="true"
-          aria-controls="ld-search-results"
-          aria-activedescendant={results[sel] ? `ld-sr-${sel}` : undefined}
-          style={{
-            flex: 1,
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
-            fontFamily: 'var(--ld-font-sans),sans-serif',
-            fontSize: 15,
-            color: 'var(--ink)',
-          }}
-        />
+        {input}
         <Kbd>⌘K</Kbd>
         <Kbd>esc</Kbd>
       </div>
-      <div id="ld-search-results" role="listbox" aria-label={t('search.results')} style={{ padding: 8, maxHeight: 340, overflow: 'auto' }}>
-        {results.map((r, i) => (
-          <button
-            key={`${r.kind}${r.href}${r.label}`}
-            id={`ld-sr-${i}`}
-            type="button"
-            role="option"
-            aria-selected={i === sel}
-            tabIndex={-1}
-            onMouseEnter={() => setSel(i)}
-            onClick={() => navigate(r.href)}
-            className={styles.result}
-          >
-            <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600 }}>{r.label}</span>
-              {r.snippet && (
-                <span style={{ display: 'block', fontSize: 12, lineHeight: 1.5, color: 'var(--muted)', marginTop: 2 }}>
-                  {r.snippet.before}
-                  <mark className={styles.hit}>{r.snippet.match}</mark>
-                  {r.snippet.after}
-                </span>
-              )}
-            </span>
-            <span
-              style={{
-                fontFamily: mono,
-                fontSize: 9,
-                letterSpacing: '0.1em',
-                color: 'var(--soft)',
-                border: '1px solid var(--border)',
-                borderRadius: 999,
-                padding: '3px 9px',
-                flex: 'none',
-              }}
-            >
-              {r.kind}
-            </span>
-          </button>
-        ))}
-      </div>
+      {list(340)}
     </ModalOverlay>
   );
 }
@@ -190,5 +235,56 @@ function Kbd({ children }: { children: string }) {
     >
       {children}
     </kbd>
+  );
+}
+
+/** Such-Panel für die Mobil-Designs 2: unten verankert, gleitet hoch; Klick daneben schließt, Fokus ins Feld. */
+function MobileSearchPanel({
+  label,
+  onClose,
+  framed,
+  bottom,
+  children,
+}: {
+  label: string;
+  onClose: () => void;
+  framed: boolean;
+  bottom: number;
+  children: ReactNode;
+}) {
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    panel.current?.querySelector<HTMLElement>('input')?.focus({ preventScroll: true });
+    return () => prev?.focus?.({ preventScroll: true });
+  }, []);
+  return (
+    <>
+      <div aria-hidden onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 79, background: 'rgba(5,10,20,0.32)' }} />
+      <div
+        ref={panel}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        className="ld-sheet2"
+        style={{
+          position: 'fixed',
+          zIndex: 80,
+          ...(framed
+            ? { left: 'calc(50% - 203px)', width: 406, bottom: bottom + 10 }
+            : { left: 12, right: 12, bottom: `calc(${bottom}px + env(safe-area-inset-bottom))` }),
+          borderRadius: 24,
+          overflow: 'hidden',
+          background: 'linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) 88%,transparent)',
+          backdropFilter: 'blur(24px) saturate(1.8)',
+          WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+          border: '1px solid var(--glassbrd)',
+          boxShadow: 'inset 0 1.5px 1px var(--glasshi),0 18px 50px -12px rgba(0,0,0,0.5)',
+          animation: 'ldSearchUp 0.34s cubic-bezier(0.22,1,0.32,1)',
+        }}
+      >
+        {children}
+      </div>
+    </>
   );
 }

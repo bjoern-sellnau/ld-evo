@@ -1,5 +1,5 @@
 import type { CSSProperties, HTMLAttributes } from 'react';
-import { LoonaMark } from './LoonaMark';
+import { LoonaMark, type LoonaTone } from './LoonaMark';
 import { LOONA_PRODUCTS, type LoonaProductKey } from './products';
 import styles from './LoonaLockup.module.css';
 
@@ -11,6 +11,8 @@ export interface LoonaLockupProps extends HTMLAttributes<HTMLSpanElement> {
   markSize?: number;
   /** 'mark' = nur das Zeichen (z. B. Navbar mobil). */
   variant?: 'full' | 'mark';
+  /** Ton des Zeichens überschreiben (z. B. Negativ-Variante der Site); Default aus `theme`. */
+  tone?: LoonaTone;
 }
 
 /**
@@ -23,6 +25,7 @@ export function LoonaLockup({
   theme = 'dark',
   markSize = 40,
   variant = 'full',
+  tone,
   className,
   style,
   ...rest
@@ -32,7 +35,7 @@ export function LoonaLockup({
   const name = p.name.replace(/\.$/, '');
 
   if (variant === 'mark') {
-    return <LoonaMark product={product} size={markSize} tone={theme === 'dark' ? 'color' : 'ink'} />;
+    return <LoonaMark product={product} size={markSize} tone={tone ?? (theme === 'dark' ? 'color' : 'ink')} />;
   }
 
   return (
@@ -47,7 +50,7 @@ export function LoonaLockup({
       <LoonaMark
         product={product}
         size={markSize}
-        tone={theme === 'dark' ? 'color' : 'ink'}
+        tone={tone ?? (theme === 'dark' ? 'color' : 'ink')}
         decorative
         overflow="visible"
         style={{ flexShrink: 0 }}

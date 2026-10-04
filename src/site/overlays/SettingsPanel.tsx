@@ -201,6 +201,7 @@ const EN_LABELS: Record<string, string> = {
   'Zähler-Animation': 'Counter animation',
   'Mobil-Logo': 'Mobile logo',
   'Mobil-Design': 'Mobile design',
+  'Logo negativ': 'Negative logo',
   Prototyp: 'Prototype',
   Pille: 'Pill',
   Wortmarke: 'Wordmark',
@@ -281,6 +282,7 @@ export function SettingsPanel() {
     { label: 'Full-Hero: Stats-Leiste', key: 'heroStats', on: s.heroStats },
     { label: 'Splash-Screen', key: 'splashOn', on: s.splashOn },
     { label: 'Reise: Bild-Hintergrund', key: 'reiseBg', on: s.reiseBg },
+    { label: 'Logo negativ', key: 'logoNeg', on: s.logoNeg },
     { label: 'Performance-Modus', key: 'perfMode', on: s.perfMode },
     { label: '30 fps Hero', key: 'fpsHalf', on: s.fpsHalf },
     ...(hm === 'matrix'
@@ -467,6 +469,7 @@ export function SettingsPanel() {
                 options={[
                   ['proto', 'Prototyp'],
                   ['app', 'App'],
+                  ['appv2', 'App v2'],
                   ['editorial', 'Editorial'],
                   ['lab', 'Lab'],
                 ]}

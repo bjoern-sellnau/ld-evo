@@ -12,6 +12,7 @@ import { SITE_PAGES, pageForPath, type SitePageId } from './pages';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import type { UiKey } from '../i18n/dict';
+import { useLogo } from '../settings/useLogo';
 
 interface Tab {
   id: SitePageId;
@@ -79,7 +80,7 @@ export function MobileTabBar() {
   const menuOpen = overlay === 'mobileNav';
 
   // Editorial und Lab kommen ohne Tab-Leiste aus (MobileChrome2); App dockt sie unten an.
-  if (!mob || mobDesign === 'editorial' || mobDesign === 'lab') return null;
+  if (!mob || mobDesign === 'editorial' || mobDesign === 'lab' || mobDesign === 'appv2') return null;
   const docked = mobDesign === 'app';
   const framed = !isMobile;
 
@@ -192,9 +193,10 @@ export function MobileTabBar() {
 }
 
 function TabIcon({ icon, logo, color }: { icon: string; logo?: boolean; color: string }) {
+  const lg = useLogo();
   // Home-Button (Modern): LD-Kachel im App-Icon-Stil statt der früheren „L!“-Verlaufskachel.
   // Ohne Schatten/Glow — Logo-Regel „keine Schatten“ (Logo-Handoff §5).
-  if (logo) return <LoonaTile product="ld" variant="color" size={34} decorative style={{ display: 'block' }} />;
+  if (logo) return <LoonaTile product="ld" variant={lg.tile('color')} size={34} decorative style={{ display: 'block' }} />;
   return (
     <span
       aria-hidden

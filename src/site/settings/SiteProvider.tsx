@@ -103,7 +103,9 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   const md = mobNow ? settings.mobDesign : 'proto';
   useEffect(() => {
     const cl = document.body.classList;
-    for (const d of ['app', 'editorial', 'lab']) cl.toggle(`md-${d}`, md === d);
+    // App v2 erbt die Inhalts-Umgestaltung von App (md-app) und ergänzt md-appv2.
+    for (const d of ['app', 'editorial', 'lab']) cl.toggle(`md-${d}`, md === d || (d === 'app' && md === 'appv2'));
+    cl.toggle('md-appv2', md === 'appv2');
   }, [md]);
 
   // Esc schließt Overlays, ⌘K/Strg+K schaltet die Suche (Prototyp: _esc).

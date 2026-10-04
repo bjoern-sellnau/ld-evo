@@ -14,7 +14,7 @@ import { canonicalPath } from '../i18n/locale';
  * Prototyp: READING PROGRESS / BACK TO TOP (Zeile 1213 ff.).
  */
 export function ScrollChrome() {
-  const { settings, mob, isMobile, sideActive } = useSite();
+  const { settings, mob, isMobile, sideActive, mobDesign } = useSite();
   const pathname = canonicalPath(usePathname());
   const t = useT();
   const detail = isDetailPath(pathname);
@@ -80,7 +80,8 @@ export function ScrollChrome() {
           />
         </div>
       )}
-      {showTop && (
+      {/* App v2 hat „Nach oben“ fest über der Tab-Leiste (MobileChrome2). */}
+      {showTop && mobDesign !== 'appv2' && (
         <button
           type="button"
           title={t('chrome.toTop')}

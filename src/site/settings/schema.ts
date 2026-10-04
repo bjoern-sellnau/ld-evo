@@ -16,9 +16,10 @@ export type MobLogo = 'pill' | 'wordmark' | 'tile' | 'scroll';
 /**
  * Mobil-Design (neu, nicht im Prototyp): 'proto' = Prototyp; 'app' = App-artig (Kopfzeile, angedockte Tab-Leiste,
  * Bottom-Sheet, Karten zum Wischen); 'editorial' = Magazin (Wortmarke, Vollbild-Menü, Linien statt Kacheln);
- * 'lab' = Experiment (Dock mit Fächermenü, Pfadanzeige, Neon-Konturen).
+ * 'lab' = Experiment (Dock mit Fächermenü, Pfadanzeige, Neon-Konturen); 'appv2' = Weiterentwicklung von App (Liquid-Glass-
+ * Tab-Leiste mit großem Home-Logo in der Mitte, Zurück/Nach oben/Suche darüber, Menü als kontraststarkes Bottom-Sheet).
  */
-export type MobDesign = 'proto' | 'app' | 'editorial' | 'lab';
+export type MobDesign = 'proto' | 'app' | 'appv2' | 'editorial' | 'lab';
 
 export interface Settings {
   theme: Theme;
@@ -67,6 +68,7 @@ export interface Settings {
   reiseBg: boolean;
   mobLogo: MobLogo;
   mobDesign: MobDesign;
+  logoNeg: boolean;
 }
 
 /** SSR-Defaults (dark, Animationen an) — entsprechen dem initialen State des Prototyps. */
@@ -117,6 +119,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reiseBg: false,
   mobLogo: 'pill',
   mobDesign: 'proto',
+  logoNeg: false,
 };
 
 interface Codec<T> {
@@ -211,9 +214,10 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   },
   mobDesign: {
     key: 'ld-mobdesign',
-    read: (r) => (r === 'app' || r === 'editorial' || r === 'lab' ? r : 'proto'),
+    read: (r) => (r === 'app' || r === 'appv2' || r === 'editorial' || r === 'lab' ? r : 'proto'),
     write: (v) => (v === 'proto' ? null : v),
   },
+  logoNeg: offUnlessOn('ld-logoneg'),
 };
 
 export function readSettings(storage: Pick<Storage, 'getItem'>): Settings {

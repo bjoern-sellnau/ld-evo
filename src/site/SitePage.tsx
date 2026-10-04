@@ -6,7 +6,7 @@ import { useSite } from './settings/SiteProvider';
 
 /** Seiten-Container (Prototyp Zeile 364: pageMaxW / pageMargin / padX / pageBotPad / pageClip). */
 export function SitePage({ children }: { children: ReactNode }) {
-  const { mob, sideActive, isMobile } = useSite();
+  const { mob, sideActive, isMobile, mobDesign } = useSite();
   return (
     <main
       id="inhalt"
@@ -14,7 +14,8 @@ export function SitePage({ children }: { children: ReactNode }) {
         boxSizing: 'border-box',
         maxWidth: mob ? 430 : 1240,
         margin: sideActive ? '0 auto 0 max(266px, calc((100vw - 1304px) / 2))' : '0 auto',
-        padding: `0 ${mob ? 18 : 32}px ${mob ? 96 : 0}px`,
+        // App v2: Leiste + Knopfreihe darüber brauchen mehr Platz am Seitenende.
+        padding: `0 ${mob ? 18 : 32}px ${mob ? (mobDesign === 'appv2' ? 150 : 96) : 0}px`,
         overflow: mob && !isMobile ? 'hidden' : 'visible',
         transition: 'max-width 0.4s ease',
       }}

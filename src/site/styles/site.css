@@ -1552,3 +1552,47 @@ body.md-lab main#inhalt h2 {
   font-family: var(--ld-font-mono), monospace;
   letter-spacing: -0.04em;
 }
+
+/*
+ * App v2: Menü und Such-Panel mit festen Farbwerten (Theme-Grundwerte), unabhängig von Cover-Farben der Seite —
+ * auf farbigen Detailseiten (z. B. „Neue Webseite“, orange) war das Glas-Menü sonst kaum lesbar.
+ */
+.ld-sheet2 {
+  --bg: #0a1220;
+  --ink: #f2f5fa;
+  --muted: #aebcd0;
+  --soft: #8b9db5;
+  --pill: rgba(255, 255, 255, 0.12);
+  --hair: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.12);
+  --card: rgba(255, 255, 255, 0.06);
+  --glassg1: rgba(255, 255, 255, 0.08);
+  --glassg2: rgba(255, 255, 255, 0.02);
+  --glassbrd: rgba(255, 255, 255, 0.16);
+  --glasshi: rgba(255, 255, 255, 0.22);
+  --accent: #ffb224;
+  --on-accent: #241400;
+  color: var(--ink);
+}
+body.light .ld-sheet2 {
+  --bg: #ffffff;
+  --ink: #0f2137;
+  --muted: #56637a;
+  --soft: #5f6b7d;
+  --pill: rgba(15, 33, 55, 0.07);
+  --hair: rgba(15, 33, 55, 0.1);
+  --border: rgba(15, 33, 55, 0.12);
+  --card: #f6f9fc;
+  --glassg1: rgba(255, 255, 255, 0.7);
+  --glassg2: rgba(255, 255, 255, 0.4);
+  --glassbrd: rgba(15, 33, 55, 0.12);
+  --glasshi: rgba(255, 255, 255, 0.9);
+  --accent: #b45309;
+  --on-accent: #ffffff;
+}
+@keyframes ldSearchUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+}
