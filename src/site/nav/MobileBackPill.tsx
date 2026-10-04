@@ -4,13 +4,14 @@ import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
 import { useBack } from './useBack';
 import { useT } from '../i18n/LocaleProvider';
+import { simBottom } from '../chrome/phoneBox';
 
 /**
  * Schwebende Glas-Zurück-Pille über der Tab-Bar (Modern Mobile-Nav, Detailseiten). bottom 92 px,
  * bei ausgeblendeter Tab-Bar (Scrollhide) 18 px. Markup: Prototyp Zeile 961 ff.
  */
 export function MobileBackPill({ tabBarHidden }: { tabBarHidden: boolean }) {
-  const { mob, settings } = useSite();
+  const { mob, isMobile, settings } = useSite();
   const back = useBack();
   const t = useT();
   if (!(mob && settings.mobModern && back.show)) return null;
@@ -18,7 +19,7 @@ export function MobileBackPill({ tabBarHidden }: { tabBarHidden: boolean }) {
     <div
       style={{
         position: 'fixed',
-        bottom: tabBarHidden ? 18 : 92,
+        bottom: isMobile ? (tabBarHidden ? 18 : 92) : simBottom(tabBarHidden ? 18 : 92),
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 76,

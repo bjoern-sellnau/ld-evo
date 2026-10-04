@@ -12,6 +12,7 @@ import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import type { UiKey } from '../i18n/dict';
 import { LogoTile } from '../settings/LogoTile';
+import { simBottom } from '../chrome/phoneBox';
 
 interface Tab {
   id: SitePageId;
@@ -96,7 +97,7 @@ export function MobileTabBar() {
       <div
         style={{
           position: 'fixed',
-          bottom: docked ? (framed ? 10 : 0) : 18,
+          bottom: framed ? simBottom(docked ? 10 : 18) : docked ? 0 : 18,
           left: 0,
           right: 0,
           display: 'flex',

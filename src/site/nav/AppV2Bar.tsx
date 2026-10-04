@@ -12,6 +12,7 @@ import { SITE_PAGES, pageForPath, type SitePageId } from './pages';
 import { useBack } from './useBack';
 import styles from './SiteNav.module.css';
 import { LogoTile } from '../settings/LogoTile';
+import { simBottom } from '../chrome/phoneBox';
 
 /**
  * Mobil-Design „App v2“ (neu, nicht im Prototyp — Wunsch vom 04.10.2026):
@@ -54,7 +55,7 @@ export function AppV2Bar() {
     e.preventDefault();
     navigate(h);
   };
-  const bottom = framed ? APPV2_BAR_BOTTOM + 10 : `calc(${APPV2_BAR_BOTTOM}px + env(safe-area-inset-bottom))`;
+  const bottom = framed ? simBottom(APPV2_BAR_BOTTOM + 10) : `calc(${APPV2_BAR_BOTTOM}px + env(safe-area-inset-bottom))`;
   const width = framed ? 400 : 'calc(100% - 28px)';
   // Knöpfe über der Leiste nur, wenn kein Overlay offen ist (sonst liegen Menü/Suche dort).
   const showRow = overlay === null;

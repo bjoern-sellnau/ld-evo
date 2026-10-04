@@ -15,6 +15,7 @@ import { AppV2Bar } from './AppV2Bar';
 import styles from './SiteNav.module.css';
 import { useLogo } from '../settings/useLogo';
 import { LogoTile } from '../settings/LogoTile';
+import { simBottom } from '../chrome/phoneBox';
 
 /**
  * Mobil-Designs 2 (neu, nicht im Prototyp — Einstellung „Mobil-Design“, ld-mobdesign). Ersetzt auf dem Telefon die
@@ -254,7 +255,7 @@ function EditorialChrome() {
           style={{
             position: 'fixed',
             top: framed ? 10 : 0,
-            bottom: framed ? 10 : 0,
+            bottom: framed ? 'var(--ld-pb, 10px)' : 0,
             ...box,
             zIndex: 77,
             background: 'var(--bg)',
@@ -378,7 +379,7 @@ function LabDock() {
     return () => prev?.focus?.({ preventScroll: true });
   }, [open]);
 
-  const bottom = framed ? 30 : 'calc(20px + env(safe-area-inset-bottom))';
+  const bottom = framed ? simBottom(30) : 'calc(20px + env(safe-area-inset-bottom))';
   const anim = settings.anim;
   // Außen: Seiten auf einem Halbkreis (r 148), innen: Werkzeuge (r 78) — alles im Daumenbereich über dem Dock.
   const arc = (i: number, n: number, r: number) => {
@@ -581,7 +582,7 @@ function LabDock() {
           className={reset}
           style={{
             position: 'fixed',
-            bottom: framed ? 42 : 'calc(32px + env(safe-area-inset-bottom))',
+            bottom: framed ? simBottom(42) : 'calc(32px + env(safe-area-inset-bottom))',
             left: framed ? 'calc(50% - 199px)' : 16,
             zIndex: 75,
             minHeight: 44,

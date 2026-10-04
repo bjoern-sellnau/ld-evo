@@ -74,6 +74,8 @@ export interface Settings {
   logoBare: boolean;
   /** Farbe des Negativ-Logos (Hex). */
   logoNegColor: string;
+  /** Simulierter Mobil-Modus: Rahmen in echter iPhone-Höhe (430 × 932) statt Fensterhöhe. */
+  phoneExact: boolean;
 }
 
 /** SSR-Defaults (dark, Animationen an) — entsprechen dem initialen State des Prototyps. */
@@ -127,6 +129,7 @@ export const DEFAULT_SETTINGS: Settings = {
   logoNeg: false,
   logoBare: false,
   logoNegColor: '#FF7816',
+  phoneExact: false,
 };
 
 interface Codec<T> {
@@ -232,6 +235,7 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
     read: (r) => (r && /^#[0-9a-f]{6}$/i.test(r) ? r : '#FF7816'),
     write: (v) => (v.toUpperCase() === '#FF7816' ? null : v),
   },
+  phoneExact: offUnlessOn('ld-phoneexact'),
 };
 
 export function readSettings(storage: Pick<Storage, 'getItem'>): Settings {

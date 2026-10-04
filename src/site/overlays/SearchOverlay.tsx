@@ -11,6 +11,7 @@ import styles from './overlays.module.css';
 import { useT } from '../i18n/LocaleProvider';
 import { APPV2_BAR_BOTTOM, APPV2_BAR_HEIGHT } from '../nav/AppV2Bar';
 import { LiquidLayers } from '../glass/LiquidLayers';
+import { simBottom } from '../chrome/phoneBox';
 
 /**
  * Suchindex wie im Prototyp (Seiten, Projekte/Labs ohne Archiv, Artikel, freie CMS-Seiten) — erweitert um den Volltext:
@@ -276,7 +277,7 @@ function MobileSearchPanel({
           position: 'fixed',
           zIndex: 80,
           ...(framed
-            ? { left: 'calc(50% - 203px)', width: 406, bottom: bottom + 10 }
+            ? { left: 'calc(50% - 203px)', width: 406, bottom: simBottom(bottom + 10) }
             : { left: 12, right: 12, bottom: `calc(${bottom}px + env(safe-area-inset-bottom))` }),
           borderRadius: 24,
           overflow: 'hidden',

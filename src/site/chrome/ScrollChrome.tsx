@@ -6,6 +6,7 @@ import { isDetailPath, useSite } from '../settings/SiteProvider';
 import styles from './chrome.module.css';
 import { useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
+import { simBottom } from './phoneBox';
 
 /**
  * Scroll-Scrim (Scroll-BG: weicher Blur-Verlauf hinter der Nav ab 24 px, nur mit Auto-Kontrast),
@@ -100,7 +101,7 @@ export function ScrollChrome() {
           aria-label={t('chrome.toTop')}
           onClick={() => window.scrollTo({ top: 0, behavior: settings.anim ? 'smooth' : 'auto' })}
           className={styles.toTop}
-          style={{ right: mob && !isMobile ? 'calc(50vw - 202px)' : 24, bottom: mob ? 92 : 24 }}
+          style={{ right: mob && !isMobile ? 'calc(50vw - 202px)' : 24, bottom: mob ? (isMobile ? 92 : simBottom(92)) : 24 }}
         >
           ↑
         </button>

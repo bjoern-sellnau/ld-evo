@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useSite } from '../settings/SiteProvider';
 
 const num = (v: unknown, d: number) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
@@ -10,7 +11,21 @@ const num = (v: unknown, d: number) => (typeof v === 'number' && Number.isFinite
  */
 export function PhoneFrame() {
   const { settings: s, mob, isMobile } = useSite();
-  if (!mob || isMobile) return null;
+  const sim = mob && !isMobile;
+  const exact = s.phoneExact;
+  // Rahmenmaße als CSS-Variablen für alle unten verankerten Elemente (phoneBox.ts → simBottom, SIM_VH).
+  useEffect(() => {
+    const de = document.documentElement.style;
+    if (!sim) {
+      de.removeProperty('--ld-pb');
+      de.removeProperty('--ld-vh');
+      return;
+    }
+    // „iPhone-Höhe“: 430 × 932 (iPhone 14 Pro Max, 15 Plus/Pro Max, 16 Plus) — passt das Fenster nicht, so hoch wie möglich
+    de.setProperty('--ld-pb', exact ? 'max(10px, calc(100vh - 942px))' : '10px');
+    de.setProperty('--ld-vh', exact ? 'min(932px, calc(100vh - 20px))' : 'calc(100vh - 20px)');
+  }, [sim, exact]);
+  if (!sim) return null;
   const cfg = s.frameCfg || {};
   const frame = s.frame || 'clear';
   return (
@@ -22,7 +37,7 @@ export function PhoneFrame() {
         style={{
           position: 'fixed',
           top: 10,
-          bottom: 10,
+          bottom: 'var(--ld-pb, 10px)',
           left: '50%',
           width: 434,
           transform: 'translateX(-50%)',

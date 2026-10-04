@@ -604,7 +604,7 @@ export function ReisePage() {
           style={{
             position: 'relative',
             overflow: 'hidden',
-            minHeight: '100dvh',
+            minHeight: 'var(--ld-vh, 100dvh)',
             boxSizing: 'border-box',
             padding: `${isMobile ? 96 : 84}px 18px 132px`,
             background: 'var(--tbg)',
@@ -801,7 +801,9 @@ export function ReisePage() {
           </div>
 
           {!introDone && (
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100dvh', zIndex: 200 }}>{introOverlay}</div>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 'var(--ld-vh, 100dvh)', zIndex: 200 }}>
+              {introOverlay}
+            </div>
           )}
         </div>
       </div>
