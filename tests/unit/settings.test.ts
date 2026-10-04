@@ -12,6 +12,14 @@ const memory = (init: Record<string, string> = {}) => {
 };
 
 describe('Settings ↔ localStorage (Keys/Kodierung wie im Prototyp)', () => {
+  it('Zähler-Animation und Reise-Hintergrund (neu): unbekannte Werte → Default, Default wird nicht gespeichert', () => {
+    expect(readSettings(memory({ 'ld-counterfx': 'flap', 'ld-reisebg': 'on' }))).toMatchObject({ counterFx: 'flap', reiseBg: true });
+    expect(readSettings(memory({ 'ld-counterfx': 'quatsch' })).counterFx).toBe('plain');
+    const s = memory({ 'ld-counterfx': 'roll' });
+    writeSetting(s, 'counterFx', 'plain');
+    expect(s.dump()).toEqual({});
+  });
+
   it('leerer Storage → SSR-Defaults (dark, Animationen an)', () => {
     expect(readSettings(memory())).toEqual(DEFAULT_SETTINGS);
   });

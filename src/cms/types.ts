@@ -66,6 +66,8 @@ export type JourneyStepEntry = JourneyStation['steps'][number] & { images?: (Med
 export type JourneyEntry = Omit<JourneyStation, 'steps'> & {
   id: string;
   shot?: MediaRef;
+  /** Kapitel-Hintergrund (unscharf, Einstellung „Reise: Bild-Hintergrund“). */
+  bg?: MediaRef;
   insights?: (MediaRef | null)[];
   steps: JourneyStepEntry[];
 };

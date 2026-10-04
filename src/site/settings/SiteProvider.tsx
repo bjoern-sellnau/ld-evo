@@ -3,12 +3,13 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useLayoutEffect, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
-import { REVEAL_MODES, pageVtClasses, runVt, trackVtOrigin } from '../vt/runVt';
+import { REVEAL_MODES, WILD_MODES, pageVtClasses, runVt, trackVtOrigin } from '../vt/runVt';
 import { applyBody, applyThemeColor } from './applyBody';
-import { DEFAULT_SETTINGS, readSettings, writeSetting, type Settings } from './schema';
+import { DEFAULT_SETTINGS, readSettings, writeSetting, type MobDesign, type Settings } from './schema';
 import { useHitCounter } from '../stats/useHitCounter';
 import { useLocale } from '../i18n/LocaleProvider';
 import { canonicalPath, localizePath } from '../i18n/locale';
+import { sitePath } from '../lib/routes';
 
 type Overlay = 'search' | 'settings' | 'kontakt' | 'mobileNav' | null;
 
@@ -26,6 +27,8 @@ interface SiteContextValue {
   mob: boolean;
   /** Glas-Sidebar statt Top-Pille (View-Mode „Wide“ oder Seitenmenü-Toggle ab 1600 px). */
   sideActive: boolean;
+  /** Aktives Mobil-Design (nur mobil, sonst 'proto'). */
+  mobDesign: MobDesign;
   overlay: Overlay;
   setOverlay: (o: Overlay) => void;
   toggleTheme: () => void;
@@ -94,6 +97,15 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     applyThemeColor(settings.themeColor);
   }, [settings, hydrated]);
 
+  // Mobil-Design als Body-Klasse (md-app / md-editorial / md-lab) — Inhalte werden per CSS umgestaltet (site.css).
+  const vm = settings.viewMode;
+  const mobNow = vm === 'mobile' || (vm === 'auto' && viewport.isMobile);
+  const md = mobNow ? settings.mobDesign : 'proto';
+  useEffect(() => {
+    const cl = document.body.classList;
+    for (const d of ['app', 'editorial', 'lab']) cl.toggle(`md-${d}`, md === d);
+  }, [md]);
+
   // Esc schließt Overlays, ⌘K/Strg+K schaltet die Suche (Prototyp: _esc).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -144,7 +156,9 @@ export function SiteProvider({ children }: { children: ReactNode }) {
       setOverlay(null);
       // Aufrufer übergeben kanonische (deutsche) Pfade; hier wird daraus die Adresse der aktuellen Sprache.
       const href = localizePath(target, locale);
-      const current = window.location.pathname;
+      // Ohne Basispfad (GitHub-Pages-Vorschau: /ld-evo/…) und ohne abschließenden Schrägstrich (trailingSlash im
+      // statischen Export) — sonst führte „Zurück“ zu /ld-evo/ld-evo/…, und der Vergleich mit href schlüge fehl.
+      const current = sitePath(window.location.pathname);
       if (href === current) return;
       const detailNav = isDetailPath(href) || isDetailPath(current);
       if (isDetailPath(href) && !isDetailPath(current)) setFrom(current);
@@ -181,7 +195,8 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     const vm = settings.viewMode;
     const mob = vm === 'mobile' || (vm === 'auto' && viewport.isMobile);
     const sideActive = !mob && (vm === 'wide' || (settings.navSide && viewport.isWide));
-    const morphOk = !REVEAL_MODES.includes(settings.pageVt || 'fade');
+    const morphOk = ![...REVEAL_MODES, ...WILD_MODES].includes(settings.pageVt || 'fade');
+    const mobDesign: MobDesign = mob ? settings.mobDesign : 'proto';
     return {
       settings,
       hydrated,
@@ -189,6 +204,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
       ...viewport,
       mob,
       sideActive,
+      mobDesign,
       overlay,
       setOverlay,
       toggleTheme,

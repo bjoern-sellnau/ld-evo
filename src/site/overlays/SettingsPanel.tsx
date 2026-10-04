@@ -66,6 +66,17 @@ const VT_SEGS = [
   ['glitch', 'Glitch'],
   ['cinema', 'Cinema'],
   ['swap', 'Swap'],
+  // Neu (nicht im Prototyp)
+  ['tv', 'TV'],
+  ['cube', 'Würfel'],
+  ['vortex', 'Strudel'],
+  ['warp', 'Warp'],
+  ['drop', 'Absturz'],
+  ['fold', 'Origami'],
+  ['jelly', 'Wackelpudding'],
+  ['star', 'Stern'],
+  ['melt', 'Schmelzen'],
+  ['portal', 'Portal'],
 ] as const;
 
 const HERO_PARTS = [
@@ -187,6 +198,24 @@ const EN_LABELS: Record<string, string> = {
   Blau: 'Blue',
   Sprache: 'Language',
   'Page-Transition': 'Page transition',
+  'Zähler-Animation': 'Counter animation',
+  'Mobil-Logo': 'Mobile logo',
+  'Mobil-Design': 'Mobile design',
+  Prototyp: 'Prototype',
+  Pille: 'Pill',
+  Wortmarke: 'Wordmark',
+  Kachel: 'Tile',
+  'Beim Scrollen': 'On scroll',
+  Würfel: 'Cube',
+  Strudel: 'Vortex',
+  Absturz: 'Drop',
+  Wackelpudding: 'Jelly',
+  Stern: 'Star',
+  Schmelzen: 'Melt',
+  'Reise: Bild-Hintergrund': 'Journey: image background',
+  Schlicht: 'Plain',
+  Walze: 'Rolling',
+  Fallblatt: 'Split-flap',
 };
 
 function useSl() {
@@ -251,6 +280,7 @@ export function SettingsPanel() {
     { label: 'Full-Hero', key: 'fullHero', on: s.fullHero },
     { label: 'Full-Hero: Stats-Leiste', key: 'heroStats', on: s.heroStats },
     { label: 'Splash-Screen', key: 'splashOn', on: s.splashOn },
+    { label: 'Reise: Bild-Hintergrund', key: 'reiseBg', on: s.reiseBg },
     { label: 'Performance-Modus', key: 'perfMode', on: s.perfMode },
     { label: '30 fps Hero', key: 'fpsHalf', on: s.fpsHalf },
     ...(hm === 'matrix'
@@ -429,6 +459,50 @@ export function SettingsPanel() {
                 window.dispatchEvent(new Event(SPLASH_REPLAY_EVENT));
               }}
               label="Splash-Animation"
+            />
+          </Row>
+          {mob && (
+            <Row label="Mobil-Design" column>
+              <Seg
+                options={[
+                  ['proto', 'Prototyp'],
+                  ['app', 'App'],
+                  ['editorial', 'Editorial'],
+                  ['lab', 'Lab'],
+                ]}
+                value={s.mobDesign}
+                onChange={(v) => set('mobDesign', v as Settings['mobDesign'])}
+                label="Mobil-Design"
+                wrap
+              />
+            </Row>
+          )}
+          {mob && s.mobDesign === 'proto' && (
+            <Row label="Mobil-Logo" column>
+              <Seg
+                options={[
+                  ['pill', 'Pille'],
+                  ['wordmark', 'Wortmarke'],
+                  ['tile', 'Kachel'],
+                  ['scroll', 'Beim Scrollen'],
+                ]}
+                value={s.mobLogo}
+                onChange={(v) => set('mobLogo', v as Settings['mobLogo'])}
+                label="Mobil-Logo"
+                wrap
+              />
+            </Row>
+          )}
+          <Row label="Zähler-Animation">
+            <Seg
+              options={[
+                ['plain', 'Schlicht'],
+                ['roll', 'Walze'],
+                ['flap', 'Fallblatt'],
+              ]}
+              value={s.counterFx}
+              onChange={(v) => set('counterFx', v as Settings['counterFx'])}
+              label="Zähler-Animation"
             />
           </Row>
           <Row label="Page-Transition" column>

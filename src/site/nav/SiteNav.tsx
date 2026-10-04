@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { CSSProperties, MouseEvent } from 'react';
-import { LoonaLockup } from '@/components/brand';
+import { useEffect, useState, type CSSProperties, type MouseEvent } from 'react';
+import { LoonaLockup, LoonaTile } from '@/components/brand';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
@@ -36,19 +36,54 @@ export function SiteNav() {
   const back = useBack();
   const t = useT();
   const href = useHref();
-
-  if (mob && settings.mobModern) return null;
-
-  const navRad = settings.styleMode === 'fluent' ? (sideActive ? '16px' : '14px') : sideActive ? '28px' : '999px';
-  const divider: CSSProperties = sideActive
-    ? { alignSelf: 'stretch', height: 1, margin: '7px 4px', background: 'var(--hair)' }
-    : { width: 1, height: 20, margin: '0 3px', background: 'var(--hair)' };
-
   const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0 || !href.startsWith('/')) return;
     e.preventDefault();
     navigate(href);
   };
+  // Mobil-Logo (Einstellung, neu): Varianten für die Kopfzeile auf dem Telefon.
+  const mobLogo = mob ? settings.mobLogo : 'pill';
+  const scrolled = useScrolledPast(140, mob && mobLogo === 'scroll');
+
+  if (mob && settings.mobModern) return null;
+  // Mobil-Designs 2 bringen eigene Kopf-/Navigationsleisten mit (MobileChrome2).
+  if (site2(settings.mobDesign, mob)) return null;
+
+  // Kachel: das App-Icon pur — ohne Glas, damit es nicht die Farben der Hero-Grafik annimmt (Logo-Handoff: keine Schatten).
+  if (mobLogo === 'tile' && !back.show)
+    return (
+      <nav
+        aria-label={t('nav.main')}
+        className="ldnavvt"
+        style={{
+          position: 'fixed',
+          zIndex: 60,
+          top: frame ? 58 : 16,
+          left: 0,
+          right: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+        }}
+      >
+        <Link
+          href={href('/')}
+          onClick={go('/')}
+          aria-label={t('nav.home')}
+          className={cx(styles.reset, styles.logo)}
+          style={{ pointerEvents: 'auto', borderRadius: 12, display: 'block' }}
+        >
+          <LoonaTile product="ld" variant="ink" size={44} decorative style={{ display: 'block' }} />
+        </Link>
+      </nav>
+    );
+  // Erst beim Scrollen: am Seitenanfang gehört die Bühne dem Hero, danach blendet die Pille ein.
+  const hideTop = mobLogo === 'scroll' && !scrolled && !back.show;
+
+  const navRad = settings.styleMode === 'fluent' ? (sideActive ? '16px' : '14px') : sideActive ? '28px' : '999px';
+  const divider: CSSProperties = sideActive
+    ? { alignSelf: 'stretch', height: 1, margin: '7px 4px', background: 'var(--hair)' }
+    : { width: 1, height: 20, margin: '0 3px', background: 'var(--hair)' };
 
   return (
     <nav
@@ -67,9 +102,16 @@ export function SiteNav() {
       <GlassSurface
         radius={navRad}
         sheen
+        aria-hidden={hideTop || undefined}
         style={
           {
-            pointerEvents: 'auto',
+            pointerEvents: hideTop ? 'none' : 'auto',
+            ...(mobLogo === 'scroll' && {
+              opacity: hideTop ? 0 : 1,
+              visibility: hideTop ? 'hidden' : 'visible',
+              transform: hideTop ? 'translateY(-14px) scale(0.92)' : 'none',
+              transition: 'opacity 0.35s ease,transform 0.35s ease,visibility 0.35s',
+            }),
             display: 'flex',
             gap: 3,
             padding: sideActive ? '14px 12px' : '7px 8px',
@@ -133,7 +175,7 @@ export function SiteNav() {
           <LoonaLockup
             markSize={28}
             theme={settings.theme}
-            variant={narrow ? 'mark' : 'full'}
+            variant={narrow && mobLogo !== 'wordmark' ? 'mark' : 'full'}
             style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
           />
         </Link>
@@ -267,3 +309,18 @@ function useSiteNav() {
   const narrow = site.isNarrow || (site.mob && !site.isMobile);
   return { ...site, frame, narrow };
 }
+
+/** true, sobald die Seite weiter als `y` px gescrollt ist (nur aktiv, wenn `on`). */
+function useScrolledPast(y: number, on: boolean) {
+  const [past, setPast] = useState(false);
+  useEffect(() => {
+    if (!on) return;
+    const f = () => setPast(window.scrollY > y);
+    f();
+    window.addEventListener('scroll', f, { passive: true });
+    return () => window.removeEventListener('scroll', f);
+  }, [y, on]);
+  return past;
+}
+
+const site2 = (d: string, mob: boolean) => mob && d !== 'proto';

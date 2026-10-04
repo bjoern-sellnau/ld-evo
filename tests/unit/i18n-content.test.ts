@@ -25,6 +25,7 @@ const INVARIANT = new Set([
   'slot',
   'image',
   'shot',
+  'bg',
   'insights',
   'email',
   'mono',

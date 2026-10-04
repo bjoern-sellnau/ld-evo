@@ -12,6 +12,7 @@ import { KontaktPanel } from '@/site/overlays/KontaktPanel';
 import { SearchOverlay } from '@/site/overlays/SearchOverlay';
 import { SettingsPanel } from '@/site/overlays/SettingsPanel';
 import { MobileTabBar } from '@/site/nav/MobileTabBar';
+import { MobileChrome2 } from '@/site/nav/MobileChrome2';
 import { SiteNav } from '@/site/nav/SiteNav';
 import { SitePage } from '@/site/SitePage';
 import { SiteProvider } from '@/site/settings/SiteProvider';
@@ -31,6 +32,7 @@ export function SiteShell({ locale, children }: { locale: Locale; children: Reac
             <SitePage>{children}</SitePage>
             <MobileMenu />
             <MobileTabBar />
+            <MobileChrome2 />
             <ScrollChrome />
           </div>
           <PhoneFrame />

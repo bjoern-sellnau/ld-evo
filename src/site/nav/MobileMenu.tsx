@@ -16,13 +16,15 @@ const item = (delay: string): CSSProperties => ({ animation: `ldMenuItem 0.45s $
 
 /** Mobile-Menü als Vollbild-Glas-Page (slide-up 0.45 s, gestaffelte Items). Markup: Prototyp Zeile 913 ff. */
 export function MobileMenu() {
-  const { settings, mob, isMobile, overlay, setOverlay, toggleTheme, toggleAnim, navigate } = useSite();
+  const { settings, mob, isMobile, mobDesign, overlay, setOverlay, toggleTheme, toggleAnim, navigate } = useSite();
   const pathname = canonicalPath(usePathname());
   const t = useT();
   const href = useHref();
   // Prototyp: menuSheetItems — was nicht in der Tab-Bar steht (pflegbar in LD Flow → Navigation).
   const ITEMS = useContent().navigation.filter((n) => n.inMenu);
-  const open = mob && overlay === 'mobileNav';
+  // Editorial/Lab haben eigene Menüs (MobileChrome2); App zeigt dieses Menü als Bottom-Sheet.
+  const open = mob && overlay === 'mobileNav' && (mobDesign === 'proto' || mobDesign === 'app');
+  const sheet = mobDesign === 'app';
   const panel = useRef<HTMLDivElement>(null);
 
   // Fokus ins Menü, beim Schließen zurück auf den Menü-Button der Tab-Bar.
@@ -62,25 +64,50 @@ export function MobileMenu() {
           ...(framed
             ? { top: 10, bottom: 10, left: 'calc(50% - 215px)', width: 430, borderRadius: 32 }
             : { top: 0, bottom: 0, left: 0, right: 0, borderRadius: 0 }),
+          ...(sheet && {
+            top: 'auto',
+            maxHeight: '82%',
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: framed ? '28px 28px 32px 32px' : '28px 28px 0 0',
+          }),
           zIndex: 74,
           overflow: 'hidden',
           background: 'linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) 62%,transparent)',
           border: '1px solid var(--glassbrd)',
           boxShadow: 'inset 0 1.5px 1px var(--glasshi),var(--shadow)',
-          animation: 'ldPageIn 0.45s cubic-bezier(0.22,1,0.32,1)',
+          animation: sheet ? 'ldSheetUp 0.42s cubic-bezier(0.22,1,0.32,1)' : 'ldPageIn 0.45s cubic-bezier(0.22,1,0.32,1)',
         }}
       >
+        {sheet && (
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: 8,
+              left: '50%',
+              width: 40,
+              height: 5,
+              marginLeft: -20,
+              borderRadius: 3,
+              background: 'var(--soft)',
+              opacity: 0.6,
+              zIndex: 1,
+            }}
+          />
+        )}
         <div data-ldfrost="1" aria-hidden style={{ borderRadius: rad }} />
         <div data-ldedge="1" aria-hidden style={{ borderRadius: rad }} />
         <div data-ldrim="1" aria-hidden style={{ borderRadius: rad }} />
         <div
           style={{
             position: 'relative',
-            height: '100%',
+            height: sheet ? 'auto' : '100%',
+            minHeight: 0,
             boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column',
-            padding: '88px 26px 108px',
+            padding: sheet ? '30px 22px 96px' : '88px 26px 108px',
             overflowY: 'auto',
             overscrollBehavior: 'contain',
           }}

@@ -42,6 +42,7 @@ function MagCard({ a, lead }: { a: Article; lead: boolean }) {
       href={lh(href)}
       onClick={onClick}
       className={cardStyles.card}
+      data-m-card
       style={{
         viewTransitionName: morphOk && vtTarget === a.id ? `art-${a.id}` : 'none',
         gridColumn: lead ? '1/2' : 'auto',
