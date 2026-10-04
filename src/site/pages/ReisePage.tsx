@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { JOURNEY_MEDIA } from '@content/journeyMedia';
-import { LoonaTile } from '@/components/brand';
 import { useContent } from '../content/ContentProvider';
 import { useSite } from '../settings/SiteProvider';
 import { mediaSrcSet } from '@/cms/media';
 import { useT } from '../i18n/LocaleProvider';
-import { useLogo } from '../settings/useLogo';
+import { LogoTile } from '../settings/LogoTile';
 
 const mono = 'var(--ld-font-mono),monospace';
 const GAP = 172; // depthGap-Default des Prototyps
@@ -28,7 +27,6 @@ type IntroPhase = 'run' | 'out' | 'done';
  * Die „L!“-Kachel im Intro ist durch die LD-Kachel ersetzt (Entscheidung: neues Logo).
  */
 export function ReisePage() {
-  const logo = useLogo();
   const { settings, hydrated, sideActive, mob, isMobile } = useSite();
   const JOURNEY = useContent().journey;
   const t = useT();
@@ -520,7 +518,7 @@ export function ReisePage() {
               animation: rm ? 'none' : 'ldtBreath 2.4s ease-in-out infinite',
             }}
           >
-            <LoonaTile product="ld" variant={logo.tile('color')} size={52} decorative style={{ display: 'block' }} />
+            <LogoTile variant="color" size={52} style={{ display: 'block' }} />
           </span>
           <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3 }}>
             <span style={{ fontSize: 20, fontWeight: 700 }}>Loona! Designs</span>

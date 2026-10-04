@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
-import { LoonaTile } from '@/components/brand';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import { useHref, useT } from '../i18n/LocaleProvider';
@@ -12,7 +11,7 @@ import type { UiKey } from '../i18n/dict';
 import { SITE_PAGES, pageForPath, type SitePageId } from './pages';
 import { useBack } from './useBack';
 import styles from './SiteNav.module.css';
-import { useLogo } from '../settings/useLogo';
+import { LogoTile } from '../settings/LogoTile';
 
 /**
  * Mobil-Design „App v2“ (neu, nicht im Prototyp — Wunsch vom 04.10.2026):
@@ -35,7 +34,6 @@ export const APPV2_BAR_BOTTOM = 16;
 export const APPV2_BAR_HEIGHT = 66;
 
 export function AppV2Bar() {
-  const logo = useLogo();
   const { settings, overlay, setOverlay, navigate, isMobile } = useSite();
   const t = useT();
   const href = useHref();
@@ -147,7 +145,7 @@ export function AppV2Bar() {
                     WebkitBackdropFilter: 'blur(10px)',
                   }}
                 >
-                  <LoonaTile product="ld" variant={logo.tile('color')} size={54} decorative style={{ display: 'block' }} />
+                  <LogoTile variant="color" size={54} style={{ display: 'block' }} />
                 </span>
                 <span
                   aria-hidden

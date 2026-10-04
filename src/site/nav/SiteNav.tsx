@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, type CSSProperties, type MouseEvent } from 'react';
-import { LoonaLockup, LoonaTile } from '@/components/brand';
+import { LoonaLockup } from '@/components/brand';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
@@ -13,6 +13,7 @@ import { useBack } from './useBack';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import { useLogo } from '../settings/useLogo';
+import { LogoTile } from '../settings/LogoTile';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -75,7 +76,7 @@ export function SiteNav() {
           className={cx(styles.reset, styles.logo)}
           style={{ pointerEvents: 'auto', borderRadius: 12, display: 'block' }}
         >
-          <LoonaTile product="ld" variant={logo.tile('ink')} size={44} decorative style={{ display: 'block' }} />
+          <LogoTile variant="ink" size={44} style={{ display: 'block' }} />
         </Link>
       </nav>
     );

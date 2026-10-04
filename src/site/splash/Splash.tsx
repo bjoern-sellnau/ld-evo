@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState, type CSSProperties } from 'react';
-import { LoonaTile } from '@/components/brand';
 import { heroMode } from '../hero/heroInk';
 import { useSite } from '../settings/SiteProvider';
 import { SKETCH_HTML } from './sketchMarkup';
-import { useLogo } from '../settings/useLogo';
+import { LogoTile } from '../settings/LogoTile';
 
 /** Event, mit dem das Einstellungs-Panel den gewählten Splash sofort zur Vorschau abspielt (Nachtrag v17). */
 export const SPLASH_REPLAY_EVENT = 'ld-splash-replay';
@@ -19,7 +18,6 @@ const BAR = 'linear-gradient(90deg,rgba(255,178,36,0),#FFB224,#FF7A2F,rgba(255,1
  * LD-Kachel aus dem Logo-Handoff ersetzt (Entscheidung: neues Logo).
  */
 export function Splash() {
-  const logo = useLogo();
   const { settings: s, hydrated, mob, sideActive } = useSite();
   // 2 = sichtbar, 1 = blendet aus, 0 = entfernt. Vor der Hydration nur der dunkle Grund (Boot-Script blendet bei „aus“ aus).
   const [phase, setPhase] = useState<0 | 1 | 2>(2);
@@ -153,7 +151,7 @@ export function Splash() {
                 animation: 'ldSpBox 0.65s 0.85s cubic-bezier(0.2,1.35,0.3,1) both',
               }}
             >
-              <LoonaTile product="ld" variant={logo.tile('color')} size={76} decorative style={{ display: 'block' }} />
+              <LogoTile variant="color" size={76} style={{ display: 'block' }} />
             </span>
             <span
               style={{
@@ -205,7 +203,7 @@ export function Splash() {
               animation: 'ldSplashLogo 0.7s cubic-bezier(0.2,0.9,0.3,1) both,ldSplashBreath 2.2s ease-in-out 0.7s infinite',
             }}
           >
-            <LoonaTile product="ld" variant={logo.tile('color')} size={84} decorative style={{ display: 'block' }} />
+            <LogoTile variant="color" size={84} style={{ display: 'block' }} />
           </span>
           <span
             style={{

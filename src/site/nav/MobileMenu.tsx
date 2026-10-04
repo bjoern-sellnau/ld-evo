@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
-import { LoonaTile } from '@/components/brand';
 import { useSite } from '../settings/SiteProvider';
 import styles from './MobileMenu.module.css';
 import { useContent } from '../content/ContentProvider';
@@ -11,13 +10,12 @@ import { isActiveHref } from './pages';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import { LanguageSwitch } from '../i18n/LanguageSwitch';
-import { useLogo } from '../settings/useLogo';
+import { LogoTile } from '../settings/LogoTile';
 
 const item = (delay: string): CSSProperties => ({ animation: `ldMenuItem 0.45s ${delay} cubic-bezier(0.22,1,0.32,1) both` });
 
 /** Mobile-Menü als Vollbild-Glas-Page (slide-up 0.45 s, gestaffelte Items). Markup: Prototyp Zeile 913 ff. */
 export function MobileMenu() {
-  const logo = useLogo();
   const { settings, mob, isMobile, mobDesign, overlay, setOverlay, toggleTheme, toggleAnim, navigate } = useSite();
   const pathname = canonicalPath(usePathname());
   const t = useT();
@@ -79,10 +77,17 @@ export function MobileMenu() {
           zIndex: 74,
           overflow: 'hidden',
           background: solid
-            ? 'linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) 84%,transparent)'
+            ? // Liquid Glass mit festen Farben: Glanzstreif + Film über der Tönung der Glas-Stufe (Kontrast über Orange gerechnet, site.css)
+              'linear-gradient(115deg,transparent 18%,rgba(255,255,255,0.14) 30%,rgba(255,255,255,0.03) 38%,transparent 45%),linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) var(--sheetTint),transparent)'
             : 'linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) 62%,transparent)',
           border: '1px solid var(--glassbrd)',
-          boxShadow: 'inset 0 1.5px 1px var(--glasshi),var(--shadow)',
+          boxShadow: solid
+            ? 'inset 0 1.5px 1px var(--glasshi),inset 1px 0 1px rgba(255,255,255,0.1),inset -1px 0 1px rgba(255,255,255,0.1),inset 0 -12px 20px -14px rgba(0,0,0,0.4),0 -10px 40px -10px rgba(0,0,0,0.45)'
+            : 'inset 0 1.5px 1px var(--glasshi),var(--shadow)',
+          ...(solid && {
+            backdropFilter: 'blur(var(--sheetBlur)) saturate(1.9) brightness(1.04)',
+            WebkitBackdropFilter: 'blur(var(--sheetBlur)) saturate(1.9) brightness(1.04)',
+          }),
           animation: sheet ? 'ldSheetUp 0.42s cubic-bezier(0.22,1,0.32,1)' : 'ldPageIn 0.45s cubic-bezier(0.22,1,0.32,1)',
         }}
       >
@@ -121,7 +126,7 @@ export function MobileMenu() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, ...item('0.05s') }}>
-            <LoonaTile product="ld" variant={logo.tile('color')} size={26} decorative style={{ display: 'block' }} />
+            <LogoTile variant="color" size={26} style={{ display: 'block' }} />
             <span style={{ fontFamily: 'var(--ld-font-mono),monospace', fontSize: 10, letterSpacing: '0.2em', color: 'var(--soft)' }}>
               {t('menu.kicker')}
             </span>

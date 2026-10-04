@@ -202,6 +202,7 @@ const EN_LABELS: Record<string, string> = {
   'Mobil-Logo': 'Mobile logo',
   'Mobil-Design': 'Mobile design',
   'Logo negativ': 'Negative logo',
+  'Logo only negative (nur LD)': 'Logo only negative (LD only)',
   Prototyp: 'Prototype',
   Pille: 'Pill',
   Wortmarke: 'Wordmark',
@@ -283,6 +284,7 @@ export function SettingsPanel() {
     { label: 'Splash-Screen', key: 'splashOn', on: s.splashOn },
     { label: 'Reise: Bild-Hintergrund', key: 'reiseBg', on: s.reiseBg },
     { label: 'Logo negativ', key: 'logoNeg', on: s.logoNeg },
+    { label: 'Logo only negative (nur LD)', key: 'logoBare', on: s.logoBare },
     { label: 'Performance-Modus', key: 'perfMode', on: s.perfMode },
     { label: '30 fps Hero', key: 'fpsHalf', on: s.fpsHalf },
     ...(hm === 'matrix'

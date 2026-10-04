@@ -69,6 +69,8 @@ export interface Settings {
   mobLogo: MobLogo;
   mobDesign: MobDesign;
   logoNeg: boolean;
+  /** „Logo only negative“: nur das LD (Füllung) ohne Kachel. */
+  logoBare: boolean;
 }
 
 /** SSR-Defaults (dark, Animationen an) — entsprechen dem initialen State des Prototyps. */
@@ -120,6 +122,7 @@ export const DEFAULT_SETTINGS: Settings = {
   mobLogo: 'pill',
   mobDesign: 'proto',
   logoNeg: false,
+  logoBare: false,
 };
 
 interface Codec<T> {
@@ -218,6 +221,7 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
     write: (v) => (v === 'proto' ? null : v),
   },
   logoNeg: offUnlessOn('ld-logoneg'),
+  logoBare: offUnlessOn('ld-logobare'),
 };
 
 export function readSettings(storage: Pick<Storage, 'getItem'>): Settings {

@@ -3,7 +3,6 @@
 import { useMemo, type CSSProperties } from 'react';
 import Link from 'next/link';
 import type { CmsStationProject as StationProject } from '@/cms/types';
-import { LoonaTile } from '@/components/brand';
 import { mono } from '../cards/ProjectCard';
 import { useContent } from '../content/ContentProvider';
 import { buildAbout } from '../lib/aboutModel';
@@ -13,14 +12,13 @@ import { ScrollRail, useScrollSpy } from './ScrollRail';
 import detailStyles from './detail.module.css';
 import { mediaSrcSet } from '@/cms/media';
 import { useHref, useLocale, useT } from '../i18n/LocaleProvider';
-import { useLogo } from '../settings/useLogo';
+import { LogoTile } from '../settings/LogoTile';
 
 const h2: CSSProperties = { fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', margin: 0 };
 const para: CSSProperties = { margin: '12px 0 0', fontSize: 15, lineHeight: 1.75, color: 'var(--muted)' };
 
 /** Über mich — Split-Layout: links sticky Bild (Crossfade je Abschnitt), rechts Inhalt, Punkt-Rail. Prototyp Zeile 691–820. */
 export function AboutPage() {
-  const logo = useLogo();
   const { settings: s, mob, navigate } = useSite();
   const { about } = useContent();
   const t = useT();
@@ -239,7 +237,7 @@ export function AboutPage() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <LoonaTile product="ld" variant={logo.tile('color')} size={38} decorative style={{ display: 'block', flex: 'none' }} />
+                <LogoTile variant="color" size={38} style={{ display: 'block', flex: 'none' }} />
                 <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>
                   Loona! Designs{' '}
                   <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 400, color: 'var(--soft)' }}>/// the web. my passion</span>
