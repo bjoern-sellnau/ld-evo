@@ -11,6 +11,7 @@ import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import { LanguageSwitch } from '../i18n/LanguageSwitch';
 import { LogoTile } from '../settings/LogoTile';
+import { LiquidLayers } from '../glass/LiquidLayers';
 
 const item = (delay: string): CSSProperties => ({ animation: `ldMenuItem 0.45s ${delay} cubic-bezier(0.22,1,0.32,1) both` });
 
@@ -76,18 +77,12 @@ export function MobileMenu() {
           }),
           zIndex: 74,
           overflow: 'hidden',
+          // App v2: keine eigene Fläche/kein backdrop-filter — das Glas liefern die LiquidLayers darunter.
           background: solid
-            ? // Liquid Glass mit festen Farben: Glanzstreif + Film über der Tönung der Glas-Stufe (Kontrast über Orange gerechnet, site.css)
-              'linear-gradient(115deg,transparent 18%,rgba(255,255,255,0.14) 30%,rgba(255,255,255,0.03) 38%,transparent 45%),linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) var(--sheetTint),transparent)'
+            ? 'transparent'
             : 'linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) 62%,transparent)',
           border: '1px solid var(--glassbrd)',
-          boxShadow: solid
-            ? 'inset 0 1.5px 1px var(--glasshi),inset 1px 0 1px rgba(255,255,255,0.1),inset -1px 0 1px rgba(255,255,255,0.1),inset 0 -12px 20px -14px rgba(0,0,0,0.4),0 -10px 40px -10px rgba(0,0,0,0.45)'
-            : 'inset 0 1.5px 1px var(--glasshi),var(--shadow)',
-          ...(solid && {
-            backdropFilter: 'blur(var(--sheetBlur)) saturate(1.9) brightness(1.04)',
-            WebkitBackdropFilter: 'blur(var(--sheetBlur)) saturate(1.9) brightness(1.04)',
-          }),
+          boxShadow: solid ? '0 -10px 40px -10px rgba(0,0,0,0.45)' : 'inset 0 1.5px 1px var(--glasshi),var(--shadow)',
           animation: sheet ? 'ldSheetUp 0.42s cubic-bezier(0.22,1,0.32,1)' : 'ldPageIn 0.45s cubic-bezier(0.22,1,0.32,1)',
         }}
       >
@@ -108,9 +103,15 @@ export function MobileMenu() {
             }}
           />
         )}
-        <div data-ldfrost="1" aria-hidden style={{ borderRadius: rad }} />
-        <div data-ldedge="1" aria-hidden style={{ borderRadius: rad }} />
-        <div data-ldrim="1" aria-hidden style={{ borderRadius: rad }} />
+        {solid ? (
+          <LiquidLayers radius="inherit" />
+        ) : (
+          <>
+            <div data-ldfrost="1" aria-hidden style={{ borderRadius: rad }} />
+            <div data-ldedge="1" aria-hidden style={{ borderRadius: rad }} />
+            <div data-ldrim="1" aria-hidden style={{ borderRadius: rad }} />
+          </>
+        )}
         <div
           style={{
             position: 'relative',

@@ -10,6 +10,7 @@ import { ModalOverlay } from './GlassPanel';
 import styles from './overlays.module.css';
 import { useT } from '../i18n/LocaleProvider';
 import { APPV2_BAR_BOTTOM, APPV2_BAR_HEIGHT } from '../nav/AppV2Bar';
+import { LiquidLayers } from '../glass/LiquidLayers';
 
 /**
  * Suchindex wie im Prototyp (Seiten, Projekte/Labs ohne Archiv, Artikel, freie CMS-Seiten) — erweitert um den Volltext:
@@ -266,7 +267,7 @@ function MobileSearchPanel({
         role="dialog"
         aria-modal="true"
         aria-label={label}
-        className="ld-sheet2"
+        className="ld-sheet2 ld-dense"
         style={{
           position: 'fixed',
           zIndex: 80,
@@ -275,16 +276,13 @@ function MobileSearchPanel({
             : { left: 12, right: 12, bottom: `calc(${bottom}px + env(safe-area-inset-bottom))` }),
           borderRadius: 24,
           overflow: 'hidden',
-          background:
-            'linear-gradient(115deg,transparent 18%,rgba(255,255,255,0.14) 30%,rgba(255,255,255,0.03) 38%,transparent 45%),linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) var(--sheetTint),transparent)',
-          backdropFilter: 'blur(var(--sheetBlur)) saturate(1.9)',
-          WebkitBackdropFilter: 'blur(var(--sheetBlur)) saturate(1.9)',
+          // Kein eigener Hintergrund/backdrop-filter — LiquidLayers liefern Frost, Tönung, Kanten (wie die Desktop-Leiste).
           border: '1px solid var(--glassbrd)',
-          boxShadow:
-            'inset 0 1.5px 1px var(--glasshi),inset 1px 0 1px rgba(255,255,255,0.1),inset -1px 0 1px rgba(255,255,255,0.1),inset 0 -12px 20px -14px rgba(0,0,0,0.4),0 18px 50px -12px rgba(0,0,0,0.5)',
+          boxShadow: '0 18px 50px -12px rgba(0,0,0,0.5)',
           animation: 'ldSearchUp 0.34s cubic-bezier(0.22,1,0.32,1)',
         }}
       >
+        <LiquidLayers radius="24px" />
         {children}
       </div>
     </>
