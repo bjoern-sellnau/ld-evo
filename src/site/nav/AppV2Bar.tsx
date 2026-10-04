@@ -19,7 +19,9 @@ import { simBottom } from '../chrome/phoneBox';
  *  - Tab-Leiste im Liquid-Glass der Desktop-Leiste (GlassSurface mit Sheen) mit Über mich · Projekte · Home · Labs · Menü;
  *    Home ist das LD-Logo, größer und mittig leicht über die Leiste gehoben.
  *  - Darüber schwebende Glasknöpfe: links „Zurück“ (nur Detailseiten), rechts „Nach oben“ und „Suche“.
- *  - Alle Glasflächen laufen durch den Auto-Kontrast (id ld-tabbar bzw. data-ldcontrast, src/site/glass/navContrast.ts).
+ *  - Alle Glasflächen laufen durch denselben Auto-Kontrast wie die Desktop-Leiste (id ld-tabbar bzw. data-ldcontrast,
+ *    src/site/glass/navContrast.ts): Theme-Look bleibt, die Tönung wird über Cover-Farben dichter, gekippt wird nur,
+ *    wenn es nötig ist (Wunsch vom 04.10.2026 — vorher eigene Schwarz/Weiß-Wahl, die auf Detailseiten fast immer hell wurde).
  * Das Menü öffnet MobileMenu als kontraststarkes Bottom-Sheet (ld-sheet2), die Suche ein Panel über der Leiste.
  */
 const TABS: { id: SitePageId; label: UiKey; icon: string }[] = [
@@ -104,7 +106,6 @@ export function AppV2Bar() {
       <GlassSurface
         as="nav"
         id="ld-tabbar"
-        data-ldvibrant
         aria-label={t('nav.main')}
         radius="30px"
         sheen
@@ -216,7 +217,7 @@ const tabLabel: CSSProperties = { fontSize: 9.5, fontWeight: 700, letterSpacing:
 function GlassButton({ onClick, label, wide, children }: { onClick: () => void; label: string; wide?: boolean; children: ReactNode }) {
   return (
     <span style={{ position: 'relative', zIndex: 0, display: 'inline-flex', pointerEvents: 'auto' }}>
-      <GlassSurface as="span" data-ldcontrast data-ldvibrant radius="999px" sheen style={{ display: 'inline-flex' }}>
+      <GlassSurface as="span" data-ldcontrast radius="999px" sheen style={{ display: 'inline-flex' }}>
         <button
           type="button"
           onClick={onClick}

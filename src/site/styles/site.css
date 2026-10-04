@@ -135,7 +135,10 @@ body.noblur [data-ldscrim] {
   --glass: color-mix(in srgb, var(--glassTint) var(--glassPct), transparent);
 }
 #ld-tabbar,
-#ld-backpill {
+#ld-backpill,
+[data-ldcontrast] {
+  /* --glass hier neu ableiten — sonst greift die vom Auto-Kontrast gesetzte --glassTint/--glassPct nicht
+     (die Variable wäre schon an :root aufgelöst; Glasknöpfe in App v2 hatten so dunkles Glas mit schwarzer Schrift). */
   --glass: color-mix(in srgb, var(--glassTint) max(var(--glassPct), 62%), transparent);
 }
 @keyframes ldPageIn {
@@ -1604,6 +1607,10 @@ body.md-lab main#inhalt h2 {
 .ld-sheet2.ld-dense[data-scheme='dark'] {
   --sheetTint: clamp(74%, calc(var(--glassPct, 42%) + 32%), 96%);
   --soft: var(--muted);
+}
+/* Theme-Look über kräftigen Flächen (Cover-Farbe): dichtere Tönung statt Kippen — wie die Desktop-Leiste (navContrast.ts) */
+.ld-sheet2[data-boost] {
+  --sheetTint: clamp(80%, calc(var(--glassPct, 42%) + 38%), 96%);
 }
 /* Glanz im Dunkeln dezenter — sonst hellt der wandernde Streif kurz den Grund hinter kleiner Schrift auf */
 .ld-sheet2[data-scheme='dark'] .ld-liquid-sheen {

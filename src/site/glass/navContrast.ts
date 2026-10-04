@@ -79,14 +79,15 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
     document.querySelectorAll<HTMLElement>('[data-ldvibrant-sheet]').forEach((el, i) => {
       if (s.autoC === false) return;
       const key = `_sheet${i}`;
-      const sc = pickScheme(
-        sampleLums(el, theme, 5, 6),
-        theme,
-        (el.dataset.scheme as 'dark' | 'light' | undefined) ?? memo.scheme![key],
-        0.56,
-      );
+      const lums = sampleLums(el, theme, 5, 6);
+      let sc = pickScheme(lums, theme, (el.dataset.scheme as 'dark' | 'light' | undefined) ?? memo.scheme![key], 0.56);
+      // Wie die Desktop-Leiste: statt zu kippen erst die Tönung verdichten (data-boost → --sheetTint ≥ 80 %, site.css).
+      const natural = theme === 'light' ? 'light' : 'dark';
+      const boost = sc !== natural && pickScheme(lums, theme, undefined, 0.8) === natural;
+      if (boost) sc = natural;
       memo.scheme![key] = sc;
       if (el.dataset.scheme !== sc) el.dataset.scheme = sc;
+      if (boost !== el.hasAttribute('data-boost')) el.toggleAttribute('data-boost', boost);
     });
     if (overlayOpen) return;
     const wrap = document.querySelector('.ldnavvt');
@@ -157,15 +158,6 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
           }
         }
         lums.push(lum);
-      }
-      // App v2 (data-ldvibrant): wie Apples Materialien — Schwarz oder Weiß, je nachdem, was über dem gemessenen
-      // Hintergrund (inkl. Glas-Tönung) den besseren schlechtesten Kontrast ergibt; Theme-Variante bevorzugt.
-      if (pill.hasAttribute('data-ldvibrant')) {
-        const sc = pickScheme(lums, theme, memo.scheme![flipKey], VIBRANT_PCT / 100);
-        memo.scheme![flipKey] = sc;
-        pill.style.textShadow = '';
-        applyNavFix(pill, sc === 'dark' ? VIBRANT_DARK : VIBRANT_LIGHT);
-        continue;
       }
       const backL = theme === 'light' ? Math.min(...lums) : Math.max(...lums);
       // Dynamische Pixel-Messung: echte Canvas-Pixel (WebGL via preserveDrawingBuffer / 2D) hinter dem Ziel
@@ -272,9 +264,6 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
 
 /* ---------------------------------------------------------------- Vibrancy (App v2) ---------------------------- */
 
-const VIBRANT_PCT = 66;
-const VIBRANT_DARK = `--glassTint:#0B1322;--glassPct:${VIBRANT_PCT}%;--ink:#F4F7FB;--muted:#E6ECF4;--soft:#D2DBE8;--pill:rgba(255,255,255,0.16);--hair:rgba(255,255,255,0.12);--glassbrd:rgba(255,255,255,0.22);--glasshi:rgba(255,255,255,0.32)`;
-const VIBRANT_LIGHT = `--glassTint:#F4F7FB;--glassPct:${VIBRANT_PCT}%;--ink:#0B1626;--muted:#1C2A40;--soft:#2E3D55;--pill:rgba(15,33,55,0.1);--hair:rgba(15,33,55,0.14);--glassbrd:rgba(15,33,55,0.16);--glasshi:rgba(255,255,255,0.8)`;
 const L_DARK_TINT = relLum({ r: 11, g: 19, b: 34, a: 1 });
 const L_LIGHT_TINT = relLum({ r: 244, g: 247, b: 251, a: 1 });
 const L_WHITE_TEXT = relLum({ r: 244, g: 247, b: 251, a: 1 });
@@ -284,7 +273,7 @@ const ratio = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b
 /**
  * Wählt das Material: 'dark' (dunkle Tönung, weiße Schrift) oder 'light' (helle Tönung, schwarze Schrift).
  * Rechnet je Messpunkt die Mischung aus Glas-Tönung (Anteil a) und Hintergrund und nimmt den schlechtesten Punkt.
- * Die Theme-Variante bleibt, solange sie ≥ 7:1 schafft; die bisherige Wahl bleibt bei ≥ 6:1 (Hysterese, kein Flackern).
+ * Die Theme-Variante bleibt, solange sie ≥ 4.5:1 schafft (zurück erst ab 5.5:1 — Hysterese, kein Flackern).
  */
 export function pickScheme(lums: number[], theme: string, prev: 'dark' | 'light' | undefined, a: number): 'dark' | 'light' {
   if (!lums.length) return theme === 'light' ? 'light' : 'dark';
@@ -294,9 +283,11 @@ export function pickScheme(lums: number[], theme: string, prev: 'dark' | 'light'
         sc === 'dark' ? ratio(L_WHITE_TEXT, a * L_DARK_TINT + (1 - a) * L) : ratio(a * L_LIGHT_TINT + (1 - a) * L, L_BLACK_TEXT),
       ),
     );
+  // Wie die Desktop-Leiste: der Theme-Look bleibt, solange er lesbar ist (≥ 4.5:1); zurück zum Theme-Look erst ab 5.5:1
+  // (Hysterese). Gekippt wird nur, wenn es nötig ist — vorher (≥ 7:1 gefordert) kippte das Menü auf Cover-Farben fast immer.
   const natural = theme === 'light' ? 'light' : 'dark';
-  if (prev && worst(prev) >= 6) return prev;
-  if (worst(natural) >= 7) return natural;
+  if (worst(natural) >= (prev && prev !== natural ? 5.5 : 4.5)) return natural;
+  if (prev && worst(prev) >= 4.5) return prev;
   return worst('dark') >= worst('light') ? 'dark' : 'light';
 }
 
