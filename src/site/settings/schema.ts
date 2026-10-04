@@ -72,8 +72,10 @@ export interface Settings {
   logoNeg: boolean;
   /** „Logo only negative“: nur der Negativraum des Monogramms (L + D, ohne Spalt/Fuge). */
   logoBare: boolean;
-  /** Farbe des Negativ-Logos (Hex). */
+  /** Farbe des Negativ-Logos (Hex) oder 'auto' (nach gemessenem Hintergrund, src/site/glass/logoContrast.ts). */
   logoNegColor: string;
+  /** „Logo-Farbe: Auto“: LD-Kachel wechselt nach Kontrast zwischen Farb- und Ink-Kachel. */
+  logoAuto: boolean;
   /** Simulierter Mobil-Modus: Rahmen in echter iPhone-Höhe (430 × 932) statt Fensterhöhe. */
   phoneExact: boolean;
 }
@@ -129,6 +131,7 @@ export const DEFAULT_SETTINGS: Settings = {
   logoNeg: false,
   logoBare: false,
   logoNegColor: '#FF7816',
+  logoAuto: false,
   phoneExact: false,
 };
 
@@ -232,9 +235,10 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   logoNegColor: {
     key: 'ld-lognegcolor',
     // nur echte Hex-Farben übernehmen (Eingabe aus localStorage)
-    read: (r) => (r && /^#[0-9a-f]{6}$/i.test(r) ? r : '#FF7816'),
+    read: (r) => (r === 'auto' || (r && /^#[0-9a-f]{6}$/i.test(r)) ? r : '#FF7816'),
     write: (v) => (v.toUpperCase() === '#FF7816' ? null : v),
   },
+  logoAuto: offUnlessOn('ld-logoauto'),
   phoneExact: offUnlessOn('ld-phoneexact'),
 };
 

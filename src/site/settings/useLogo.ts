@@ -16,6 +16,8 @@ export function useLogo() {
     negativeColor: settings.logoBare ? settings.logoNegColor : undefined,
     tile: (v: 'ink' | 'color'): 'ink' | 'color' => (neg ? (v === 'ink' ? 'color' : 'ink') : v),
     /** Ton des Zeichens im Lockup (undefined = Standard aus dem Theme). */
-    markTone: (theme: 'dark' | 'light'): LoonaTone | undefined => (neg ? (theme === 'dark' ? 'cream' : 'color') : undefined),
+    // „Logo-Farbe: Auto“ (ld-logoauto) hat Vorrang: Farbe nach gemessenem Hintergrund (src/site/glass/logoContrast.ts).
+    markTone: (theme: 'dark' | 'light'): LoonaTone | undefined =>
+      settings.logoAuto ? 'auto' : neg ? (theme === 'dark' ? 'cream' : 'color') : undefined,
   };
 }

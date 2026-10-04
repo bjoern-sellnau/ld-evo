@@ -5,6 +5,7 @@
  * 1:1 aus dem Prototyp (parseColor / relLum / applyNavFix / adjustNavContrast, Zeile 3907–4079).
  */
 import type { Settings } from '../settings/schema';
+import { adjustLogoColors, createLogoMemo, type LogoMemo } from './logoContrast';
 
 interface Rgba {
   r: number;
@@ -16,6 +17,8 @@ interface Rgba {
 type FixEl = HTMLElement & { __ldFix?: string };
 
 export interface ContrastMemo {
+  /** Logo-Farbe „Auto“ (logoContrast.ts) — gewählte Farben je Logo für die Hysterese. */
+  logo?: LogoMemo;
   flip: Record<string, boolean>;
   /** Gewähltes Material je Fläche (Vibrancy, App v2) — für die Hysterese. */
   scheme?: Record<string, 'dark' | 'light'>;
@@ -70,6 +73,8 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
     const { s, overlayOpen } = get();
     const theme = s.theme || 'dark';
     memo.scheme ??= {};
+    // Logos mit Farbe „Auto“ messen immer mit (auch bei offenem Overlay und ohne Auto-Kontrast der Leisten).
+    adjustLogoColors(theme, (memo.logo ??= createLogoMemo()));
     // Große Glasflächen (App-v2-Menü, mobile Suche) messen auch bei offenem Overlay — sie SIND das Overlay.
     document.querySelectorAll<HTMLElement>('[data-ldvibrant-sheet]').forEach((el, i) => {
       if (s.autoC === false) return;
