@@ -27,6 +27,10 @@ interface SiteContextValue {
   mob: boolean;
   /** Glas-Sidebar statt Top-Pille (View-Mode „Wide“ oder Seitenmenü-Toggle ab 1600 px). */
   sideActive: boolean;
+  /** Wide 2: Icon-Leiste statt Seitenleiste (sideActive ist dann ebenfalls true). */
+  railMode: boolean;
+  /** Belegte Breite links durch Seitenleiste bzw. Icon-Leiste (0 ohne). */
+  sideW: number;
   /** Aktives Mobil-Design (nur mobil, sonst 'proto'). */
   mobDesign: MobDesign;
   overlay: Overlay;
@@ -196,7 +200,10 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   const value = useMemo<SiteContextValue>(() => {
     const vm = settings.viewMode;
     const mob = vm === 'mobile' || (vm === 'auto' && viewport.isMobile);
-    const sideActive = !mob && (vm === 'wide' || (settings.navSide && viewport.isWide));
+    const railMode = !mob && vm === 'wide2';
+    const sideActive = !mob && (vm === 'wide' || railMode || (settings.navSide && viewport.isWide));
+    // Seitenleiste: 18 + 224 px; Icon-Leiste: 16 + 64 px
+    const sideW = !sideActive ? 0 : railMode ? 80 : 242;
     const morphOk = ![...REVEAL_MODES, ...WILD_MODES].includes(settings.pageVt || 'fade');
     const mobDesign: MobDesign = mob ? settings.mobDesign : 'proto';
     return {
@@ -206,6 +213,8 @@ export function SiteProvider({ children }: { children: ReactNode }) {
       ...viewport,
       mob,
       sideActive,
+      railMode,
+      sideW,
       mobDesign,
       overlay,
       setOverlay,

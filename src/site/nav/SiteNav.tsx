@@ -14,6 +14,7 @@ import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import { useLogo } from '../settings/useLogo';
 import { LogoTile } from '../settings/LogoTile';
+import { IconRail } from './IconRail';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -33,7 +34,7 @@ const iconBtn: CSSProperties = {
 /** Liquid-Glass-Nav: Top-Pille (Desktop) bzw. Glas-Sidebar (Wide). Markup/Werte aus dem Prototyp, Zeile 328 ff. */
 export function SiteNav() {
   const logo = useLogo();
-  const { settings, mob, sideActive, isWide, frame, narrow, toggleTheme, toggleAnim, setOverlay, navigate, set } = useSiteNav();
+  const { settings, mob, sideActive, railMode, isWide, frame, narrow, toggleTheme, toggleAnim, setOverlay, navigate, set } = useSiteNav();
   const pathname = canonicalPath(usePathname());
   const { navigation } = useContent();
   const back = useBack();
@@ -48,6 +49,8 @@ export function SiteNav() {
   const mobLogo = mob ? settings.mobLogo : 'pill';
   const scrolled = useScrolledPast(140, mob && mobLogo === 'scroll');
 
+  // Wide 2: schmale Icon-Leiste statt Seitenleiste
+  if (railMode) return <IconRail />;
   if (mob && settings.mobModern) return null;
   // Mobil-Designs 2 bringen eigene Kopf-/Navigationsleisten mit (MobileChrome2).
   if (site2(settings.mobDesign, mob)) return null;
@@ -179,6 +182,7 @@ export function SiteNav() {
             markSize={28}
             theme={settings.theme}
             tone={logo.markTone(settings.theme)}
+            negativeColor={logo.negativeColor}
             variant={narrow && mobLogo !== 'wordmark' ? 'mark' : 'full'}
             style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
           />

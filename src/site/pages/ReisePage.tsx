@@ -27,7 +27,7 @@ type IntroPhase = 'run' | 'out' | 'done';
  * Die „L!“-Kachel im Intro ist durch die LD-Kachel ersetzt (Entscheidung: neues Logo).
  */
 export function ReisePage() {
-  const { settings, hydrated, sideActive, mob, isMobile } = useSite();
+  const { settings, hydrated, sideActive, sideW: sideWidth, mob, isMobile } = useSite();
   const JOURNEY = useContent().journey;
   const t = useT();
   const LAST = JOURNEY.length - 1;
@@ -207,7 +207,7 @@ export function ReisePage() {
   const curStep = stepIdx !== null && st.steps[stepIdx] ? st.steps[stepIdx] : null;
   const stepSuffix = curStep ? '-s' + stepIdx : '';
   // Seitenleiste (Widescreen): links 18 + 224 px belegt, keine Leiste oben → Inhalte rücken nach rechts und nach oben.
-  const sideW = sideActive ? 242 : 0;
+  const sideW = sideWidth;
   const padL = sideActive ? sideW + 20 : 30;
   const topY = sideActive ? 32 : 92;
   const panelW = Math.min(0.32 * (vw - sideW), 430);
