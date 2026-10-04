@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
-import { LoonaLockup, LoonaTile } from '@/components/brand';
+import { LoonaLockup } from '@/components/brand';
 import { useSite } from '../settings/SiteProvider';
 import { useContent } from '../content/ContentProvider';
 import { useHref, useT } from '../i18n/LocaleProvider';
@@ -11,7 +11,10 @@ import { canonicalPath } from '../i18n/locale';
 import { LanguageSwitch } from '../i18n/LanguageSwitch';
 import { isActiveHref } from './pages';
 import { useBack } from './useBack';
+import { AppV2Bar } from './AppV2Bar';
 import styles from './SiteNav.module.css';
+import { useLogo } from '../settings/useLogo';
+import { LogoTile } from '../settings/LogoTile';
 
 /**
  * Mobil-Designs 2 (neu, nicht im Prototyp — Einstellung „Mobil-Design“, ld-mobdesign). Ersetzt auf dem Telefon die
@@ -24,6 +27,7 @@ import styles from './SiteNav.module.css';
 export function MobileChrome2() {
   const { mobDesign } = useSite();
   if (mobDesign === 'app') return <AppBar />;
+  if (mobDesign === 'appv2') return <AppV2Bar />;
   if (mobDesign === 'editorial') return <EditorialChrome />;
   if (mobDesign === 'lab') return <LabDock />;
   return null;
@@ -125,7 +129,7 @@ function AppBar() {
           </button>
         ) : (
           <Link href={href('/')} onClick={go('/')} aria-label={t('nav.home')} className={reset} style={{ ...round, justifySelf: 'start' }}>
-            <LoonaTile product="ld" variant="ink" size={32} decorative style={{ display: 'block', borderRadius: 9 }} />
+            <LogoTile variant="ink" size={32} style={{ display: 'block', borderRadius: 9 }} />
           </Link>
         )}
         {/* Seitentitel blendet ein, sobald die große Überschrift der Seite weggescrollt ist (iOS „Large Title“). */}
@@ -158,6 +162,7 @@ function AppBar() {
 /* -------------------------------------------------------------- Editorial ----------------------------------------- */
 
 function EditorialChrome() {
+  const logo = useLogo();
   const { overlay, setOverlay, settings, toggleTheme } = useSite();
   const { framed, box } = useScreenBox();
   const t = useT();
@@ -220,6 +225,7 @@ function EditorialChrome() {
               <LoonaLockup
                 markSize={22}
                 theme={settings.theme}
+                tone={logo.markTone(settings.theme)}
                 variant="full"
                 style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
               />
@@ -558,11 +564,9 @@ function LabDock() {
               transition: 'transform 0.35s cubic-bezier(0.2,1.3,0.4,1),box-shadow 0.35s',
             }}
           >
-            <LoonaTile
-              product="ld"
+            <LogoTile
               variant="ink"
               size={58}
-              decorative
               style={{ display: 'block', transform: open ? 'rotate(-45deg)' : 'none', transition: 'transform 0.35s' }}
             />
           </button>

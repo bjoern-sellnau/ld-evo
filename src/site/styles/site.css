@@ -1552,3 +1552,90 @@ body.md-lab main#inhalt h2 {
   font-family: var(--ld-font-mono), monospace;
   letter-spacing: -0.04em;
 }
+
+/*
+ * App v2: Menü und Such-Panel mit festen Farbwerten (Theme-Grundwerte), unabhängig von Cover-Farben der Seite —
+ * auf farbigen Detailseiten (z. B. „Neue Webseite“, orange) war das Glas-Menü sonst kaum lesbar.
+ */
+.ld-sheet2 {
+  --bg: #0a1220;
+  --ink: #f2f5fa;
+  --muted: #e4e9f1;
+  --soft: #dde4ee;
+  --pill: rgba(255, 255, 255, 0.12);
+  --hair: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.12);
+  --card: rgba(255, 255, 255, 0.06);
+  --glassg1: rgba(255, 255, 255, 0.08);
+  --glassg2: rgba(255, 255, 255, 0.02);
+  --glassbrd: rgba(255, 255, 255, 0.16);
+  --glasshi: rgba(255, 255, 255, 0.22);
+  /* Akzent als Text auf dem Glas heller (≥ 4,5:1), Kontakt-Knopf bleibt deckend mit dunkler Schrift */
+  --accent: #ffdc96;
+  --on-accent: #241400;
+  color: var(--ink);
+}
+body.light .ld-sheet2 {
+  --bg: #ffffff;
+  --ink: #0f2137;
+  --muted: #44516a;
+  --soft: #44516a;
+  --pill: rgba(15, 33, 55, 0.07);
+  --hair: rgba(15, 33, 55, 0.1);
+  --border: rgba(15, 33, 55, 0.12);
+  --card: #f6f9fc;
+  --glassg1: rgba(255, 255, 255, 0.7);
+  --glassg2: rgba(255, 255, 255, 0.4);
+  --glassbrd: rgba(15, 33, 55, 0.12);
+  --glasshi: rgba(255, 255, 255, 0.9);
+  --accent: #8a3f06;
+  --on-accent: #ffffff;
+}
+/* Tönung folgt der Glas-Stufe (Einstellungen → Glas, --glassPct), aber nie unter 50 % — gerechnet für Text über
+   kräftigem Orange (Cover-Farbe) hinter starkem Blur: Text-Tokens unten erreichen dann ≥ 4,5:1. */
+.ld-sheet2 {
+  --sheetTint: clamp(56%, calc(var(--glassPct, 42%) + 16%), 96%);
+}
+body.light .ld-sheet2 {
+  --sheetTint: clamp(50%, calc(var(--glassPct, 52%) + 10%), 96%);
+}
+/* Such-Panel (dunkel) sitzt oft über hellen Hero-Flächen/Schrift: dichtere Tönung, gemessen ≥ 4,5:1 */
+body:not(.light) .ld-sheet2.ld-dense {
+  --sheetTint: clamp(74%, calc(var(--glassPct, 42%) + 32%), 96%);
+  --soft: var(--muted);
+}
+/* Glanz im Dunkeln dezenter — sonst hellt der wandernde Streif kurz den Grund hinter kleiner Schrift auf */
+body:not(.light) .ld-sheet2 .ld-liquid-sheen {
+  opacity: 0.55;
+}
+.ld-liquid-tint {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--glassg1), var(--glassg2)), color-mix(in srgb, var(--bg) var(--sheetTint, 52%), transparent);
+  box-shadow:
+    inset 0 1.5px 1px var(--glasshi),
+    inset 1px 0 1px rgba(255, 255, 255, 0.12),
+    inset -1px 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -14px 22px -16px rgba(0, 0, 0, 0.45);
+}
+.ld-liquid-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 18%, rgba(255, 255, 255, 0.16) 30%, rgba(255, 255, 255, 0.03) 38%, transparent 45%),
+    radial-gradient(120% 70% at 12% 0%, rgba(255, 255, 255, 0.12), transparent 55%);
+  background-size:
+    240% 100%,
+    100% 100%;
+  animation: ldSheen 12s ease-in-out infinite alternate;
+}
+@keyframes ldSearchUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+}

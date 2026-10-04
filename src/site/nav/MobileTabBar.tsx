@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
-import { LoonaTile } from '@/components/brand';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import { MobileBackPill } from './MobileBackPill';
@@ -12,6 +11,7 @@ import { SITE_PAGES, pageForPath, type SitePageId } from './pages';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import type { UiKey } from '../i18n/dict';
+import { LogoTile } from '../settings/LogoTile';
 
 interface Tab {
   id: SitePageId;
@@ -79,7 +79,7 @@ export function MobileTabBar() {
   const menuOpen = overlay === 'mobileNav';
 
   // Editorial und Lab kommen ohne Tab-Leiste aus (MobileChrome2); App dockt sie unten an.
-  if (!mob || mobDesign === 'editorial' || mobDesign === 'lab') return null;
+  if (!mob || mobDesign === 'editorial' || mobDesign === 'lab' || mobDesign === 'appv2') return null;
   const docked = mobDesign === 'app';
   const framed = !isMobile;
 
@@ -194,7 +194,7 @@ export function MobileTabBar() {
 function TabIcon({ icon, logo, color }: { icon: string; logo?: boolean; color: string }) {
   // Home-Button (Modern): LD-Kachel im App-Icon-Stil statt der früheren „L!“-Verlaufskachel.
   // Ohne Schatten/Glow — Logo-Regel „keine Schatten“ (Logo-Handoff §5).
-  if (logo) return <LoonaTile product="ld" variant="color" size={34} decorative style={{ display: 'block' }} />;
+  if (logo) return <LogoTile variant="color" size={34} style={{ display: 'block' }} />;
   return (
     <span
       aria-hidden

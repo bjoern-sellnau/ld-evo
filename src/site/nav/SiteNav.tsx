@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, type CSSProperties, type MouseEvent } from 'react';
-import { LoonaLockup, LoonaTile } from '@/components/brand';
+import { LoonaLockup } from '@/components/brand';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
@@ -12,6 +12,8 @@ import { isActiveHref } from './pages';
 import { useBack } from './useBack';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
+import { useLogo } from '../settings/useLogo';
+import { LogoTile } from '../settings/LogoTile';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -30,6 +32,7 @@ const iconBtn: CSSProperties = {
 
 /** Liquid-Glass-Nav: Top-Pille (Desktop) bzw. Glas-Sidebar (Wide). Markup/Werte aus dem Prototyp, Zeile 328 ff. */
 export function SiteNav() {
+  const logo = useLogo();
   const { settings, mob, sideActive, isWide, frame, narrow, toggleTheme, toggleAnim, setOverlay, navigate, set } = useSiteNav();
   const pathname = canonicalPath(usePathname());
   const { navigation } = useContent();
@@ -73,7 +76,7 @@ export function SiteNav() {
           className={cx(styles.reset, styles.logo)}
           style={{ pointerEvents: 'auto', borderRadius: 12, display: 'block' }}
         >
-          <LoonaTile product="ld" variant="ink" size={44} decorative style={{ display: 'block' }} />
+          <LogoTile variant="ink" size={44} style={{ display: 'block' }} />
         </Link>
       </nav>
     );
@@ -175,6 +178,7 @@ export function SiteNav() {
           <LoonaLockup
             markSize={28}
             theme={settings.theme}
+            tone={logo.markTone(settings.theme)}
             variant={narrow && mobLogo !== 'wordmark' ? 'mark' : 'full'}
             style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
           />

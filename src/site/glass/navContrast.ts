@@ -75,6 +75,8 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
     if (barEl) targets.push([barEl, '_tabFlip']);
     const backEl = document.getElementById('ld-backpill');
     if (backEl) targets.push([backEl, '_backFlip']);
+    // Weitere Glasknöpfe (Mobil-Design App v2): jede Fläche mit data-ldcontrast misst für sich.
+    document.querySelectorAll<FixEl>('[data-ldcontrast]').forEach((el, i) => targets.push([el, `_c${i}`]));
     for (const [pill, flipKey] of targets) {
       const r = pill.getBoundingClientRect();
       if (!r.width) continue;
@@ -102,7 +104,13 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
         if (lum === null || isNaN(lum)) {
           const stack = document.elementsFromPoint(x, y) || [];
           let el: Element | null | undefined = stack.find(
-            (n) => n instanceof Element && !n.closest('.ldnavvt') && !n.closest('#ld-tabbar') && !n.closest('#ld-backpill'),
+            (n) =>
+              n instanceof Element &&
+              !n.closest('.ldnavvt') &&
+              !n.closest('#ld-tabbar') &&
+              !n.closest('#ld-backpill') &&
+              !n.closest('[data-ldcontrast]') &&
+              !n.closest('[data-ldchrome]'),
           );
           while (el && el !== document.documentElement) {
             const c = getComputedStyle(el);

@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
-import { LoonaTile } from '@/components/brand';
 import { useSite } from '../settings/SiteProvider';
 import styles from './MobileMenu.module.css';
 import { useContent } from '../content/ContentProvider';
@@ -11,6 +10,8 @@ import { isActiveHref } from './pages';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import { LanguageSwitch } from '../i18n/LanguageSwitch';
+import { LogoTile } from '../settings/LogoTile';
+import { LiquidLayers } from '../glass/LiquidLayers';
 
 const item = (delay: string): CSSProperties => ({ animation: `ldMenuItem 0.45s ${delay} cubic-bezier(0.22,1,0.32,1) both` });
 
@@ -23,8 +24,10 @@ export function MobileMenu() {
   // Prototyp: menuSheetItems — was nicht in der Tab-Bar steht (pflegbar in LD Flow → Navigation).
   const ITEMS = useContent().navigation.filter((n) => n.inMenu);
   // Editorial/Lab haben eigene Menüs (MobileChrome2); App zeigt dieses Menü als Bottom-Sheet.
-  const open = mob && overlay === 'mobileNav' && (mobDesign === 'proto' || mobDesign === 'app');
-  const sheet = mobDesign === 'app';
+  const open = mob && overlay === 'mobileNav' && (mobDesign === 'proto' || mobDesign === 'app' || mobDesign === 'appv2');
+  const sheet = mobDesign === 'app' || mobDesign === 'appv2';
+  // App v2: eigene, feste Farbwerte (ld-sheet2 in site.css) — unabhängig von Cover-Farben der Seite → immer lesbar.
+  const solid = mobDesign === 'appv2';
   const panel = useRef<HTMLDivElement>(null);
 
   // Fokus ins Menü, beim Schließen zurück auf den Menü-Button der Tab-Bar.
@@ -56,6 +59,7 @@ export function MobileMenu() {
       <div
         id="ld-menu"
         ref={panel}
+        className={solid ? 'ld-sheet2' : undefined}
         role="dialog"
         aria-modal="true"
         aria-label={t('menu.label')}
@@ -73,9 +77,12 @@ export function MobileMenu() {
           }),
           zIndex: 74,
           overflow: 'hidden',
-          background: 'linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) 62%,transparent)',
+          // App v2: keine eigene Fläche/kein backdrop-filter — das Glas liefern die LiquidLayers darunter.
+          background: solid
+            ? 'transparent'
+            : 'linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) 62%,transparent)',
           border: '1px solid var(--glassbrd)',
-          boxShadow: 'inset 0 1.5px 1px var(--glasshi),var(--shadow)',
+          boxShadow: solid ? '0 -10px 40px -10px rgba(0,0,0,0.45)' : 'inset 0 1.5px 1px var(--glasshi),var(--shadow)',
           animation: sheet ? 'ldSheetUp 0.42s cubic-bezier(0.22,1,0.32,1)' : 'ldPageIn 0.45s cubic-bezier(0.22,1,0.32,1)',
         }}
       >
@@ -96,9 +103,15 @@ export function MobileMenu() {
             }}
           />
         )}
-        <div data-ldfrost="1" aria-hidden style={{ borderRadius: rad }} />
-        <div data-ldedge="1" aria-hidden style={{ borderRadius: rad }} />
-        <div data-ldrim="1" aria-hidden style={{ borderRadius: rad }} />
+        {solid ? (
+          <LiquidLayers radius="inherit" />
+        ) : (
+          <>
+            <div data-ldfrost="1" aria-hidden style={{ borderRadius: rad }} />
+            <div data-ldedge="1" aria-hidden style={{ borderRadius: rad }} />
+            <div data-ldrim="1" aria-hidden style={{ borderRadius: rad }} />
+          </>
+        )}
         <div
           style={{
             position: 'relative',
@@ -107,13 +120,14 @@ export function MobileMenu() {
             boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column',
-            padding: sheet ? '30px 22px 96px' : '88px 26px 108px',
+            // App v2: Leiste schwebt 16 px über dem Rand, 66 px hoch, Home-Logo ragt heraus → mehr Luft unten.
+            padding: solid ? '30px 22px 118px' : sheet ? '30px 22px 96px' : '88px 26px 108px',
             overflowY: 'auto',
             overscrollBehavior: 'contain',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, ...item('0.05s') }}>
-            <LoonaTile product="ld" variant="color" size={26} decorative style={{ display: 'block' }} />
+            <LogoTile variant="color" size={26} style={{ display: 'block' }} />
             <span style={{ fontFamily: 'var(--ld-font-mono),monospace', fontSize: 10, letterSpacing: '0.2em', color: 'var(--soft)' }}>
               {t('menu.kicker')}
             </span>

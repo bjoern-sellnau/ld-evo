@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState, type CSSProperties } from 'react';
-import { LoonaTile } from '@/components/brand';
 import { heroMode } from '../hero/heroInk';
 import { useSite } from '../settings/SiteProvider';
 import { SKETCH_HTML } from './sketchMarkup';
+import { LogoTile } from '../settings/LogoTile';
 
 /** Event, mit dem das Einstellungs-Panel den gewählten Splash sofort zur Vorschau abspielt (Nachtrag v17). */
 export const SPLASH_REPLAY_EVENT = 'ld-splash-replay';
@@ -151,7 +151,7 @@ export function Splash() {
                 animation: 'ldSpBox 0.65s 0.85s cubic-bezier(0.2,1.35,0.3,1) both',
               }}
             >
-              <LoonaTile product="ld" variant="color" size={76} decorative style={{ display: 'block' }} />
+              <LogoTile variant="color" size={76} style={{ display: 'block' }} />
             </span>
             <span
               style={{
@@ -203,7 +203,7 @@ export function Splash() {
               animation: 'ldSplashLogo 0.7s cubic-bezier(0.2,0.9,0.3,1) both,ldSplashBreath 2.2s ease-in-out 0.7s infinite',
             }}
           >
-            <LoonaTile product="ld" variant="color" size={84} decorative style={{ display: 'block' }} />
+            <LogoTile variant="color" size={84} style={{ display: 'block' }} />
           </span>
           <span
             style={{
