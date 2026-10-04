@@ -67,7 +67,19 @@ export function ScrollChrome() {
         }}
       />
       {detail && (
-        <div aria-hidden style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, zIndex: 70, pointerEvents: 'none' }}>
+        <div
+          aria-hidden
+          style={{
+            position: 'fixed',
+            // Simulierter Mobil-Modus: nur über die Telefonbreite (im Rahmen, oben an den Ecken beschnitten)
+            ...(mob && !isMobile
+              ? { top: 10, left: 'calc(50% - 215px)', width: 430, borderRadius: '32px 32px 0 0', overflow: 'hidden' }
+              : { top: 0, left: 0, right: 0 }),
+            height: 3,
+            zIndex: 70,
+            pointerEvents: 'none',
+          }}
+        >
           <div
             ref={bar}
             style={{

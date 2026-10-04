@@ -14,6 +14,7 @@ import { useHeroShader } from '../hero/useHeroShader';
 import { useSite } from '../settings/SiteProvider';
 import { useLocale, useT } from '../i18n/LocaleProvider';
 import { intlLocale, type Locale } from '../i18n/locale';
+import { mobBottomZone } from '../chrome/phoneBox';
 
 const CAREER_START = new Date('2007-09-01T09:00:00').getTime();
 
@@ -63,7 +64,7 @@ function useScrolled() {
 
 /** Startseite „Hallo“ — Markup/Werte aus dem Prototyp, Zeile 370–464. */
 export function HalloPage() {
-  const { settings: s, mob, isMobile, navigate, setOverlay } = useSite();
+  const { settings: s, mob, isMobile, mobDesign, navigate, setOverlay } = useSite();
   const hm = heroMode(s);
   const def = HERO_MODES[hm] ?? HERO_MODES.flow;
   const ink = heroInk(s);
@@ -81,8 +82,18 @@ export function HalloPage() {
   // Cinematic (Matrix/Matrix v2) blendet den Hero-Text aus; mit „Hero-Text danach“ kommt er nach dem Cinematic zurück.
   const heroTxtHidden = ((hm === 'matrix' && s.mxCine) || hm === 'matrix2') && !(s.mxLater && cineDone);
   const heroPad = s.fullHero && !mob ? '140px 0 120px' : mob && s.mobModern ? '78px 0 56px' : mob ? '124px 0 64px' : '158px 0 92px';
-  const heroMinH = s.fullHero ? (s.heroStats ? (mob ? 'calc(100vh - 132px)' : 'calc(100vh - 86px)') : '100vh') : 'auto';
-  const heroFxH = s.fullHero ? (s.heroStats ? (mob ? 'calc(100vh + 8px)' : 'calc(100vh + 54px)') : 'calc(100vh + 140px)') : '720px';
+  // Full-Hero mobil (Abweichung vom Prototyp, Wunsch 04.10.2026): Höhe der Tab-Leiste bzw. des Docks einrechnen und
+  // die Zähler-Leiste (~124 px) sichtbar lassen; 100svh = kleine Viewport-Höhe (mit eingeblendeter Browserleiste).
+  const mobChrome = mobBottomZone(mobDesign);
+  const mobCut = mobChrome + 124;
+  const heroMinH = s.fullHero ? (mob ? `calc(100svh - ${mobCut}px)` : s.heroStats ? 'calc(100vh - 86px)' : '100vh') : 'auto';
+  const heroFxH = s.fullHero
+    ? mob
+      ? `calc(100svh - ${mobCut - 140}px)`
+      : s.heroStats
+        ? 'calc(100vh + 54px)'
+        : 'calc(100vh + 140px)'
+    : '720px';
   const txt: CSSProperties = {
     opacity: heroTxtHidden ? 0 : 1,
     visibility: heroTxtHidden ? 'hidden' : 'visible',

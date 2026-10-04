@@ -103,6 +103,7 @@ export function AppV2Bar() {
       <GlassSurface
         as="nav"
         id="ld-tabbar"
+        data-ldvibrant
         aria-label={t('nav.main')}
         radius="30px"
         sheen
@@ -214,7 +215,7 @@ const tabLabel: CSSProperties = { fontSize: 9.5, fontWeight: 700, letterSpacing:
 function GlassButton({ onClick, label, wide, children }: { onClick: () => void; label: string; wide?: boolean; children: ReactNode }) {
   return (
     <span style={{ position: 'relative', zIndex: 0, display: 'inline-flex', pointerEvents: 'auto' }}>
-      <GlassSurface as="span" data-ldcontrast radius="999px" sheen style={{ display: 'inline-flex' }}>
+      <GlassSurface as="span" data-ldcontrast data-ldvibrant radius="999px" sheen style={{ display: 'inline-flex' }}>
         <button
           type="button"
           onClick={onClick}

@@ -5,6 +5,7 @@ import { heroMode } from '../hero/heroInk';
 import { useSite } from '../settings/SiteProvider';
 import { SKETCH_HTML } from './sketchMarkup';
 import { LogoTile } from '../settings/LogoTile';
+import { FULL_BOX, PHONE_BOX } from '../chrome/phoneBox';
 
 /** Event, mit dem das Einstellungs-Panel den gewählten Splash sofort zur Vorschau abspielt (Nachtrag v17). */
 export const SPLASH_REPLAY_EVENT = 'ld-splash-replay';
@@ -18,7 +19,7 @@ const BAR = 'linear-gradient(90deg,rgba(255,178,36,0),#FFB224,#FF7A2F,rgba(255,1
  * LD-Kachel aus dem Logo-Handoff ersetzt (Entscheidung: neues Logo).
  */
 export function Splash() {
-  const { settings: s, hydrated, mob, sideActive } = useSite();
+  const { settings: s, hydrated, mob, isMobile, sideActive } = useSite();
   // 2 = sichtbar, 1 = blendet aus, 0 = entfernt. Vor der Hydration nur der dunkle Grund (Boot-Script blendet bei „aus“ aus).
   const [phase, setPhase] = useState<0 | 1 | 2>(2);
   const [run, setRun] = useState(0);
@@ -76,10 +77,8 @@ export function Splash() {
       style={{
         display: 'flex',
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        // Simulierter Mobil-Modus: Splash im Telefonrahmen statt über den ganzen Schreibtisch
+        ...(mob && !isMobile ? { ...PHONE_BOX, overflow: 'hidden' } : FULL_BOX),
         zIndex: 200,
         alignItems: 'center',
         justifyContent: 'center',
