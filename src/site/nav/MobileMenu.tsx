@@ -69,7 +69,7 @@ export function MobileMenu() {
         style={{
           position: 'fixed',
           ...(framed
-            ? { top: 10, bottom: 10, left: 'calc(50% - 215px)', width: 430, borderRadius: 32 }
+            ? { top: 10, bottom: 'var(--ld-pb, 10px)', left: 'calc(50% - 215px)', width: 430, borderRadius: 32 }
             : { top: 0, bottom: 0, left: 0, right: 0, borderRadius: 0 }),
           ...(sheet && {
             top: 'auto',

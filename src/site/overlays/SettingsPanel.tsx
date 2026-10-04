@@ -202,6 +202,7 @@ const EN_LABELS: Record<string, string> = {
   'Mobil-Logo': 'Mobile logo',
   'Mobil-Design': 'Mobile design',
   'Logo negativ': 'Negative logo',
+  'iPhone-Höhe (430 × 932)': 'iPhone height (430 × 932)',
   'Negativ-Farbe': 'Negative color',
   Ink: 'Ink',
   Cream: 'Cream',
@@ -267,7 +268,7 @@ export function SettingsPanel() {
     : mob
       ? isMobile
         ? ({ top: 0, bottom: 0, left: 0, right: 0, '--radL': '0px' } as CSSProperties)
-        : ({ top: 10, bottom: 10, left: 'calc(50% - 215px)', '--radL': '32px' } as CSSProperties)
+        : ({ top: 10, bottom: 'var(--ld-pb, 10px)', left: 'calc(50% - 215px)', '--radL': '32px' } as CSSProperties)
       : { top: 78, left: '50%', transform: 'translateX(-50%)' };
 
   const switches: { label: string; key: keyof Settings; on: boolean }[] = [
@@ -366,6 +367,7 @@ export function SettingsPanel() {
             />
           </Row>
           {mob && !isMobile && <FrameRow />}
+          {mob && !isMobile && <Toggle label="iPhone-Höhe (430 × 932)" on={s.phoneExact} onToggle={() => toggle('phoneExact')} small />}
           <Row label="Darstellung">
             <Seg
               options={[

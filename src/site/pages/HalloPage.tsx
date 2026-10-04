@@ -14,7 +14,7 @@ import { useHeroShader } from '../hero/useHeroShader';
 import { useSite } from '../settings/SiteProvider';
 import { useLocale, useT } from '../i18n/LocaleProvider';
 import { intlLocale, type Locale } from '../i18n/locale';
-import { mobBottomZone } from '../chrome/phoneBox';
+import { mobBottomZone, SIM_VH } from '../chrome/phoneBox';
 
 const CAREER_START = new Date('2007-09-01T09:00:00').getTime();
 
@@ -86,10 +86,10 @@ export function HalloPage() {
   // die Zähler-Leiste (~124 px) sichtbar lassen; 100svh = kleine Viewport-Höhe (mit eingeblendeter Browserleiste).
   const mobChrome = mobBottomZone(mobDesign);
   const mobCut = mobChrome + 124;
-  const heroMinH = s.fullHero ? (mob ? `calc(100svh - ${mobCut}px)` : s.heroStats ? 'calc(100vh - 86px)' : '100vh') : 'auto';
+  const heroMinH = s.fullHero ? (mob ? `calc(${SIM_VH} - ${mobCut}px)` : s.heroStats ? 'calc(100vh - 86px)' : '100vh') : 'auto';
   const heroFxH = s.fullHero
     ? mob
-      ? `calc(100svh - ${mobCut - 140}px)`
+      ? `calc(${SIM_VH} - ${mobCut - 140}px)`
       : s.heroStats
         ? 'calc(100vh + 54px)'
         : 'calc(100vh + 140px)'
