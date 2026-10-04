@@ -207,6 +207,8 @@ const EN_LABELS: Record<string, string> = {
   Ink: 'Ink',
   Cream: 'Cream',
   'Logo only negative (nur LD)': 'Logo only negative (L + D only)',
+  'Logo-Farbe: Auto (Kontrast)': 'Logo color: auto (contrast)',
+  'Auto (Kontrast)': 'Auto (contrast)',
   Prototyp: 'Prototype',
   Pille: 'Pill',
   Wortmarke: 'Wordmark',
@@ -289,6 +291,7 @@ export function SettingsPanel() {
     { label: 'Reise: Bild-Hintergrund', key: 'reiseBg', on: s.reiseBg },
     { label: 'Logo negativ', key: 'logoNeg', on: s.logoNeg },
     { label: 'Logo only negative (nur LD)', key: 'logoBare', on: s.logoBare },
+    { label: 'Logo-Farbe: Auto (Kontrast)', key: 'logoAuto', on: s.logoAuto },
     { label: 'Performance-Modus', key: 'perfMode', on: s.perfMode },
     { label: '30 fps Hero', key: 'fpsHalf', on: s.fpsHalf },
     ...(hm === 'matrix'
@@ -508,6 +511,28 @@ export function SettingsPanel() {
           {s.logoBare && (
             <Row label="Negativ-Farbe">
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {/* Auto: Farbe nach gemessenem Hintergrund (Orange, sonst Cream/Ink — src/site/glass/logoContrast.ts) */}
+                <button
+                  type="button"
+                  aria-label={`${sl('Negativ-Farbe')}: ${sl('Auto (Kontrast)')}`}
+                  title={sl('Auto (Kontrast)')}
+                  aria-pressed={s.logoNegColor === 'auto'}
+                  onClick={() => set('logoNegColor', 'auto')}
+                  style={{
+                    height: 20,
+                    padding: '0 7px',
+                    borderRadius: 10,
+                    border: '1px solid var(--border)',
+                    background: 'var(--pill)',
+                    color: 'var(--ink)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: s.logoNegColor === 'auto' ? '0 0 0 2.5px var(--accent)' : 'none',
+                  }}
+                >
+                  {sl('Auto')}
+                </button>
                 {[
                   ['#FF7816', 'Orange'],
                   ['#171310', 'Ink'],
@@ -535,7 +560,7 @@ export function SettingsPanel() {
                 {/* freie Farbwahl */}
                 <input
                   type="color"
-                  value={s.logoNegColor}
+                  value={s.logoNegColor === 'auto' ? '#FF7816' : s.logoNegColor}
                   onChange={(e) => set('logoNegColor', e.target.value.toUpperCase())}
                   aria-label={sl('Eigene Farbe')}
                   style={{ width: 26, height: 22, padding: 0, border: 0, background: 'transparent', cursor: 'pointer' }}

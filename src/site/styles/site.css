@@ -1640,3 +1640,20 @@ body.md-lab main#inhalt h2 {
     transform: translateY(24px) scale(0.98);
   }
 }
+
+/* „Logo-Farbe: Auto“ (LogoTile, logoContrast.ts): beide Kacheln im DOM, sichtbar ist die gemessene (data-tone),
+   vor der ersten Messung die gewünschte (data-want). */
+.ld-autotile {
+  display: inline-block;
+  line-height: 0;
+  flex: none;
+}
+.ld-autotile > svg {
+  display: none;
+}
+.ld-autotile:not([data-tone])[data-want='color'] > [data-v='color'],
+.ld-autotile:not([data-tone])[data-want='ink'] > [data-v='ink'],
+.ld-autotile[data-tone='color'] > [data-v='color'],
+.ld-autotile[data-tone='ink'] > [data-v='ink'] {
+  display: block;
+}
