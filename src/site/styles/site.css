@@ -1664,3 +1664,32 @@ body.md-lab main#inhalt h2 {
 .ld-autotile[data-tone='ink'] > [data-v='ink'] {
   display: block;
 }
+
+/* Cover-Farbe-Vollmodus (useCoverColor, body.ldcover): Die Seite übernimmt Cover-Farbe und -Schrift als Tokens am
+   body. Overlay-Panels (Einstellungen, Suche, Kontakt, Cookie-Hinweis — data-ldown) sind aber Theme-Glas und holen
+   sich die Theme-Werte (body / body.light / body.hc oben) zurück; das Glas wird dichter, damit die Schrift auch über
+   kräftigen Cover-Farben ≥ 4,5:1 hat (dunkel 78 % über Orange ≈ 7:1). */
+body.ldcover [data-ldown] {
+  --bg: #0a1220;
+  --card: rgba(255, 255, 255, 0.045);
+  --border: rgba(255, 255, 255, 0.09);
+  --ink: #f2f5fa;
+  --muted: #aebcd0;
+  --soft: #8b9db5;
+  --hair: rgba(255, 255, 255, 0.08);
+  --glass: color-mix(in srgb, var(--glassTint) max(var(--glassPct), 78%), transparent);
+  color: var(--ink);
+}
+body.ldcover.hc:not(.light) [data-ldown] {
+  --bg: #04060c;
+  --border: rgba(255, 255, 255, 0.13);
+}
+body.ldcover.light [data-ldown] {
+  --bg: #ffffff;
+  --card: #f6f9fc;
+  --border: #e9edf2;
+  --ink: #0f2137;
+  --muted: #56637a;
+  --soft: #687384;
+  --hair: #e9edf2;
+}

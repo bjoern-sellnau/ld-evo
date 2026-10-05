@@ -40,6 +40,7 @@ export function CookieBanner() {
     <div
       role="region"
       aria-label={t('cookie.region')}
+      data-ldown=""
       style={{
         ...panelGlass(radius),
         position: 'fixed',

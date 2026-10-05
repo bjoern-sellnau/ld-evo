@@ -11,6 +11,7 @@ const VARS = ['--bg', '--ink', '--muted', '--soft', '--hair', '--card', '--borde
  * Cover-Farbe-Vollmodus (Prototyp: applyCoverColor): Die ganze Seite übernimmt die Cover-Farbe als --bg,
  * alle Ableitungen werden als rgba von Weiß bzw. Warm-Schwarz gesetzt. Beim Verlassen wird aufgeräumt.
  * Browser-Farbe „Site“ folgt der Cover-Farbe.
+ * Body-Klasse ldcover: Overlay-Panels ([data-ldown]) holen sich damit ihre Theme-Farben zurück (site.css).
  */
 export function useCoverColor(color: string, enabled: boolean, themeColor: Settings['themeColor']) {
   useEffect(() => {
@@ -19,6 +20,7 @@ export function useCoverColor(color: string, enabled: boolean, themeColor: Setti
     const ink = inkOn(color);
     const w = ink === '#FFFFFF';
     const A = (a: number) => (w ? `rgba(255,255,255,${a})` : `rgba(16,13,10,${a})`);
+    document.body.classList.add('ldcover');
     bs.setProperty('--bg', color);
     bs.setProperty('--ink', ink);
     // Nebentexte: Prototyp-Deckkraft 0.78/0.58, bei Bedarf angehoben auf ≥ 4,5:1 (readableAlpha) — gerechnet gegen
@@ -33,6 +35,7 @@ export function useCoverColor(color: string, enabled: boolean, themeColor: Setti
     applyThemeColor(themeColor);
     return () => {
       VARS.forEach((v) => bs.removeProperty(v));
+      document.body.classList.remove('ldcover');
       applyThemeColor(themeColor);
     };
   }, [color, enabled, themeColor]);
