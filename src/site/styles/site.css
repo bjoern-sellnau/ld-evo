@@ -1693,3 +1693,17 @@ body.ldcover.light [data-ldown] {
   --soft: #687384;
   --hair: #e9edf2;
 }
+
+/* Overlay-Panels (Einstellungen, Suche, Kontakt, Cookie — data-ldown) wie iOS-Sheets: Unter dem Liquid-Glas liegt eine
+   eigene, kräftige Weichzeichner-Ebene. Frost/Refraktion des Panels sehen dann schon den verwischten Grund, Seitentext
+   darunter bleibt auch bei „Transparenz: klar“ (12 px) nicht mehr lesbar. „Blur aus“ (body.noblur) schaltet sie ab. */
+[data-ldown]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(28px) saturate(1.3);
+  backdrop-filter: blur(28px) saturate(1.3);
+}
