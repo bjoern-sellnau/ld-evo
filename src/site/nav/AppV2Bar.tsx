@@ -13,6 +13,7 @@ import { useBack } from './useBack';
 import styles from './SiteNav.module.css';
 import { LogoTile } from '../settings/LogoTile';
 import { simBottom } from '../chrome/phoneBox';
+import { useScrollHide } from './useScrollHide';
 
 /**
  * Mobil-Design „App v2“ (neu, nicht im Prototyp — Wunsch vom 04.10.2026):
@@ -41,8 +42,12 @@ export function AppV2Bar() {
   const t = useT();
   const href = useHref();
   const back = useBack();
-  const page = pageForPath(canonicalPath(usePathname()));
+  const path = canonicalPath(usePathname());
+  const page = pageForPath(path);
   const menuOpen = overlay === 'mobileNav';
+  // „Leiste beim Scrollen ausblenden“: Startseite anfangs ohne Leiste — unten bleibt nur die Suche (Wunsch 05.10.2026).
+  const [scrollHidden, setScrollHidden] = useScrollHide(settings.scrollHide, { hiddenAtTop: path === '/', resetKey: path });
+  const barHidden = scrollHidden && overlay === null;
   const framed = !isMobile;
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -65,11 +70,16 @@ export function AppV2Bar() {
   return (
     <div
       data-ldchrome
+      // Tastatur: Fokus in der ausgeblendeten Leiste holt sie zurück.
+      onFocusCapture={() => setScrollHidden(false)}
       style={{
         position: 'fixed',
         left: 0,
         right: 0,
         bottom,
+        // Ausgeblendet: alles rutscht um die Leistenhöhe nach unten — die Glasknöpfe sitzen dann, wo die Leiste war.
+        transform: barHidden ? `translateY(${APPV2_BAR_HEIGHT + 10}px)` : 'none',
+        transition: 'transform 0.5s cubic-bezier(0.32,1.2,0.35,1)',
         zIndex: 75,
         display: 'flex',
         flexDirection: 'column',
@@ -110,7 +120,10 @@ export function AppV2Bar() {
         radius="30px"
         sheen
         style={{
-          pointerEvents: 'auto',
+          pointerEvents: barHidden ? 'none' : 'auto',
+          opacity: barHidden ? 0 : 1,
+          transform: barHidden ? 'translateY(24px) scale(0.96)' : 'none',
+          transition: '--glassTint 0.5s ease,--glassPct 0.5s ease,opacity 0.3s ease,transform 0.5s cubic-bezier(0.32,1.2,0.35,1)',
           width,
           maxWidth: 420,
           height: APPV2_BAR_HEIGHT,

@@ -174,7 +174,14 @@ export function IconRail() {
             onClick={() => setOverlay('kontakt')}
             aria-label={t('nav.contact')}
             className={styles.reset}
-            style={{ ...btn(false), background: 'var(--accent)', color: 'var(--on-accent)', marginTop: 2 }}
+            data-ldcta={settings.ctaAuto ? '' : undefined}
+            style={{
+              ...btn(false),
+              background: 'var(--ld-cta-bg, var(--accent))',
+              color: 'var(--ld-cta-ink, var(--on-accent))',
+              transition: 'background-color 0.5s ease,color 0.5s ease',
+              marginTop: 2,
+            }}
           >
             <span aria-hidden>✉</span>
           </button>

@@ -153,6 +153,10 @@ const EN_LABELS: Record<string, string> = {
   'Links / Rechts': 'Left / right',
   Marke: 'Brand',
   'Modern Mobile-Nav': 'Modern mobile nav',
+  'Leiste beim Scrollen ausblenden': 'Hide bar while scrolling',
+  'Menü beim Scrollen einklappen': 'Collapse menu while scrolling',
+  'Logo ohne Schriftzug': 'Logo without wordmark',
+  'Kontakt-Button: Auto (Kontrast)': 'Contact button: auto (contrast)',
   'Neon-Grid': 'Neon grid',
   'Nordlicht-Sturm': 'Aurora storm',
   'Oben / Unten': 'Top / bottom',
@@ -292,6 +296,7 @@ export function SettingsPanel() {
     { label: 'Logo negativ', key: 'logoNeg', on: s.logoNeg },
     { label: 'Logo only negative (nur LD)', key: 'logoBare', on: s.logoBare },
     { label: 'Logo-Farbe: Auto (Kontrast)', key: 'logoAuto', on: s.logoAuto },
+    { label: 'Kontakt-Button: Auto (Kontrast)', key: 'ctaAuto', on: s.ctaAuto },
     { label: 'Performance-Modus', key: 'perfMode', on: s.perfMode },
     { label: '30 fps Hero', key: 'fpsHalf', on: s.fpsHalf },
     ...(hm === 'matrix'
@@ -303,9 +308,12 @@ export function SettingsPanel() {
     ...(mob
       ? [
           { label: 'Modern Mobile-Nav', key: 'mobModern' as const, on: s.mobModern },
-          { label: 'Scrollhide', key: 'scrollHide' as const, on: s.scrollHide },
+          { label: 'Leiste beim Scrollen ausblenden', key: 'scrollHide' as const, on: s.scrollHide },
         ]
-      : []),
+      : [
+          { label: 'Menü beim Scrollen einklappen', key: 'navCollapse' as const, on: s.navCollapse },
+          { label: 'Logo ohne Schriftzug', key: 'logoMarkOnly' as const, on: s.logoMarkOnly },
+        ]),
   ];
 
   return (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pickLogoFill, pickTileTone } from '@/site/glass/logoContrast';
+import { pickCtaColor, pickLogoFill, pickTileTone } from '@/site/glass/logoContrast';
 import { relLum } from '@/site/glass/navContrast';
 
 const lum = (hex: string) =>
@@ -29,5 +29,14 @@ describe('Logo-Farbe „Auto“', () => {
   it('ohne Messwerte: bisherige bzw. gewünschte Wahl', () => {
     expect(pickLogoFill([])).toBe('orange');
     expect(pickTileTone([], 'ink')).toBe('ink');
+  });
+  it('Kontakt-Button: Akzent, solange er sich abhebt — auf Orange-Cover neutral', () => {
+    const acc = lum('#FFB224');
+    expect(pickCtaColor([lum('#0B0F17')], acc)).toBe('accent');
+    // dunkle Glas-Tönung über Orange: Akzent hebt sich kaum ab → Cream
+    const brown = 0.7 * lum('#070B14') + 0.3 * lum('#FF7816');
+    expect(pickCtaColor([brown], acc)).toBe('cream');
+    expect(pickCtaColor([lum('#FAF7F2')], lum('#C2410C'))).toBe('accent');
+    expect(pickCtaColor([], acc)).toBe('accent');
   });
 });

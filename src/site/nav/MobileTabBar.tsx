@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { type MouseEvent } from 'react';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import { MobileBackPill } from './MobileBackPill';
+import { useScrollHide } from './useScrollHide';
 import styles from './SiteNav.module.css';
 import { SITE_PAGES, pageForPath, type SitePageId } from './pages';
 import { useHref, useT } from '../i18n/LocaleProvider';
@@ -37,47 +38,20 @@ const CLASSIC: Tab[] = [
 
 const hrefOf = (id: SitePageId) => SITE_PAGES.find((p) => p.id === id)!.href;
 
-/**
- * Scrollhide (Prototyp: Scroll-Handler): Runter > 150 px blendet aus, hoch > 28 px zeigt, oben (< 70 px) immer sichtbar.
- */
-function useNavHidden(enabled: boolean) {
-  const [hidden, setHidden] = useState(false);
-  const acc = useRef({ last: 0, down: 0, up: 0 });
-  useEffect(() => {
-    if (!enabled) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Abschalten des Scrollhide soll die Leiste sofort wieder zeigen
-      setHidden(false);
-      return;
-    }
-    acc.current.last = window.scrollY;
-    const onScroll = () => {
-      const a = acc.current;
-      const y = window.scrollY;
-      const dy = y - a.last;
-      a.last = y;
-      if (dy > 0) {
-        a.down += dy;
-        a.up = 0;
-      } else if (dy < 0) {
-        a.up -= dy;
-        a.down = 0;
-      }
-      setHidden((h) => (y < 70 ? false : a.down > 150 ? true : a.up > 28 ? false : h));
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [enabled]);
-  return hidden;
-}
-
 /** Floating-Tab-Bar (iOS-26-Insel): bottom 18 px, Breite calc(100% − 44px) max. 386 px, Radius 28 px. */
 export function MobileTabBar() {
   const { settings, mob, isMobile, mobDesign, overlay, setOverlay, navigate } = useSite();
   const page = pageForPath(canonicalPath(usePathname()));
   const tr = useT();
   const href = useHref();
-  const hidden = useNavHidden(mob && settings.scrollHide);
   const menuOpen = overlay === 'mobileNav';
+  const path = canonicalPath(usePathname());
+  // Scrollhide: Startseite anfangs ohne Leiste; offenes Menü/Overlay zeigt sie immer.
+  const [scrollHidden, setScrollHidden] = useScrollHide(mob && settings.scrollHide && (mobDesign === 'proto' || mobDesign === 'app'), {
+    hiddenAtTop: path === '/',
+    resetKey: path,
+  });
+  const hidden = scrollHidden && overlay === null;
 
   // Editorial und Lab kommen ohne Tab-Leiste aus (MobileChrome2); App dockt sie unten an.
   if (!mob || mobDesign === 'editorial' || mobDesign === 'lab' || mobDesign === 'appv2') return null;
@@ -95,6 +69,8 @@ export function MobileTabBar() {
     <>
       {!docked && <MobileBackPill tabBarHidden={hidden} />}
       <div
+        // Tastatur: Fokus in der ausgeblendeten Leiste holt sie zurück.
+        onFocusCapture={() => setScrollHidden(false)}
         style={{
           position: 'fixed',
           bottom: framed ? simBottom(docked ? 10 : 18) : docked ? 0 : 18,
@@ -105,7 +81,9 @@ export function MobileTabBar() {
           zIndex: 75,
           pointerEvents: 'none',
           transform: hidden ? 'translateY(130px)' : 'translateY(0)',
-          transition: 'transform 0.55s cubic-bezier(0.32,1.2,0.35,1)',
+          // ausgeblendet auch unsichtbar — im Telefonrahmen der Simulation läge sie sonst unter dem Rahmen
+          opacity: hidden ? 0 : 1,
+          transition: 'transform 0.55s cubic-bezier(0.32,1.2,0.35,1),opacity 0.35s ease',
         }}
       >
         <GlassSurface

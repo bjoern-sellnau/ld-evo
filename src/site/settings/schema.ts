@@ -47,6 +47,12 @@ export interface Settings {
   viewMode: ViewMode;
   mobModern: boolean;
   scrollHide: boolean;
+  /** Desktop: in der Menüleiste nur das LD-Zeichen, ohne Schriftzug „loona! designs“ (wie die Wide-2-Leiste). */
+  logoMarkOnly: boolean;
+  /** Kontakt-Button färbt sich nach Kontrast wie das Logo (Akzent, sonst Cream/Ink). */
+  ctaAuto: boolean;
+  /** Desktop: Menüleiste klappt beim Runterscrollen auf Logo + Knopf ein (neu, nicht im Prototyp). */
+  navCollapse: boolean;
   frame: Frame;
   frameCfg: Record<string, unknown>;
   navSide: boolean;
@@ -106,6 +112,9 @@ export const DEFAULT_SETTINGS: Settings = {
   viewMode: 'auto',
   mobModern: false,
   scrollHide: false,
+  navCollapse: false,
+  logoMarkOnly: false,
+  ctaAuto: true,
   frame: 'clear',
   frameCfg: {},
   navSide: false,
@@ -194,6 +203,9 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   viewMode: str<ViewMode>('ld-viewmode', 'auto'),
   mobModern: offUnlessOn('ld-mobnav'),
   scrollHide: offUnlessOn('ld-scrollhide'),
+  navCollapse: offUnlessOn('ld-navcollapse'),
+  logoMarkOnly: offUnlessOn('ld-logomark'),
+  ctaAuto: onUnlessOff('ld-ctaauto'),
   frame: str<Frame>('ld-frame', 'clear'),
   frameCfg: json('ld-framecfg'),
   navSide: offUnlessOn('ld-navside'),

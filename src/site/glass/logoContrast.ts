@@ -42,6 +42,24 @@ export function pickLogoFill(lums: number[], prev?: LogoAutoColor): LogoAutoColo
   return c >= k ? 'cream' : 'ink';
 }
 
+export type CtaColor = 'accent' | 'cream' | 'ink';
+
+/**
+ * Kontakt-Button (data-ldcta, Wunsch 05.10.2026): färbt sich wie das Logo — Akzentfarbe, solange sie sich mit ≥ 4.5:1
+ * vom Untergrund abhebt (Hysterese 4 bzw. 5), sonst Cream oder Ink. Auf Cover-Seiten (Akzent auf brauner/orangener
+ * Tönung) wird er so neutral statt Orange auf Orange.
+ */
+export function pickCtaColor(lums: number[], accentLum: number, prev?: CtaColor): CtaColor {
+  if (!lums.length) return prev ?? 'accent';
+  const a = Math.min(...lums.map((b) => ratio(accentLum, b)));
+  if (a >= (prev === 'accent' ? 4 : prev ? 5 : 4.5)) return 'accent';
+  const c = worst(lums, 'cream');
+  const k = worst(lums, 'ink');
+  if (prev === 'cream' && c >= 4) return 'cream';
+  if (prev === 'ink' && k >= 4) return 'ink';
+  return c >= k ? 'cream' : 'ink';
+}
+
 /** Kachel-Variante: gewünschte Variante, solange ihre Fläche ≥ 3:1 schafft (Hysterese 2.7 bzw. 3.3), sonst die kontrastreichere. */
 export function pickTileTone(lums: number[], want: 'ink' | 'color', prev?: 'ink' | 'color'): 'ink' | 'color' {
   if (!lums.length) return prev ?? want;
@@ -86,8 +104,21 @@ function overGlass(el: Element, lums: number[]): number[] {
 export interface LogoMemo {
   fill: WeakMap<Element, LogoAutoColor>;
   tone: WeakMap<Element, 'ink' | 'color'>;
+  cta: WeakMap<Element, CtaColor>;
 }
-export const createLogoMemo = (): LogoMemo => ({ fill: new WeakMap(), tone: new WeakMap() });
+export const createLogoMemo = (): LogoMemo => ({ fill: new WeakMap(), tone: new WeakMap(), cta: new WeakMap() });
+
+/** Hex (#rgb/#rrggbb) oder rgb() → Luminanz; unbekannt → null. */
+function colorLum(str: string): number | null {
+  const s = str.trim();
+  const h = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(s);
+  if (h) {
+    const x = h[1].length === 3 ? [...h[1]].map((c) => c + c).join('') : h[1];
+    return hexLum('#' + x);
+  }
+  const c = parseAny(s);
+  return c ? relLum(c) : null;
+}
 
 /** Misst alle Logos mit data-ldlogoauto und setzt Farbe bzw. Kachel-Variante (läuft mit dem Auto-Kontrast). */
 export function adjustLogoColors(theme: string, memo: LogoMemo): void {
@@ -103,6 +134,22 @@ export function adjustLogoColors(theme: string, memo: LogoMemo): void {
       const t = pickTileTone(lums, want, memo.tone.get(el));
       memo.tone.set(el, t);
       if (el.dataset.tone !== t) el.dataset.tone = t;
+    }
+  });
+  document.querySelectorAll<HTMLElement>('[data-ldcta]').forEach((el) => {
+    const accL = colorLum(getComputedStyle(el).getPropertyValue('--accent'));
+    const lums = overGlass(el, sampleLums(el, theme, 3, 3));
+    if (accL === null || !lums.length) return;
+    const c = pickCtaColor(lums, accL, memo.cta.get(el));
+    memo.cta.set(el, c);
+    if (el.dataset.cta === c) return;
+    el.dataset.cta = c;
+    if (c === 'accent') {
+      el.style.removeProperty('--ld-cta-bg');
+      el.style.removeProperty('--ld-cta-ink');
+    } else {
+      el.style.setProperty('--ld-cta-bg', LOGO_AUTO_COLORS[c]);
+      el.style.setProperty('--ld-cta-ink', c === 'cream' ? LOGO_AUTO_COLORS.ink : LOGO_AUTO_COLORS.cream);
     }
   });
 }
