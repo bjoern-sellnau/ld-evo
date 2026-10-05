@@ -62,6 +62,24 @@ export function applyNavFix(pill: FixEl, fix: string): void {
 
 export type ContrastSettings = Pick<Settings, 'theme' | 'autoC' | 'oppC' | 'ctShadow' | 'ctStrength' | 'blurOn'>;
 
+/**
+ * Cover-Farbe-Vollmodus (useCoverColor) überschreibt --ink/--muted/--soft am body mit der Schrift FÜR DAS COVER
+ * (auf Orange z. B. dunkel). Die Glasleiste behält aber ihre Theme-Tönung (dunkles Theme → dunkles Glas) und hätte so
+ * dunkle Schrift auf dunklem Glas geerbt. Darum bekommt sie im Cover-Modus die Schrift-Tokens ihres Glases zurück —
+ * die Werte des Themes (site.css body / body.light), sofern der Fix sie nicht selbst setzt (gekippt / verdichtet).
+ */
+function coverInk(theme: string, fix: string): string {
+  if (!document.body.style.getPropertyValue('--ink')) return fix;
+  const own =
+    theme === 'light'
+      ? { '--ink': '#0F2137', '--muted': '#56637A', '--soft': '#687384' }
+      : { '--ink': '#F2F5FA', '--muted': '#AEBCD0', '--soft': '#8B9DB5' };
+  const add = Object.entries(own)
+    .filter(([k]) => !fix.includes(k + ':'))
+    .map(([k, v]) => `${k}:${v}`);
+  return [...add, ...(fix ? [fix] : [])].join(';');
+}
+
 /** Plant eine Messung (rAF + 200-ms-Nachlauf wie im Prototyp). overlayOpen: Such-/Kontakt-/Einstellungs-/Mobil-Menü offen. */
 export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen: boolean }, memo: ContrastMemo): void {
   if (memo.raf) cancelAnimationFrame(memo.raf);
@@ -105,7 +123,7 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
       if (s.autoC === false) {
         memo.flip[flipKey] = false;
         pill.style.textShadow = '';
-        applyNavFix(pill, '');
+        applyNavFix(pill, coverInk(theme, ''));
         continue;
       }
       const sampleEls = [...document.querySelectorAll('[data-ldsample]')];
@@ -220,7 +238,7 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
           pill.style.textShadow = '0 1px 1.5px rgba(' + col + ',' + a1 + '),0 2px ' + bl2 + 'px rgba(' + col + ',' + a2 + ')';
         }
         memo.flip[flipKey] = false;
-        applyNavFix(pill, '');
+        applyNavFix(pill, coverInk(theme, ''));
         continue;
       }
       pill.style.textShadow = '';
@@ -255,7 +273,7 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
           if (p > basePct + 1) fix = '--glassTint:#FFFFFF;--glassPct:' + p + '%;--muted:#3D4A5E;--soft:#55647A';
         }
       }
-      applyNavFix(pill, fix);
+      applyNavFix(pill, coverInk(theme, fix));
     }
   };
   memo.raf = requestAnimationFrame(run);
