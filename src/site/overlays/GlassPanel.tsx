@@ -108,6 +108,7 @@ export function ModalOverlay({
         role="dialog"
         aria-modal="true"
         aria-label={label}
+        data-ldown=""
         onClick={(e) => e.stopPropagation()}
         style={{
           ...panelGlass(radius),

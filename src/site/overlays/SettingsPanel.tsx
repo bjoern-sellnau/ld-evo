@@ -314,6 +314,7 @@ export function SettingsPanel() {
       <div
         role="dialog"
         aria-label={sl('Einstellungen')}
+        data-ldown=""
         style={{
           ...panelGlass(radius),
           position: 'fixed',
