@@ -84,7 +84,8 @@ export function HalloPage() {
   const heroPad = s.fullHero && !mob ? '140px 0 120px' : mob && s.mobModern ? '78px 0 56px' : mob ? '124px 0 64px' : '158px 0 92px';
   // Full-Hero mobil (Abweichung vom Prototyp, Wunsch 04.10.2026): Höhe der Tab-Leiste bzw. des Docks einrechnen und
   // die Zähler-Leiste (~124 px) sichtbar lassen; 100svh = kleine Viewport-Höhe (mit eingeblendeter Browserleiste).
-  const mobChrome = mobBottomZone(mobDesign);
+  // „Leiste beim Scrollen ausblenden“: Die Startseite beginnt ohne Tab-Leiste — der Hero reicht bis fast nach unten.
+  const mobChrome = mobBottomZone(mobDesign, s.scrollHide);
   const mobCut = mobChrome + 124;
   const heroMinH = s.fullHero ? (mob ? `calc(${SIM_VH} - ${mobCut}px)` : s.heroStats ? 'calc(100vh - 86px)' : '100vh') : 'auto';
   const heroFxH = s.fullHero

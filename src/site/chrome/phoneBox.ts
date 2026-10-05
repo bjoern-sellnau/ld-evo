@@ -17,7 +17,12 @@ export const simBottom = (x: number) => `calc(var(--ld-pb, 10px) + ${x - 10}px)`
 export const SIM_VH = 'var(--ld-vh, 100svh)';
 export const FULL_BOX: CSSProperties = { top: 0, bottom: 0, left: 0, right: 0 };
 
-/** Höhe, die Tab-Leiste bzw. Dock des Mobil-Designs unten belegen (inkl. Abstand) — für Banner, Hinweise, Full-Hero. */
-export function mobBottomZone(design: MobDesign): number {
+/**
+ * Höhe, die Tab-Leiste bzw. Dock des Mobil-Designs unten belegen (inkl. Abstand) — für Banner, Hinweise, Full-Hero.
+ * barHidden („Leiste beim Scrollen ausblenden“, Startseite oben): Prototyp/App ohne Leiste, App v2 nur noch die
+ * Glasknöpfe (Suche) an der Stelle der Leiste.
+ */
+export function mobBottomZone(design: MobDesign, barHidden = false): number {
+  if (barHidden && (design === 'proto' || design === 'app' || design === 'appv2')) return design === 'appv2' ? 76 : 12;
   return { proto: 82, app: 72, appv2: 140, editorial: 0, lab: 100 }[design] ?? 82;
 }

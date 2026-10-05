@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState, type CSSProperties, type MouseEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type RefObject } from 'react';
 import { LoonaLockup } from '@/components/brand';
 import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
@@ -15,6 +15,7 @@ import { canonicalPath } from '../i18n/locale';
 import { useLogo } from '../settings/useLogo';
 import { LogoTile } from '../settings/LogoTile';
 import { IconRail } from './IconRail';
+import { useScrollHide } from './useScrollHide';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -48,6 +49,14 @@ export function SiteNav() {
   // Mobil-Logo (Einstellung, neu): Varianten für die Kopfzeile auf dem Telefon.
   const mobLogo = mob ? settings.mobLogo : 'pill';
   const scrolled = useScrolledPast(140, mob && mobLogo === 'scroll');
+  // „Menü beim Scrollen einklappen“ (Desktop, Top-Pille): runter → nur Logo + Knopf, zügig hoch / Knopf → klappt nach
+  // rechts wieder aus. Die Pille bleibt links dort verankert, wo sie ausgeklappt beginnt.
+  const collapseOn = settings.navCollapse && !mob && !sideActive && !railMode;
+  const [collapsed, setCollapsed] = useScrollHide(collapseOn, { resetKey: pathname });
+  const pillRef = useRef<HTMLElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const foldW = useFoldWidths(collapseOn, pillRef, toggleRef);
+  const folded = collapseOn && collapsed;
 
   // Wide 2: schmale Icon-Leiste statt Seitenleiste
   if (railMode) return <IconRail />;
@@ -102,10 +111,15 @@ export function SiteNav() {
         display: 'flex',
         ...(sideActive
           ? { top: 0, bottom: 0, left: 18, justifyContent: 'flex-start', alignItems: 'center' }
-          : { top: mob && frame ? 58 : 16, left: 0, right: 0, justifyContent: 'center', transition: 'top 0.35s ease' }),
+          : collapseOn && foldW
+            ? // links verankert: Startpunkt der ausgeklappten (zentrierten) Pille
+              { top: 16, left: `max(16px, calc(50% - ${foldW.full / 2}px))`, justifyContent: 'flex-start' }
+            : { top: mob && frame ? 58 : 16, left: 0, right: 0, justifyContent: 'center', transition: 'top 0.35s ease' }),
       }}
     >
       <GlassSurface
+        ref={pillRef}
+        className={collapseOn ? 'ldfold' : undefined}
         radius={navRad}
         sheen
         aria-hidden={hideTop || undefined}
@@ -132,6 +146,13 @@ export function SiteNav() {
                   overflowY: 'auto',
                 }
               : { flexDirection: 'row', alignItems: 'center' }),
+            ...(collapseOn &&
+              foldW && {
+                width: folded ? foldW.mini : foldW.full,
+                boxSizing: 'border-box',
+                overflow: 'hidden',
+                transition: '--glassTint 0.5s ease,--glassPct 0.5s ease,width 0.5s cubic-bezier(0.32,1.1,0.35,1)',
+              }),
           } as unknown as CSSProperties
         }
       >
@@ -183,126 +204,153 @@ export function SiteNav() {
             theme={settings.theme}
             tone={logo.markTone(settings.theme)}
             negativeColor={logo.negativeColor}
-            variant={narrow && mobLogo !== 'wordmark' ? 'mark' : 'full'}
+            // „Logo ohne Schriftzug“ (Desktop, neu): nur das Zeichen wie in der Wide-2-Leiste
+            variant={(narrow && mobLogo !== 'wordmark') || (!mob && settings.logoMarkOnly) ? 'mark' : 'full'}
             style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
           />
         </Link>
 
-        {!mob && (
-          <>
-            <span aria-hidden style={divider} />
-            {navigation.map((p) => {
-              const on = isActiveHref(pathname, p.href);
-              const external = /^https?:/i.test(p.href);
-              return (
-                <Link
-                  key={p.href + p.label}
-                  href={href(p.href)}
-                  {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  onClick={go(p.href)}
-                  aria-current={on ? 'page' : undefined}
-                  data-navactive={on}
-                  className={cx(styles.reset, styles.item)}
-                  style={{
-                    padding: sideActive ? '11px 14px' : '9px 15px',
-                    borderRadius: sideActive ? 12 : 999,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    background: on ? 'var(--pill)' : 'transparent',
-                    color: on ? 'var(--ink)' : 'var(--muted)',
-                    transition: 'transform 0.25s,background 0.25s,color 0.25s',
-                    whiteSpace: 'nowrap',
-                    display: sideActive ? 'flex' : 'inline-block',
-                    alignItems: 'center',
-                  }}
-                >
-                  {p.label}
-                </Link>
-              );
-            })}
-            <span aria-hidden style={divider} />
-            <span style={{ display: 'flex', gap: 3, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={toggleTheme}
-                title="Light/Dark"
-                aria-label={settings.theme === 'light' ? t('nav.themeDark') : t('nav.themeLight')}
-                className={cx(styles.reset, styles.icon)}
-                style={{ ...iconBtn, fontSize: 14 }}
-              >
-                {settings.theme === 'light' ? '☾' : '☀'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setOverlay('search')}
-                title={t('nav.searchTitle')}
-                aria-label={t('nav.search')}
-                className={cx(styles.reset, styles.icon)}
-                style={{ ...iconBtn, fontSize: 15 }}
-              >
-                ⌕
-              </button>
-              <button
-                type="button"
-                onClick={toggleAnim}
-                title={t('nav.animTitle')}
-                aria-label={settings.anim ? t('nav.animPause') : t('nav.animStart')}
-                aria-pressed={!settings.anim}
-                className={cx(styles.reset, styles.icon)}
-                style={{ ...iconBtn, fontSize: 12 }}
-              >
-                {settings.anim ? '⏸' : '▶'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setOverlay('settings')}
-                title={t('nav.settings')}
-                aria-label={t('nav.settings')}
-                className={cx(styles.reset, styles.icon)}
-                style={{ ...iconBtn, fontSize: 15 }}
-              >
-                ⚙
-              </button>
-              {isWide && (
+        {collapseOn && (
+          <button
+            ref={toggleRef}
+            type="button"
+            onClick={() => setCollapsed(!folded)}
+            aria-expanded={!folded}
+            aria-controls="ld-navrest"
+            aria-label={folded ? t('nav.expand') : t('nav.collapse')}
+            title={folded ? t('nav.expand') : t('nav.collapse')}
+            className={cx(styles.reset, styles.icon)}
+            style={{ ...iconBtn, fontSize: 15, background: folded ? 'var(--pill)' : 'transparent' }}
+          >
+            <span
+              aria-hidden
+              style={{ display: 'inline-block', transition: 'transform 0.4s ease', transform: folded ? 'none' : 'rotate(180deg)' }}
+            >
+              ›
+            </span>
+          </button>
+        )}
+
+        {/* Eingeklappt: Rest weggeschnitten und inert (nicht fokussierbar, nicht vorgelesen). */}
+        <span id="ld-navrest" style={{ display: 'contents' }} inert={folded || undefined}>
+          {!mob && (
+            <>
+              <span aria-hidden style={divider} />
+              {navigation.map((p) => {
+                const on = isActiveHref(pathname, p.href);
+                const external = /^https?:/i.test(p.href);
+                return (
+                  <Link
+                    key={p.href + p.label}
+                    href={href(p.href)}
+                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    onClick={go(p.href)}
+                    aria-current={on ? 'page' : undefined}
+                    data-navactive={on}
+                    className={cx(styles.reset, styles.item)}
+                    style={{
+                      padding: sideActive ? '11px 14px' : '9px 15px',
+                      borderRadius: sideActive ? 12 : 999,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      background: on ? 'var(--pill)' : 'transparent',
+                      color: on ? 'var(--ink)' : 'var(--muted)',
+                      transition: 'transform 0.25s,background 0.25s,color 0.25s',
+                      whiteSpace: 'nowrap',
+                      display: sideActive ? 'flex' : 'inline-block',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {p.label}
+                  </Link>
+                );
+              })}
+              <span aria-hidden style={divider} />
+              <span style={{ display: 'flex', gap: 3, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button
                   type="button"
-                  onClick={() => set('navSide', !settings.navSide)}
-                  title={t('nav.sideTitle')}
-                  aria-label={sideActive ? t('nav.sideTop') : t('nav.sideTitle')}
-                  aria-pressed={settings.navSide}
+                  onClick={toggleTheme}
+                  title="Light/Dark"
+                  aria-label={settings.theme === 'light' ? t('nav.themeDark') : t('nav.themeLight')}
                   className={cx(styles.reset, styles.icon)}
                   style={{ ...iconBtn, fontSize: 14 }}
                 >
-                  {sideActive ? '⇥' : '⇤'}
+                  {settings.theme === 'light' ? '☾' : '☀'}
                 </button>
-              )}
-            </span>
-          </>
-        )}
+                <button
+                  type="button"
+                  onClick={() => setOverlay('search')}
+                  title={t('nav.searchTitle')}
+                  aria-label={t('nav.search')}
+                  className={cx(styles.reset, styles.icon)}
+                  style={{ ...iconBtn, fontSize: 15 }}
+                >
+                  ⌕
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleAnim}
+                  title={t('nav.animTitle')}
+                  aria-label={settings.anim ? t('nav.animPause') : t('nav.animStart')}
+                  aria-pressed={!settings.anim}
+                  className={cx(styles.reset, styles.icon)}
+                  style={{ ...iconBtn, fontSize: 12 }}
+                >
+                  {settings.anim ? '⏸' : '▶'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOverlay('settings')}
+                  title={t('nav.settings')}
+                  aria-label={t('nav.settings')}
+                  className={cx(styles.reset, styles.icon)}
+                  style={{ ...iconBtn, fontSize: 15 }}
+                >
+                  ⚙
+                </button>
+                {isWide && (
+                  <button
+                    type="button"
+                    onClick={() => set('navSide', !settings.navSide)}
+                    title={t('nav.sideTitle')}
+                    aria-label={sideActive ? t('nav.sideTop') : t('nav.sideTitle')}
+                    aria-pressed={settings.navSide}
+                    className={cx(styles.reset, styles.icon)}
+                    style={{ ...iconBtn, fontSize: 14 }}
+                  >
+                    {sideActive ? '⇥' : '⇤'}
+                  </button>
+                )}
+              </span>
+            </>
+          )}
 
-        {!mob && (
-          <button
-            type="button"
-            onClick={() => setOverlay('kontakt')}
-            className={cx(styles.reset, styles.kontakt)}
-            style={{
-              display: 'inline-block',
-              textAlign: 'center',
-              textShadow: 'none',
-              padding: '9px 17px',
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: 'pointer',
-              background: 'var(--accent)',
-              color: 'var(--on-accent)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
-              transition: 'transform 0.25s',
-            }}
-          >
-            {t('nav.contact')}
-          </button>
-        )}
+          {!mob && (
+            <button
+              type="button"
+              onClick={() => setOverlay('kontakt')}
+              // „Kontakt-Button: Auto“: Farbe wie das Logo nach Kontrast (src/site/glass/logoContrast.ts), weich überblendet
+              data-ldcta={settings.ctaAuto ? '' : undefined}
+              className={cx(styles.reset, styles.kontakt)}
+              style={{
+                display: 'inline-block',
+                textAlign: 'center',
+                textShadow: 'none',
+                padding: '9px 17px',
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                background: 'var(--ld-cta-bg, var(--accent))',
+                color: 'var(--ld-cta-ink, var(--on-accent))',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
+                transition: 'transform 0.25s,background-color 0.5s ease,color 0.5s ease',
+              }}
+            >
+              {t('nav.contact')}
+            </button>
+          )}
+        </span>
       </GlassSurface>
     </nav>
   );
@@ -332,3 +380,32 @@ function useScrolledPast(y: number, on: boolean) {
 }
 
 const site2 = (d: string, mob: boolean) => mob && d !== 'proto';
+
+/**
+ * Breiten für „Menü beim Scrollen einklappen“: ausgeklappt = natürliche Breite des Inhalts (scrollWidth; die Kinder
+ * schrumpfen dank .ldfold nicht), eingeklappt = bis rechts hinter den Ausklapp-Knopf. Neu gemessen nach jedem Rendern,
+ * bei Größenänderung und wenn die Webfonts geladen sind.
+ */
+function useFoldWidths(on: boolean, pill: RefObject<HTMLElement | null>, toggle: RefObject<HTMLButtonElement | null>) {
+  const [w, setW] = useState<{ full: number; mini: number } | null>(null);
+  const measure = () => {
+    const el = pill.current;
+    const btn = toggle.current;
+    if (!on || !el || !btn) return;
+    const pad = parseFloat(getComputedStyle(el).paddingRight) || 8;
+    const full = Math.ceil(el.scrollWidth);
+    const mini = Math.ceil(btn.offsetLeft + btn.offsetWidth + pad);
+    setW((o) => (o && o.full === full && o.mini === mini ? o : { full, mini }));
+  };
+  // Messen nach jedem Rendern (Inhalt der Leiste ändert sich) — Layout-Messung ist der vorgesehene Fall für setState hier.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useLayoutEffect(measure);
+  useEffect(() => {
+    if (!on) return;
+    window.addEventListener('resize', measure);
+    void document.fonts?.ready.then(measure);
+    return () => window.removeEventListener('resize', measure);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [on]);
+  return on ? w : null;
+}

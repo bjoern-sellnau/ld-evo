@@ -1652,17 +1652,37 @@ body.md-lab main#inhalt h2 {
    vor der ersten Messung die gewünschte (data-want). */
 .ld-autotile {
   display: inline-block;
+  position: relative;
   line-height: 0;
   flex: none;
 }
+/* Wechsel als Überblendung statt hartem Tausch (Wunsch 05.10.2026: nicht so abrupt) */
 .ld-autotile > svg {
-  display: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease;
 }
 .ld-autotile:not([data-tone])[data-want='color'] > [data-v='color'],
 .ld-autotile:not([data-tone])[data-want='ink'] > [data-v='ink'],
 .ld-autotile[data-tone='color'] > [data-v='color'],
 .ld-autotile[data-tone='ink'] > [data-v='ink'] {
-  display: block;
+  opacity: 1;
+}
+/* Zeichen/Negativ-Logo mit Farbe „Auto“: Füllung per CSS (statt Attribut), damit der Farbwechsel weich überblendet */
+[data-ldlogoauto='fill'] :is(path, circle):not([fill='none']) {
+  fill: var(--ld-logo-auto, #ff7816);
+  transition: fill 0.5s ease;
+}
+body.still .ld-autotile > svg,
+body.still [data-ldlogoauto='fill'] :is(path, circle) {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ld-autotile > svg,
+  [data-ldlogoauto='fill'] :is(path, circle) {
+    transition: none;
+  }
 }
 
 /* Cover-Farbe-Vollmodus (useCoverColor, body.ldcover): Die Seite übernimmt Cover-Farbe und -Schrift als Tokens am
@@ -1706,4 +1726,11 @@ body.ldcover.light [data-ldown] {
   pointer-events: none;
   -webkit-backdrop-filter: blur(28px) saturate(1.3);
   backdrop-filter: blur(28px) saturate(1.3);
+}
+
+/* „Menü beim Scrollen einklappen“ (SiteNav): Kinder der Pille schrumpfen nicht — die Breite wird gemessen und animiert,
+   der eingeklappte Teil wird nur weggeschnitten (auch die Kinder des display:contents-Rests #ld-navrest). */
+.ldfold > *,
+.ldfold > #ld-navrest > * {
+  flex-shrink: 0;
 }

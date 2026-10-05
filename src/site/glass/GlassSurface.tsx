@@ -1,4 +1,4 @@
-import type { CSSProperties, ElementType, HTMLAttributes, ReactNode } from 'react';
+import type { CSSProperties, ElementType, HTMLAttributes, ReactNode, Ref } from 'react';
 
 export interface GlassSurfaceProps extends HTMLAttributes<HTMLElement> {
   as?: ElementType;
@@ -9,6 +9,8 @@ export interface GlassSurfaceProps extends HTMLAttributes<HTMLElement> {
   /** Schlichtere Inset-Schatten wie Tab-Bar und Zurück-Pille. */
   lite?: boolean;
   children?: ReactNode;
+  /** React 19: ref als normale Prop, wird ans Element durchgereicht (z. B. Breitenmessung der Nav). */
+  ref?: Ref<HTMLElement>;
 }
 
 /**
