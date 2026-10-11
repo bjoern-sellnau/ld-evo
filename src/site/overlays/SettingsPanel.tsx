@@ -84,7 +84,7 @@ const VT_SEGS = [
 ] as const;
 
 const HERO_PARTS = [
-  { key: 'bar', label: 'Job-Leiste' },
+  { key: 'bar', label: 'Job-Leiste', sk: 'bars', sd: 'glas' },
   { key: 't1', label: 'Titel 1' },
   { key: 't2', label: 'Titel 2' },
   { key: 'sub', label: 'Name' },
@@ -844,7 +844,7 @@ export function SettingsPanel() {
                     </div>
                   </>
                 )}
-                {(pd.key === 'bar' || pd.key === 'job') && (
+                {pd.key === 'job' && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '0 0 8px 22px' }}>
                     {/* Hintergrund (neu): Farbe + Deckkraft; „Aus“ = Standard (Job-Leiste Glas, Jobtitel ohne) */}
                     <span style={{ fontSize: 10, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{sl('↳ Hintergrund')}</span>
@@ -879,7 +879,7 @@ export function SettingsPanel() {
                     </span>
                   </div>
                 )}
-                {('sk' in pd || pd.key === 'bar' || pd.key === 'job') && (
+                {('sk' in pd || pd.key === 'job') && (
                   <>
                     <div
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '0 0 8px 22px' }}
