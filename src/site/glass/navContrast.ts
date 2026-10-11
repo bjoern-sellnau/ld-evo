@@ -185,7 +185,11 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
       let cvL: { max: number; min: number; avg: number } | null = null;
       try {
         const r2 = pill.getBoundingClientRect();
-        const cvs = [document.getElementById('ld-lava-canvas'), document.getElementById('ld-orbit-canvas')] as (HTMLCanvasElement | null)[];
+        const cvs = [
+          document.getElementById('ld-lava-canvas'),
+          document.getElementById('ld-orbit-canvas'),
+          document.getElementById('ld-extra-canvas'),
+        ] as (HTMLCanvasElement | null)[];
         for (const c2 of cvs) {
           if (!c2 || !c2.width || getComputedStyle(c2).display === 'none') continue;
           const cr = c2.getBoundingClientRect();

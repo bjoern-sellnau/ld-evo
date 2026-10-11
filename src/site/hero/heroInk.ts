@@ -1,5 +1,6 @@
 import { lum, rgbList } from '../lib/color';
 import type { Settings } from '../settings/schema';
+import { EXTRA_MODES } from './extra/meta';
 
 /**
  * Hero-Textfarben (Prototyp: renderVals → resolveInk / btnStyle; Nachträge v8 + v13).
@@ -35,7 +36,7 @@ export function heroMode(s: Settings): string {
 }
 
 export function contrastColor(mode: string, lightTheme: boolean): string {
-  const raw = FX_LUM[mode] ?? (mode === 'flow' ? (lightTheme ? 0.85 : 0.5) : lightTheme ? 0.9 : 0.2);
+  const raw = FX_LUM[mode] ?? EXTRA_MODES[mode]?.lum ?? (mode === 'flow' ? (lightTheme ? 0.85 : 0.5) : lightTheme ? 0.9 : 0.2);
   return raw > 0.52 ? '#10151D' : '#FFFFFF';
 }
 
@@ -81,7 +82,12 @@ export function heroInk(s: Settings): HeroInkValues {
   const barAuto = !parts.bar || parts.bar === 'auto';
   const barR = resolve(parts.bar);
 
-  const btn = (inkMode: string, styleMode: string, primary: boolean): ButtonStyle => {
+  /**
+   * alphaPct (neu, nicht im Prototyp — Wunsch 11.10.2026): Deckkraft der Button-Fläche in % (heroParts btn1a/btn2a).
+   * Glas/Liquid tönen damit in der gewählten Farbe; ab ~35 % wechselt die Schrift auf Schwarz/Weiß nach Luminanz,
+   * damit sie auf der eigenen Tönung lesbar bleibt. Solid wird unter 100 % zu getöntem Glas.
+   */
+  const btn = (inkMode: string, styleMode: string, primary: boolean, alphaPct?: number): ButtonStyle => {
     let C: string | null = null;
     if (inkMode === 'contrast') C = contrastCol;
     else if (inkMode === 'white') C = '#FFFFFF';
@@ -93,7 +99,15 @@ export function heroInk(s: Settings): HeroInkValues {
     let border = 'none';
     let blur = 'none';
     let shadow = 'none';
-    if (styleMode === 'solid') {
+    const a = alphaPct == null || Number.isNaN(alphaPct) ? null : Math.max(0, Math.min(100, alphaPct)) / 100;
+    const readable = (c: string) => (lum(c) > 0.55 ? '#141210' : '#FFFFFF');
+    if (styleMode === 'solid' && a != null && a < 1 && C != null) {
+      bg = `linear-gradient(180deg,rgba(255,255,255,0.18),rgba(255,255,255,0.02)),rgba(${rgb},${a})`;
+      blur = 'blur(18px) saturate(1.6)';
+      border = `1px solid rgba(${rgb},${Math.min(0.6, a + 0.15).toFixed(2)})`;
+      fg = a >= 0.35 ? readable(C) : 'var(--ink)';
+      shadow = 'inset 0 1px 0 rgba(255,255,255,0.4),0 8px 22px rgba(0,0,0,0.22)';
+    } else if (styleMode === 'solid') {
       if (C == null) {
         bg = primary ? 'var(--btn)' : 'var(--accent)';
         fg = primary ? 'var(--btn-ink)' : 'var(--on-accent)';
@@ -106,16 +120,18 @@ export function heroInk(s: Settings): HeroInkValues {
       fg = C == null ? (primary ? 'var(--ink)' : 'var(--accent)') : C;
       border = C == null ? (primary ? '1.5px solid var(--border)' : 'none') : `1.5px solid ${C}`;
     } else if (styleMode === 'glas') {
-      bg = `rgba(${rgb},0.14)`;
+      const ga = a ?? 0.14;
+      bg = `rgba(${rgb},${ga})`;
       blur = 'blur(14px) saturate(1.5)';
-      border = `1px solid rgba(${rgb},0.3)`;
-      fg = C == null ? 'var(--ink)' : C;
+      border = `1px solid rgba(${rgb},${Math.min(0.6, ga + 0.16).toFixed(2)})`;
+      fg = C == null ? 'var(--ink)' : ga >= 0.35 ? readable(C) : C;
       shadow = 'inset 0 1px 0 rgba(255,255,255,0.3)';
     } else {
-      bg = `linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.03)),rgba(${rgb},0.10)`;
+      const la = a ?? 0.1;
+      bg = `linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.03)),rgba(${rgb},${la})`;
       blur = 'blur(22px) saturate(1.8)';
-      border = `1px solid rgba(${rgb},0.24)`;
-      fg = C == null ? 'var(--ink)' : C;
+      border = `1px solid rgba(${rgb},${Math.min(0.6, la + 0.14).toFixed(2)})`;
+      fg = C == null ? 'var(--ink)' : la >= 0.35 ? readable(C) : C;
       shadow = 'inset 0 1px 0 rgba(255,255,255,0.45),0 10px 26px rgba(0,0,0,0.28)';
     }
     const boxed = styleMode === 'solid' || styleMode === 'glas' || styleMode === 'liquid';
@@ -130,7 +146,7 @@ export function heroInk(s: Settings): HeroInkValues {
     sub: subAuto ? { col: '#8A94A4', blend: 'difference' } : resolve(parts.sub),
     job: resolve(parts.job),
     intro: introAuto ? { col: '#C7CFDC', blend: 'difference' } : resolve(parts.intro),
-    btn1: btn(parts.btn1 || 'auto', parts.btn1s || 'solid', true),
-    btn2: btn(parts.btn2 || 'auto', parts.btn2s || 'ghost', false),
+    btn1: btn(parts.btn1 || 'auto', parts.btn1s || 'solid', true, parts.btn1a ? Number(parts.btn1a) : undefined),
+    btn2: btn(parts.btn2 || 'auto', parts.btn2s || 'ghost', false, parts.btn2a ? Number(parts.btn2a) : undefined),
   };
 }
