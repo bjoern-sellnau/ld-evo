@@ -11,6 +11,7 @@ import { FlowHero } from '../hero/FlowHero';
 import { heroInk, heroMode } from '../hero/heroInk';
 import { HERO_MODES, heroFxBgOf, heroFxSampleOf } from '../hero/modes';
 import { useHeroShader } from '../hero/useHeroShader';
+import { useExtraHero } from '../hero/extra/useExtraHero';
 import { useSite } from '../settings/SiteProvider';
 import { useLocale, useT } from '../i18n/LocaleProvider';
 import { intlLocale, type Locale } from '../i18n/locale';
@@ -77,6 +78,8 @@ export function HalloPage() {
   const seconds = useCareerSeconds();
   const scrolled = useScrolled();
   const cineDone = useHeroShader(s);
+  // 20 zusätzliche Modi (neu, nicht im Prototyp): eigenes Canvas, die Prototyp-Engine ignoriert sie
+  useExtraHero(hm, s);
 
   const padX = mob ? 18 : 32;
   // Cinematic (Matrix/Matrix v2) blendet den Hero-Text aus; mit „Hero-Text danach“ kommt er nach dem Cinematic zurück.
@@ -146,6 +149,13 @@ export function HalloPage() {
                 display: def.renderer === 'webgl' ? 'block' : 'none',
               }}
             />
+            {def.renderer === 'extra' && (
+              <canvas
+                key={hm}
+                id="ld-extra-canvas"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
+              />
+            )}
             <canvas
               id="ld-orbit-canvas"
               style={{

@@ -3,6 +3,7 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { mono } from '../cards/ProjectCard';
 import { heroMode } from '../hero/heroInk';
+import { EXTRA_MODES } from '../hero/extra/meta';
 import { PALETTES, heroCfgOf, resolvePal, type HeroModeCfg, type PaletteName } from '../hero/palettes';
 import { SPLASH_REPLAY_EVENT } from '../splash/Splash';
 import { useSite } from '../settings/SiteProvider';
@@ -43,6 +44,8 @@ const HERO_SEGS = [
   ['storm2', 'Blitzgewitter'],
   ['hourglass', 'Sanduhr'],
   ['fireworks', 'Feuerwerk'],
+  // 20 zusätzliche Modi (neu, nicht im Prototyp): src/site/hero/extra/meta.ts
+  ...Object.entries(EXTRA_MODES).map(([k, m]) => [k, m.label] as const),
 ] as const;
 
 const VT_SEGS = [
@@ -95,6 +98,9 @@ const INK_OPTS = [
   ['black', 'Schw.'],
   ['contrast', 'Kontr.'],
 ] as const;
+/** Deckkraft eines Hero-Buttons in % (heroParts btn1a/btn2a); Vorgaben wie in heroInk: Glas 14, Liquid 10, Solid 100. */
+const btnAlpha = (parts: Record<string, string>, key: string, style: string) =>
+  Number(parts[`${key}a`] ?? (style === 'glas' ? 14 : style === 'solid' ? 100 : 10));
 const STYLE_OPTS = [
   ['solid', 'Solid'],
   ['ghost', 'Ghost'],
@@ -194,6 +200,28 @@ const EN_LABELS: Record<string, string> = {
   Milchig: 'Frosted',
   Deckend: 'Opaque',
   'Hero-Text pro Element': 'Hero text per element',
+  Kaleidoskop: 'Kaleidoscope',
+  Hypertunnel: 'Hypertunnel',
+  Glasmosaik: 'Stained glass',
+  Topografie: 'Topography',
+  Flüssigmetall: 'Liquid metal',
+  Prisma: 'Prism',
+  Moiré: 'Moiré',
+  Strömungsfeld: 'Flow field',
+  Klangfiguren: 'Chladni figures',
+  'Neon-Leben': 'Neon life',
+  'Turing-Muster': 'Turing patterns',
+  Harmonograph: 'Harmonograph',
+  Pendelwelle: 'Pendulum wave',
+  Platinenstrom: 'Circuit pulse',
+  Sternbilder: 'Constellations',
+  Seifenblasen: 'Soap bubbles',
+  Mandala: 'Mandala',
+  Seidenfäden: 'Silk threads',
+  Zellteilung: 'Cell division',
+  'LD-Partikel': 'LD particles',
+  '↳ Deckkraft': '↳ Opacity',
+  Deckkraft: 'Opacity',
   '↳ Stil': '↳ Style',
   Stil: 'style',
   'Default wiederherstellen': 'Restore default',
@@ -698,13 +726,25 @@ export function SettingsPanel() {
               <div key={pd.key}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '5px 0 5px 10px' }}>
                   <span style={{ fontSize: 11, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{sl(pd.label)}</span>
-                  <Seg
-                    options={INK_OPTS}
-                    value={s.heroParts[pd.key] || 'auto'}
-                    onChange={(v) => setPart(pd.key, v)}
-                    label={pd.label}
-                    tiny
-                  />
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Seg
+                      options={INK_OPTS}
+                      value={s.heroParts[pd.key] || 'auto'}
+                      onChange={(v) => setPart(pd.key, v)}
+                      label={pd.label}
+                      tiny
+                    />
+                    {/* eigene Farbe je Element (neu): bei Buttons auch die Tönung von Glas/Liquid */}
+                    <input
+                      type="color"
+                      value={(s.heroParts[pd.key] || '').startsWith('#') ? s.heroParts[pd.key] : '#FFB224'}
+                      onChange={(e) => setPart(pd.key, e.target.value)}
+                      title={sl('Eigene Farbe')}
+                      aria-label={`${sl(pd.label)}: ${sl('Eigene Farbe')}`}
+                      className={styles.color}
+                      style={{ width: 24, height: 20, padding: 1, flex: 'none' }}
+                    />
+                  </span>
                 </div>
                 {'sk' in pd && (
                   <div
@@ -717,6 +757,19 @@ export function SettingsPanel() {
                       onChange={(v) => setPart(pd.sk, v)}
                       label={`${sl(pd.label)} ${sl('Stil')}`}
                       tiny
+                    />
+                  </div>
+                )}
+                {'sk' in pd && (s.heroParts[pd.sk] || pd.sd) !== 'ghost' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '0 0 8px 22px' }}>
+                    <span style={{ fontSize: 10, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{sl('↳ Deckkraft')}</span>
+                    <Range
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={btnAlpha(s.heroParts, pd.key, s.heroParts[pd.sk] || pd.sd)}
+                      onChange={(v) => setPart(`${pd.key}a`, String(v))}
+                      label={`${sl(pd.label)} ${sl('Deckkraft')}`}
                     />
                   </div>
                 )}

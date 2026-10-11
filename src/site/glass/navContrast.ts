@@ -68,7 +68,7 @@ export type ContrastSettings = Pick<Settings, 'theme' | 'autoC' | 'oppC' | 'ctSh
  * dunkle Schrift auf dunklem Glas geerbt. Darum bekommt sie im Cover-Modus die Schrift-Tokens ihres Glases zurück —
  * die Werte des Themes (site.css body / body.light), sofern der Fix sie nicht selbst setzt (gekippt / verdichtet).
  */
-function coverInk(theme: string, fix: string): string {
+function coverInk(theme: string, fix: string, dense = false): string {
   if (!document.body.style.getPropertyValue('--ink')) return fix;
   const own =
     theme === 'light'
@@ -77,6 +77,9 @@ function coverInk(theme: string, fix: string): string {
   const add = Object.entries(own)
     .filter(([k]) => !fix.includes(k + ':'))
     .map(([k, v]) => `${k}:${v}`);
+  // Auto-Kontrast aus bzw. Kontrast-Schatten (dense): keine eigene Tönung — dann wird das Theme-Glas dicht genug, dass
+  // die Theme-Schrift auch über hellen bzw. kräftigen Cover-Farben lesbar bleibt (dunkel 86 % über Cream ≈ 5:1).
+  if (dense && !fix.includes('--glassPct:')) add.push('--glassPct:86%');
   return [...add, ...(fix ? [fix] : [])].join(';');
 }
 
@@ -123,7 +126,7 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
       if (s.autoC === false) {
         memo.flip[flipKey] = false;
         pill.style.textShadow = '';
-        applyNavFix(pill, coverInk(theme, ''));
+        applyNavFix(pill, coverInk(theme, '', true));
         continue;
       }
       const sampleEls = [...document.querySelectorAll('[data-ldsample]')];
@@ -182,7 +185,11 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
       let cvL: { max: number; min: number; avg: number } | null = null;
       try {
         const r2 = pill.getBoundingClientRect();
-        const cvs = [document.getElementById('ld-lava-canvas'), document.getElementById('ld-orbit-canvas')] as (HTMLCanvasElement | null)[];
+        const cvs = [
+          document.getElementById('ld-lava-canvas'),
+          document.getElementById('ld-orbit-canvas'),
+          document.getElementById('ld-extra-canvas'),
+        ] as (HTMLCanvasElement | null)[];
         for (const c2 of cvs) {
           if (!c2 || !c2.width || getComputedStyle(c2).display === 'none') continue;
           const cr = c2.getBoundingClientRect();
@@ -238,7 +245,7 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
           pill.style.textShadow = '0 1px 1.5px rgba(' + col + ',' + a1 + '),0 2px ' + bl2 + 'px rgba(' + col + ',' + a2 + ')';
         }
         memo.flip[flipKey] = false;
-        applyNavFix(pill, coverInk(theme, ''));
+        applyNavFix(pill, coverInk(theme, '', true));
         continue;
       }
       pill.style.textShadow = '';

@@ -5,8 +5,10 @@
  */
 import { lum } from '../lib/color';
 import { heroCfgOf, resolvePal } from './palettes';
+import { EXTRA_MODES } from './extra/meta';
 
-export type HeroRenderer = 'css' | 'webgl' | 'canvas2d';
+/** 'extra' = zusätzliche Modi außerhalb der Prototyp-Engine (src/site/hero/extra). */
+export type HeroRenderer = 'css' | 'webgl' | 'canvas2d' | 'extra';
 
 export interface HeroModeDef {
   renderer: HeroRenderer;
@@ -42,6 +44,7 @@ export const HERO_MODES: Record<string, HeroModeDef> = {
   storm2: { renderer: 'canvas2d', bg: 'linear-gradient(180deg,#0A0C14,#04050A)', sample: '0.06,0.06' },
   hourglass: { renderer: 'canvas2d', bg: 'linear-gradient(180deg,#070A12,#03040A)', sample: '0.05,0.05' },
   fireworks: { renderer: 'canvas2d', bg: 'linear-gradient(180deg,#06060F,#030308)', sample: '0.04,0.04' },
+  ...Object.fromEntries(Object.entries(EXTRA_MODES).map(([k, m]) => [k, { renderer: 'extra' as const, bg: m.bg, sample: m.sample }])),
 };
 
 /** FX-Hintergrund; Ribbon: Palette[0]→[1] bzw. transparent bei cfg.t. */

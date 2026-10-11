@@ -242,7 +242,9 @@ function RailItem({
           fontSize: 12.5,
           fontWeight: 700,
           color: 'var(--ink)',
-          background: 'linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--bg) 82%,transparent)',
+          // Tönung der Leiste (--glassTint, vom Auto-Kontrast mitgesetzt) statt --bg der Seite: Schrift (--ink) und
+          // Etikett passen so immer zusammen — auch gekippt und auf Cover-Seiten (dort ist --bg die Cover-Farbe).
+          background: 'linear-gradient(180deg,var(--glassg1),var(--glassg2)),color-mix(in srgb,var(--glassTint) 90%,transparent)',
           border: '1px solid var(--glassbrd)',
           boxShadow: 'inset 0 1px 1px var(--glasshi),var(--shadow)',
           backdropFilter: 'blur(14px) saturate(1.6)',
