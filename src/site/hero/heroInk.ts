@@ -49,6 +49,15 @@ export interface HeroInkValues {
   intro: Ink;
   btn1: ButtonStyle;
   btn2: ButtonStyle;
+  /** Job-Leiste und Jobtitel: eigener Hintergrund (barbg/barba, jobbg/jobba) und Textschatten (…ts/…tc). */
+  barDeco: Deco;
+  jobDeco: Deco;
+}
+
+export interface Deco {
+  /** Hintergrund (rgba) oder undefined = Standard (Job-Leiste: Glas, Jobtitel: keiner). */
+  bg?: string;
+  textShadow: string;
 }
 
 export interface ButtonStyle {
@@ -58,6 +67,8 @@ export interface ButtonStyle {
   blur: string;
   shadow: string;
   pad: string;
+  /** Textschatten der Beschriftung (heroParts btn1ts/btn2ts Stärke, btn1tc/btn2tc Farbe); 'none' ohne. */
+  textShadow: string;
 }
 
 export function heroInk(s: Settings): HeroInkValues {
@@ -136,7 +147,30 @@ export function heroInk(s: Settings): HeroInkValues {
     }
     const boxed = styleMode === 'solid' || styleMode === 'glas' || styleMode === 'liquid';
     const pad = boxed ? '13px 26px' : primary ? '13px 22px' : '13px 6px';
-    return { bg, fg, border, blur, shadow, pad };
+    return { bg, fg, border, blur, shadow, pad, textShadow: 'none' };
+  };
+
+  /**
+   * Beschriftung der Buttons (neu, Wunsch 11.10.2026): eigene Schriftfarbe (btnXl, '#hex', sonst automatisch wie oben)
+   * und Textschatten mit Stärke 0–100 (btnXts) und Farbe (btnXtc, Standard Schwarz).
+   */
+  const textShadowOf = (key: string): string => {
+    const ts = Number(parts[`${key}ts`] ?? 0);
+    const k = Math.max(0, Math.min(100, Number.isNaN(ts) ? 0 : ts)) / 100;
+    const sc = rgbList(parts[`${key}tc`]?.startsWith('#') ? parts[`${key}tc`] : '#000000');
+    return k > 0
+      ? `0 1px ${(1 + 2 * k).toFixed(1)}px rgba(${sc},${(0.3 + 0.6 * k).toFixed(2)}),0 2px ${(4 + 14 * k).toFixed(1)}px rgba(${sc},${(0.2 + 0.55 * k).toFixed(2)})`
+      : 'none';
+  };
+  const label = (b: ButtonStyle, key: 'btn1' | 'btn2'): ButtonStyle => {
+    const l = parts[`${key}l`];
+    return { ...b, fg: l && l.startsWith('#') ? l : b.fg, textShadow: textShadowOf(key) };
+  };
+  /** Job-Leiste/Jobtitel (Wunsch 11.10.2026): Hintergrundfarbe mit Deckkraft (Standard 60 %) + Textschatten. */
+  const deco = (key: 'bar' | 'job'): Deco => {
+    const bg = parts[`${key}bg`];
+    const a = Math.max(0, Math.min(100, Number(parts[`${key}ba`] ?? 60))) / 100;
+    return { bg: bg && bg.startsWith('#') ? `rgba(${rgbList(bg)},${a})` : undefined, textShadow: textShadowOf(key) };
   };
 
   return {
@@ -146,7 +180,9 @@ export function heroInk(s: Settings): HeroInkValues {
     sub: subAuto ? { col: '#8A94A4', blend: 'difference' } : resolve(parts.sub),
     job: resolve(parts.job),
     intro: introAuto ? { col: '#C7CFDC', blend: 'difference' } : resolve(parts.intro),
-    btn1: btn(parts.btn1 || 'auto', parts.btn1s || 'solid', true, parts.btn1a ? Number(parts.btn1a) : undefined),
-    btn2: btn(parts.btn2 || 'auto', parts.btn2s || 'ghost', false, parts.btn2a ? Number(parts.btn2a) : undefined),
+    btn1: label(btn(parts.btn1 || 'auto', parts.btn1s || 'solid', true, parts.btn1a ? Number(parts.btn1a) : undefined), 'btn1'),
+    barDeco: deco('bar'),
+    jobDeco: deco('job'),
+    btn2: label(btn(parts.btn2 || 'auto', parts.btn2s || 'ghost', false, parts.btn2a ? Number(parts.btn2a) : undefined), 'btn2'),
   };
 }

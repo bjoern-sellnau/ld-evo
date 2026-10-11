@@ -4,6 +4,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { mono } from '../cards/ProjectCard';
 import { heroMode } from '../hero/heroInk';
 import { EXTRA_MODES } from '../hero/extra/meta';
+import { FAVICONS, faviconUri } from '../settings/favicon';
 import { PALETTES, heroCfgOf, resolvePal, type HeroModeCfg, type PaletteName } from '../hero/palettes';
 import { SPLASH_REPLAY_EVENT } from '../splash/Splash';
 import { useSite } from '../settings/SiteProvider';
@@ -221,6 +222,19 @@ const EN_LABELS: Record<string, string> = {
   Zellteilung: 'Cell division',
   'LD-Partikel': 'LD particles',
   '↳ Deckkraft': '↳ Opacity',
+  '↳ Schrift': '↳ Label',
+  Schriftfarbe: 'Label color',
+  '↳ Textschatten': '↳ Text shadow',
+  '↳ Hintergrund': '↳ Background',
+  'Ink-Kachel': 'Ink tile',
+  'Farb-Kachel': 'Color tile',
+  'Cream-Kachel': 'Cream tile',
+  'Negativ Orange': 'Negative orange',
+  'Negativ Cream': 'Negative cream',
+  Hintergrundfarbe: 'Background color',
+  Aus: 'Off',
+  Textschatten: 'text shadow',
+  Schattenfarbe: 'Shadow color',
   Deckkraft: 'Opacity',
   '↳ Stil': '↳ Style',
   Stil: 'style',
@@ -605,6 +619,33 @@ export function SettingsPanel() {
               </span>
             </Row>
           )}
+          <Row label="Favicon">
+            {/* Favicon-Auswahl (neu): Vorschau der Varianten, Auswahl wirkt sofort im Browser-Tab */}
+            <span role="radiogroup" aria-label={sl('Favicon')} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              {FAVICONS.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={s.favicon === f.key}
+                  aria-label={sl(f.label)}
+                  title={sl(f.label)}
+                  onClick={() => set('favicon', f.key)}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    padding: 4,
+                    borderRadius: 9,
+                    cursor: 'pointer',
+                    border: `1.5px solid ${s.favicon === f.key ? 'var(--accent)' : 'var(--border)'}`,
+                    background: f.key.startsWith('neg') ? '#3A3F4A' : 'transparent',
+                  }}
+                >
+                  <img src={faviconUri(f.svg)} alt="" width={20} height={20} style={{ display: 'block' }} />
+                </button>
+              ))}
+            </span>
+          </Row>
           <Row label="Zähler-Animation">
             <Seg
               options={[
@@ -772,6 +813,100 @@ export function SettingsPanel() {
                       label={`${sl(pd.label)} ${sl('Deckkraft')}`}
                     />
                   </div>
+                )}
+                {'sk' in pd && (
+                  <>
+                    {/* Beschriftung (neu): eigene Schriftfarbe, Textschatten-Stärke und -Farbe */}
+                    <div
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '0 0 8px 22px' }}
+                    >
+                      <span style={{ fontSize: 10, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{sl('↳ Schrift')}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <button
+                          type="button"
+                          onClick={() => setPart(`${pd.key}l`, '')}
+                          aria-pressed={!s.heroParts[`${pd.key}l`]}
+                          className={styles.reset}
+                          style={{ padding: '2px 9px', fontSize: 10.5, background: !s.heroParts[`${pd.key}l`] ? 'var(--pill)' : undefined }}
+                        >
+                          {sl('Auto')}
+                        </button>
+                        <input
+                          type="color"
+                          value={s.heroParts[`${pd.key}l`] || '#FFFFFF'}
+                          onChange={(e) => setPart(`${pd.key}l`, e.target.value)}
+                          aria-label={`${sl(pd.label)}: ${sl('Schriftfarbe')}`}
+                          title={sl('Schriftfarbe')}
+                          className={styles.color}
+                          style={{ width: 24, height: 20, padding: 1 }}
+                        />
+                      </span>
+                    </div>
+                  </>
+                )}
+                {(pd.key === 'bar' || pd.key === 'job') && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '0 0 8px 22px' }}>
+                    {/* Hintergrund (neu): Farbe + Deckkraft; „Aus“ = Standard (Job-Leiste Glas, Jobtitel ohne) */}
+                    <span style={{ fontSize: 10, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{sl('↳ Hintergrund')}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button
+                        type="button"
+                        onClick={() => setPart(`${pd.key}bg`, '')}
+                        aria-pressed={!s.heroParts[`${pd.key}bg`]}
+                        className={styles.reset}
+                        style={{ padding: '2px 9px', fontSize: 10.5, background: !s.heroParts[`${pd.key}bg`] ? 'var(--pill)' : undefined }}
+                      >
+                        {sl('Aus')}
+                      </button>
+                      <Range
+                        min={0}
+                        max={100}
+                        step={5}
+                        value={Number(s.heroParts[`${pd.key}ba`] ?? 60)}
+                        onChange={(v) => setPart(`${pd.key}ba`, String(v))}
+                        label={`${sl(pd.label)} ${sl('Deckkraft')}`}
+                        max2={90}
+                      />
+                      <input
+                        type="color"
+                        value={s.heroParts[`${pd.key}bg`] || '#101A2A'}
+                        onChange={(e) => setPart(`${pd.key}bg`, e.target.value)}
+                        aria-label={`${sl(pd.label)}: ${sl('Hintergrundfarbe')}`}
+                        title={sl('Hintergrundfarbe')}
+                        className={styles.color}
+                        style={{ width: 24, height: 20, padding: 1 }}
+                      />
+                    </span>
+                  </div>
+                )}
+                {('sk' in pd || pd.key === 'bar' || pd.key === 'job') && (
+                  <>
+                    <div
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '0 0 8px 22px' }}
+                    >
+                      <span style={{ fontSize: 10, color: 'var(--soft)', whiteSpace: 'nowrap' }}>{sl('↳ Textschatten')}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Range
+                          min={0}
+                          max={100}
+                          step={5}
+                          value={Number(s.heroParts[`${pd.key}ts`] ?? 0)}
+                          onChange={(v) => setPart(`${pd.key}ts`, String(v))}
+                          label={`${sl(pd.label)} ${sl('Textschatten')}`}
+                          max2={120}
+                        />
+                        <input
+                          type="color"
+                          value={s.heroParts[`${pd.key}tc`] || '#000000'}
+                          onChange={(e) => setPart(`${pd.key}tc`, e.target.value)}
+                          aria-label={`${sl(pd.label)}: ${sl('Schattenfarbe')}`}
+                          title={sl('Schattenfarbe')}
+                          className={styles.color}
+                          style={{ width: 24, height: 20, padding: 1 }}
+                        />
+                      </span>
+                    </div>
+                  </>
                 )}
               </div>
             ))}

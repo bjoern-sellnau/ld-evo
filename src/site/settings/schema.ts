@@ -51,6 +51,8 @@ export interface Settings {
   logoMarkOnly: boolean;
   /** Kontakt-Button färbt sich nach Kontrast wie das Logo (Akzent, sonst Cream/Ink). */
   ctaAuto: boolean;
+  /** Favicon-Variante (src/site/settings/favicon.ts). */
+  favicon: string;
   /** Desktop: Menüleiste klappt beim Runterscrollen auf Logo + Knopf ein (neu, nicht im Prototyp). */
   navCollapse: boolean;
   frame: Frame;
@@ -115,6 +117,7 @@ export const DEFAULT_SETTINGS: Settings = {
   navCollapse: false,
   logoMarkOnly: false,
   ctaAuto: true,
+  favicon: 'default',
   frame: 'clear',
   frameCfg: {},
   navSide: false,
@@ -206,6 +209,7 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   navCollapse: offUnlessOn('ld-navcollapse'),
   logoMarkOnly: offUnlessOn('ld-logomark'),
   ctaAuto: onUnlessOff('ld-ctaauto'),
+  favicon: str<string>('ld-favicon', 'default'),
   frame: str<Frame>('ld-frame', 'clear'),
   frameCfg: json('ld-framecfg'),
   navSide: offUnlessOn('ld-navside'),

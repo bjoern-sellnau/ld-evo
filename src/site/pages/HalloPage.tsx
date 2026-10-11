@@ -191,7 +191,7 @@ export function HalloPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              background: 'var(--glass)',
+              background: ink.barDeco.bg ?? 'var(--glass)',
               border: '1px solid var(--glassbrd)',
               backdropFilter: 'blur(16px)',
               borderRadius: 999,
@@ -201,6 +201,7 @@ export function HalloPage() {
               letterSpacing: '0.08em',
               color: ink.bar.col,
               mixBlendMode: ink.bar.blend,
+              textShadow: ink.barDeco.textShadow,
               boxShadow: 'inset 0 1px 0 var(--glasshi)',
             }}
           >
@@ -248,6 +249,16 @@ export function HalloPage() {
               style={{
                 color: ink.job.col,
                 mixBlendMode: ink.job.blend,
+                textShadow: ink.jobDeco.textShadow,
+                // eigener Hintergrund (neu): Jobtitel als Glas-Pille
+                ...(ink.jobDeco.bg && {
+                  background: ink.jobDeco.bg,
+                  backdropFilter: 'blur(14px) saturate(1.5)',
+                  WebkitBackdropFilter: 'blur(14px) saturate(1.5)',
+                  padding: '4px 12px',
+                  margin: '2px 0 0 -12px',
+                  borderRadius: 999,
+                }),
                 whiteSpace: mob ? 'normal' : 'nowrap',
                 minHeight: mob ? 50 : 0,
                 lineHeight: 1.3,
@@ -294,6 +305,7 @@ export function HalloPage() {
                 border: ink.btn1.border,
                 backdropFilter: ink.btn1.blur,
                 boxShadow: ink.btn1.shadow,
+                textShadow: ink.btn1.textShadow,
               }}
             >
               {t('home.ctaProjects')} <span aria-hidden>›</span>
@@ -318,6 +330,7 @@ export function HalloPage() {
                 border: ink.btn2.border,
                 backdropFilter: ink.btn2.blur,
                 boxShadow: ink.btn2.shadow,
+                textShadow: ink.btn2.textShadow,
               }}
             >
               {t('home.ctaHello')} <span aria-hidden>›</span>

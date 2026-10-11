@@ -1,5 +1,6 @@
 'use client';
 
+import { applyFavicon } from './favicon';
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useLayoutEffect, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
@@ -100,6 +101,20 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     applyBody(settings);
     applyThemeColor(settings.themeColor);
   }, [settings, hydrated]);
+
+  // Favicon-Auswahl (neu): Icon-Links im <head> auf die gewählte Variante umstellen
+  const favicon = settings.favicon;
+  useEffect(() => {
+    if (!hydrated) return;
+    applyFavicon(favicon);
+    if (favicon === 'default') return;
+    // Next.js setzt die Icon-Links bei Navigation/Hydration teils neu ein → neue <link>-Elemente gleich mit umstellen
+    const mo = new MutationObserver((recs) => {
+      if (recs.some((r) => [...r.addedNodes].some((n) => n.nodeName === 'LINK'))) applyFavicon(favicon);
+    });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+    return () => mo.disconnect();
+  }, [favicon, hydrated]);
 
   // Mobil-Design als Body-Klasse (md-app / md-editorial / md-lab) — Inhalte werden per CSS umgestaltet (site.css).
   const vm = settings.viewMode;
