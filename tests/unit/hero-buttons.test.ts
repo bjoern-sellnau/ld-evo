@@ -26,3 +26,31 @@ describe('Hero-Buttons: Farbe + Deckkraft', () => {
     expect(b.blur).not.toBe('none');
   });
 });
+
+describe('Hero-Buttons: Beschriftung', () => {
+  it('eigene Schriftfarbe überschreibt die automatische', () => {
+    expect(withParts({ btn1: '#3B82F6', btn1s: 'liquid', btn1a: '60', btn1l: '#FFE066' }).btn1.fg).toBe('#FFE066');
+    expect(withParts({ btn2l: '#123456' }).btn2.fg).toBe('#123456');
+  });
+  it('Textschatten: aus bei 0, Stärke und Farbe einstellbar', () => {
+    expect(withParts({}).btn1.textShadow).toBe('none');
+    const ts = withParts({ btn1ts: '100', btn1tc: '#FF0000' }).btn1.textShadow;
+    expect(ts).toContain('rgba(255,0,0,0.90)');
+    expect(ts).toContain('18.0px');
+    expect(withParts({ btn2ts: '50' }).btn2.textShadow).toContain('rgba(0,0,0,');
+  });
+});
+
+describe('Job-Leiste/Jobtitel: Hintergrund + Textschatten', () => {
+  it('ohne Angaben: Standard (kein eigener Hintergrund, kein Schatten)', () => {
+    const i = withParts({});
+    expect(i.barDeco).toEqual({ bg: undefined, textShadow: 'none' });
+    expect(i.jobDeco.bg).toBeUndefined();
+  });
+  it('Hintergrundfarbe mit Deckkraft (Standard 60 %) und Textschatten', () => {
+    const i = withParts({ jobbg: '#101A2A', jobts: '40', barbg: '#FF7816', barba: '25' });
+    expect(i.jobDeco.bg).toBe('rgba(16,26,42,0.6)');
+    expect(i.jobDeco.textShadow).not.toBe('none');
+    expect(i.barDeco.bg).toBe('rgba(255,120,22,0.25)');
+  });
+});
