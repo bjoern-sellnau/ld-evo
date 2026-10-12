@@ -9,6 +9,7 @@ import { inkOn, readableAlpha } from '../lib/color';
 import { projectHref } from '../lib/routes';
 import { useSite } from '../settings/SiteProvider';
 import { useHref, useT } from '../i18n/LocaleProvider';
+import { filterVt } from '../vt/filterVt';
 
 const TRANS = 'transform 0.6s cubic-bezier(0.3,0.8,0.3,1)';
 
@@ -76,6 +77,9 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
   const kats = [ALL, ...cat.map((p) => p.kat).filter((v, i, a) => a.indexOf(v) === i)];
   const [filter, setFilter] = useState(ALL);
   const grid = cat.filter((p) => filter === ALL || p.kat === filter);
+  const gridRef = useRef<HTMLDivElement>(null);
+  // Filterwechsel als View Transition (src/site/vt/filterVt.ts)
+  const pick = (k: string) => k !== filter && filterVt(gridRef.current, () => setFilter(k), settings.anim);
   const slider = useSlider(slides.length, settings.anim && overlay === null);
   const touch = useRef<{ x: number; y: number } | null>(null);
 
@@ -175,7 +179,8 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
               key={k}
               type="button"
               aria-pressed={on}
-              onClick={() => setFilter(k)}
+              data-vtf-chip={on ? 'on' : ''}
+              onClick={() => pick(k)}
               className={styles.chip}
               style={{
                 border: `1px solid ${on ? 'var(--accent)' : 'var(--border)'}`,
@@ -189,9 +194,12 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
         })}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(3,1fr)', gap: 14, paddingBottom: 80 }}>
+      <div ref={gridRef} style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(3,1fr)', gap: 14, paddingBottom: 80 }}>
         {grid.map((p) => (
-          <ProjectCard key={p.id} p={p} prefix="c-" variant="grid" />
+          // Zelle trägt beim Filtern den VT-Namen (nicht die Karte: deren Name gehört dem Seitenwechsel-Morph)
+          <div key={p.id} data-vtf={p.id} style={{ display: 'grid' }}>
+            <ProjectCard p={p} prefix="c-" variant="grid" />
+          </div>
         ))}
       </div>
     </div>

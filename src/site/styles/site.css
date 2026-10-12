@@ -931,6 +931,35 @@ html.ldvt-swap::view-transition-new(root) {
 html.ldvt .ldnavvt {
   view-transition-name: ld-nav;
 }
+/* Filter auf Projekte/Labs (filterVt.ts, neu): Seite selbst springt, nur Karten + aktiver Chip animieren */
+html.ldvt-filter::view-transition-group(root) {
+  animation: none;
+}
+html.ldvt-filter::view-transition-old(root),
+html.ldvt-filter::view-transition-new(root) {
+  animation: none;
+}
+html.ldvt-filter::view-transition-group(*) {
+  animation-duration: 0.5s;
+}
+html.ldvt-filter::view-transition-new(*):only-child {
+  animation: ldFiltIn 0.42s 0.08s cubic-bezier(0.22, 0.9, 0.24, 1) both;
+}
+html.ldvt-filter::view-transition-old(*):only-child {
+  animation: ldFiltOut 0.24s cubic-bezier(0.4, 0, 1, 1) both;
+}
+@keyframes ldFiltIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.92);
+  }
+}
+@keyframes ldFiltOut {
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
 html.ldvt.ldvt-nomorph .ldnavvt {
   view-transition-name: none;
 }
