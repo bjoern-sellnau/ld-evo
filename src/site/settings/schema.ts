@@ -12,6 +12,8 @@ export type Frame = 'clear' | 'island' | 'hole' | 'notch';
 export type ThemeColorMode = 'brand' | 'site';
 /** Laufender Sekundenzähler auf „Hallo“: schlicht, rollende Walzen oder Fallblatt (Flughafentafel/Klapp-Radiowecker). */
 export type CounterFx = 'plain' | 'roll' | 'flap';
+/** .Tech-Übersicht: Karten-Raster (Prototyp) oder Magazin-Layout (neu, nicht im Prototyp). */
+export type TechLayout = 'cards' | 'magazin';
 /** Logo oben im Mobil-Modus: Glas-Pille mit Zeichen (Prototyp), Pille mit Wortmarke, App-Kachel, erst beim Scrollen. */
 export type MobLogo = 'pill' | 'wordmark' | 'tile' | 'scroll';
 /**
@@ -78,6 +80,7 @@ export interface Settings {
   cookie: string | null;
   themeColor: ThemeColorMode;
   counterFx: CounterFx;
+  techLayout: TechLayout;
   reiseBg: boolean;
   mobLogo: MobLogo;
   mobDesign: MobDesign;
@@ -143,6 +146,7 @@ export const DEFAULT_SETTINGS: Settings = {
   cookie: null,
   themeColor: 'brand',
   counterFx: 'plain',
+  techLayout: 'cards',
   reiseBg: false,
   mobLogo: 'pill',
   mobDesign: 'proto',
@@ -242,6 +246,12 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
     key: 'ld-counterfx',
     read: (r) => (r === 'roll' || r === 'flap' ? r : 'plain'),
     write: (v) => (v === 'plain' ? null : v),
+  },
+  // Neu (nicht im Prototyp): .Tech als Magazin
+  techLayout: {
+    key: 'ld-techlayout',
+    read: (r) => (r === 'magazin' ? r : 'cards'),
+    write: (v) => (v === 'cards' ? null : v),
   },
   reiseBg: offUnlessOn('ld-reisebg'),
   mobLogo: {

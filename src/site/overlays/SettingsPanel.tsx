@@ -120,6 +120,9 @@ const STYLE_OPTS = [
  */
 const EN_LABELS: Record<string, string> = {
   'Menü-Elemente': 'Menu elements',
+  'Tech-Layout': 'Tech layout',
+  Karten: 'Cards',
+  Magazin: 'Magazine',
   Info: 'Info',
   'Menü-Abstand': 'Menu padding',
   'Menü-Abstand dieser Seite': 'Menu padding of this page',
@@ -685,6 +688,17 @@ export function SettingsPanel() {
               value={s.counterFx}
               onChange={(v) => set('counterFx', v as Settings['counterFx'])}
               label="Zähler-Animation"
+            />
+          </Row>
+          <Row label="Tech-Layout">
+            <Seg
+              options={[
+                ['cards', 'Karten'],
+                ['magazin', 'Magazin'],
+              ]}
+              value={s.techLayout}
+              onChange={(v) => set('techLayout', v as Settings['techLayout'])}
+              label="Tech-Layout"
             />
           </Row>
           <Row label="Page-Transition" column>

@@ -93,6 +93,10 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Wie der laufende Sekundenzähler auf der Startseite umblättert: schlicht, als Walze oder als Fallblatt.',
     en: 'How the running seconds counter on the home page changes: plain, rolling digits or split-flap.',
   },
+  'Tech-Layout': {
+    de: 'Darstellung der .Tech-Übersicht: Karten-Raster oder Magazin mit Titelgeschichte, Inhaltsverzeichnis und Textspalten.',
+    en: 'Layout of the .Tech overview: card grid or magazine with cover story, table of contents and text columns.',
+  },
   'Page-Transition': {
     de: 'Animation beim Wechsel zwischen Seiten.',
     en: 'Animation when switching between pages.',
