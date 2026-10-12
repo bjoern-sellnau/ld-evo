@@ -9,7 +9,7 @@ import { LogoTile } from '../settings/LogoTile';
 import { useContent } from '../content/ContentProvider';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
-import { isActiveHref } from './pages';
+import { isActiveHref, navPadFor } from './pages';
 import { useBack } from './useBack';
 import styles from './SiteNav.module.css';
 
@@ -32,11 +32,15 @@ const ICONS: Record<string, string> = {
 export function IconRail() {
   const { settings, setOverlay, toggleTheme, toggleAnim, navigate } = useSite();
   const pathname = canonicalPath(usePathname());
+  // Menü-Abstand je Seite (ld-navpad): Standard 7 → 10 px oben/unten wie im Prototyp; Breite bleibt fest
+  const pad = navPadFor(settings.navPad, pathname);
   const { navigation } = useContent();
   const t = useT();
   const href = useHref();
   const back = useBack();
   const [tip, setTip] = useState<string | null>(null);
+  // Einstellung „Menü-Elemente“ (ld-navhide): ausgeblendete Einträge/Werkzeuge wie in der Desktop-Leiste
+  const hide = settings.navHide || {};
 
   const go = (h: string) => (e: MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0 || !h.startsWith('/')) return;
@@ -63,7 +67,7 @@ export function IconRail() {
           pointerEvents: 'auto',
           width: 64,
           boxSizing: 'border-box',
-          padding: '10px 8px',
+          padding: `${pad + 3}px 8px`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -93,7 +97,7 @@ export function IconRail() {
         </RailItem>
         <span aria-hidden style={divider} />
         {navigation
-          .filter((n) => n.href !== '/')
+          .filter((n) => n.href !== '/' && !hide[n.href])
           .map((n) => {
             const on = isActiveHref(pathname, n.href);
             const external = /^https?:/i.test(n.href);
@@ -121,71 +125,88 @@ export function IconRail() {
             );
           })}
         <span aria-hidden style={{ ...divider, marginTop: 'auto' }} />
-        <RailItem id="theme" tip={tip} label={settings.theme === 'light' ? t('nav.themeDark') : t('nav.themeLight')} {...tipProps('theme')}>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={settings.theme === 'light' ? t('nav.themeDark') : t('nav.themeLight')}
-            className={styles.reset}
-            style={btn(false)}
+        {!hide.theme && (
+          <RailItem
+            id="theme"
+            tip={tip}
+            label={settings.theme === 'light' ? t('nav.themeDark') : t('nav.themeLight')}
+            {...tipProps('theme')}
           >
-            <span aria-hidden>{settings.theme === 'light' ? '☾' : '☀'}</span>
-          </button>
-        </RailItem>
-        <RailItem id="search" tip={tip} label={t('nav.searchTitle')} {...tipProps('search')}>
-          <button
-            type="button"
-            onClick={() => setOverlay('search')}
-            aria-label={t('nav.search')}
-            className={styles.reset}
-            style={btn(false)}
-          >
-            <span aria-hidden>⌕</span>
-          </button>
-        </RailItem>
-        <RailItem id="anim" tip={tip} label={settings.anim ? t('nav.animPause') : t('nav.animStart')} {...tipProps('anim')}>
-          <button
-            type="button"
-            onClick={toggleAnim}
-            aria-label={settings.anim ? t('nav.animPause') : t('nav.animStart')}
-            aria-pressed={!settings.anim}
-            className={styles.reset}
-            style={btn(false)}
-          >
-            <span aria-hidden style={{ fontSize: 13 }}>
-              {settings.anim ? '⏸' : '▶'}
-            </span>
-          </button>
-        </RailItem>
-        <RailItem id="settings" tip={tip} label={t('nav.settings')} {...tipProps('settings')}>
-          <button
-            type="button"
-            onClick={() => setOverlay('settings')}
-            aria-label={t('nav.settings')}
-            className={styles.reset}
-            style={btn(false)}
-          >
-            <span aria-hidden>⚙</span>
-          </button>
-        </RailItem>
-        <RailItem id="contact" tip={tip} label={t('nav.contact')} {...tipProps('contact')}>
-          <button
-            type="button"
-            onClick={() => setOverlay('kontakt')}
-            aria-label={t('nav.contact')}
-            className={styles.reset}
-            data-ldcta={settings.ctaAuto ? '' : undefined}
-            style={{
-              ...btn(false),
-              background: 'var(--ld-cta-bg, var(--accent))',
-              color: 'var(--ld-cta-ink, var(--on-accent))',
-              transition: 'background-color 0.5s ease,color 0.5s ease',
-              marginTop: 2,
-            }}
-          >
-            <span aria-hidden>✉</span>
-          </button>
-        </RailItem>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={settings.theme === 'light' ? t('nav.themeDark') : t('nav.themeLight')}
+              className={styles.reset}
+              style={btn(false)}
+            >
+              <span aria-hidden>{settings.theme === 'light' ? '☾' : '☀'}</span>
+            </button>
+          </RailItem>
+        )}
+        {!hide.search && (
+          <RailItem id="search" tip={tip} label={t('nav.searchTitle')} {...tipProps('search')}>
+            <button
+              type="button"
+              onClick={() => setOverlay('search')}
+              aria-label={t('nav.search')}
+              className={styles.reset}
+              style={btn(false)}
+            >
+              <span aria-hidden>⌕</span>
+            </button>
+          </RailItem>
+        )}
+        {!hide.anim && (
+          <RailItem id="anim" tip={tip} label={settings.anim ? t('nav.animPause') : t('nav.animStart')} {...tipProps('anim')}>
+            <button
+              type="button"
+              onClick={toggleAnim}
+              aria-label={settings.anim ? t('nav.animPause') : t('nav.animStart')}
+              aria-pressed={!settings.anim}
+              className={styles.reset}
+              style={btn(false)}
+            >
+              <span aria-hidden style={{ fontSize: 13 }}>
+                {settings.anim ? '⏸' : '▶'}
+              </span>
+            </button>
+          </RailItem>
+        )}
+        {!hide.settings && (
+          <RailItem id="settings" tip={tip} label={t('nav.settings')} {...tipProps('settings')}>
+            <button
+              type="button"
+              onClick={() => setOverlay('settings')}
+              aria-label={t('nav.settings')}
+              className={styles.reset}
+              style={btn(false)}
+            >
+              <span aria-hidden>⚙</span>
+            </button>
+          </RailItem>
+        )}
+        {!hide.contact && (
+          <RailItem id="contact" tip={tip} label={t('nav.contact')} {...tipProps('contact')}>
+            <button
+              type="button"
+              onClick={() => setOverlay('kontakt')}
+              aria-label={t('nav.contact')}
+              className={styles.reset}
+              data-ldcta={settings.ctaAuto ? '' : undefined}
+              style={{
+                ...btn(false),
+                // rund wie die Leiste (konzentrisch: 32 px Leiste − 8 px Rand ≈ 22 px), statt der 14 px der Icon-Knöpfe
+                borderRadius: 22,
+                background: 'var(--ld-cta-bg, var(--accent))',
+                color: 'var(--ld-cta-ink, var(--on-accent))',
+                transition: 'background-color 0.5s ease,color 0.5s ease',
+                marginTop: 2,
+              }}
+            >
+              <span aria-hidden>✉</span>
+            </button>
+          </RailItem>
+        )}
       </GlassSurface>
     </nav>
   );

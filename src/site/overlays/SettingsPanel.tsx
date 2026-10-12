@@ -8,6 +8,9 @@ import { FAVICONS, faviconUri } from '../settings/favicon';
 import { PALETTES, heroCfgOf, resolvePal, type HeroModeCfg, type PaletteName } from '../hero/palettes';
 import { SPLASH_REPLAY_EVENT } from '../splash/Splash';
 import { useSite } from '../settings/SiteProvider';
+import { useContent } from '../content/ContentProvider';
+import { canonicalPath } from '../i18n/locale';
+import { NAV_PAD_DEFAULT, NAV_PAD_MAX, NAV_PAD_MIN, SITE_PAGES, navPadFor, pageForPath } from '../nav/pages';
 import { ACCENTS, type Settings } from '../settings/schema';
 import { GlassLayers, panelGlass } from './GlassPanel';
 import styles from './settings.module.css';
@@ -114,6 +117,18 @@ const STYLE_OPTS = [
  * ihre Texte selbst; unbekannte (Eigennamen wie „Flow“, „Liquid“) bleiben unverändert.
  */
 const EN_LABELS: Record<string, string> = {
+  'Menü-Elemente': 'Menu elements',
+  'Menü-Abstand': 'Menu padding',
+  'Menü-Abstand dieser Seite': 'Menu padding of this page',
+  'Alle Seiten zurücksetzen': 'Reset all pages',
+  Farbschema: 'Color scheme',
+  Suche: 'Search',
+  'Animationen an/aus': 'Animations on/off',
+  Seitenmenü: 'Side menu',
+  Kontakt: 'Contact',
+  Werkzeuge: 'Tools',
+  Seiten: 'Pages',
+  angepasst: 'customized',
   '30 fps Hero': '30 fps hero',
   Akzentfarbe: 'Accent color',
   Animationen: 'Animations',
@@ -286,6 +301,8 @@ export function SettingsPanel() {
   const site = useSite();
   const { settings: s, set, overlay, setOverlay, mob, isMobile, sideActive, railMode } = site;
   const [partsOpen, setPartsOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const { navigation } = useContent();
   const sl = useSl();
   const locale = useLocale();
   const router = useRouter();
@@ -646,6 +663,15 @@ export function SettingsPanel() {
               ))}
             </span>
           </Row>
+          {!mob && (
+            <NavSection
+              open={navOpen}
+              onOpen={() => setNavOpen((o) => !o)}
+              navigation={navigation}
+              page={pageForPath(canonicalPath(pathname))}
+              pathname={canonicalPath(pathname)}
+            />
+          )}
           <Row label="Zähler-Animation">
             <Seg
               options={[
@@ -1012,6 +1038,111 @@ export function SettingsPanel() {
           ))}
         </div>
       </div>
+    </>
+  );
+}
+
+/** Werkzeuge der Menüleiste, die sich ausblenden lassen (Schlüssel wie in SiteNav/IconRail). */
+const NAV_TOOLS = [
+  ['theme', 'Farbschema'],
+  ['search', 'Suche'],
+  ['anim', 'Animationen an/aus'],
+  ['settings', 'Einstellungen'],
+  ['side', 'Seitenmenü'],
+  ['contact', 'Kontakt'],
+] as const;
+
+/**
+ * Menü-Einstellungen (Desktop/Wide, neu — nicht im Prototyp): welche Einträge/Werkzeuge die Leiste zeigt (ld-navhide)
+ * und der Innenabstand der Leiste je Hauptseite (ld-navpad). Die Einstellungen bleiben per Shift+S erreichbar, auch wenn
+ * das Zahnrad ausgeblendet ist.
+ */
+function NavSection({
+  open,
+  onOpen,
+  navigation,
+  page,
+  pathname,
+}: {
+  open: boolean;
+  onOpen: () => void;
+  navigation: { label: string; href: string }[];
+  page: string | null;
+  pathname: string;
+}) {
+  const { settings: s, set } = useSite();
+  const sl = useSl();
+  const hide = s.navHide || {};
+  const flip = (key: string) => {
+    const next = { ...hide };
+    if (next[key]) delete next[key];
+    else next[key] = true;
+    set('navHide', next);
+  };
+  const pad = navPadFor(s.navPad, pathname);
+  const setPad = (v: number | null) => {
+    if (!page) return;
+    const next = { ...s.navPad };
+    if (v === null || v === NAV_PAD_DEFAULT) delete next[page];
+    else next[page] = v;
+    set('navPad', next);
+  };
+  const custom = SITE_PAGES.filter((p) => s.navPad?.[p.id] !== undefined);
+  const hiddenCount = Object.keys(hide).length;
+  return (
+    <>
+      <button type="button" onClick={onOpen} aria-expanded={open} className={styles.rowBtn}>
+        <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>
+          {sl('Menü-Elemente')}
+          {hiddenCount > 0 && <span style={{ color: 'var(--soft)' }}> · −{hiddenCount}</span>}
+        </span>
+        <span
+          aria-hidden
+          style={{ fontSize: 10, color: 'var(--soft)', transform: `rotate(${open ? 180 : 0}deg)`, transition: 'transform 0.25s' }}
+        >
+          ▾
+        </span>
+      </button>
+      {open && (
+        <div style={{ paddingLeft: 8, paddingBottom: 8, display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <span style={{ display: 'block', fontFamily: mono, fontSize: 9, color: 'var(--soft)', margin: '6px 0 2px' }}>{sl('Seiten')}</span>
+          {navigation.map((n) => (
+            <Toggle key={n.href} label={n.label} on={!hide[n.href]} onToggle={() => flip(n.href)} small />
+          ))}
+          <span style={{ display: 'block', fontFamily: mono, fontSize: 9, color: 'var(--soft)', margin: '8px 0 2px' }}>
+            {sl('Werkzeuge')}
+          </span>
+          {NAV_TOOLS.map(([k, label]) => (
+            <Toggle key={k} label={label} on={!hide[k]} onToggle={() => flip(k)} small />
+          ))}
+        </div>
+      )}
+      {page && (
+        <Row label="Menü-Abstand">
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end' }}>
+            <Range
+              min={NAV_PAD_MIN}
+              max={NAV_PAD_MAX}
+              step={1}
+              value={pad}
+              onChange={(v) => setPad(v)}
+              label="Menü-Abstand dieser Seite"
+              max2={120}
+            />
+            <span style={{ fontFamily: mono, fontSize: 10, color: 'var(--soft)', minWidth: 30, textAlign: 'right' }}>{pad} px</span>
+          </span>
+        </Row>
+      )}
+      {custom.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '0 0 8px' }}>
+          <span style={{ fontSize: 10.5, color: 'var(--soft)' }}>
+            {custom.map((p) => `${p.label} ${s.navPad[p.id]}`).join(' · ')} — {sl('angepasst')}
+          </span>
+          <button type="button" onClick={() => set('navPad', {})} className={styles.reset}>
+            {sl('Alle Seiten zurücksetzen')}
+          </button>
+        </div>
+      )}
     </>
   );
 }

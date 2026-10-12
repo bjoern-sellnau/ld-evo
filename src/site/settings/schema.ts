@@ -53,6 +53,10 @@ export interface Settings {
   ctaAuto: boolean;
   /** Favicon-Variante (src/site/settings/favicon.ts). */
   favicon: string;
+  /** Ausgeblendete Elemente der Menüleiste: Pfade der Menüeinträge bzw. theme/search/anim/settings/side/contact. */
+  navHide: Record<string, boolean>;
+  /** Innenabstand der Menüleiste je Hauptseite in px (Schlüssel = SitePageId; fehlt → Standard). */
+  navPad: Record<string, number>;
   /** Desktop: Menüleiste klappt beim Runterscrollen auf Logo + Knopf ein (neu, nicht im Prototyp). */
   navCollapse: boolean;
   frame: Frame;
@@ -118,6 +122,8 @@ export const DEFAULT_SETTINGS: Settings = {
   logoMarkOnly: false,
   ctaAuto: true,
   favicon: 'default',
+  navHide: {},
+  navPad: {},
   frame: 'clear',
   frameCfg: {},
   navSide: false,
@@ -210,6 +216,8 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   logoMarkOnly: offUnlessOn('ld-logomark'),
   ctaAuto: onUnlessOff('ld-ctaauto'),
   favicon: str<string>('ld-favicon', 'default'),
+  navHide: json('ld-navhide'),
+  navPad: json('ld-navpad'),
   frame: str<Frame>('ld-frame', 'clear'),
   frameCfg: json('ld-framecfg'),
   navSide: offUnlessOn('ld-navside'),

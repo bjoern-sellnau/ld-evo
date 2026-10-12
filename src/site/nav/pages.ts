@@ -18,6 +18,22 @@ export function pageForPath(pathname: string): SitePageId | null {
   return hit?.id ?? null;
 }
 
+/** Standard-Innenabstand der Menüleiste (Prototyp: Top-Pille 7px 8px). */
+export const NAV_PAD_DEFAULT = 7;
+export const NAV_PAD_MIN = 0;
+export const NAV_PAD_MAX = 20;
+
+/**
+ * Menü-Abstand der aktuellen Seite (Einstellung „Menü-Abstand“, ld-navpad, neu): Wert je Hauptseite,
+ * Detailseiten erben den ihrer Liste. Ungültige Werte → Standard, sonst auf den Reglerbereich begrenzt.
+ */
+export function navPadFor(navPad: Record<string, number> | undefined, pathname: string): number {
+  const id = pageForPath(pathname);
+  const v = id ? navPad?.[id] : undefined;
+  if (typeof v !== 'number' || !Number.isFinite(v)) return NAV_PAD_DEFAULT;
+  return Math.min(NAV_PAD_MAX, Math.max(NAV_PAD_MIN, Math.round(v)));
+}
+
 /** Menüpunkt der Hauptnavigation (pflegbar in LD Flow → Navigation). */
 export interface NavItem {
   label: string;
