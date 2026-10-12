@@ -41,16 +41,35 @@ describe('Hero-Buttons: Beschriftung', () => {
   });
 });
 
-describe('Job-Leiste/Jobtitel: Hintergrund + Textschatten', () => {
-  it('ohne Angaben: Standard (kein eigener Hintergrund, kein Schatten)', () => {
-    const i = withParts({});
-    expect(i.barDeco).toEqual({ bg: undefined, textShadow: 'none' });
-    expect(i.jobDeco.bg).toBeUndefined();
+describe('Job-Leiste: Optionen wie die Buttons', () => {
+  it('ohne Stil/Deckkraft/Schrift: Prototyp-Look (Glas der Site)', () => {
+    const b = withParts({}).barBox;
+    expect(b.bg).toBe('var(--glass)');
+    expect(b.color).toBe('var(--muted)');
+    expect(b.textShadow).toBe('none');
+  });
+  it('Farbe nur als Schriftfarbe, solange kein Stil gewählt ist', () => {
+    const b = withParts({ bar: '#FFE066' }).barBox;
+    expect(b.bg).toBe('var(--glass)');
+    expect(b.color).toBe('#FFE066');
+  });
+  it('Liquid + Farbe + Deckkraft + Schrift + Textschatten wie bei den Buttons', () => {
+    const b = withParts({ bar: '#3B82F6', bars: 'liquid', bara: '60', barl: '#FFFFFF', barts: '50', bartc: '#000000' }).barBox;
+    expect(b.bg).toContain('rgba(59,130,246,0.6)');
+    expect(b.blur).toContain('blur(');
+    expect(b.color).toBe('#FFFFFF');
+    expect(b.blend).toBe('normal');
+    expect(b.textShadow).toContain('rgba(0,0,0,');
+  });
+});
+
+describe('Jobtitel: Hintergrund + Textschatten', () => {
+  it('ohne Angaben kein eigener Hintergrund', () => {
+    expect(withParts({}).jobDeco).toEqual({ bg: undefined, textShadow: 'none' });
   });
   it('Hintergrundfarbe mit Deckkraft (Standard 60 %) und Textschatten', () => {
-    const i = withParts({ jobbg: '#101A2A', jobts: '40', barbg: '#FF7816', barba: '25' });
-    expect(i.jobDeco.bg).toBe('rgba(16,26,42,0.6)');
-    expect(i.jobDeco.textShadow).not.toBe('none');
-    expect(i.barDeco.bg).toBe('rgba(255,120,22,0.25)');
+    const d = withParts({ jobbg: '#101A2A', jobts: '40' }).jobDeco;
+    expect(d.bg).toBe('rgba(16,26,42,0.6)');
+    expect(d.textShadow).not.toBe('none');
   });
 });

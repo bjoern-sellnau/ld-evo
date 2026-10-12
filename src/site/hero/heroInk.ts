@@ -49,9 +49,20 @@ export interface HeroInkValues {
   intro: Ink;
   btn1: ButtonStyle;
   btn2: ButtonStyle;
-  /** Job-Leiste und Jobtitel: eigener Hintergrund (barbg/barba, jobbg/jobba) und Textschatten (…ts/…tc). */
-  barDeco: Deco;
+  /** Job-Leiste: Box wie die Buttons (Stil bars, Farbe, Deckkraft bara, Schrift barl, Textschatten barts/bartc). */
+  barBox: BarBox;
+  /** Jobtitel: eigener Hintergrund (jobbg/jobba) und Textschatten (jobts/jobtc). */
   jobDeco: Deco;
+}
+
+export interface BarBox {
+  bg: string;
+  border: string;
+  blur: string;
+  shadow: string;
+  color: string;
+  blend: 'normal' | 'difference';
+  textShadow: string;
 }
 
 export interface Deco {
@@ -162,15 +173,35 @@ export function heroInk(s: Settings): HeroInkValues {
       ? `0 1px ${(1 + 2 * k).toFixed(1)}px rgba(${sc},${(0.3 + 0.6 * k).toFixed(2)}),0 2px ${(4 + 14 * k).toFixed(1)}px rgba(${sc},${(0.2 + 0.55 * k).toFixed(2)})`
       : 'none';
   };
-  const label = (b: ButtonStyle, key: 'btn1' | 'btn2'): ButtonStyle => {
+  const label = (b: ButtonStyle, key: string): ButtonStyle => {
     const l = parts[`${key}l`];
     return { ...b, fg: l && l.startsWith('#') ? l : b.fg, textShadow: textShadowOf(key) };
   };
-  /** Job-Leiste/Jobtitel (Wunsch 11.10.2026): Hintergrundfarbe mit Deckkraft (Standard 60 %) + Textschatten. */
-  const deco = (key: 'bar' | 'job'): Deco => {
+  /** Jobtitel (Wunsch 11.10.2026): Hintergrundfarbe mit Deckkraft (Standard 60 %) + Textschatten. */
+  const deco = (key: 'job'): Deco => {
     const bg = parts[`${key}bg`];
     const a = Math.max(0, Math.min(100, Number(parts[`${key}ba`] ?? 60))) / 100;
     return { bg: bg && bg.startsWith('#') ? `rgba(${rgbList(bg)},${a})` : undefined, textShadow: textShadowOf(key) };
+  };
+
+  /**
+   * Job-Leiste mit denselben Optionen wie die Buttons (Wunsch 11.10.2026). Ohne Stil/Deckkraft/Schrift bleibt sie wie im
+   * Prototyp (Glas der Site, Schrift = Farbe „Job-Leiste“); sonst wie ein Button gebaut (btn + label).
+   */
+  const barBox = (): BarBox => {
+    const custom = parts.bars !== undefined || parts.bara !== undefined || !!parts.barl;
+    if (!custom)
+      return {
+        bg: 'var(--glass)',
+        border: '1px solid var(--glassbrd)',
+        blur: 'blur(16px)',
+        shadow: 'inset 0 1px 0 var(--glasshi)',
+        color: barAuto ? 'var(--muted)' : barR.col,
+        blend: barAuto ? 'normal' : barR.blend,
+        textShadow: textShadowOf('bar'),
+      };
+    const b = label(btn(parts.bar || 'auto', parts.bars || 'glas', false, parts.bara ? Number(parts.bara) : undefined), 'bar');
+    return { bg: b.bg, border: b.border, blur: b.blur, shadow: b.shadow, color: b.fg, blend: 'normal', textShadow: b.textShadow };
   };
 
   return {
@@ -181,7 +212,7 @@ export function heroInk(s: Settings): HeroInkValues {
     job: resolve(parts.job),
     intro: introAuto ? { col: '#C7CFDC', blend: 'difference' } : resolve(parts.intro),
     btn1: label(btn(parts.btn1 || 'auto', parts.btn1s || 'solid', true, parts.btn1a ? Number(parts.btn1a) : undefined), 'btn1'),
-    barDeco: deco('bar'),
+    barBox: barBox(),
     jobDeco: deco('job'),
     btn2: label(btn(parts.btn2 || 'auto', parts.btn2s || 'ghost', false, parts.btn2a ? Number(parts.btn2a) : undefined), 'btn2'),
   };
