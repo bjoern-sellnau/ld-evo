@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useId, useState, type CSSProperties, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { settingInfo } from './settingsInfo';
 import { mono } from '../cards/ProjectCard';
 import { heroMode } from '../hero/heroInk';
 import { EXTRA_MODES } from '../hero/extra/meta';
@@ -118,6 +120,7 @@ const STYLE_OPTS = [
  */
 const EN_LABELS: Record<string, string> = {
   'Menü-Elemente': 'Menu elements',
+  Info: 'Info',
   'Menü-Abstand': 'Menu padding',
   'Menü-Abstand dieser Seite': 'Menu padding of this page',
   'Alle Seiten zurücksetzen': 'Reset all pages',
@@ -487,7 +490,7 @@ export function SettingsPanel() {
             </span>
           </Row>
           <Row label="Transparenz">
-            <span role="radiogroup" aria-label={sl('Transparenz')} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span role="radiogroup" aria-label={sl('Transparenz')} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 9.5, color: 'var(--soft)' }}>{sl('klar')}</span>
               {[1, 2, 3, 4, 5].map((n) => {
                 const on = (s.glassLvl || 3) === n;
@@ -779,15 +782,7 @@ export function SettingsPanel() {
               />
             </span>
           </Row>
-          <button type="button" onClick={() => setPartsOpen((o) => !o)} aria-expanded={partsOpen} className={styles.rowBtn}>
-            <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>{sl('Hero-Text pro Element')}</span>
-            <span
-              aria-hidden
-              style={{ fontSize: 10, color: 'var(--soft)', transform: `rotate(${partsOpen ? 180 : 0}deg)`, transition: 'transform 0.25s' }}
-            >
-              ▾
-            </span>
-          </button>
+          <Expander label="Hero-Text pro Element" open={partsOpen} onToggle={() => setPartsOpen((o) => !o)} />
           {partsOpen &&
             HERO_PARTS.map((pd) => (
               <div key={pd.key}>
@@ -1091,18 +1086,7 @@ function NavSection({
   const hiddenCount = Object.keys(hide).length;
   return (
     <>
-      <button type="button" onClick={onOpen} aria-expanded={open} className={styles.rowBtn}>
-        <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>
-          {sl('Menü-Elemente')}
-          {hiddenCount > 0 && <span style={{ color: 'var(--soft)' }}> · −{hiddenCount}</span>}
-        </span>
-        <span
-          aria-hidden
-          style={{ fontSize: 10, color: 'var(--soft)', transform: `rotate(${open ? 180 : 0}deg)`, transition: 'transform 0.25s' }}
-        >
-          ▾
-        </span>
-      </button>
+      <Expander label="Menü-Elemente" open={open} onToggle={onOpen} extra={hiddenCount > 0 ? ` · −${hiddenCount}` : undefined} />
       {open && (
         <div style={{ paddingLeft: 8, paddingBottom: 8, display: 'flex', flexDirection: 'column', gap: 5 }}>
           <span style={{ display: 'block', fontFamily: mono, fontSize: 9, color: 'var(--soft)', margin: '6px 0 2px' }}>{sl('Seiten')}</span>
@@ -1204,9 +1188,81 @@ function Row({ label, column, children }: { label: string; column?: boolean; chi
         borderTop: '1px solid var(--hair)',
       }}
     >
-      <span style={{ fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'nowrap' }}>{sl(label)}</span>
+      <span style={{ fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        {sl(label)}
+        <InfoTip label={label} />
+      </span>
       {children}
     </div>
+  );
+}
+
+/**
+ * Info-„i“ mit Tooltip (neu, nicht im Prototyp): erklärt eine Einstellung (Texte: settingsInfo.ts). Hover/Fokus zeigt,
+ * Klick/Tippen schaltet; der Tooltip liegt per Portal über allem, damit ihn der Scrollbereich des Panels nicht abschneidet.
+ * Screenreader bekommen den Text immer als Beschreibung.
+ */
+function InfoTip({ label }: { label: string }) {
+  const locale = useLocale();
+  const sl = useSl();
+  const id = useId();
+  const [box, setBox] = useState<DOMRect | null>(null);
+  const [pinned, setPinned] = useState(false);
+  const text = settingInfo(label, locale);
+  if (!text) return null;
+  const show = (el: HTMLElement) => setBox(el.getBoundingClientRect());
+  const hide = () => {
+    setBox(null);
+    setPinned(false);
+  };
+  const W = 240;
+  const tipPos: CSSProperties | null = box
+    ? {
+        left: Math.max(8, Math.min(box.left - 16, window.innerWidth - W - 8)),
+        ...(box.bottom + 140 > window.innerHeight ? { bottom: window.innerHeight - box.top + 6 } : { top: box.bottom + 6 }),
+      }
+    : null;
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={`${sl('Info')}: ${sl(label)}`}
+        aria-describedby={id}
+        aria-expanded={!!box}
+        className={styles.info}
+        onMouseEnter={(e) => show(e.currentTarget)}
+        onMouseLeave={() => !pinned && setBox(null)}
+        onFocus={(e) => show(e.currentTarget)}
+        onBlur={hide}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (pinned) hide();
+          else {
+            setPinned(true);
+            show(e.currentTarget);
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' && box) {
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+            hide();
+          }
+        }}
+      >
+        i
+      </button>
+      <span id={id} hidden>
+        {text}
+      </span>
+      {tipPos &&
+        createPortal(
+          <span aria-hidden className={styles.tip} style={{ ...tipPos, width: W }}>
+            {text}
+          </span>,
+          document.body,
+        )}
+    </>
   );
 }
 
@@ -1276,37 +1332,79 @@ function Seg({
 
 function Toggle({ label, on, onToggle, small }: { label: string; on: boolean; onToggle: () => void; small?: boolean }) {
   const sl = useSl();
+  const id = useId();
+  if (settingInfo(label, 'de'))
+    return (
+      <div className={small ? styles.toggleSmall : styles.toggleRow} style={{ cursor: 'default', width: '100%', boxSizing: 'border-box' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <label htmlFor={id} style={{ fontSize: small ? 11.5 : 12.5, color: small ? 'var(--soft)' : 'var(--muted)', cursor: 'pointer' }}>
+            {sl(label)}
+          </label>
+          <InfoTip label={label} />
+        </span>
+        <button id={id} type="button" role="switch" aria-checked={on} onClick={onToggle} className={styles.switchBtn}>
+          <Knob on={on} small={small} />
+        </button>
+      </div>
+    );
   return (
     <button type="button" role="switch" aria-checked={on} onClick={onToggle} className={small ? styles.toggleSmall : styles.toggleRow}>
       <span style={{ fontSize: small ? 11.5 : 12.5, color: small ? 'var(--soft)' : 'var(--muted)' }}>{sl(label)}</span>
-      <span
-        aria-hidden
-        style={{
-          width: small ? 40 : 42,
-          height: 23,
-          borderRadius: 999,
-          background: on ? 'var(--accent)' : 'var(--pill)',
-          position: 'relative',
-          transition: 'background 0.25s',
-          flex: 'none',
-          display: 'inline-block',
-        }}
-      >
-        <span
-          style={{
-            position: 'absolute',
-            top: small ? 2 : 2.5,
-            left: on ? (small ? 19 : 21.5) : small ? 2 : 2.5,
-            width: small ? 19 : 18,
-            height: small ? 19 : 18,
-            borderRadius: '50%',
-            background: '#fff',
-            transition: 'left 0.25s',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
-          }}
-        />
-      </span>
+      <Knob on={on} small={small} />
     </button>
+  );
+}
+
+/**
+ * Auf-/Zuklapp-Zeile mit Info-„i“ direkt hinter der Beschriftung. Der Pfeil rechts ist eine zusätzliche, für
+ * Tastatur/Screenreader versteckte Klickfläche (kein Button im Button).
+ */
+function Expander({ label, open, onToggle, extra }: { label: string; open: boolean; onToggle: () => void; extra?: string }) {
+  const sl = useSl();
+  return (
+    <div className={styles.expRow}>
+      <button type="button" onClick={onToggle} aria-expanded={open} className={styles.expBtn}>
+        {sl(label)}
+        {extra && <span style={{ color: 'var(--soft)' }}>{extra}</span>}
+      </button>
+      <InfoTip label={label} />
+      <button type="button" tabIndex={-1} aria-hidden onClick={onToggle} className={styles.expFill}>
+        <span style={{ display: 'inline-block', transform: `rotate(${open ? 180 : 0}deg)`, transition: 'transform 0.25s' }}>▾</span>
+      </button>
+    </div>
+  );
+}
+
+/** Schalter-Optik (Spur + Knopf) für Toggle. */
+function Knob({ on, small }: { on: boolean; small?: boolean }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: small ? 40 : 42,
+        height: 23,
+        borderRadius: 999,
+        background: on ? 'var(--accent)' : 'var(--pill)',
+        position: 'relative',
+        transition: 'background 0.25s',
+        flex: 'none',
+        display: 'inline-block',
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: small ? 2 : 2.5,
+          left: on ? (small ? 19 : 21.5) : small ? 2 : 2.5,
+          width: small ? 19 : 18,
+          height: small ? 19 : 18,
+          borderRadius: '50%',
+          background: '#fff',
+          transition: 'left 0.25s',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+        }}
+      />
+    </span>
   );
 }
 
