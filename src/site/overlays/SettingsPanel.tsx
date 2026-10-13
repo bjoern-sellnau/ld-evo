@@ -704,6 +704,7 @@ export function SettingsPanel() {
               options={[
                 ['cards', 'Karten'],
                 ['magazin', 'Magazin'],
+                ['blog', 'Blog'],
               ]}
               value={s.techLayout}
               onChange={(v) => set('techLayout', v as Settings['techLayout'])}

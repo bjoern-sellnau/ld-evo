@@ -10,3 +10,12 @@ describe('.Tech-Magazin: Ausgabe', () => {
     expect(issueOf([])).toBe('');
   });
 });
+
+describe('.Tech-Blog: Lesezeit', () => {
+  const w = (n: number) => Array.from({ length: n }, () => 'wort').join(' ');
+  it('rund 200 Wörter pro Minute, mindestens 1', async () => {
+    const { readMinutes } = await import('@/site/pages/TechPage');
+    expect(readMinutes({ teaser: 'kurz', body: [] })).toBe(1);
+    expect(readMinutes({ teaser: w(100), body: [w(300), w(200)] })).toBe(3);
+  });
+});

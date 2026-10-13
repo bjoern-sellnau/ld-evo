@@ -98,8 +98,8 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     en: 'How the running seconds counter on the home page changes: plain, rolling digits or split-flap.',
   },
   'Tech-Layout': {
-    de: 'Darstellung der .Tech-Übersicht: Karten-Raster oder Magazin mit Titelgeschichte, Inhaltsverzeichnis und Textspalten.',
-    en: 'Layout of the .Tech overview: card grid or magazine with cover story, table of contents and text columns.',
+    de: 'Darstellung der .Tech-Übersicht: Karten-Raster, Magazin mit Titelgeschichte und Inhaltsverzeichnis oder Blog mit versetzten Kacheln (Masonry) samt Anlesetext und Lesezeit.',
+    en: 'Layout of the .Tech overview: card grid, magazine with cover story and table of contents, or blog with staggered tiles (masonry) including excerpt and reading time.',
   },
   'Page-Transition': {
     de: 'Animation beim Wechsel zwischen Seiten.',
