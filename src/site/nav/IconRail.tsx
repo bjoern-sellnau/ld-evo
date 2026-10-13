@@ -32,7 +32,7 @@ const ICONS: Record<string, string> = {
 export function IconRail() {
   const { settings, setOverlay, toggleTheme, toggleAnim, navigate } = useSite();
   const pathname = canonicalPath(usePathname());
-  // Menü-Abstand je Seite (ld-navpad): Standard 7 → 10 px oben/unten wie im Prototyp; Breite bleibt fest
+  // Menü-Abstand je Seite (ld-navpad): oben/unten, Standard → 10 px wie im Prototyp; links/rechts nicht — die Leiste ist fest 64 px breit
   const pad = navPadFor(settings.navPad, pathname);
   const { navigation } = useContent();
   const t = useT();
@@ -67,7 +67,7 @@ export function IconRail() {
           pointerEvents: 'auto',
           width: 64,
           boxSizing: 'border-box',
-          padding: `${pad + 3}px 8px`,
+          padding: `${pad.t + 3}px 8px ${pad.b + 3}px`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

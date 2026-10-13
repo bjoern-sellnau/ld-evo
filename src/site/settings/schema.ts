@@ -57,8 +57,8 @@ export interface Settings {
   favicon: string;
   /** Ausgeblendete Elemente der Menüleiste: Pfade der Menüeinträge bzw. theme/search/anim/settings/side/contact. */
   navHide: Record<string, boolean>;
-  /** Innenabstand der Menüleiste je Hauptseite in px (Schlüssel = SitePageId; fehlt → Standard). */
-  navPad: Record<string, number>;
+  /** Innenabstand der Menüleiste je Hauptseite in px, getrennt oben/rechts/unten/links (Schlüssel = SitePageId; fehlt → Standard). */
+  navPad: Record<string, number | Partial<Record<'t' | 'r' | 'b' | 'l', number>>>;
   /** Desktop: Menüleiste klappt beim Runterscrollen auf Logo + Knopf ein (neu, nicht im Prototyp). */
   navCollapse: boolean;
   frame: Frame;

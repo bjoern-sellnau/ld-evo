@@ -68,8 +68,12 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     en: 'Show or hide individual pages and tools in the menu bar. Settings always stay reachable with Shift + S.',
   },
   'Menü-Abstand': {
-    de: 'Innenabstand der Menüleiste für die aktuelle Seite. Jede Hauptseite merkt sich ihren eigenen Wert; Detailseiten übernehmen den ihrer Liste.',
-    en: 'Inner padding of the menu bar for the current page. Each main page keeps its own value; detail pages use the one of their list.',
+    de: 'Innenabstand der Menüleiste für die aktuelle Seite — oben, rechts, unten und links getrennt. Jede Hauptseite merkt sich ihre eigenen Werte; Detailseiten übernehmen die ihrer Liste. In Wide 2 wirken nur oben und unten.',
+    en: 'Inner padding of the menu bar for the current page — top, right, bottom and left separately. Each main page keeps its own values; detail pages use those of their list. In Wide 2 only top and bottom apply.',
+  },
+  'Alle vier gleich': {
+    de: 'Koppelt die vier Regler: Verschieben eines Reglers setzt oben, rechts, unten und links auf denselben Wert.',
+    en: 'Links the four sliders: moving one sets top, right, bottom and left to the same value.',
   },
   Farbschema: {
     de: 'Knopf in der Menüleiste zum Umschalten zwischen hell und dunkel.',
