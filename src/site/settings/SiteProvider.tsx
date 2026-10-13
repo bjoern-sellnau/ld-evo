@@ -135,6 +135,13 @@ export function SiteProvider({ children }: { children: ReactNode }) {
         e.preventDefault();
         setOverlay((o) => (o === 'search' ? null : 'search'));
       }
+      // Shift+S öffnet/schließt die Einstellungen (neu, Wunsch 12.10.2026) — nicht beim Tippen in Feldern
+      const t = e.target as HTMLElement | null;
+      const typing = !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+      if (e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === 's' && !typing) {
+        e.preventDefault();
+        setOverlay((o) => (o === 'settings' ? null : 'settings'));
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);

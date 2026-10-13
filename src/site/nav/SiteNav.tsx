@@ -8,7 +8,7 @@ import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
 import { useContent } from '../content/ContentProvider';
-import { isActiveHref } from './pages';
+import { isActiveHref, navPadFor } from './pages';
 import { useBack } from './useBack';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
@@ -96,6 +96,15 @@ export function SiteNav() {
   const hideTop = mobLogo === 'scroll' && !scrolled && !back.show;
 
   const navRad = settings.styleMode === 'fluent' ? (sideActive ? '16px' : '14px') : sideActive ? '28px' : '999px';
+  // Rundung von Einträgen und Kontakt-Button passend zur Leiste (Abweichung vom Prototyp, Wunsch 12.10.2026):
+  // Pille → Pillen; Fluent (14 px) → 8 px; Seitenleiste → 12 px wie die Einträge.
+  const itemRad = sideActive ? 12 : settings.styleMode === 'fluent' ? 8 : 999;
+  // Sichtbarkeit (Einstellung „Menü-Elemente“, ld-navhide): ausgeblendete Einträge/Werkzeuge
+  const hide = settings.navHide || {};
+  const tools = (['theme', 'search', 'anim', 'settings'] as const).filter((k) => !hide[k]);
+  const showSide = isWide && !hide.side;
+  // Menü-Abstand je Seite (ld-navpad, Abweichung vom Prototyp): Standard 7 → Pille 7px 8px, Seitenleiste 14px 12px
+  const pad = navPadFor(settings.navPad, pathname);
   const divider: CSSProperties = sideActive
     ? { alignSelf: 'stretch', height: 1, margin: '7px 4px', background: 'var(--hair)' }
     : { width: 1, height: 20, margin: '0 3px', background: 'var(--hair)' };
@@ -134,7 +143,7 @@ export function SiteNav() {
             }),
             display: 'flex',
             gap: 3,
-            padding: sideActive ? '14px 12px' : '7px 8px',
+            padding: sideActive ? `${pad + 7}px ${pad + 5}px` : `${pad}px ${pad + 1}px`,
             '--ld-item-scale': sideActive ? '1.02' : '1.07',
             ...(sideActive
               ? {
@@ -236,96 +245,108 @@ export function SiteNav() {
           {!mob && (
             <>
               <span aria-hidden style={divider} />
-              {navigation.map((p) => {
-                const on = isActiveHref(pathname, p.href);
-                const external = /^https?:/i.test(p.href);
-                return (
-                  <Link
-                    key={p.href + p.label}
-                    href={href(p.href)}
-                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                    onClick={go(p.href)}
-                    aria-current={on ? 'page' : undefined}
-                    data-navactive={on}
-                    className={cx(styles.reset, styles.item)}
-                    style={{
-                      padding: sideActive ? '11px 14px' : '9px 15px',
-                      borderRadius: sideActive ? 12 : 999,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      background: on ? 'var(--pill)' : 'transparent',
-                      color: on ? 'var(--ink)' : 'var(--muted)',
-                      transition: 'transform 0.25s,background 0.25s,color 0.25s',
-                      whiteSpace: 'nowrap',
-                      display: sideActive ? 'flex' : 'inline-block',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {p.label}
-                  </Link>
-                );
-              })}
-              <span aria-hidden style={divider} />
-              <span style={{ display: 'flex', gap: 3, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  title="Light/Dark"
-                  aria-label={settings.theme === 'light' ? t('nav.themeDark') : t('nav.themeLight')}
-                  className={cx(styles.reset, styles.icon)}
-                  style={{ ...iconBtn, fontSize: 14 }}
-                >
-                  {settings.theme === 'light' ? '☾' : '☀'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOverlay('search')}
-                  title={t('nav.searchTitle')}
-                  aria-label={t('nav.search')}
-                  className={cx(styles.reset, styles.icon)}
-                  style={{ ...iconBtn, fontSize: 15 }}
-                >
-                  ⌕
-                </button>
-                <button
-                  type="button"
-                  onClick={toggleAnim}
-                  title={t('nav.animTitle')}
-                  aria-label={settings.anim ? t('nav.animPause') : t('nav.animStart')}
-                  aria-pressed={!settings.anim}
-                  className={cx(styles.reset, styles.icon)}
-                  style={{ ...iconBtn, fontSize: 12 }}
-                >
-                  {settings.anim ? '⏸' : '▶'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOverlay('settings')}
-                  title={t('nav.settings')}
-                  aria-label={t('nav.settings')}
-                  className={cx(styles.reset, styles.icon)}
-                  style={{ ...iconBtn, fontSize: 15 }}
-                >
-                  ⚙
-                </button>
-                {isWide && (
-                  <button
-                    type="button"
-                    onClick={() => set('navSide', !settings.navSide)}
-                    title={t('nav.sideTitle')}
-                    aria-label={sideActive ? t('nav.sideTop') : t('nav.sideTitle')}
-                    aria-pressed={settings.navSide}
-                    className={cx(styles.reset, styles.icon)}
-                    style={{ ...iconBtn, fontSize: 14 }}
-                  >
-                    {sideActive ? '⇥' : '⇤'}
-                  </button>
-                )}
-              </span>
+              {navigation
+                .filter((p) => !hide[p.href])
+                .map((p) => {
+                  const on = isActiveHref(pathname, p.href);
+                  const external = /^https?:/i.test(p.href);
+                  return (
+                    <Link
+                      key={p.href + p.label}
+                      href={href(p.href)}
+                      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                      onClick={go(p.href)}
+                      aria-current={on ? 'page' : undefined}
+                      data-navactive={on}
+                      className={cx(styles.reset, styles.item)}
+                      style={{
+                        padding: sideActive ? '11px 14px' : '9px 15px',
+                        borderRadius: itemRad,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        background: on ? 'var(--pill)' : 'transparent',
+                        color: on ? 'var(--ink)' : 'var(--muted)',
+                        transition: 'transform 0.25s,background 0.25s,color 0.25s',
+                        whiteSpace: 'nowrap',
+                        display: sideActive ? 'flex' : 'inline-block',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {p.label}
+                    </Link>
+                  );
+                })}
+              {(tools.length > 0 || showSide) && <span aria-hidden style={divider} />}
+              {(tools.length > 0 || showSide) && (
+                <span style={{ display: 'flex', gap: 3, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  {!hide.theme && (
+                    <button
+                      type="button"
+                      onClick={toggleTheme}
+                      title="Light/Dark"
+                      aria-label={settings.theme === 'light' ? t('nav.themeDark') : t('nav.themeLight')}
+                      className={cx(styles.reset, styles.icon)}
+                      style={{ ...iconBtn, fontSize: 14 }}
+                    >
+                      {settings.theme === 'light' ? '☾' : '☀'}
+                    </button>
+                  )}
+                  {!hide.search && (
+                    <button
+                      type="button"
+                      onClick={() => setOverlay('search')}
+                      title={t('nav.searchTitle')}
+                      aria-label={t('nav.search')}
+                      className={cx(styles.reset, styles.icon)}
+                      style={{ ...iconBtn, fontSize: 15 }}
+                    >
+                      ⌕
+                    </button>
+                  )}
+                  {!hide.anim && (
+                    <button
+                      type="button"
+                      onClick={toggleAnim}
+                      title={t('nav.animTitle')}
+                      aria-label={settings.anim ? t('nav.animPause') : t('nav.animStart')}
+                      aria-pressed={!settings.anim}
+                      className={cx(styles.reset, styles.icon)}
+                      style={{ ...iconBtn, fontSize: 12 }}
+                    >
+                      {settings.anim ? '⏸' : '▶'}
+                    </button>
+                  )}
+                  {!hide.settings && (
+                    <button
+                      type="button"
+                      onClick={() => setOverlay('settings')}
+                      title={t('nav.settings')}
+                      aria-label={t('nav.settings')}
+                      className={cx(styles.reset, styles.icon)}
+                      style={{ ...iconBtn, fontSize: 15 }}
+                    >
+                      ⚙
+                    </button>
+                  )}
+                  {showSide && (
+                    <button
+                      type="button"
+                      onClick={() => set('navSide', !settings.navSide)}
+                      title={t('nav.sideTitle')}
+                      aria-label={sideActive ? t('nav.sideTop') : t('nav.sideTitle')}
+                      aria-pressed={settings.navSide}
+                      className={cx(styles.reset, styles.icon)}
+                      style={{ ...iconBtn, fontSize: 14 }}
+                    >
+                      {sideActive ? '⇥' : '⇤'}
+                    </button>
+                  )}
+                </span>
+              )}
             </>
           )}
 
-          {!mob && (
+          {!mob && !hide.contact && (
             <button
               type="button"
               onClick={() => setOverlay('kontakt')}
@@ -337,7 +358,7 @@ export function SiteNav() {
                 textAlign: 'center',
                 textShadow: 'none',
                 padding: '9px 17px',
-                borderRadius: 999,
+                borderRadius: itemRad,
                 fontSize: 13,
                 fontWeight: 700,
                 cursor: 'pointer',

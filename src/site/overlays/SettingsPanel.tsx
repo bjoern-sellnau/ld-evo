@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useId, useState, type CSSProperties, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { settingInfo } from './settingsInfo';
 import { mono } from '../cards/ProjectCard';
 import { heroMode } from '../hero/heroInk';
 import { EXTRA_MODES } from '../hero/extra/meta';
@@ -8,6 +10,9 @@ import { FAVICONS, faviconUri } from '../settings/favicon';
 import { PALETTES, heroCfgOf, resolvePal, type HeroModeCfg, type PaletteName } from '../hero/palettes';
 import { SPLASH_REPLAY_EVENT } from '../splash/Splash';
 import { useSite } from '../settings/SiteProvider';
+import { useContent } from '../content/ContentProvider';
+import { canonicalPath } from '../i18n/locale';
+import { NAV_PAD_DEFAULT, NAV_PAD_MAX, NAV_PAD_MIN, SITE_PAGES, navPadFor, pageForPath } from '../nav/pages';
 import { ACCENTS, type Settings } from '../settings/schema';
 import { GlassLayers, panelGlass } from './GlassPanel';
 import styles from './settings.module.css';
@@ -114,6 +119,22 @@ const STYLE_OPTS = [
  * ihre Texte selbst; unbekannte (Eigennamen wie „Flow“, „Liquid“) bleiben unverändert.
  */
 const EN_LABELS: Record<string, string> = {
+  'Menü-Elemente': 'Menu elements',
+  'Tech-Layout': 'Tech layout',
+  Karten: 'Cards',
+  Magazin: 'Magazine',
+  Info: 'Info',
+  'Menü-Abstand': 'Menu padding',
+  'Menü-Abstand dieser Seite': 'Menu padding of this page',
+  'Alle Seiten zurücksetzen': 'Reset all pages',
+  Farbschema: 'Color scheme',
+  Suche: 'Search',
+  'Animationen an/aus': 'Animations on/off',
+  Seitenmenü: 'Side menu',
+  Kontakt: 'Contact',
+  Werkzeuge: 'Tools',
+  Seiten: 'Pages',
+  angepasst: 'customized',
   '30 fps Hero': '30 fps hero',
   Akzentfarbe: 'Accent color',
   Animationen: 'Animations',
@@ -286,6 +307,8 @@ export function SettingsPanel() {
   const site = useSite();
   const { settings: s, set, overlay, setOverlay, mob, isMobile, sideActive, railMode } = site;
   const [partsOpen, setPartsOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const { navigation } = useContent();
   const sl = useSl();
   const locale = useLocale();
   const router = useRouter();
@@ -470,7 +493,7 @@ export function SettingsPanel() {
             </span>
           </Row>
           <Row label="Transparenz">
-            <span role="radiogroup" aria-label={sl('Transparenz')} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span role="radiogroup" aria-label={sl('Transparenz')} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 9.5, color: 'var(--soft)' }}>{sl('klar')}</span>
               {[1, 2, 3, 4, 5].map((n) => {
                 const on = (s.glassLvl || 3) === n;
@@ -646,6 +669,15 @@ export function SettingsPanel() {
               ))}
             </span>
           </Row>
+          {!mob && (
+            <NavSection
+              open={navOpen}
+              onOpen={() => setNavOpen((o) => !o)}
+              navigation={navigation}
+              page={pageForPath(canonicalPath(pathname))}
+              pathname={canonicalPath(pathname)}
+            />
+          )}
           <Row label="Zähler-Animation">
             <Seg
               options={[
@@ -656,6 +688,17 @@ export function SettingsPanel() {
               value={s.counterFx}
               onChange={(v) => set('counterFx', v as Settings['counterFx'])}
               label="Zähler-Animation"
+            />
+          </Row>
+          <Row label="Tech-Layout">
+            <Seg
+              options={[
+                ['cards', 'Karten'],
+                ['magazin', 'Magazin'],
+              ]}
+              value={s.techLayout}
+              onChange={(v) => set('techLayout', v as Settings['techLayout'])}
+              label="Tech-Layout"
             />
           </Row>
           <Row label="Page-Transition" column>
@@ -753,15 +796,7 @@ export function SettingsPanel() {
               />
             </span>
           </Row>
-          <button type="button" onClick={() => setPartsOpen((o) => !o)} aria-expanded={partsOpen} className={styles.rowBtn}>
-            <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>{sl('Hero-Text pro Element')}</span>
-            <span
-              aria-hidden
-              style={{ fontSize: 10, color: 'var(--soft)', transform: `rotate(${partsOpen ? 180 : 0}deg)`, transition: 'transform 0.25s' }}
-            >
-              ▾
-            </span>
-          </button>
+          <Expander label="Hero-Text pro Element" open={partsOpen} onToggle={() => setPartsOpen((o) => !o)} />
           {partsOpen &&
             HERO_PARTS.map((pd) => (
               <div key={pd.key}>
@@ -1016,6 +1051,100 @@ export function SettingsPanel() {
   );
 }
 
+/** Werkzeuge der Menüleiste, die sich ausblenden lassen (Schlüssel wie in SiteNav/IconRail). */
+const NAV_TOOLS = [
+  ['theme', 'Farbschema'],
+  ['search', 'Suche'],
+  ['anim', 'Animationen an/aus'],
+  ['settings', 'Einstellungen'],
+  ['side', 'Seitenmenü'],
+  ['contact', 'Kontakt'],
+] as const;
+
+/**
+ * Menü-Einstellungen (Desktop/Wide, neu — nicht im Prototyp): welche Einträge/Werkzeuge die Leiste zeigt (ld-navhide)
+ * und der Innenabstand der Leiste je Hauptseite (ld-navpad). Die Einstellungen bleiben per Shift+S erreichbar, auch wenn
+ * das Zahnrad ausgeblendet ist.
+ */
+function NavSection({
+  open,
+  onOpen,
+  navigation,
+  page,
+  pathname,
+}: {
+  open: boolean;
+  onOpen: () => void;
+  navigation: { label: string; href: string }[];
+  page: string | null;
+  pathname: string;
+}) {
+  const { settings: s, set } = useSite();
+  const sl = useSl();
+  const hide = s.navHide || {};
+  const flip = (key: string) => {
+    const next = { ...hide };
+    if (next[key]) delete next[key];
+    else next[key] = true;
+    set('navHide', next);
+  };
+  const pad = navPadFor(s.navPad, pathname);
+  const setPad = (v: number | null) => {
+    if (!page) return;
+    const next = { ...s.navPad };
+    if (v === null || v === NAV_PAD_DEFAULT) delete next[page];
+    else next[page] = v;
+    set('navPad', next);
+  };
+  const custom = SITE_PAGES.filter((p) => s.navPad?.[p.id] !== undefined);
+  const hiddenCount = Object.keys(hide).length;
+  return (
+    <>
+      <Expander label="Menü-Elemente" open={open} onToggle={onOpen} extra={hiddenCount > 0 ? ` · −${hiddenCount}` : undefined} />
+      {open && (
+        <div style={{ paddingLeft: 8, paddingBottom: 8, display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <span style={{ display: 'block', fontFamily: mono, fontSize: 9, color: 'var(--soft)', margin: '6px 0 2px' }}>{sl('Seiten')}</span>
+          {navigation.map((n) => (
+            <Toggle key={n.href} label={n.label} on={!hide[n.href]} onToggle={() => flip(n.href)} small />
+          ))}
+          <span style={{ display: 'block', fontFamily: mono, fontSize: 9, color: 'var(--soft)', margin: '8px 0 2px' }}>
+            {sl('Werkzeuge')}
+          </span>
+          {NAV_TOOLS.map(([k, label]) => (
+            <Toggle key={k} label={label} on={!hide[k]} onToggle={() => flip(k)} small />
+          ))}
+        </div>
+      )}
+      {page && (
+        <Row label="Menü-Abstand">
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end' }}>
+            <Range
+              min={NAV_PAD_MIN}
+              max={NAV_PAD_MAX}
+              step={1}
+              value={pad}
+              onChange={(v) => setPad(v)}
+              label="Menü-Abstand dieser Seite"
+              max2={120}
+            />
+            <span style={{ fontFamily: mono, fontSize: 10, color: 'var(--soft)', minWidth: 30, textAlign: 'right' }}>{pad} px</span>
+          </span>
+        </Row>
+      )}
+      {custom.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '0 0 8px' }}>
+          <span style={{ fontSize: 10.5, color: 'var(--soft)' }}>
+            {custom.map((p) => `${p.label} ${s.navPad[p.id]}`).join(' · ')} — {sl('angepasst')}
+          </span>
+          <button type="button" onClick={() => set('navPad', {})} className={styles.reset}>
+            {sl('Alle Seiten zurücksetzen')}
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
 /** Telefonrahmen der Desktop-Simulation: Clear/Island/Hole/Notch + Breite bzw. Position. */
 function FrameRow() {
   const { settings: s, set } = useSite();
@@ -1073,9 +1202,81 @@ function Row({ label, column, children }: { label: string; column?: boolean; chi
         borderTop: '1px solid var(--hair)',
       }}
     >
-      <span style={{ fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'nowrap' }}>{sl(label)}</span>
+      <span style={{ fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        {sl(label)}
+        <InfoTip label={label} />
+      </span>
       {children}
     </div>
+  );
+}
+
+/**
+ * Info-„i“ mit Tooltip (neu, nicht im Prototyp): erklärt eine Einstellung (Texte: settingsInfo.ts). Hover/Fokus zeigt,
+ * Klick/Tippen schaltet; der Tooltip liegt per Portal über allem, damit ihn der Scrollbereich des Panels nicht abschneidet.
+ * Screenreader bekommen den Text immer als Beschreibung.
+ */
+function InfoTip({ label }: { label: string }) {
+  const locale = useLocale();
+  const sl = useSl();
+  const id = useId();
+  const [box, setBox] = useState<DOMRect | null>(null);
+  const [pinned, setPinned] = useState(false);
+  const text = settingInfo(label, locale);
+  if (!text) return null;
+  const show = (el: HTMLElement) => setBox(el.getBoundingClientRect());
+  const hide = () => {
+    setBox(null);
+    setPinned(false);
+  };
+  const W = 240;
+  const tipPos: CSSProperties | null = box
+    ? {
+        left: Math.max(8, Math.min(box.left - 16, window.innerWidth - W - 8)),
+        ...(box.bottom + 140 > window.innerHeight ? { bottom: window.innerHeight - box.top + 6 } : { top: box.bottom + 6 }),
+      }
+    : null;
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={`${sl('Info')}: ${sl(label)}`}
+        aria-describedby={id}
+        aria-expanded={!!box}
+        className={styles.info}
+        onMouseEnter={(e) => show(e.currentTarget)}
+        onMouseLeave={() => !pinned && setBox(null)}
+        onFocus={(e) => show(e.currentTarget)}
+        onBlur={hide}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (pinned) hide();
+          else {
+            setPinned(true);
+            show(e.currentTarget);
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' && box) {
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+            hide();
+          }
+        }}
+      >
+        i
+      </button>
+      <span id={id} hidden>
+        {text}
+      </span>
+      {tipPos &&
+        createPortal(
+          <span aria-hidden className={styles.tip} style={{ ...tipPos, width: W }}>
+            {text}
+          </span>,
+          document.body,
+        )}
+    </>
   );
 }
 
@@ -1145,37 +1346,79 @@ function Seg({
 
 function Toggle({ label, on, onToggle, small }: { label: string; on: boolean; onToggle: () => void; small?: boolean }) {
   const sl = useSl();
+  const id = useId();
+  if (settingInfo(label, 'de'))
+    return (
+      <div className={small ? styles.toggleSmall : styles.toggleRow} style={{ cursor: 'default', width: '100%', boxSizing: 'border-box' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <label htmlFor={id} style={{ fontSize: small ? 11.5 : 12.5, color: small ? 'var(--soft)' : 'var(--muted)', cursor: 'pointer' }}>
+            {sl(label)}
+          </label>
+          <InfoTip label={label} />
+        </span>
+        <button id={id} type="button" role="switch" aria-checked={on} onClick={onToggle} className={styles.switchBtn}>
+          <Knob on={on} small={small} />
+        </button>
+      </div>
+    );
   return (
     <button type="button" role="switch" aria-checked={on} onClick={onToggle} className={small ? styles.toggleSmall : styles.toggleRow}>
       <span style={{ fontSize: small ? 11.5 : 12.5, color: small ? 'var(--soft)' : 'var(--muted)' }}>{sl(label)}</span>
-      <span
-        aria-hidden
-        style={{
-          width: small ? 40 : 42,
-          height: 23,
-          borderRadius: 999,
-          background: on ? 'var(--accent)' : 'var(--pill)',
-          position: 'relative',
-          transition: 'background 0.25s',
-          flex: 'none',
-          display: 'inline-block',
-        }}
-      >
-        <span
-          style={{
-            position: 'absolute',
-            top: small ? 2 : 2.5,
-            left: on ? (small ? 19 : 21.5) : small ? 2 : 2.5,
-            width: small ? 19 : 18,
-            height: small ? 19 : 18,
-            borderRadius: '50%',
-            background: '#fff',
-            transition: 'left 0.25s',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
-          }}
-        />
-      </span>
+      <Knob on={on} small={small} />
     </button>
+  );
+}
+
+/**
+ * Auf-/Zuklapp-Zeile mit Info-„i“ direkt hinter der Beschriftung. Der Pfeil rechts ist eine zusätzliche, für
+ * Tastatur/Screenreader versteckte Klickfläche (kein Button im Button).
+ */
+function Expander({ label, open, onToggle, extra }: { label: string; open: boolean; onToggle: () => void; extra?: string }) {
+  const sl = useSl();
+  return (
+    <div className={styles.expRow}>
+      <button type="button" onClick={onToggle} aria-expanded={open} className={styles.expBtn}>
+        {sl(label)}
+        {extra && <span style={{ color: 'var(--soft)' }}>{extra}</span>}
+      </button>
+      <InfoTip label={label} />
+      <button type="button" tabIndex={-1} aria-hidden onClick={onToggle} className={styles.expFill}>
+        <span style={{ display: 'inline-block', transform: `rotate(${open ? 180 : 0}deg)`, transition: 'transform 0.25s' }}>▾</span>
+      </button>
+    </div>
+  );
+}
+
+/** Schalter-Optik (Spur + Knopf) für Toggle. */
+function Knob({ on, small }: { on: boolean; small?: boolean }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: small ? 40 : 42,
+        height: 23,
+        borderRadius: 999,
+        background: on ? 'var(--accent)' : 'var(--pill)',
+        position: 'relative',
+        transition: 'background 0.25s',
+        flex: 'none',
+        display: 'inline-block',
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: small ? 2 : 2.5,
+          left: on ? (small ? 19 : 21.5) : small ? 2 : 2.5,
+          width: small ? 19 : 18,
+          height: small ? 19 : 18,
+          borderRadius: '50%',
+          background: '#fff',
+          transition: 'left 0.25s',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+        }}
+      />
+    </span>
   );
 }
 

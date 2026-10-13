@@ -12,6 +12,8 @@ export type Frame = 'clear' | 'island' | 'hole' | 'notch';
 export type ThemeColorMode = 'brand' | 'site';
 /** Laufender Sekundenzähler auf „Hallo“: schlicht, rollende Walzen oder Fallblatt (Flughafentafel/Klapp-Radiowecker). */
 export type CounterFx = 'plain' | 'roll' | 'flap';
+/** .Tech-Übersicht: Karten-Raster (Prototyp) oder Magazin-Layout (neu, nicht im Prototyp). */
+export type TechLayout = 'cards' | 'magazin';
 /** Logo oben im Mobil-Modus: Glas-Pille mit Zeichen (Prototyp), Pille mit Wortmarke, App-Kachel, erst beim Scrollen. */
 export type MobLogo = 'pill' | 'wordmark' | 'tile' | 'scroll';
 /**
@@ -53,6 +55,10 @@ export interface Settings {
   ctaAuto: boolean;
   /** Favicon-Variante (src/site/settings/favicon.ts). */
   favicon: string;
+  /** Ausgeblendete Elemente der Menüleiste: Pfade der Menüeinträge bzw. theme/search/anim/settings/side/contact. */
+  navHide: Record<string, boolean>;
+  /** Innenabstand der Menüleiste je Hauptseite in px (Schlüssel = SitePageId; fehlt → Standard). */
+  navPad: Record<string, number>;
   /** Desktop: Menüleiste klappt beim Runterscrollen auf Logo + Knopf ein (neu, nicht im Prototyp). */
   navCollapse: boolean;
   frame: Frame;
@@ -74,6 +80,7 @@ export interface Settings {
   cookie: string | null;
   themeColor: ThemeColorMode;
   counterFx: CounterFx;
+  techLayout: TechLayout;
   reiseBg: boolean;
   mobLogo: MobLogo;
   mobDesign: MobDesign;
@@ -118,6 +125,8 @@ export const DEFAULT_SETTINGS: Settings = {
   logoMarkOnly: false,
   ctaAuto: true,
   favicon: 'default',
+  navHide: {},
+  navPad: {},
   frame: 'clear',
   frameCfg: {},
   navSide: false,
@@ -137,6 +146,7 @@ export const DEFAULT_SETTINGS: Settings = {
   cookie: null,
   themeColor: 'brand',
   counterFx: 'plain',
+  techLayout: 'cards',
   reiseBg: false,
   mobLogo: 'pill',
   mobDesign: 'proto',
@@ -210,6 +220,8 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   logoMarkOnly: offUnlessOn('ld-logomark'),
   ctaAuto: onUnlessOff('ld-ctaauto'),
   favicon: str<string>('ld-favicon', 'default'),
+  navHide: json('ld-navhide'),
+  navPad: json('ld-navpad'),
   frame: str<Frame>('ld-frame', 'clear'),
   frameCfg: json('ld-framecfg'),
   navSide: offUnlessOn('ld-navside'),
@@ -234,6 +246,12 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
     key: 'ld-counterfx',
     read: (r) => (r === 'roll' || r === 'flap' ? r : 'plain'),
     write: (v) => (v === 'plain' ? null : v),
+  },
+  // Neu (nicht im Prototyp): .Tech als Magazin
+  techLayout: {
+    key: 'ld-techlayout',
+    read: (r) => (r === 'magazin' ? r : 'cards'),
+    write: (v) => (v === 'cards' ? null : v),
   },
   reiseBg: offUnlessOn('ld-reisebg'),
   mobLogo: {
