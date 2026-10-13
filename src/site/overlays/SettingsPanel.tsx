@@ -13,7 +13,7 @@ import { useSite } from '../settings/SiteProvider';
 import { useContent } from '../content/ContentProvider';
 import { canonicalPath } from '../i18n/locale';
 import { NAV_PAD_MAX, NAV_PAD_MIN, NAV_PAD_SIDES, SITE_PAGES, navPadFor, pageForPath, type NavPad } from '../nav/pages';
-import { ACCENTS, type Settings } from '../settings/schema';
+import { ACCENTS, FOOT_COPY_PRESETS, FOOT_TAG_DEFAULT, type Settings } from '../settings/schema';
 import { GlassLayers, panelGlass } from './GlassPanel';
 import styles from './settings.module.css';
 import { useRouter, usePathname } from 'next/navigation';
@@ -121,6 +121,11 @@ const STYLE_OPTS = [
 const EN_LABELS: Record<string, string> = {
   'Menü-Elemente': 'Menu elements',
   'Tech-Layout': 'Tech layout',
+  'Footer-Marke': 'Footer brand',
+  'Footer-Zusatz': 'Footer tagline',
+  'Footer-Links': 'Footer links',
+  'Eigener Copyright-Text': 'Custom copyright text',
+  Symbole: 'Icons',
   Karten: 'Cards',
   Magazin: 'Magazine',
   Info: 'Info',
@@ -709,6 +714,66 @@ export function SettingsPanel() {
               value={s.techLayout}
               onChange={(v) => set('techLayout', v as Settings['techLayout'])}
               label="Tech-Layout"
+            />
+          </Row>
+          <Row label="Footer-Marke">
+            <Seg
+              options={[
+                ['accent', 'Loona!'],
+                ['plain', 'Schlicht'],
+                ['logo', 'Logo'],
+              ]}
+              value={s.footBrand}
+              onChange={(v) => set('footBrand', v as Settings['footBrand'])}
+              label="Footer-Marke"
+            />
+          </Row>
+          <Row label="Footer-Zusatz" column>
+            <input
+              value={s.footTag}
+              onChange={(e) => set('footTag', e.target.value)}
+              placeholder={FOOT_TAG_DEFAULT}
+              maxLength={80}
+              aria-label={sl('Footer-Zusatz')}
+              className={styles.text}
+            />
+          </Row>
+          <Row label="Copyright" column>
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {FOOT_COPY_PRESETS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-pressed={s.footCopy === c}
+                  onClick={() => set('footCopy', c)}
+                  className={styles.preset}
+                  style={{
+                    borderColor: s.footCopy === c ? 'var(--accent)' : 'var(--border)',
+                    color: s.footCopy === c ? 'var(--ink)' : 'var(--muted)',
+                  }}
+                >
+                  {c}
+                </button>
+              ))}
+            </span>
+            <input
+              value={s.footCopy}
+              onChange={(e) => set('footCopy', e.target.value)}
+              placeholder={sl('Eigener Copyright-Text')}
+              maxLength={120}
+              aria-label={sl('Eigener Copyright-Text')}
+              className={styles.text}
+            />
+          </Row>
+          <Row label="Footer-Links">
+            <Seg
+              options={[
+                ['text', 'Text'],
+                ['icons', 'Symbole'],
+              ]}
+              value={s.footIcons ? 'icons' : 'text'}
+              onChange={(v) => set('footIcons', v === 'icons')}
+              label="Footer-Links"
             />
           </Row>
           <Row label="Page-Transition" column>
