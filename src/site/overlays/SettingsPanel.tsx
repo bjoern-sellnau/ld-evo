@@ -12,7 +12,7 @@ import { SPLASH_REPLAY_EVENT } from '../splash/Splash';
 import { useSite } from '../settings/SiteProvider';
 import { useContent } from '../content/ContentProvider';
 import { canonicalPath } from '../i18n/locale';
-import { NAV_PAD_DEFAULT, NAV_PAD_MAX, NAV_PAD_MIN, SITE_PAGES, navPadFor, pageForPath } from '../nav/pages';
+import { NAV_PAD_MAX, NAV_PAD_MIN, NAV_PAD_SIDES, SITE_PAGES, navPadFor, pageForPath, type NavPad } from '../nav/pages';
 import { ACCENTS, type Settings } from '../settings/schema';
 import { GlassLayers, panelGlass } from './GlassPanel';
 import styles from './settings.module.css';
@@ -125,8 +125,17 @@ const EN_LABELS: Record<string, string> = {
   Magazin: 'Magazine',
   Info: 'Info',
   'Menü-Abstand': 'Menu padding',
-  'Menü-Abstand dieser Seite': 'Menu padding of this page',
   'Alle Seiten zurücksetzen': 'Reset all pages',
+  'Diese Seite zurücksetzen': 'Reset this page',
+  'Alle vier gleich': 'All four equal',
+  Oben: 'Top',
+  Rechts: 'Right',
+  Unten: 'Bottom',
+  Links: 'Left',
+  'Menü-Abstand Oben': 'Menu padding top',
+  'Menü-Abstand Rechts': 'Menu padding right',
+  'Menü-Abstand Unten': 'Menu padding bottom',
+  'Menü-Abstand Links': 'Menu padding left',
   Farbschema: 'Color scheme',
   Suche: 'Search',
   'Animationen an/aus': 'Animations on/off',
@@ -695,6 +704,7 @@ export function SettingsPanel() {
               options={[
                 ['cards', 'Karten'],
                 ['magazin', 'Magazin'],
+                ['blog', 'Blog'],
               ]}
               value={s.techLayout}
               onChange={(v) => set('techLayout', v as Settings['techLayout'])}
@@ -1051,6 +1061,9 @@ export function SettingsPanel() {
   );
 }
 
+/** Beschriftungen der vier Abstands-Regler. */
+const PAD_LABEL = { t: 'Oben', r: 'Rechts', b: 'Unten', l: 'Links' } as const;
+
 /** Werkzeuge der Menüleiste, die sich ausblenden lassen (Schlüssel wie in SiteNav/IconRail). */
 const NAV_TOOLS = [
   ['theme', 'Farbschema'],
@@ -1089,11 +1102,17 @@ function NavSection({
     set('navHide', next);
   };
   const pad = navPadFor(s.navPad, pathname);
-  const setPad = (v: number | null) => {
+  // „Alle vier gleich“: ein Regler bewegt alle vier Werte mit (nur Bedienung, nicht gespeichert)
+  const [linked, setLinked] = useState(false);
+  const setPad = (side: keyof NavPad, v: number) => {
+    if (!page) return;
+    const val: NavPad = linked ? { t: v, r: v, b: v, l: v } : { ...pad, [side]: v };
+    set('navPad', { ...s.navPad, [page]: val });
+  };
+  const resetPage = () => {
     if (!page) return;
     const next = { ...s.navPad };
-    if (v === null || v === NAV_PAD_DEFAULT) delete next[page];
-    else next[page] = v;
+    delete next[page];
     set('navPad', next);
   };
   const custom = SITE_PAGES.filter((p) => s.navPad?.[p.id] !== undefined);
@@ -1116,25 +1135,36 @@ function NavSection({
         </div>
       )}
       {page && (
-        <Row label="Menü-Abstand">
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end' }}>
-            <Range
-              min={NAV_PAD_MIN}
-              max={NAV_PAD_MAX}
-              step={1}
-              value={pad}
-              onChange={(v) => setPad(v)}
-              label="Menü-Abstand dieser Seite"
-              max2={120}
-            />
-            <span style={{ fontFamily: mono, fontSize: 10, color: 'var(--soft)', minWidth: 30, textAlign: 'right' }}>{pad} px</span>
-          </span>
+        <Row label="Menü-Abstand" column>
+          {NAV_PAD_SIDES.map((side) => (
+            <span key={side} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 11.5, color: 'var(--soft)', width: 52 }}>{sl(PAD_LABEL[side])}</span>
+              <Range
+                min={NAV_PAD_MIN}
+                max={NAV_PAD_MAX}
+                step={1}
+                value={pad[side]}
+                onChange={(v) => setPad(side, v)}
+                label={`Menü-Abstand ${PAD_LABEL[side]}`}
+                max2={400}
+              />
+              <span style={{ fontFamily: mono, fontSize: 10, color: 'var(--soft)', minWidth: 34, textAlign: 'right' }}>{pad[side]} px</span>
+            </span>
+          ))}
+          <Toggle label="Alle vier gleich" on={linked} onToggle={() => setLinked((l) => !l)} small />
+          {s.navPad?.[page] !== undefined && (
+            <span style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="button" onClick={resetPage} className={styles.reset}>
+                {sl('Diese Seite zurücksetzen')}
+              </button>
+            </span>
+          )}
         </Row>
       )}
       {custom.length > 0 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '0 0 8px' }}>
           <span style={{ fontSize: 10.5, color: 'var(--soft)' }}>
-            {custom.map((p) => `${p.label} ${s.navPad[p.id]}`).join(' · ')} — {sl('angepasst')}
+            {custom.map((p) => p.label).join(' · ')} — {sl('angepasst')}
           </span>
           <button type="button" onClick={() => set('navPad', {})} className={styles.reset}>
             {sl('Alle Seiten zurücksetzen')}

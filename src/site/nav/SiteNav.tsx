@@ -8,7 +8,7 @@ import { GlassSurface } from '../glass/GlassSurface';
 import { useSite } from '../settings/SiteProvider';
 import styles from './SiteNav.module.css';
 import { useContent } from '../content/ContentProvider';
-import { isActiveHref, navPadFor } from './pages';
+import { isActiveHref, navPadCss, navPadFor } from './pages';
 import { useBack } from './useBack';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
@@ -103,7 +103,7 @@ export function SiteNav() {
   const hide = settings.navHide || {};
   const tools = (['theme', 'search', 'anim', 'settings'] as const).filter((k) => !hide[k]);
   const showSide = isWide && !hide.side;
-  // Menü-Abstand je Seite (ld-navpad, Abweichung vom Prototyp): Standard 7 → Pille 7px 8px, Seitenleiste 14px 12px
+  // Menü-Abstand je Seite und Seite der Leiste (ld-navpad, Abweichung vom Prototyp): Standard = Pille 7px 8px, Seitenleiste 14px 12px
   const pad = navPadFor(settings.navPad, pathname);
   const divider: CSSProperties = sideActive
     ? { alignSelf: 'stretch', height: 1, margin: '7px 4px', background: 'var(--hair)' }
@@ -143,7 +143,7 @@ export function SiteNav() {
             }),
             display: 'flex',
             gap: 3,
-            padding: sideActive ? `${pad + 7}px ${pad + 5}px` : `${pad}px ${pad + 1}px`,
+            padding: navPadCss(pad, sideActive),
             '--ld-item-scale': sideActive ? '1.02' : '1.07',
             ...(sideActive
               ? {

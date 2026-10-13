@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useLayoutEffect, useRef, type RefObject } from 'react';
 import type { Article } from '@content/articles';
 import { useContent } from '../content/ContentProvider';
 import { mono, useOpenItem } from '../cards/ProjectCard';
@@ -16,6 +17,7 @@ export function TechPage() {
   const { articles } = useContent();
   const t = useT();
   if (settings.techLayout === 'magazin') return <TechMagazine />;
+  if (settings.techLayout === 'blog') return <TechBlog />;
   return (
     <div data-screen-label=".Tech" style={{ paddingTop: mob && settings.mobModern ? 84 : 140, paddingBottom: 80 }}>
       <h1 style={{ fontFamily: mono, fontSize: 11, fontWeight: 400, letterSpacing: '0.18em', color: 'var(--accent)', margin: 0 }}>
@@ -325,6 +327,134 @@ function ColumnEntry({ a }: { a: Article }) {
       <h3 style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0 }}>{a.titel}</h3>
       <span style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--muted)' }}>{a.teaser}</span>
       <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--accent)' }}>{t('card.read')}</span>
+    </Link>
+  );
+}
+
+/** Lesezeit in Minuten (≈ 200 Wörter/Minute, mindestens 1). */
+export function readMinutes(a: Pick<Article, 'teaser' | 'body'>): number {
+  const words = [a.teaser, ...a.body].join(' ').split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+/** Raster-Zeilenhöhe der Masonry (px) und Abstand zwischen Kacheln. */
+const M_ROW = 4;
+const M_GAP = 18;
+
+/**
+ * Masonry über CSS-Grid: jede Zelle überspannt so viele 4-px-Zeilen, wie ihr Inhalt hoch ist. So bleibt die
+ * DOM-Reihenfolge zeilenweise (neueste oben links — auch für Tastatur und Screenreader), anders als bei CSS-Spalten.
+ * Neu gemessen bei jeder Größenänderung (Webfonts, Fensterbreite).
+ */
+function useMasonry(grid: RefObject<HTMLDivElement | null>) {
+  useLayoutEffect(() => {
+    const g = grid.current;
+    if (!g) return;
+    const cells = [...g.children] as HTMLElement[];
+    const fit = () => {
+      for (const c of cells) {
+        const inner = c.firstElementChild as HTMLElement | null;
+        if (inner) c.style.gridRowEnd = `span ${Math.ceil((inner.getBoundingClientRect().height + M_GAP) / M_ROW)}`;
+      }
+    };
+    fit();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(fit);
+    cells.forEach((c) => c.firstElementChild && ro.observe(c.firstElementChild));
+    return () => ro.disconnect();
+  });
+}
+
+/**
+ * Blog-Layout (Einstellung „Tech-Layout“ → Blog, neu — nicht im Prototyp): versetzte Kacheln (Masonry). Gepinnte
+ * Artikel mit großem Farbkopf, alle mit Anlesetext (erster Absatz) und Lesezeit; die Höhen ergeben sich aus dem Inhalt.
+ */
+function TechBlog() {
+  const { settings, mob, isWide } = useSite();
+  const { articles } = useContent();
+  const t = useT();
+  const grid = useRef<HTMLDivElement>(null);
+  useMasonry(grid);
+  const cols = mob ? 1 : isWide ? 4 : 3;
+  return (
+    <div data-screen-label=".Tech" style={{ paddingTop: mob && settings.mobModern ? 84 : 140, paddingBottom: 80 }}>
+      <h1 style={{ fontFamily: mono, fontSize: 11, fontWeight: 400, letterSpacing: '0.18em', color: 'var(--accent)', margin: 0 }}>
+        {t('tech.kicker')}
+      </h1>
+      <p style={{ fontSize: 15, color: 'var(--muted)', margin: '8px 0 0', maxWidth: 560, lineHeight: 1.6 }}>{t('tech.lead')}</p>
+      <div
+        ref={grid}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${cols},minmax(0,1fr))`,
+          gridAutoRows: M_ROW,
+          columnGap: M_GAP,
+          alignItems: 'start',
+          marginTop: 36,
+        }}
+      >
+        {articles.map((a) => (
+          <div key={a.id}>
+            <BlogCard a={a} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BlogCard({ a }: { a: Article }) {
+  const t = useT();
+  const l = useArticleLink(a);
+  const fg = inkOn(a.color);
+  const excerpt = a.body[0];
+  return (
+    <Link
+      href={l.href}
+      onClick={l.onClick}
+      className={cardStyles.card}
+      style={{
+        viewTransitionName: l.vt,
+        display: 'flex',
+        flexDirection: 'column',
+        borderRadius: 18,
+        overflow: 'hidden',
+        border: '1px solid var(--border)',
+        background: 'var(--card)',
+        color: 'inherit',
+        textDecoration: 'none',
+        boxShadow: 'var(--cardShadow)',
+      }}
+    >
+      {a.pinned ? (
+        <div
+          style={{
+            background: a.color,
+            color: fg,
+            padding: '22px 22px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            minHeight: 150,
+          }}
+        >
+          <span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: '0.12em', opacity: readableAlpha(a.color, fg, 0.8) }}>
+            ★ {t('tech.pinned').toUpperCase()} · {a.kat}
+          </span>
+          <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.15, margin: 0 }}>{a.titel}</h2>
+        </div>
+      ) : (
+        <div aria-hidden style={{ height: 6, background: a.color }} />
+      )}
+      <div style={{ padding: '16px 20px 18px', display: 'flex', flexDirection: 'column', gap: 9 }}>
+        <span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: '0.1em', color: 'var(--soft)' }}>
+          {a.pinned ? a.datum : `${a.kat} · ${a.datum}`} · {t('tech.readTime', { n: readMinutes(a) })}
+        </span>
+        {!a.pinned && <h2 style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.015em', lineHeight: 1.25, margin: 0 }}>{a.titel}</h2>}
+        <span style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--ink)', fontWeight: 600 }}>{a.teaser}</span>
+        {excerpt && <span style={{ fontSize: 13, lineHeight: 1.65, color: 'var(--muted)' }}>{excerpt}</span>}
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--accent)' }}>{t('card.read')}</span>
+      </div>
     </Link>
   );
 }

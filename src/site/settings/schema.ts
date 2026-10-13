@@ -12,8 +12,8 @@ export type Frame = 'clear' | 'island' | 'hole' | 'notch';
 export type ThemeColorMode = 'brand' | 'site';
 /** Laufender Sekundenzähler auf „Hallo“: schlicht, rollende Walzen oder Fallblatt (Flughafentafel/Klapp-Radiowecker). */
 export type CounterFx = 'plain' | 'roll' | 'flap';
-/** .Tech-Übersicht: Karten-Raster (Prototyp) oder Magazin-Layout (neu, nicht im Prototyp). */
-export type TechLayout = 'cards' | 'magazin';
+/** .Tech-Übersicht: Karten-Raster (Prototyp), Magazin oder Blog mit Masonry (beide neu, nicht im Prototyp). */
+export type TechLayout = 'cards' | 'magazin' | 'blog';
 /** Logo oben im Mobil-Modus: Glas-Pille mit Zeichen (Prototyp), Pille mit Wortmarke, App-Kachel, erst beim Scrollen. */
 export type MobLogo = 'pill' | 'wordmark' | 'tile' | 'scroll';
 /**
@@ -57,8 +57,8 @@ export interface Settings {
   favicon: string;
   /** Ausgeblendete Elemente der Menüleiste: Pfade der Menüeinträge bzw. theme/search/anim/settings/side/contact. */
   navHide: Record<string, boolean>;
-  /** Innenabstand der Menüleiste je Hauptseite in px (Schlüssel = SitePageId; fehlt → Standard). */
-  navPad: Record<string, number>;
+  /** Innenabstand der Menüleiste je Hauptseite in px, getrennt oben/rechts/unten/links (Schlüssel = SitePageId; fehlt → Standard). */
+  navPad: Record<string, number | Partial<Record<'t' | 'r' | 'b' | 'l', number>>>;
   /** Desktop: Menüleiste klappt beim Runterscrollen auf Logo + Knopf ein (neu, nicht im Prototyp). */
   navCollapse: boolean;
   frame: Frame;
@@ -250,7 +250,7 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   // Neu (nicht im Prototyp): .Tech als Magazin
   techLayout: {
     key: 'ld-techlayout',
-    read: (r) => (r === 'magazin' ? r : 'cards'),
+    read: (r) => (r === 'magazin' || r === 'blog' ? r : 'cards'),
     write: (v) => (v === 'cards' ? null : v),
   },
   reiseBg: offUnlessOn('ld-reisebg'),

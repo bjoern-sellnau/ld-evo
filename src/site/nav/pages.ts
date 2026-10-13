@@ -18,20 +18,47 @@ export function pageForPath(pathname: string): SitePageId | null {
   return hit?.id ?? null;
 }
 
-/** Standard-Innenabstand der Menüleiste (Prototyp: Top-Pille 7px 8px). */
-export const NAV_PAD_DEFAULT = 7;
+/** Innenabstand der Menüleiste je Seite in px: oben, rechts, unten, links. */
+export interface NavPad {
+  t: number;
+  r: number;
+  b: number;
+  l: number;
+}
+/** Gespeicherter Wert (ld-navpad): je Seite getrennt; eine Zahl ist das ältere Format (ein Regler für alles). */
+export type NavPadValue = number | Partial<NavPad>;
+export const NAV_PAD_SIDES = ['t', 'r', 'b', 'l'] as const;
+/** Standard = Prototyp: Top-Pille 7px 8px. */
+export const NAV_PAD_DEFAULT: NavPad = { t: 7, r: 8, b: 7, l: 8 };
 export const NAV_PAD_MIN = 0;
-export const NAV_PAD_MAX = 20;
+export const NAV_PAD_MAX = 30;
+
+const clampPad = (v: unknown, d: number) =>
+  typeof v === 'number' && Number.isFinite(v) ? Math.min(NAV_PAD_MAX, Math.max(NAV_PAD_MIN, Math.round(v))) : d;
 
 /**
- * Menü-Abstand der aktuellen Seite (Einstellung „Menü-Abstand“, ld-navpad, neu): Wert je Hauptseite,
- * Detailseiten erben den ihrer Liste. Ungültige Werte → Standard, sonst auf den Reglerbereich begrenzt.
+ * Menü-Abstand der aktuellen Seite (Einstellung „Menü-Abstand“, ld-navpad, neu): Werte je Hauptseite und Seite der
+ * Leiste, Detailseiten erben die ihrer Liste. Fehlende/ungültige Werte → Standard, sonst auf den Reglerbereich begrenzt.
  */
-export function navPadFor(navPad: Record<string, number> | undefined, pathname: string): number {
+export function navPadFor(navPad: Record<string, NavPadValue> | undefined, pathname: string): NavPad {
   const id = pageForPath(pathname);
   const v = id ? navPad?.[id] : undefined;
-  if (typeof v !== 'number' || !Number.isFinite(v)) return NAV_PAD_DEFAULT;
-  return Math.min(NAV_PAD_MAX, Math.max(NAV_PAD_MIN, Math.round(v)));
+  if (typeof v === 'number') {
+    const n = clampPad(v, NAV_PAD_DEFAULT.t);
+    return { t: n, b: n, l: Math.min(NAV_PAD_MAX, n + 1), r: Math.min(NAV_PAD_MAX, n + 1) };
+  }
+  const o = v && typeof v === 'object' ? v : {};
+  return {
+    t: clampPad(o.t, NAV_PAD_DEFAULT.t),
+    r: clampPad(o.r, NAV_PAD_DEFAULT.r),
+    b: clampPad(o.b, NAV_PAD_DEFAULT.b),
+    l: clampPad(o.l, NAV_PAD_DEFAULT.l),
+  };
+}
+
+/** CSS-Padding der Leiste: Top-Pille 1:1; Glas-Seitenleiste mit Aufschlag (Standard → 14px 12px wie im Prototyp). */
+export function navPadCss(p: NavPad, side: boolean): string {
+  return side ? `${p.t + 7}px ${p.r + 4}px ${p.b + 7}px ${p.l + 4}px` : `${p.t}px ${p.r}px ${p.b}px ${p.l}px`;
 }
 
 /** Menüpunkt der Hauptnavigation (pflegbar in LD Flow → Navigation). */
