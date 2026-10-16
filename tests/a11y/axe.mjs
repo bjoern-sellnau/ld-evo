@@ -24,6 +24,8 @@ const SITE = [
   '/ueber-mich',
   '/impressum',
   '/projekte/neuewebsite',
+  // Story-Layout (Scroll-Erzählung aus Widgets)
+  '/projekte/ldbuddy',
   '/labs/corefall',
   '/tech/a1',
   // Englisch (UI übersetzt; Inhalte bis zur Freigabe als deutscher Rückfall mit lang="de")
@@ -41,6 +43,8 @@ const FLOW_APP = [
   '/flow/c/projects',
   '/flow/c/projects/corefall',
   '/flow/c/projects/corefall?lang=en',
+  // Story-Projekt: Editor mit Story-Inhalt (Widgets)
+  '/flow/c/projects/ldbuddy',
   '/flow/media',
   '/flow/messages',
   '/flow/stats',

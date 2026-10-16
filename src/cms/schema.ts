@@ -171,6 +171,17 @@ const PROJECT_FIELDS: FieldDef[] = [
   { key: 'zitat', label: 'Zitat', type: 'textarea', max: 400, inline: true },
   { key: 'learnings', label: '05 Gelernt', type: 'textarea', max: 4000, inline: true },
   { key: 'gallery', label: '06 Eindrücke', type: 'gallery' },
+  {
+    key: 'layout',
+    label: 'Layout der Detailseite',
+    type: 'select',
+    options: [
+      ['case', 'Case Study (Kapitel 01–06)'],
+      ['story', 'Story (Scroll-Erlebnis aus Widgets)'],
+    ],
+    help: 'Story: Die Seite besteht aus den Widgets unter „Story-Inhalt“ — am besten in der Vorschau bauen (Gruppe „Story“).',
+  },
+  { key: 'story', label: 'Story-Inhalt', type: 'blocks', allowed: '*' },
 ];
 
 const ARTICLE_FIELDS: FieldDef[] = [

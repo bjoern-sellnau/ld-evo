@@ -139,7 +139,7 @@ export interface WidgetDef<
   icon: string;
   description?: string;
   /** Gruppe in der Widget-Auswahl. */
-  group?: 'Text' | 'Medien' | 'Layout' | 'Inhalte' | 'Aktion';
+  group?: 'Text' | 'Medien' | 'Layout' | 'Inhalte' | 'Aktion' | 'Story';
   fields?: F;
   controls?: C;
   slots?: S;

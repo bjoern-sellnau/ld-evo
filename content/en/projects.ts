@@ -539,6 +539,416 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Work in progress — you're looking at it right now.",
     "zitat": "Fifty ideas, so that one remains.",
     "learnings": "Filtering ruthlessly is part of the design — not its failure. The path from 50 styles to one system was the real design."
+  },
+  {
+    "id": "ldbuddy",
+    "kind": "projekte",
+    "kat": "App",
+    "tag": "APP CONCEPT",
+    "datum": "10/2026",
+    "name": "LD Buddy",
+    "mono": "LB",
+    "color": "#4C3BC9",
+    "featured": false,
+    "tool": "Claude Code · Next.js · React Native",
+    "desc": "One app for everyday admin: finances, orders, news, collections, household budget, shopping lists and bookmarks.",
+    "ueberblick": "Seven little apps for seven little jobs — LD Buddy brings them together in one calm interface.",
+    "ansatz": "Daily routines first, features second: what do you need in the morning, on the go, in the evening?",
+    "stack": [
+      "Claude Code",
+      "Next.js",
+      "React Native",
+      "SQLite"
+    ],
+    "ergebnis": "In progress — this story page shows the ideas.",
+    "zitat": "The best everyday app is the one you forget until you need it.",
+    "learnings": "Calm is a feature.",
+    "layout": "story",
+    "story": [
+      {
+        "type": "story-hero",
+        "_id": "ldbuddy01",
+        "kicker": "LD BUDDY · APP CONCEPT",
+        "title": "Your everyday.",
+        "title2": "One buddy.",
+        "text": "Finances, orders, news, collections, household budget, shopping lists and bookmarks — in one app that thinks along instead of nagging.",
+        "chips": [
+          "Finances",
+          "Orders",
+          "News",
+          "Collection",
+          "Budget",
+          "Shopping lists",
+          "Bookmarks"
+        ],
+        "cue": "Scroll",
+        "c1": "#6D5AE6",
+        "c2": "#22D3EE",
+        "c3": "#F472B6"
+      },
+      {
+        "type": "story-ticker",
+        "_id": "ldbuddy02",
+        "items": [
+          "Accounts at a glance",
+          "Track parcels",
+          "Share lists",
+          "Set budgets",
+          "Collect & value",
+          "Read later",
+          "Works offline",
+          "No ads"
+        ],
+        "controls": {
+          "look": "pillen",
+          "speed": "mittel",
+          "reverse": false
+        }
+      },
+      {
+        "type": "story-words",
+        "_id": "ldbuddy03",
+        "kicker": "WHY",
+        "text": "Seven apps for seven little things? LD Buddy brings everyday admin into one place — fast, private and so tidy you actually enjoy opening it."
+      },
+      {
+        "type": "story-scene",
+        "_id": "ldbuddy04",
+        "kicker": "WHAT IT FEELS LIKE",
+        "title": "A day with LD Buddy",
+        "text": "From the first coffee to the couch — Buddy shows up when you need it and stays quiet when you don't.",
+        "c1": "#1E1B4B",
+        "c2": "#4C1D95",
+        "controls": {
+          "bg": "verlauf",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "links",
+          "glow": true
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-steps",
+              "_id": "ldbuddy05",
+              "color": "#6D5AE6",
+              "steps": [
+                {
+                  "icon": "☕",
+                  "title": "7:30 am — balance with your coffee",
+                  "text": "One glance is enough: what came in, what went out, what's due this week. Without five banking apps.",
+                  "screen": "finanzen",
+                  "screenTitle": "Finances",
+                  "rows": [
+                    "Balance | €2,481.20",
+                    "Salary | +€3,150.00 | €",
+                    "Rent | -€950.00 | ⌂",
+                    "Groceries | -€64.80 | G",
+                    "Streaming | -€12.99 | ▶"
+                  ]
+                },
+                {
+                  "icon": "🛒",
+                  "title": "The shopping list that thinks along",
+                  "text": "Shared with the family, sorted by supermarket aisle — and Buddy suggests what's running out.",
+                  "screen": "liste",
+                  "screenTitle": "Groceries",
+                  "rows": [
+                    "Oat milk | 2× | ✓",
+                    "Bananas | 1 kg",
+                    "Coffee | 500 g | ✓",
+                    "Bread | 1",
+                    "Tomatoes | 6",
+                    "Dish soap | 1"
+                  ]
+                },
+                {
+                  "icon": "📦",
+                  "title": "Parcels without tracking chaos",
+                  "text": "Orders land in Buddy automatically — with status, delivery date and a reminder for the return window.",
+                  "screen": "bestellungen",
+                  "screenTitle": "Orders",
+                  "rows": [
+                    "Headphones | Tue | 2",
+                    "Running shoes | Mon | 3",
+                    "Book: Clean Code | Fri | 1",
+                    "Monstera | today | 0"
+                  ]
+                },
+                {
+                  "icon": "📰",
+                  "title": "News that actually concerns you",
+                  "text": "No endless feed: only updates about your places, devices and topics — bundled once a day.",
+                  "screen": "feed",
+                  "screenTitle": "Today",
+                  "rows": [
+                    "Update available for your router | Tech | 5 min",
+                    "Farmers market opens longer | Local | 2 h",
+                    "Track works this weekend | Commute | today"
+                  ]
+                },
+                {
+                  "icon": "🔖",
+                  "title": "Bookmarks for later — actually for later",
+                  "text": "Share links from any app; Buddy keeps them with a preview and reminds you on Sunday.",
+                  "screen": "lesezeichen",
+                  "screenTitle": "Bookmarks",
+                  "rows": [
+                    "View Transitions in depth | web.dev | V",
+                    "Recipe: roasted vegetables | bbcgoodfood.com | R",
+                    "Tax return 2026 | elster.de | E",
+                    "Hike Saxon Switzerland | komoot | W"
+                  ]
+                }
+              ],
+              "controls": {
+                "side": "rechts",
+                "device": "phone"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "ldbuddy06",
+        "kicker": "EVERYTHING IN ONE PLACE",
+        "title": "Seven areas. One interface.",
+        "controls": {
+          "bg": "keiner",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "mitte",
+          "glow": false
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-bento",
+              "_id": "ldbuddy07",
+              "items": [
+                {
+                  "icon": "💳",
+                  "title": "Finances",
+                  "text": "All accounts and cards in one place, subscriptions detected automatically.",
+                  "size": "l",
+                  "color": "#4C3BC9",
+                  "screen": "finanzen",
+                  "rows": [
+                    "This month | €1,284.50",
+                    "Subscriptions | -€42.96 | ↻",
+                    "Fuel | -€71.20 | F",
+                    "Refund | +€23.00 | +"
+                  ]
+                },
+                {
+                  "icon": "📒",
+                  "title": "Household budget",
+                  "text": "Budgets per category — with a heads-up before it gets tight.",
+                  "size": "t",
+                  "screen": "haushalt",
+                  "rows": [
+                    "Groceries | €312 | 78",
+                    "Home | €950 | 100",
+                    "Leisure | €140 | 56",
+                    "Transport | €96 | 40"
+                  ]
+                },
+                {
+                  "icon": "🛒",
+                  "title": "Shopping lists",
+                  "text": "Shared, sorted, synced instantly.",
+                  "size": "s"
+                },
+                {
+                  "icon": "📦",
+                  "title": "Orders",
+                  "text": "Status and return windows at a glance.",
+                  "size": "s"
+                },
+                {
+                  "icon": "🗞️",
+                  "title": "News",
+                  "text": "One calm daily digest instead of a hundred push notifications.",
+                  "size": "w",
+                  "color": "#0E7490"
+                },
+                {
+                  "icon": "🧩",
+                  "title": "Collection",
+                  "text": "Vinyl, LEGO, plants — all catalogued.",
+                  "size": "s"
+                },
+                {
+                  "icon": "🔖",
+                  "title": "Bookmarks",
+                  "text": "Read later without forgetting.",
+                  "size": "s"
+                },
+                {
+                  "icon": "🔒",
+                  "title": "Private by default",
+                  "text": "Data stays on your device, sync is end-to-end encrypted, no ads.",
+                  "size": "w",
+                  "color": "#111827"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-app",
+        "_id": "ldbuddy08",
+        "kicker": "HOUSEHOLD BUDGET",
+        "title": "Budgets that don't feel like going without",
+        "text": "Buddy sorts spending into categories automatically and shows where there's room left — friendly, not finger-wagging.",
+        "bullets": [
+          "Categories detected automatically",
+          "A heads-up before a budget breaks",
+          "Monthly recap as a little story"
+        ],
+        "color": "#0F766E",
+        "screen": "haushalt",
+        "screenTitle": "October",
+        "rows": [
+          "Groceries | €312 | 78",
+          "Home | €950 | 100",
+          "Leisure | €140 | 56",
+          "Transport | €96 | 40",
+          "Clothing | €230 | 92"
+        ],
+        "controls": {
+          "side": "links",
+          "device": "phone"
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "ldbuddy09",
+        "kicker": "COLLECTION",
+        "title": "Your treasures, finally sorted.",
+        "controls": {
+          "bg": "keiner",
+          "height": "auto",
+          "effect": "fade",
+          "align": "links",
+          "glow": false
+        },
+        "slots": {
+          "inhalt": []
+        }
+      },
+      {
+        "type": "story-horizontal",
+        "_id": "ldbuddy10",
+        "items": [
+          {
+            "icon": "📷",
+            "kicker": "SCAN",
+            "title": "Snap it, Buddy does the rest",
+            "text": "Barcode, cover or label — title, value and condition fill themselves in.",
+            "color": "#7C2D12"
+          },
+          {
+            "icon": "🎧",
+            "kicker": "COLLECT",
+            "title": "Vinyl, LEGO, plants",
+            "text": "Your own collections with fields that fit you."
+          },
+          {
+            "icon": "📈",
+            "kicker": "VALUE",
+            "title": "What is it worth?",
+            "text": "Price history of your collection — no spreadsheets.",
+            "color": "#065F46"
+          },
+          {
+            "icon": "🤝",
+            "kicker": "SHARE",
+            "title": "Swap instead of buying twice",
+            "text": "Share lists with friends, mark duplicates."
+          },
+          {
+            "icon": "🔔",
+            "kicker": "WISHLIST",
+            "title": "Alerts for bargains",
+            "text": "Buddy pings you when something on your wishlist turns up cheap.",
+            "color": "#4C3BC9"
+          }
+        ]
+      },
+      {
+        "type": "story-scene",
+        "_id": "ldbuddy11",
+        "kicker": "BY THE NUMBERS",
+        "title": "Fewer apps, more calm.",
+        "c1": "#6D5AE6",
+        "controls": {
+          "bg": "dunkel",
+          "height": "auto",
+          "effect": "zoom",
+          "align": "mitte",
+          "glow": true
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-numbers",
+              "_id": "ldbuddy12",
+              "items": [
+                {
+                  "value": "7",
+                  "label": "areas in one app"
+                },
+                {
+                  "value": "0",
+                  "label": "ad banners"
+                },
+                {
+                  "value": "100 %",
+                  "label": "usable offline"
+                },
+                {
+                  "value": "2.4 s",
+                  "label": "to your first list"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "ldbuddy13",
+        "kicker": "IN THE WORKS",
+        "title": "Ready for less clutter?",
+        "text": "LD Buddy is a concept by loona! designs and is being built right now. Curious, want to weigh in or test it? Drop me a line.",
+        "c1": "#6D5AE6",
+        "c2": "#DB2777",
+        "controls": {
+          "bg": "verlauf",
+          "height": "screen",
+          "effect": "blur",
+          "align": "mitte",
+          "glow": true
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "cta",
+              "_id": "ldbuddy14",
+              "label": "See all projects",
+              "href": "/projekte",
+              "controls": {
+                "variant": "akzent",
+                "align": "mitte"
+              }
+            }
+          ]
+        }
+      }
+    ]
   }
 ];
 

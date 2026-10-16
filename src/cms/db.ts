@@ -203,6 +203,7 @@ function migrate(db: DatabaseSync) {
     }
     seedIfEmpty(db);
     backfillSingletons(db);
+    seedAdditions(db);
     seedTranslations(db);
     db.exec('COMMIT');
   } catch (e) {
@@ -253,6 +254,38 @@ function backfillSingletons(db: DatabaseSync) {
     const dr = fill(row.draft);
     if (pub) db.prepare("UPDATE docs SET published = ? WHERE collection = ? AND id = ? AND locale = 'de'").run(pub, d.collection, d.id);
     if (dr) db.prepare("UPDATE docs SET draft = ? WHERE collection = ? AND id = ? AND locale = 'de'").run(dr, d.collection, d.id);
+  }
+}
+
+/**
+ * Neue Beispiel-Dokumente für bereits laufende Installationen (z. B. die Story-Seite „LD Buddy“): je Eintrag genau
+ * einmal (meta-Schlüssel), nur wenn das Dokument fehlt — wer es löscht, bekommt es nicht zurück. Deutsch veröffentlicht
+ * (wie beim Erststart), Englisch als Entwurf. Frische Datenbanken haben das Dokument schon aus seedIfEmpty.
+ */
+const ADDITIONS = [{ key: 'seed_ldbuddy', collection: 'projects', id: 'ldbuddy' }];
+
+function seedAdditions(db: DatabaseSync) {
+  const now = Date.now();
+  for (const a of ADDITIONS) {
+    if (db.prepare('SELECT 1 FROM meta WHERE key = ?').get(a.key)) continue;
+    const has = (locale: string) =>
+      db.prepare('SELECT 1 FROM docs WHERE collection = ? AND id = ? AND locale = ?').get(a.collection, a.id, locale);
+    const de = seedDocs('de').find((d) => d.collection === a.collection && d.id === a.id);
+    const en = seedDocs('en').find((d) => d.collection === a.collection && d.id === a.id);
+    const pos = (
+      db.prepare("SELECT COALESCE(MAX(position), -1) + 1 AS n FROM docs WHERE collection = ? AND locale = 'de'").get(a.collection) as {
+        n: number;
+      }
+    ).n;
+    if (de && !has('de'))
+      db.prepare(
+        "INSERT INTO docs (collection, id, locale, position, published, draft, created_at, updated_at, published_at) VALUES (?, ?, 'de', ?, ?, NULL, ?, ?, ?)",
+      ).run(a.collection, a.id, pos, JSON.stringify(de.data), now, now, now);
+    if (en && has('de') && !has('en'))
+      db.prepare(
+        "INSERT INTO docs (collection, id, locale, position, published, draft, created_at, updated_at, updated_by, published_at) VALUES (?, ?, 'en', ?, NULL, ?, ?, ?, 'Übersetzungsentwurf', NULL)",
+      ).run(a.collection, a.id, pos, JSON.stringify(en.data), now, now);
+    db.prepare('INSERT INTO meta (key, value) VALUES (?, ?)').run(a.key, String(now));
   }
 }
 
