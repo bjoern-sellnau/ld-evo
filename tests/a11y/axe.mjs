@@ -26,6 +26,9 @@ const SITE = [
   '/projekte/neuewebsite',
   // Story-Layout (Scroll-Erzählung aus Widgets)
   '/projekte/ldbuddy',
+  '/projekte/notchbuddy',
+  '/projekte/ldbeyond',
+  '/labs/coe',
   '/labs/corefall',
   '/tech/a1',
   // Englisch (UI übersetzt; Inhalte bis zur Freigabe als deutscher Rückfall mit lang="de")

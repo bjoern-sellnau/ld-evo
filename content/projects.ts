@@ -742,6 +742,99 @@ export const PROJECTS: Project[] = [
       },
       {
         "type": "story-scene",
+        "_id": "ldbuddy17",
+        "kicker": "ALLE ANSICHTEN",
+        "title": "Einmal durchklicken, bitte.",
+        "controls": {
+          "bg": "keiner",
+          "width": "breit",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "mitte",
+          "glow": false
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-gallery",
+              "_id": "ldbuddy18",
+              "text": "Dieselben Daten, fünf Gesichter — wähle eine Ansicht.",
+              "color": "#BE185D",
+              "items": [
+                {
+                  "label": "Desktop",
+                  "device": "desktop",
+                  "screen": "dashboard",
+                  "screenTitle": "Heute",
+                  "rows": [
+                    "Ausgaben Oktober | 1.284 € | €",
+                    "Pakete unterwegs | 3 | 📦",
+                    "Einkaufsliste | 6 offen | 🛒",
+                    "Später lesen | 4 | 🔖"
+                  ],
+                  "caption": "Die Desktop-App (Tauri 2 + Next.js) — das Zuhause aller Bereiche."
+                },
+                {
+                  "label": "Mobile",
+                  "device": "phone",
+                  "screen": "liste",
+                  "screenTitle": "Einkauf",
+                  "rows": [
+                    "Hafermilch | 2× | ✓",
+                    "Bananen | 1 kg",
+                    "Kaffee | 500 g | ✓",
+                    "Brot | 1",
+                    "Tomaten | 6"
+                  ],
+                  "caption": "Die Companion-App für unterwegs: abhaken, prüfen, festhalten."
+                },
+                {
+                  "label": "Leseliste",
+                  "device": "sidebar",
+                  "screen": "lesezeichen",
+                  "screenTitle": "Später lesen",
+                  "rows": [
+                    "Clean Architecture | martinfowler.com | M",
+                    "Liquid Glass erklärt | 6 Min. | L",
+                    "Tauri 2.0 | tauri.app | T",
+                    "Rezepte: Herbst | 12 Min. | R"
+                  ],
+                  "caption": "Leseliste-Erweiterung als Seitenleiste: Artikel merken, später in Ruhe lesen."
+                },
+                {
+                  "label": "Chrome",
+                  "device": "chrome",
+                  "screen": "bestellungen",
+                  "screenTitle": "Bestellungen",
+                  "rows": [
+                    "Kopfhörer | Di | 2",
+                    "Laufschuhe | Mo | 3",
+                    "Monstera | heute | 0"
+                  ],
+                  "caption": "Chrome-Erweiterung: Bestellung oder Preis mit einem Klick an Buddy schicken."
+                },
+                {
+                  "label": "Safari",
+                  "device": "safari",
+                  "screen": "lesezeichen",
+                  "screenTitle": "Merken",
+                  "rows": [
+                    "Diese Seite | jetzt merken | +",
+                    "Preisalarm | ab 79 € | €",
+                    "Zur Sammlung | Vinyl | ♫"
+                  ],
+                  "caption": "Safari-Erweiterung: dasselbe für Safari auf dem Mac."
+                }
+              ],
+              "controls": {
+                "layout": "register"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
         "_id": "ldbuddy04",
         "kicker": "SO FÜHLT ES SICH AN",
         "title": "Ein Tag mit LD Buddy",
@@ -1072,6 +1165,878 @@ export const PROJECTS: Project[] = [
             {
               "type": "cta",
               "_id": "ldbuddy14",
+              "label": "Alle Projekte ansehen",
+              "href": "/projekte",
+              "controls": {
+                "variant": "akzent",
+                "align": "mitte"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "coe",
+    "kind": "labs",
+    "kat": "Spiel",
+    "tag": "GAME ENGINE",
+    "datum": "10/2026",
+    "name": "COE",
+    "mono": "CO",
+    "color": "#14532D",
+    "featured": false,
+    "tool": "Claude Code · JavaScript · WebGL",
+    "desc": "Covert Operations Engine — eine Spiel-Engine, viele Genres: FPS, Stealth, Arcade-Racer und Open-World. Mit Beispielspielen von Battlefield Warfare bis Ghetto Gangz.",
+    "ueberblick": "Aus „Covert Operations“ wurde eine Engine: dieselbe Spiellogik treibt Shooter, Schleichspiel, Rennspiel und offene Stadt.",
+    "ansatz": "Kern zuerst (Physik, Eingabe, KI, Kamera), Genres als Module darüber.",
+    "stack": [
+      "JavaScript",
+      "WebGL",
+      "Claude Code",
+      "Eigene Physik",
+      "Gegner-KI"
+    ],
+    "ergebnis": "In Arbeit — diese Story-Seite zeigt die Beispiele.",
+    "zitat": "Eine Engine ist erst fertig, wenn das zweite Spiel nichts mehr umbauen muss.",
+    "learnings": "Genres teilen mehr, als man denkt — Kamera und Eingabe sind der Unterschied.",
+    "layout": "story",
+    "story": [
+      {
+        "type": "story-hero",
+        "_id": "coe01",
+        "kicker": "COE · COVERT OPERATIONS ENGINE",
+        "title": "Eine Engine.",
+        "title2": "Jedes Genre.",
+        "text": "Shooter, Schleichen, Rasen, Stadt — die Covert Operations Engine steckt hinter allen Beispielspielen. Gleiche Physik, gleiche KI, andere Kamera.",
+        "chips": [
+          "FPS",
+          "Stealth",
+          "Arcade-Racer",
+          "Open World",
+          "Top-Down",
+          "ISO"
+        ],
+        "cue": "Scrollen",
+        "c1": "#22C55E",
+        "c2": "#EAB308",
+        "c3": "#EF4444"
+      },
+      {
+        "type": "story-ticker",
+        "_id": "coe02",
+        "items": [
+          "Battlefield Warfare",
+          "Ghetto Gangz",
+          "Racer",
+          "Raptor: Shadow of Vengeance",
+          "Eine Spiellogik",
+          "Viele Kameras",
+          "Im Browser"
+        ],
+        "controls": {
+          "look": "gross",
+          "speed": "langsam",
+          "reverse": false
+        }
+      },
+      {
+        "type": "story-words",
+        "_id": "coe03",
+        "kicker": "WARUM",
+        "text": "Jedes Spiel fängt wieder bei null an? COE nicht. Bewegung, Treffer, Gegner und Fahrzeuge gibt es einmal — die Spiele erzählen nur, was daraus wird."
+      },
+      {
+        "type": "story-scene",
+        "_id": "coe04",
+        "kicker": "DIE BEISPIELE",
+        "title": "Vier Spiele, eine Engine.",
+        "controls": {
+          "bg": "keiner",
+          "width": "breit",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "mitte",
+          "glow": false
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-gallery",
+              "_id": "coe05",
+              "color": "#16A34A",
+              "items": [
+                {
+                  "label": "Battlefield Warfare",
+                  "device": "browser",
+                  "screen": "spiel",
+                  "rows": [
+                    "Battlefield Warfare | Sektor 3 – Hafen | fps",
+                    "Leben | 86 | ♥",
+                    "Munition | 24/120 | ▮",
+                    "Trupp | 4/4 | ⚑"
+                  ],
+                  "caption": "FPS: Trupps, Fahrzeuge, zerstörbare Deckung."
+                },
+                {
+                  "label": "Ghetto Gangz",
+                  "device": "browser",
+                  "screen": "spiel",
+                  "rows": [
+                    "Ghetto Gangz | Nordviertel | stadt",
+                    "Fahndung | ★★☆ | ⚠",
+                    "Cash | $ 2.340 | $",
+                    "Ruf | 61 % | ♛"
+                  ],
+                  "caption": "Open World à la GTA: Stadt, Fahrzeuge, Fahndungslevel."
+                },
+                {
+                  "label": "Racer",
+                  "device": "browser",
+                  "screen": "spiel",
+                  "rows": [
+                    "Racer | Runde 2/3 | rennen",
+                    "Position | 2/8 | ⚑",
+                    "Speed | 214 km/h | ⏱",
+                    "Nitro | 70 % | ⚡"
+                  ],
+                  "caption": "Arcade-Racer: Drift, Nitro, Abkürzungen."
+                },
+                {
+                  "label": "Raptor",
+                  "device": "browser",
+                  "screen": "spiel",
+                  "rows": [
+                    "Raptor: Shadow of Vengeance | Lagerhaus | stealth",
+                    "Sichtbar | 12 % | ◐",
+                    "Lärm | leise | ♪",
+                    "Ziel | 1/3 | ⌖"
+                  ],
+                  "caption": "Stealth: Licht, Lärm und Sichtkegel der Wachen."
+                }
+              ],
+              "controls": {
+                "layout": "register"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "coe06",
+        "kicker": "UNTER DER HAUBE",
+        "title": "Was alle Spiele teilen",
+        "controls": {
+          "bg": "keiner",
+          "width": "breit",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "mitte",
+          "glow": false
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-bento",
+              "_id": "coe07",
+              "items": [
+                {
+                  "icon": "🎮",
+                  "title": "Eingabe & Kamera",
+                  "text": "FPS, Top-Down, ISO, Verfolger — umschaltbar zur Laufzeit.",
+                  "size": "l",
+                  "color": "#14532D",
+                  "screen": "spiel",
+                  "rows": [
+                    "Kamera | Verfolger | fps",
+                    "FPS | 120 | ⏱",
+                    "Gegner | 14 | ☠",
+                    "Zeit | 03:12 | ◷"
+                  ]
+                },
+                {
+                  "icon": "🧠",
+                  "title": "Gegner-KI",
+                  "text": "Patrouille, Suche, Angriff, Rückzug.",
+                  "size": "s"
+                },
+                {
+                  "icon": "💥",
+                  "title": "Physik & Treffer",
+                  "text": "Ballistik, Rückstoß, zerstörbare Objekte.",
+                  "size": "s"
+                },
+                {
+                  "icon": "🚗",
+                  "title": "Fahrzeuge",
+                  "text": "Vom Panzer bis zum Drift-Auto — gleiches Fahrmodell.",
+                  "size": "w",
+                  "color": "#7C2D12"
+                },
+                {
+                  "icon": "🗺️",
+                  "title": "Missionen",
+                  "text": "Ziele, Trigger, Checkpoints als Daten.",
+                  "size": "s"
+                },
+                {
+                  "icon": "⚙️",
+                  "title": "Einstellungen",
+                  "text": "Schalter je Spiel: Blut, zerstörbares Terrain, Schwierigkeit.",
+                  "size": "s"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "coe08",
+        "kicker": "IN ZAHLEN",
+        "title": "Ein Kern, viele Spiele.",
+        "c1": "#14532D",
+        "controls": {
+          "bg": "dunkel",
+          "width": "breit",
+          "height": "auto",
+          "effect": "zoom",
+          "align": "mitte",
+          "glow": true
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-numbers",
+              "_id": "coe09",
+              "items": [
+                {
+                  "value": "1",
+                  "label": "Engine"
+                },
+                {
+                  "value": "4",
+                  "label": "Beispielspiele"
+                },
+                {
+                  "value": "5",
+                  "label": "Kameras"
+                },
+                {
+                  "value": "0",
+                  "label": "Installationen nötig"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "coe10",
+        "kicker": "IN ARBEIT",
+        "title": "Lust auf eine Runde?",
+        "text": "COE entsteht gerade bei loona! designs. Covert Operations ist schon im Browser spielbar.",
+        "c1": "#15803D",
+        "c2": "#0F172A",
+        "controls": {
+          "bg": "verlauf",
+          "width": "voll",
+          "height": "screen",
+          "effect": "blur",
+          "align": "mitte",
+          "glow": true
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "cta",
+              "_id": "coe11",
+              "label": "Alle Labs ansehen",
+              "href": "/labs",
+              "controls": {
+                "variant": "akzent",
+                "align": "mitte"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "notchbuddy",
+    "kind": "projekte",
+    "kat": "App",
+    "tag": "MAC-APP",
+    "datum": "10/2026",
+    "name": "LD NotchBuddy",
+    "mono": "NB",
+    "color": "#9D174D",
+    "featured": false,
+    "tool": "Swift · macOS · LD Buddy",
+    "desc": "Die Notch des MacBooks als Dynamic Island: Limits von Claude Code und Antigravity, aktive Agents, Musik, Kalender, Pomodoro, Zwischenablage, Ablage und Systemwerte — dazu Finanzen und Bestellungen aus LD Buddy.",
+    "ueberblick": "Die Aussparung oben im Bildschirm ist ungenutzter Platz. NotchBuddy macht daraus eine kleine Statuszentrale.",
+    "ansatz": "Erst Symbole, dann bei Bedarf aufklappen — nie im Weg, immer einen Blick entfernt.",
+    "stack": [
+      "Swift",
+      "macOS",
+      "LD Buddy",
+      "Claude Code",
+      "Antigravity"
+    ],
+    "ergebnis": "In Arbeit — diese Story-Seite zeigt die Ideen.",
+    "zitat": "Der beste Platz für Status ist der, auf den man ohnehin schaut.",
+    "learnings": "Weniger anzeigen, besser auswählen.",
+    "layout": "story",
+    "brand": "buddy",
+    "brandName": "LD NotchBuddy.",
+    "homeLabel": "Loona! Designs",
+    "story": [
+      {
+        "type": "story-hero",
+        "_id": "notchbuddy01",
+        "kicker": "LD NOTCHBUDDY · MAC-APP",
+        "title": "Deine Notch.",
+        "title2": "Jetzt mit Sinn.",
+        "text": "Wie die Dynamic Island auf dem iPhone — nur unter der Notch deines MacBooks. Symbole im Ruhezustand, ein Klick klappt die Insel auf.",
+        "chips": [
+          "Claude Code",
+          "Antigravity",
+          "Agents",
+          "Musik",
+          "Kalender",
+          "Pomodoro",
+          "Zwischenablage",
+          "System"
+        ],
+        "cue": "Scrollen",
+        "c1": "#F472B6",
+        "c2": "#38BDF8",
+        "c3": "#A78BFA"
+      },
+      {
+        "type": "story-ticker",
+        "_id": "notchbuddy02",
+        "items": [
+          "Limits im Blick",
+          "Agents beobachten",
+          "Musik steuern",
+          "Termine sehen",
+          "Pomodoro",
+          "Ablage ohne Speichern",
+          "CPU · GPU · RAM",
+          "Finanzen aus LD Buddy"
+        ],
+        "controls": {
+          "look": "pillen",
+          "speed": "mittel",
+          "reverse": false
+        }
+      },
+      {
+        "type": "story-words",
+        "_id": "notchbuddy03",
+        "kicker": "WARUM",
+        "text": "Wie viel ist vom Claude-Code-Limit noch übrig? Läuft der Agent noch? Wie warm ist die GPU? Statt sechs Fenster: ein Blick nach oben."
+      },
+      {
+        "type": "story-scene",
+        "_id": "notchbuddy04",
+        "kicker": "DIE INSEL",
+        "title": "Zugeklappt still. Aufgeklappt alles da.",
+        "controls": {
+          "bg": "keiner",
+          "width": "breit",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "mitte",
+          "glow": false
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-gallery",
+              "_id": "notchbuddy05",
+              "color": "#BE185D",
+              "items": [
+                {
+                  "label": "Insel",
+                  "device": "desktop",
+                  "screen": "notch",
+                  "screenTitle": "LD NotchBuddy",
+                  "rows": [
+                    "Claude Code | 72 % | ✳",
+                    "Antigravity | 38 % | ◭",
+                    "Agents aktiv | 3 | ⚙",
+                    "Musik | Apple Music | ♫",
+                    "Pomodoro | 18:42 | ◷",
+                    "Akku | 84 % | ▮",
+                    "Finanzen | -1.284 € | €",
+                    "Pakete | 3 unterwegs | 📦"
+                  ],
+                  "caption": "Aufgeklappt: Limits, Agents, Musik, Pomodoro, Akku — und Daten aus LD Buddy."
+                },
+                {
+                  "label": "Limits",
+                  "device": "desktop",
+                  "screen": "limits",
+                  "screenTitle": "Limits & Status",
+                  "rows": [
+                    "Claude Code | 72 % | 5-Std.-Fenster",
+                    "Claude Code | 41 % | Woche",
+                    "Antigravity | 38 % | heute",
+                    "Agents | 3 | aktiv"
+                  ],
+                  "caption": "Limits und Status von Claude Code und Antigravity — mit Warnung, bevor es knapp wird."
+                },
+                {
+                  "label": "System",
+                  "device": "desktop",
+                  "screen": "system",
+                  "screenTitle": "System",
+                  "rows": [
+                    "CPU | 34 % | 34",
+                    "GPU | 61 % | 61",
+                    "Speicher | 18,2 / 32 GB | 57",
+                    "Netzwerk | ↓ 12 MB/s | 40",
+                    "Akku | 84 % | 84",
+                    "CPU-Kerne | 40 62 18 77 25 90 33 12 55 48"
+                  ],
+                  "caption": "System auf einen Blick: CPU, GPU, Speicher, Netzwerk, Akku und jeder einzelne Kern."
+                },
+                {
+                  "label": "Aus LD Buddy",
+                  "device": "desktop",
+                  "screen": "finanzen",
+                  "screenTitle": "Finanzen",
+                  "rows": [
+                    "Diesen Monat | 1.284,50 €",
+                    "Abos | -42,96 € | ↻",
+                    "Gehalt | +3.150,00 € | €"
+                  ],
+                  "caption": "Auswertung, Finanzen und Bestellungen kommen direkt aus LD Buddy."
+                }
+              ],
+              "controls": {
+                "layout": "register"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "notchbuddy06",
+        "kicker": "ALLES DRIN",
+        "title": "Was unter die Notch passt",
+        "controls": {
+          "bg": "keiner",
+          "width": "breit",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "mitte",
+          "glow": false
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-bento",
+              "_id": "notchbuddy07",
+              "items": [
+                {
+                  "icon": "✳",
+                  "title": "Claude Code & Antigravity",
+                  "text": "Limits, Fenster und Status — farbig, bevor es knapp wird.",
+                  "size": "l",
+                  "color": "#9D174D",
+                  "screen": "limits",
+                  "rows": [
+                    "5-Std.-Fenster | 72 % | Claude Code",
+                    "Woche | 41 % | Claude Code",
+                    "Heute | 38 % | Antigravity",
+                    "Agents | 3 | aktiv"
+                  ]
+                },
+                {
+                  "icon": "⚙",
+                  "title": "Agents",
+                  "text": "Aktive Agents mit Fortschritt und Meldung, wenn sie fertig sind.",
+                  "size": "s"
+                },
+                {
+                  "icon": "♫",
+                  "title": "Musik",
+                  "text": "Apple Music & Co. steuern, ohne das Fenster zu wechseln.",
+                  "size": "s"
+                },
+                {
+                  "icon": "📅",
+                  "title": "Kalender",
+                  "text": "Nächster Termin mit Countdown.",
+                  "size": "s"
+                },
+                {
+                  "icon": "◷",
+                  "title": "Pomodoro",
+                  "text": "Fokuszeit direkt in der Insel.",
+                  "size": "s"
+                },
+                {
+                  "icon": "📋",
+                  "title": "Zwischenablage",
+                  "text": "Die letzten Einträge, ein Klick zum Einfügen.",
+                  "size": "w",
+                  "color": "#0E7490"
+                },
+                {
+                  "icon": "📥",
+                  "title": "Ablage",
+                  "text": "Dateien kurz parken — ohne sie zu speichern.",
+                  "size": "s"
+                },
+                {
+                  "icon": "€",
+                  "title": "Aus LD Buddy",
+                  "text": "Auswertung, Finanzen und Bestellungen.",
+                  "size": "s"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "notchbuddy08",
+        "kicker": "IN ZAHLEN",
+        "title": "Ein Blick statt sechs Fenster.",
+        "c1": "#9D174D",
+        "controls": {
+          "bg": "dunkel",
+          "width": "breit",
+          "height": "auto",
+          "effect": "zoom",
+          "align": "mitte",
+          "glow": true
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-numbers",
+              "_id": "notchbuddy09",
+              "items": [
+                {
+                  "value": "10",
+                  "label": "Module in der Insel"
+                },
+                {
+                  "value": "1",
+                  "label": "Klick zum Aufklappen"
+                },
+                {
+                  "value": "0",
+                  "label": "Dateien gespeichert in der Ablage"
+                },
+                {
+                  "value": "2",
+                  "label": "KI-Werkzeuge im Blick"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "notchbuddy10",
+        "kicker": "IN ARBEIT",
+        "title": "Bald unter deiner Notch?",
+        "text": "LD NotchBuddy entsteht gerade bei loona! designs — als Begleiter zu LD Buddy.",
+        "c1": "#DB2777",
+        "c2": "#1E1B4B",
+        "controls": {
+          "bg": "verlauf",
+          "width": "voll",
+          "height": "screen",
+          "effect": "blur",
+          "align": "mitte",
+          "glow": true
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "cta",
+              "_id": "notchbuddy11",
+              "label": "Alle Projekte ansehen",
+              "href": "/projekte",
+              "controls": {
+                "variant": "akzent",
+                "align": "mitte"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ldbeyond",
+    "kind": "projekte",
+    "kat": "Website",
+    "tag": "PLATTFORM",
+    "datum": "10/2026",
+    "name": "LD Beyond",
+    "mono": "LB",
+    "color": "#6D28D9",
+    "featured": false,
+    "tool": "Next.js · SQLite · Claude Code",
+    "desc": "Die neue Version von loona-designs — die Plattform LD Beyond mit dem CMS LD Flow: Story-Seiten, Liquid Glass, Mehrsprachigkeit und Widgets zum Selberbauen.",
+    "ueberblick": "Du bist gerade drin: LD Beyond ist die Website, die du liest — und die Plattform dahinter.",
+    "ansatz": "Ein System statt vieler Seiten: Inhalte als Bausteine, gepflegt in LD Flow.",
+    "stack": [
+      "Next.js",
+      "SQLite",
+      "LD Flow",
+      "View Transitions",
+      "Claude Code"
+    ],
+    "ergebnis": "Live im Aufbau — diese Seite ist selbst ein Beispiel.",
+    "zitat": "Die eigene Website ist das ehrlichste Projekt.",
+    "learnings": "Ein klares System schlägt hundert Einfälle.",
+    "layout": "story",
+    "story": [
+      {
+        "type": "story-hero",
+        "_id": "ldbeyond01",
+        "kicker": "LD BEYOND · PLATTFORM",
+        "title": "Du bist schon drin.",
+        "title2": "LD Beyond.",
+        "text": "Die neue Version von loona-designs: eine Plattform für Portfolio, Labs und Magazin — gepflegt im eigenen CMS LD Flow. Diese Seite ist mit genau diesem System gebaut.",
+        "chips": [
+          "Liquid Glass",
+          "Story-Seiten",
+          "LD Flow",
+          "Widgets",
+          "Zweisprachig",
+          "View Transitions"
+        ],
+        "cue": "Scrollen",
+        "c1": "#A78BFA",
+        "c2": "#FF7816",
+        "c3": "#38BDF8"
+      },
+      {
+        "type": "story-ticker",
+        "_id": "ldbeyond02",
+        "items": [
+          "Liquid Glass",
+          "Auto Contrast",
+          "Story-Seiten",
+          "Widgets",
+          "WYSIWYG",
+          "Versionen",
+          "Zwei-Faktor-Anmeldung",
+          "DE · EN"
+        ],
+        "controls": {
+          "look": "pillen",
+          "speed": "mittel",
+          "reverse": true
+        }
+      },
+      {
+        "type": "story-words",
+        "_id": "ldbeyond03",
+        "kicker": "WARUM",
+        "text": "Eine Website, die man nie anfasst, veraltet. LD Beyond ist so gebaut, dass Ändern Spaß macht — direkt auf der Seite, ohne Code."
+      },
+      {
+        "type": "story-scene",
+        "_id": "ldbeyond04",
+        "kicker": "ZWEI TEILE",
+        "title": "Die Bühne und der Regieraum.",
+        "controls": {
+          "bg": "keiner",
+          "width": "breit",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "mitte",
+          "glow": false
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-gallery",
+              "_id": "ldbeyond05",
+              "color": "#6D28D9",
+              "items": [
+                {
+                  "label": "LD Beyond",
+                  "device": "browser",
+                  "screen": "dashboard",
+                  "screenTitle": "loona-designs",
+                  "rows": [
+                    "Projekte | 16 | ▦",
+                    "Labs | 8 | ⚗",
+                    "Artikel | 23 | ✎",
+                    "Sprachen | DE · EN | ◐"
+                  ],
+                  "caption": "Die Bühne: Portfolio, Labs, .Tech-Magazin und Story-Seiten wie diese."
+                },
+                {
+                  "label": "LD Flow",
+                  "device": "browser",
+                  "screen": "editor",
+                  "screenTitle": "LD Buddy",
+                  "rows": [
+                    "Story: Auftakt | Dein Alltag. | ✦",
+                    "Story: Szene | Ein Tag mit LD Buddy | ▭",
+                    "Story: App-Galerie | Alle Ansichten | ▦",
+                    "Story: In Zahlen | Weniger Apps | #",
+                    "Button | Alle Projekte | →"
+                  ],
+                  "caption": "Der Regieraum: LD Flow — Bausteine wählen, direkt auf der Seite schreiben, veröffentlichen."
+                },
+                {
+                  "label": "Mobile",
+                  "device": "phone",
+                  "screen": "feed",
+                  "screenTitle": ".Tech",
+                  "rows": [
+                    "Liquid Glass im Web | 6 Min. | Design",
+                    "Story-Seiten bauen | 8 Min. | LD Flow",
+                    "Auto Contrast Fix 2 | 4 Min. | A11y"
+                  ],
+                  "caption": "Mobil mit eigener Tab-Leiste — als Telefon-Ansicht auch auf dem Desktop simulierbar."
+                }
+              ],
+              "controls": {
+                "layout": "register"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-app",
+        "_id": "ldbeyond06",
+        "kicker": "LD FLOW",
+        "title": "Bauen wie mit Bausteinen",
+        "text": "Story-Seiten entstehen aus Widgets: Auftakt, Szenen, Scrollytelling, Galerie, Zahlen. Texte schreibt man direkt in der Vorschau.",
+        "bullets": [
+          "WYSIWYG direkt auf der Seite",
+          "Versionen vergleichen und zurückholen",
+          "Geplant veröffentlichen",
+          "Deutsch und Englisch je Dokument"
+        ],
+        "color": "#6D28D9",
+        "screen": "editor",
+        "screenTitle": "Story",
+        "rows": [
+          "Story: Auftakt | Dein Alltag. | ✦",
+          "Story: Szene | Ein Tag mit LD Buddy | ▭",
+          "Story: App-Galerie | Alle Ansichten | ▦",
+          "Story: In Zahlen | Weniger Apps | #",
+          "Button | Alle Projekte | →"
+        ],
+        "controls": {
+          "side": "rechts",
+          "device": "browser"
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "ldbeyond07",
+        "kicker": "WAS DRINSTECKT",
+        "title": "Plattform und CMS in einem.",
+        "controls": {
+          "bg": "keiner",
+          "width": "breit",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "mitte",
+          "glow": false
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-bento",
+              "_id": "ldbeyond08",
+              "items": [
+                {
+                  "icon": "◐",
+                  "title": "Liquid Glass",
+                  "text": "Glas mit echter Lichtbrechung — und Auto-Kontrast, damit alles lesbar bleibt.",
+                  "size": "l",
+                  "color": "#6D28D9",
+                  "screen": "dashboard",
+                  "rows": [
+                    "Kontrast | ≥ 4,5:1 | ✓",
+                    "Ansichten | 4 | ▭",
+                    "Übergänge | 20+ | ↺",
+                    "Hero-Animationen | 30+ | ✦"
+                  ]
+                },
+                {
+                  "icon": "▦",
+                  "title": "Widgets",
+                  "text": "Eigene Bausteine mit defineWidget.",
+                  "size": "s"
+                },
+                {
+                  "icon": "🌐",
+                  "title": "Zweisprachig",
+                  "text": "Deutsch und Englisch, Pfade je Sprache.",
+                  "size": "s"
+                },
+                {
+                  "icon": "🔒",
+                  "title": "Sicher",
+                  "text": "Zwei-Faktor-Anmeldung, CSP mit Nonces, vorbereitete SQL-Abfragen.",
+                  "size": "w",
+                  "color": "#1E1B4B"
+                },
+                {
+                  "icon": "♿",
+                  "title": "Barrierearm",
+                  "text": "Geprüft mit axe, WCAG 2.2 AA.",
+                  "size": "s"
+                },
+                {
+                  "icon": "⚡",
+                  "title": "Schnell",
+                  "text": "Ladezeit-Budgets in der CI.",
+                  "size": "s"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "ldbeyond09",
+        "kicker": "IN ARBEIT",
+        "title": "Neugierig auf mehr?",
+        "text": "LD Beyond wächst weiter — jede neue Story-Seite ist ein Test für das System.",
+        "c1": "#7C3AED",
+        "c2": "#C2410C",
+        "controls": {
+          "bg": "verlauf",
+          "width": "voll",
+          "height": "screen",
+          "effect": "blur",
+          "align": "mitte",
+          "glow": true
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "cta",
+              "_id": "ldbeyond10",
               "label": "Alle Projekte ansehen",
               "href": "/projekte",
               "controls": {

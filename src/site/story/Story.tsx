@@ -20,7 +20,7 @@ import styles from './story.module.css';
  */
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
-const okHex = (c?: string) => (c && HEX.test(c) ? c : undefined);
+export const okHex = (c?: string) => (c && HEX.test(c) ? c : undefined);
 export const STORY_DEFAULT_COLOR = '#6D5AE6';
 
 /** Schriftfarbe, die auf beiden Verlaufsenden besteht (die bessere der beiden Kandidaten). */
@@ -58,7 +58,7 @@ const bleed: CSSProperties = { marginLeft: 'calc(-1 * var(--bl, 32px))', marginR
 /** Szenen-Breite: Inhalt (Spalte), Breit (bis 160 px je Seite mehr), Voll (randlos). */
 const sceneWidth = (w: string): CSSProperties =>
   w === 'voll' ? bleed : w === 'breit' ? { marginLeft: 'calc(-1 * var(--wl, 0px))', marginRight: 'calc(-1 * var(--wr, 0px))' } : {};
-const kickerStyle: CSSProperties = {
+export const kickerStyle: CSSProperties = {
   fontFamily: mono,
   fontSize: 11,
   letterSpacing: '0.18em',
@@ -363,14 +363,14 @@ export function Device({ kind, children, style }: { kind: string; children: Reac
   );
 }
 
-interface ScreenData {
+export interface ScreenData {
   screen?: string;
   screenTitle?: string;
   rows?: string[];
   image?: MediaRef;
 }
 
-const screenOf = (d: ScreenData, accent: string) => (
+export const screenOf = (d: ScreenData, accent: string) => (
   <LazyMount>
     <MockScreen kind={d.screen ?? 'dashboard'} title={d.screenTitle} rows={parseRows(d.rows)} accent={accent} image={d.image} />
   </LazyMount>

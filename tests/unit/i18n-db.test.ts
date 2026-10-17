@@ -55,11 +55,17 @@ describe('Mehrsprachigkeit in der Datenbank', () => {
       )
       .all();
     expect(rows.map((r) => ({ ...r }))).toEqual([
+      { id: 'coe', locale: 'de', live: 1, draft: 0 }, // neue Beispiele (seedAdditions), einmalig ergänzt
+      { id: 'coe', locale: 'en', live: 0, draft: 1 },
       { id: 'corefall', locale: 'de', live: 1, draft: 0 },
       { id: 'corefall', locale: 'en', live: 0, draft: 1 }, // Übersetzungsentwurf aus content/en
       { id: 'eigenes', locale: 'de', live: 1, draft: 0 }, // kein Startinhalt → keine Übersetzung
-      { id: 'ldbuddy', locale: 'de', live: 1, draft: 0 }, // neues Beispiel (seedAdditions), einmalig ergänzt
+      { id: 'ldbeyond', locale: 'de', live: 1, draft: 0 },
+      { id: 'ldbeyond', locale: 'en', live: 0, draft: 1 },
+      { id: 'ldbuddy', locale: 'de', live: 1, draft: 0 },
       { id: 'ldbuddy', locale: 'en', live: 0, draft: 1 },
+      { id: 'notchbuddy', locale: 'de', live: 1, draft: 0 },
+      { id: 'notchbuddy', locale: 'en', live: 0, draft: 1 },
     ]);
     expect(db().prepare("SELECT 1 AS ok FROM meta WHERE key = 'seed_ldbuddy'").get()).toEqual({ ok: 1 });
     expect(db().prepare('SELECT locale FROM revisions').get()).toEqual(expect.objectContaining({ locale: 'de' }));
@@ -74,6 +80,9 @@ describe('Mehrsprachigkeit in der Datenbank', () => {
       ['corefall', 'Bearbeitet auf Deutsch', 'de'],
       ['eigenes', 'Nur in dieser Installation', 'de'],
       ['ldbuddy', expect.stringContaining('Alltagskram'), 'de'],
+      ['coe', expect.stringContaining('Spiel-Engine'), 'de'],
+      ['notchbuddy', expect.stringContaining('Notch'), 'de'],
+      ['ldbeyond', expect.stringContaining('LD Flow'), 'de'],
     ]);
     commitPublish('projects', 'corefall', { name: 'Corefall', desc: 'Edited in English' }, 'test', 'en');
     const after = repo.publishedDocs('projects', 'en');

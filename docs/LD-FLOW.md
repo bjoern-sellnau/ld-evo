@@ -173,8 +173,11 @@ Scroll-Erzählung aus Widgets im Feld `story` (Typ `blocks`), gebaut in der Vors
   `homeLabel` (frei wählbar, z. B. „Loona! Designs“ oder „Hallo“; leer = „Loona! Designs“). Auf der Story-Seite gleitet
   das LD-Logo hinaus und die Marke herein, der Menüpunkt mit `homeLabel` übernimmt den Weg zur Startseite (`src/site/nav/BrandSwap.tsx`, `storyBrand.ts`; Pille,
   Seitenleiste, Icon-Leiste, mobil). Zurück auf anderen Seiten läuft es umgekehrt.
-- Beispiel **LD Buddy** (`content/projects.ts`, `content/en/projects.ts`); bestehende Installationen bekommen es einmalig
-  über `seedAdditions` in `src/cms/db.ts` (meta `seed_ldbuddy`, gelöscht bleibt gelöscht).
+- **App-Galerie** (`story-gallery`, `src/site/story/Gallery.tsx`): alle Ausführungen einer App — Desktop, Telefon,
+  Browser, Chrome-/Safari-Erweiterung (Popup), Seitenleiste — als Register (Umschalter, Pfeiltasten) oder Raster.
+- Beispiele **LD Buddy**, **COE**, **LD NotchBuddy**, **LD Beyond** (`content/projects.ts`, `content/en/projects.ts`);
+  bestehende Installationen bekommen sie einmalig über `seedAdditions` in `src/cms/db.ts` (meta `seed_ldbuddy`,
+  `seed_coe`, `seed_notchbuddy`, `seed_ldbeyond`; gelöscht bleibt gelöscht).
 
 ## Tests
 
