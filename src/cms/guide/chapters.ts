@@ -486,6 +486,10 @@ export const CHAPTERS: Chapter[] = [
           ['Story: Laufband · Seitwärts · Zahlen', 'Endlos-Ticker · Karten fahren seitlich vorbei · Kennzahlen zählen hoch'],
           ['Story: App-Feature', 'Gerät mit App-Screen neben Text und Häkchen-Liste'],
           [
+            'Story: App-Galerie',
+            'Alle Ausführungen einer App: Desktop, Telefon, Browser, Chrome-/Safari-Erweiterung, Seitenleiste — als Register oder Raster',
+          ],
+          [
             'Projekt: „Story: Logo im Menü“',
             'Ersetzt auf der Story-Seite das LD-Logo durch eine Produktmarke oder ein eigenes Bild (+ optionaler einzeiliger Text); ein Menüpunkt mit frei wählbarem Namen („Story: Beschriftung des Wegs zur Startseite“, z. B. „Loona! Designs“) führt zur Startseite',
           ],
@@ -495,7 +499,7 @@ export const CHAPTERS: Chapter[] = [
         t: 'callout',
         kind: 'tip',
         title: 'App-Screens ohne Screenshots',
-        text: 'Screens werden nachgebaut (Finanzen, Haushaltsbuch, Einkaufsliste, Bestellungen, Neuigkeiten, Sammlung, Lesezeichen, Übersicht). Inhalt pro Zeile: `Beschriftung | Wert | Zusatz` — z. B. `Miete | -950,00 € | ⌂`, bei Listen `Brot | 1 | ✓` für abgehakt. Ein eigener Screenshot im Feld „Eigener Screenshot“ ersetzt den nachgebauten Screen.',
+        text: 'Screens werden nachgebaut (Finanzen, Haushaltsbuch, Einkaufsliste, Bestellungen, Neuigkeiten, Sammlung, Lesezeichen, Übersicht, Limits & Status, Systemwerte, Notch-Insel, Spiel-HUD, CMS-Editor). Inhalt pro Zeile: `Beschriftung | Wert | Zusatz` — z. B. `Miete | -950,00 € | ⌂`, bei Listen `Brot | 1 | ✓` für abgehakt, bei Systemwerten `CPU-Kerne | 40 62 18 77` für Balken je Kern, beim Spiel-HUD ist die erste Zeile der Modus. Ein eigener Screenshot im Feld „Eigener Screenshot“ ersetzt den nachgebauten Screen.',
       },
       {
         t: 'callout',

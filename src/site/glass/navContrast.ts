@@ -5,7 +5,7 @@
  * 1:1 aus dem Prototyp (parseColor / relLum / applyNavFix / adjustNavContrast, Zeile 3907–4079).
  */
 import type { Settings } from '../settings/schema';
-import { haloShadow, lumOf, mixHex, planFix2, sampleGlyphLums } from './contrastFix2';
+import { applyFrost, currentBlurPx, haloShadow, lumOf, mixHex, planFix2, sampleGlyphPoints } from './contrastFix2';
 import { adjustLogoColors, createLogoMemo, type LogoMemo } from './logoContrast';
 
 interface Rgba {
@@ -72,11 +72,12 @@ export type ContrastSettings = Pick<Settings, 'theme' | 'autoC' | 'oppC' | 'ctSh
  */
 function applyFix2(pill: FixEl, key: string, fix: string, s: ContrastSettings, memo: ContrastMemo): string {
   memo.fix2 ??= {};
-  const lums = sampleGlyphLums(pill, s.blurOn !== false);
+  const points = sampleGlyphPoints(pill);
   const bs = getComputedStyle(document.body);
   const tok = (k: string) => (new RegExp(`${k}:([^;]+)`).exec(fix)?.[1] ?? bs.getPropertyValue(k)).trim();
   let stage = 0;
-  if (lums) {
+  let frost = 0;
+  if (points) {
     const ink = tok('--ink');
     const muted = tok('--muted');
     const inkL = lumOf(ink) ?? 1;
@@ -85,12 +86,14 @@ function applyFix2(pill: FixEl, key: string, fix: string, s: ContrastSettings, m
     const pct = Math.max(own ? 0.62 : 0, (parseFloat(tok('--glassPct')) || 42) / 100);
     const lightText = inkL > 0.4;
     const plan = planFix2(
-      lums,
+      points,
       { muted: lumOf(muted) ?? inkL, ink: inkL, tint: lumOf(tok('--glassTint')) ?? (lightText ? 0.01 : 1), pct, lightText },
       s.ctFix2Lvl ?? 100,
       memo.fix2[key] ?? 0,
+      currentBlurPx(pill, s.blurOn !== false),
     );
     stage = plan.stage;
+    frost = plan.frost;
     if (stage) {
       pill.style.textShadow = haloShadow(plan.halo, lightText);
       const add: string[] = [];
@@ -107,6 +110,7 @@ function applyFix2(pill: FixEl, key: string, fix: string, s: ContrastSettings, m
       fix = [...fix.split(';').filter((p) => p && !keys.some((k) => p.startsWith(k))), ...add].join(';');
     }
   }
+  applyFrost(pill, frost);
   memo.fix2[key] = stage;
   if (pill.dataset.ctfix2 !== String(stage)) pill.dataset.ctfix2 = String(stage);
   return fix;
@@ -173,6 +177,11 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
     for (const [pill, flipKey] of targets) {
       const r = pill.getBoundingClientRect();
       if (!r.width) continue;
+      // Fix 2 aus dem Spiel (Auto-Kontrast aus / Kontrast-Schatten): sein Milchglas zurücknehmen
+      if (pill.dataset.ctfix2 && (s.autoC === false || s.ctShadow === true)) {
+        delete pill.dataset.ctfix2;
+        applyFrost(pill, 0);
+      }
       if (s.autoC === false) {
         memo.flip[flipKey] = false;
         pill.style.textShadow = '';
@@ -331,7 +340,10 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
         }
       }
       if (s.ctFix2 !== false) fix = applyFix2(pill, flipKey, fix, s, memo);
-      else if (pill.dataset.ctfix2) delete pill.dataset.ctfix2;
+      else if (pill.dataset.ctfix2) {
+        delete pill.dataset.ctfix2;
+        applyFrost(pill, 0);
+      }
       applyNavFix(pill, coverInk(theme, fix));
     }
   };

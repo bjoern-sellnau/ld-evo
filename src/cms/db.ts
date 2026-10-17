@@ -262,7 +262,12 @@ function backfillSingletons(db: DatabaseSync) {
  * einmal (meta-Schlüssel), nur wenn das Dokument fehlt — wer es löscht, bekommt es nicht zurück. Deutsch veröffentlicht
  * (wie beim Erststart), Englisch als Entwurf. Frische Datenbanken haben das Dokument schon aus seedIfEmpty.
  */
-const ADDITIONS = [{ key: 'seed_ldbuddy', collection: 'projects', id: 'ldbuddy' }];
+const ADDITIONS = [
+  { key: 'seed_ldbuddy', collection: 'projects', id: 'ldbuddy' },
+  { key: 'seed_coe', collection: 'projects', id: 'coe' },
+  { key: 'seed_notchbuddy', collection: 'projects', id: 'notchbuddy' },
+  { key: 'seed_ldbeyond', collection: 'projects', id: 'ldbeyond' },
+];
 
 function seedAdditions(db: DatabaseSync) {
   const now = Date.now();
