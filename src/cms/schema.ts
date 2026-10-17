@@ -284,6 +284,25 @@ const HOME_FIELDS: FieldDef[] = [
   { key: 'roles', label: 'Rotierende Rollen', type: 'strings', max: 12 },
   { key: 'intro', label: 'Einleitung', type: 'textarea', max: 400, inline: true },
   { key: 'featured', label: 'Featured-Projekte', type: 'relations', collection: 'projects' },
+  {
+    key: 'welcomeOld',
+    label: 'Welcome: Screenshot der alten Website',
+    type: 'media',
+    help: 'Die Seite /welcome zeigt dieses Bild und verwandelt es mit einem Effekt in die neue Startseite (ohne Bild: direkt die Startseite)',
+  },
+  {
+    key: 'welcomeEffect',
+    label: 'Welcome: Effekt',
+    type: 'select',
+    options: [
+      ['kacheln', 'Kacheln'],
+      ['glitch', 'Glitch'],
+      ['pixel', 'Pixel'],
+      ['welle', 'Welle (Liquid)'],
+      ['zufall', 'Zufall'],
+    ],
+  },
+  { key: 'welcomeNote', label: 'Welcome: Hinweis', type: 'text', max: 80, help: 'z. B. „So sah loona-designs.de bisher aus.“' },
 ];
 
 const STATION_PROJECT_FIELDS: FieldDef[] = [
@@ -551,6 +570,7 @@ export const RESERVED_SLUGS = new Set([
   'ueber-mich',
   'impressum',
   'reise',
+  'welcome',
   'brand',
   'orbit',
   'flow',

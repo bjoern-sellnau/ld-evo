@@ -11,6 +11,10 @@ export interface HomeContent {
   intro: string;
   /** IDs der Featured-Projekte (Reihenfolge = Anzeige). */
   featured: string[];
+  /** Landing Page /welcome (neu, nicht im Prototyp): Screenshot der alten Website, Effekt, Hinweis. */
+  welcomeOld?: { src: string; alt?: string };
+  welcomeEffect?: string;
+  welcomeNote?: string;
 }
 
 export const HOME: HomeContent = {

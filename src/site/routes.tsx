@@ -12,6 +12,7 @@ import { ArticlePage } from '@/site/pages/ArticlePage';
 import { CaseStudyPage } from '@/site/pages/CaseStudyPage';
 import { CatalogPage } from '@/site/pages/CatalogPage';
 import { HalloPage } from '@/site/pages/HalloPage';
+import { Welcome } from '@/site/welcome/Welcome';
 import { ImprintPage } from '@/site/pages/ImprintPage';
 import { ReisePage } from '@/site/pages/ReisePage';
 import { TechPage } from '@/site/pages/TechPage';
@@ -50,6 +51,24 @@ function enReady(pick: (c: SiteContent) => unknown): boolean {
   const v = pick(getSiteContent('en'));
   const docs = Array.isArray(v) ? v : [v];
   return docs.length > 0 && docs.every((d) => !!d && !isFallback(d));
+}
+
+/**
+ * Landing Page /welcome (neu, nicht im Prototyp): die Startseite mit dem Welcome-Overlay darüber (alte Website →
+ * neue Startseite). Nicht indexiert — Inhalt ist die Startseite.
+ */
+export function welcomeRoute(locale: Locale) {
+  return {
+    generateMetadata: (): Metadata => pageMeta({ path: '/welcome', locale, noindex: true }),
+    Page: function Page() {
+      return (
+        <Lang de={locale !== 'de' && isFallback(getSiteContent(locale).home)}>
+          <HalloPage />
+          <Welcome />
+        </Lang>
+      );
+    },
+  };
 }
 
 export function homeRoute(locale: Locale) {

@@ -17,6 +17,8 @@ import { launchOptions } from '../browser.mjs';
 const U = process.env.BASE_URL ?? 'http://localhost:3123';
 const SITE = [
   '/',
+  // Landing Page: Startseite mit Overlay „alte Website“ (nur wenn in LD Flow ein Screenshot hinterlegt ist)
+  '/welcome',
   '/projekte',
   '/labs',
   '/tech',

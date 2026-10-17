@@ -1,6 +1,8 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect, useState, type CSSProperties } from 'react';
+import { canonicalPath } from '../i18n/locale';
 import { heroMode } from '../hero/heroInk';
 import { useSite } from '../settings/SiteProvider';
 import { SKETCH_HTML } from './sketchMarkup';
@@ -23,10 +25,12 @@ export function Splash() {
   // 2 = sichtbar, 1 = blendet aus, 0 = entfernt. Vor der Hydration nur der dunkle Grund (Boot-Script blendet bei „aus“ aus).
   const [phase, setPhase] = useState<0 | 1 | 2>(2);
   const [run, setRun] = useState(0);
+  // Landing Page /welcome hat ihren eigenen Auftritt (alte Website → neue) — dort kein Splash
+  const welcome = canonicalPath(usePathname()) === '/welcome';
 
   useEffect(() => {
     if (!hydrated) return;
-    if (!s.splashOn && run === 0) {
+    if ((!s.splashOn || welcome) && run === 0) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Splash-Ablauf hängt an Einstellungen aus localStorage, erst nach der Hydration bekannt
       setPhase(0);
       return;
