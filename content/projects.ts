@@ -650,7 +650,10 @@ export const PROJECTS: Project[] = [
         "cue": "Scrollen",
         "c1": "#F472B6",
         "c2": "#A78BFA",
-        "c3": "#FB923C"
+        "c3": "#FB923C",
+        "controls": {
+          "layout": "verlauf"
+        }
       },
       {
         "type": "story-ticker",
@@ -1219,198 +1222,31 @@ export const PROJECTS: Project[] = [
           "ISO"
         ],
         "cue": "Scrollen",
-        "c1": "#22C55E",
-        "c2": "#EAB308",
-        "c3": "#EF4444"
+        "c1": "#14532D",
+        "c2": "#052E16",
+        "c3": "#EAB308",
+        "controls": {
+          "layout": "buehne"
+        }
       },
       {
-        "type": "story-ticker",
+        "type": "story-scene",
         "_id": "coe02",
-        "items": [
-          "Battlefield Warfare",
-          "Ghetto Gangz",
-          "Racer",
-          "Raptor: Shadow of Vengeance",
-          "Eine Spiellogik",
-          "Viele Kameras",
-          "Im Browser"
-        ],
-        "controls": {
-          "look": "gross",
-          "speed": "langsam",
-          "reverse": false
-        }
-      },
-      {
-        "type": "story-words",
-        "_id": "coe03",
-        "kicker": "WARUM",
-        "text": "Jedes Spiel fängt wieder bei null an? COE nicht. Bewegung, Treffer, Gegner und Fahrzeuge gibt es einmal — die Spiele erzählen nur, was daraus wird."
-      },
-      {
-        "type": "story-scene",
-        "_id": "coe04",
-        "kicker": "DIE BEISPIELE",
-        "title": "Vier Spiele, eine Engine.",
-        "controls": {
-          "bg": "keiner",
-          "width": "breit",
-          "height": "auto",
-          "effect": "hoch",
-          "align": "mitte",
-          "glow": false
-        },
-        "slots": {
-          "inhalt": [
-            {
-              "type": "story-gallery",
-              "_id": "coe05",
-              "color": "#16A34A",
-              "items": [
-                {
-                  "label": "Battlefield Warfare",
-                  "device": "browser",
-                  "screen": "spiel",
-                  "rows": [
-                    "Battlefield Warfare | Sektor 3 – Hafen | fps",
-                    "Leben | 86 | ♥",
-                    "Munition | 24/120 | ▮",
-                    "Trupp | 4/4 | ⚑"
-                  ],
-                  "caption": "FPS: Trupps, Fahrzeuge, zerstörbare Deckung."
-                },
-                {
-                  "label": "Ghetto Gangz",
-                  "device": "browser",
-                  "screen": "spiel",
-                  "rows": [
-                    "Ghetto Gangz | Nordviertel | stadt",
-                    "Fahndung | ★★☆ | ⚠",
-                    "Cash | $ 2.340 | $",
-                    "Ruf | 61 % | ♛"
-                  ],
-                  "caption": "Open World à la GTA: Stadt, Fahrzeuge, Fahndungslevel."
-                },
-                {
-                  "label": "Racer",
-                  "device": "browser",
-                  "screen": "spiel",
-                  "rows": [
-                    "Racer | Runde 2/3 | rennen",
-                    "Position | 2/8 | ⚑",
-                    "Speed | 214 km/h | ⏱",
-                    "Nitro | 70 % | ⚡"
-                  ],
-                  "caption": "Arcade-Racer: Drift, Nitro, Abkürzungen."
-                },
-                {
-                  "label": "Raptor",
-                  "device": "browser",
-                  "screen": "spiel",
-                  "rows": [
-                    "Raptor: Shadow of Vengeance | Lagerhaus | stealth",
-                    "Sichtbar | 12 % | ◐",
-                    "Lärm | leise | ♪",
-                    "Ziel | 1/3 | ⌖"
-                  ],
-                  "caption": "Stealth: Licht, Lärm und Sichtkegel der Wachen."
-                }
-              ],
-              "controls": {
-                "layout": "register"
-              }
-            }
-          ]
-        }
-      },
-      {
-        "type": "story-scene",
-        "_id": "coe06",
-        "kicker": "UNTER DER HAUBE",
-        "title": "Was alle Spiele teilen",
-        "controls": {
-          "bg": "keiner",
-          "width": "breit",
-          "height": "auto",
-          "effect": "hoch",
-          "align": "mitte",
-          "glow": false
-        },
-        "slots": {
-          "inhalt": [
-            {
-              "type": "story-bento",
-              "_id": "coe07",
-              "items": [
-                {
-                  "icon": "🎮",
-                  "title": "Eingabe & Kamera",
-                  "text": "FPS, Top-Down, ISO, Verfolger — umschaltbar zur Laufzeit.",
-                  "size": "l",
-                  "color": "#14532D",
-                  "screen": "spiel",
-                  "rows": [
-                    "Kamera | Verfolger | fps",
-                    "FPS | 120 | ⏱",
-                    "Gegner | 14 | ☠",
-                    "Zeit | 03:12 | ◷"
-                  ]
-                },
-                {
-                  "icon": "🧠",
-                  "title": "Gegner-KI",
-                  "text": "Patrouille, Suche, Angriff, Rückzug.",
-                  "size": "s"
-                },
-                {
-                  "icon": "💥",
-                  "title": "Physik & Treffer",
-                  "text": "Ballistik, Rückstoß, zerstörbare Objekte.",
-                  "size": "s"
-                },
-                {
-                  "icon": "🚗",
-                  "title": "Fahrzeuge",
-                  "text": "Vom Panzer bis zum Drift-Auto — gleiches Fahrmodell.",
-                  "size": "w",
-                  "color": "#7C2D12"
-                },
-                {
-                  "icon": "🗺️",
-                  "title": "Missionen",
-                  "text": "Ziele, Trigger, Checkpoints als Daten.",
-                  "size": "s"
-                },
-                {
-                  "icon": "⚙️",
-                  "title": "Einstellungen",
-                  "text": "Schalter je Spiel: Blut, zerstörbares Terrain, Schwierigkeit.",
-                  "size": "s"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "type": "story-scene",
-        "_id": "coe08",
         "kicker": "IN ZAHLEN",
         "title": "Ein Kern, viele Spiele.",
-        "c1": "#14532D",
         "controls": {
-          "bg": "dunkel",
-          "width": "breit",
+          "bg": "keiner",
+          "width": "inhalt",
           "height": "auto",
           "effect": "zoom",
           "align": "mitte",
-          "glow": true
+          "glow": false
         },
         "slots": {
           "inhalt": [
             {
               "type": "story-numbers",
-              "_id": "coe09",
+              "_id": "coe03",
               "items": [
                 {
                   "value": "1",
@@ -1435,7 +1271,132 @@ export const PROJECTS: Project[] = [
       },
       {
         "type": "story-scene",
-        "_id": "coe10",
+        "_id": "coe04",
+        "kicker": "DIE BEISPIELE",
+        "title": "Scroll durch vier Spiele.",
+        "text": "Links das Spiel, rechts die Szene — beim Scrollen wechselt das Spiel.",
+        "c1": "#0B1F12",
+        "c2": "#14532D",
+        "controls": {
+          "bg": "verlauf",
+          "width": "breit",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "links",
+          "glow": true
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-steps",
+              "_id": "coe05",
+              "color": "#16A34A",
+              "steps": [
+                {
+                  "icon": "🎯",
+                  "title": "Battlefield Warfare",
+                  "text": "FPS mit Trupps, Fahrzeugen und zerstörbarer Deckung.",
+                  "screen": "spiel",
+                  "rows": [
+                    "Battlefield Warfare | Sektor 3 – Hafen | fps",
+                    "Leben | 86 | ♥",
+                    "Munition | 24/120 | ▮",
+                    "Trupp | 4/4 | ⚑"
+                  ]
+                },
+                {
+                  "icon": "🏙️",
+                  "title": "Ghetto Gangz",
+                  "text": "Open World à la GTA: eine Stadt, Fahrzeuge, Fahndungslevel.",
+                  "screen": "spiel",
+                  "rows": [
+                    "Ghetto Gangz | Nordviertel | stadt",
+                    "Fahndung | ★★☆ | ⚠",
+                    "Cash | $ 2.340 | $",
+                    "Ruf | 61 % | ♛"
+                  ]
+                },
+                {
+                  "icon": "🏁",
+                  "title": "Racer",
+                  "text": "Arcade-Racer: Drift, Nitro, Abkürzungen.",
+                  "screen": "spiel",
+                  "rows": [
+                    "Racer | Runde 2/3 | rennen",
+                    "Position | 2/8 | ⚑",
+                    "Speed | 214 km/h | ⏱",
+                    "Nitro | 70 % | ⚡"
+                  ]
+                },
+                {
+                  "icon": "🦅",
+                  "title": "Raptor: Shadow of Vengeance",
+                  "text": "Stealth: Licht, Lärm und die Sichtkegel der Wachen.",
+                  "screen": "spiel",
+                  "rows": [
+                    "Raptor: Shadow of Vengeance | Lagerhaus | stealth",
+                    "Sichtbar | 12 % | ◐",
+                    "Lärm | leise | ♪",
+                    "Ziel | 1/3 | ⌖"
+                  ]
+                }
+              ],
+              "controls": {
+                "side": "rechts",
+                "device": "browser"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-words",
+        "_id": "coe06",
+        "kicker": "WARUM",
+        "text": "Jedes Spiel fängt wieder bei null an? COE nicht. Bewegung, Treffer, Gegner und Fahrzeuge gibt es einmal — die Spiele erzählen nur, was daraus wird."
+      },
+      {
+        "type": "story-horizontal",
+        "_id": "coe07",
+        "items": [
+          {
+            "icon": "🎮",
+            "kicker": "KAMERA",
+            "title": "FPS, Top-Down, ISO, Verfolger",
+            "text": "Umschaltbar zur Laufzeit — dieselbe Szene, andere Sicht.",
+            "color": "#14532D"
+          },
+          {
+            "icon": "🧠",
+            "kicker": "GEGNER-KI",
+            "title": "Patrouille bis Rückzug",
+            "text": "Suchen, angreifen, Deckung, Verstärkung rufen."
+          },
+          {
+            "icon": "💥",
+            "kicker": "PHYSIK",
+            "title": "Treffer, die sich anfühlen",
+            "text": "Ballistik, Rückstoß, zerstörbare Objekte.",
+            "color": "#7C2D12"
+          },
+          {
+            "icon": "🚗",
+            "kicker": "FAHRZEUGE",
+            "title": "Vom Panzer zum Drift-Auto",
+            "text": "Ein Fahrmodell, viele Abstimmungen."
+          },
+          {
+            "icon": "⚙️",
+            "kicker": "SCHALTER",
+            "title": "Je Spiel einstellbar",
+            "text": "Blut, zerstörbares Terrain, Schwierigkeit.",
+            "color": "#1E3A8A"
+          }
+        ]
+      },
+      {
+        "type": "story-scene",
+        "_id": "coe08",
         "kicker": "IN ARBEIT",
         "title": "Lust auf eine Runde?",
         "text": "COE entsteht gerade bei loona! designs. Covert Operations ist schon im Browser spielbar.",
@@ -1453,7 +1414,7 @@ export const PROJECTS: Project[] = [
           "inhalt": [
             {
               "type": "cta",
-              "_id": "coe11",
+              "_id": "coe09",
               "label": "Alle Labs ansehen",
               "href": "/labs",
               "controls": {
@@ -1507,15 +1468,29 @@ export const PROJECTS: Project[] = [
           "Antigravity",
           "Agents",
           "Musik",
-          "Kalender",
           "Pomodoro",
-          "Zwischenablage",
           "System"
         ],
         "cue": "Scrollen",
         "c1": "#F472B6",
         "c2": "#38BDF8",
-        "c3": "#A78BFA"
+        "c3": "#A78BFA",
+        "device": "desktop",
+        "screen": "notch",
+        "screenTitle": "LD NotchBuddy",
+        "rows": [
+          "Claude Code | 72 % | ✳",
+          "Antigravity | 38 % | ◭",
+          "Agents aktiv | 3 | ⚙",
+          "Musik | Apple Music | ♫",
+          "Pomodoro | 18:42 | ◷",
+          "Akku | 84 % | ▮",
+          "Finanzen | -1.284 € | €",
+          "Pakete | 3 unterwegs | 📦"
+        ],
+        "controls": {
+          "layout": "geraet"
+        }
       },
       {
         "type": "story-ticker",
@@ -1532,28 +1507,49 @@ export const PROJECTS: Project[] = [
         ],
         "controls": {
           "look": "pillen",
-          "speed": "mittel",
-          "reverse": false
+          "speed": "schnell",
+          "reverse": true
         }
       },
       {
-        "type": "story-words",
+        "type": "story-app",
         "_id": "notchbuddy03",
-        "kicker": "WARUM",
-        "text": "Wie viel ist vom Claude-Code-Limit noch übrig? Läuft der Agent noch? Wie warm ist die GPU? Statt sechs Fenster: ein Blick nach oben."
+        "kicker": "CLAUDE CODE · ANTIGRAVITY",
+        "title": "Wissen, wie viel noch geht.",
+        "text": "Das 5-Stunden-Fenster, die Woche, der Tag: NotchBuddy zeigt die Limits deiner KI-Werkzeuge — und färbt sich, bevor es knapp wird.",
+        "bullets": [
+          "Limits und Status von Claude Code",
+          "Antigravity im selben Blick",
+          "Aktive Agents mit Meldung, wenn sie fertig sind"
+        ],
+        "color": "#BE185D",
+        "screen": "limits",
+        "screenTitle": "Limits",
+        "rows": [
+          "Claude Code | 72 % | 5-Std.-Fenster",
+          "Claude Code | 41 % | Woche",
+          "Antigravity | 38 % | heute",
+          "Agents | 3 | aktiv"
+        ],
+        "controls": {
+          "side": "links",
+          "device": "phone"
+        }
       },
       {
         "type": "story-scene",
         "_id": "notchbuddy04",
-        "kicker": "DIE INSEL",
-        "title": "Zugeklappt still. Aufgeklappt alles da.",
+        "kicker": "ALLE INSELN",
+        "title": "Vier Ansichten, ein Blick.",
+        "c1": "#1E1B4B",
+        "c2": "#831843",
         "controls": {
-          "bg": "keiner",
+          "bg": "verlauf",
           "width": "breit",
           "height": "auto",
           "effect": "hoch",
           "align": "mitte",
-          "glow": false
+          "glow": true
         },
         "slots": {
           "inhalt": [
@@ -1576,21 +1572,7 @@ export const PROJECTS: Project[] = [
                     "Akku | 84 % | ▮",
                     "Finanzen | -1.284 € | €",
                     "Pakete | 3 unterwegs | 📦"
-                  ],
-                  "caption": "Aufgeklappt: Limits, Agents, Musik, Pomodoro, Akku — und Daten aus LD Buddy."
-                },
-                {
-                  "label": "Limits",
-                  "device": "desktop",
-                  "screen": "limits",
-                  "screenTitle": "Limits & Status",
-                  "rows": [
-                    "Claude Code | 72 % | 5-Std.-Fenster",
-                    "Claude Code | 41 % | Woche",
-                    "Antigravity | 38 % | heute",
-                    "Agents | 3 | aktiv"
-                  ],
-                  "caption": "Limits und Status von Claude Code und Antigravity — mit Warnung, bevor es knapp wird."
+                  ]
                 },
                 {
                   "label": "System",
@@ -1604,8 +1586,7 @@ export const PROJECTS: Project[] = [
                     "Netzwerk | ↓ 12 MB/s | 40",
                     "Akku | 84 % | 84",
                     "CPU-Kerne | 40 62 18 77 25 90 33 12 55 48"
-                  ],
-                  "caption": "System auf einen Blick: CPU, GPU, Speicher, Netzwerk, Akku und jeder einzelne Kern."
+                  ]
                 },
                 {
                   "label": "Aus LD Buddy",
@@ -1616,12 +1597,22 @@ export const PROJECTS: Project[] = [
                     "Diesen Monat | 1.284,50 €",
                     "Abos | -42,96 € | ↻",
                     "Gehalt | +3.150,00 € | €"
-                  ],
-                  "caption": "Auswertung, Finanzen und Bestellungen kommen direkt aus LD Buddy."
+                  ]
+                },
+                {
+                  "label": "Bestellungen",
+                  "device": "desktop",
+                  "screen": "bestellungen",
+                  "screenTitle": "Bestellungen",
+                  "rows": [
+                    "Kopfhörer | Di | 2",
+                    "Laufschuhe | Mo | 3",
+                    "Monstera | heute | 0"
+                  ]
                 }
               ],
               "controls": {
-                "layout": "register"
+                "layout": "raster"
               }
             }
           ]
@@ -1634,9 +1625,9 @@ export const PROJECTS: Project[] = [
         "title": "Was unter die Notch passt",
         "controls": {
           "bg": "keiner",
-          "width": "breit",
+          "width": "inhalt",
           "height": "auto",
-          "effect": "hoch",
+          "effect": "fade",
           "align": "mitte",
           "glow": false
         },
@@ -1647,30 +1638,11 @@ export const PROJECTS: Project[] = [
               "_id": "notchbuddy07",
               "items": [
                 {
-                  "icon": "✳",
-                  "title": "Claude Code & Antigravity",
-                  "text": "Limits, Fenster und Status — farbig, bevor es knapp wird.",
-                  "size": "l",
-                  "color": "#9D174D",
-                  "screen": "limits",
-                  "rows": [
-                    "5-Std.-Fenster | 72 % | Claude Code",
-                    "Woche | 41 % | Claude Code",
-                    "Heute | 38 % | Antigravity",
-                    "Agents | 3 | aktiv"
-                  ]
-                },
-                {
-                  "icon": "⚙",
-                  "title": "Agents",
-                  "text": "Aktive Agents mit Fortschritt und Meldung, wenn sie fertig sind.",
-                  "size": "s"
-                },
-                {
                   "icon": "♫",
                   "title": "Musik",
                   "text": "Apple Music & Co. steuern, ohne das Fenster zu wechseln.",
-                  "size": "s"
+                  "size": "w",
+                  "color": "#9D174D"
                 },
                 {
                   "icon": "📅",
@@ -1688,8 +1660,7 @@ export const PROJECTS: Project[] = [
                   "icon": "📋",
                   "title": "Zwischenablage",
                   "text": "Die letzten Einträge, ein Klick zum Einfügen.",
-                  "size": "w",
-                  "color": "#0E7490"
+                  "size": "s"
                 },
                 {
                   "icon": "📥",
@@ -1698,10 +1669,11 @@ export const PROJECTS: Project[] = [
                   "size": "s"
                 },
                 {
-                  "icon": "€",
-                  "title": "Aus LD Buddy",
-                  "text": "Auswertung, Finanzen und Bestellungen.",
-                  "size": "s"
+                  "icon": "⚙",
+                  "title": "Agents",
+                  "text": "Aktive Agents mit Fortschritt.",
+                  "size": "w",
+                  "color": "#0E7490"
                 }
               ]
             }
@@ -1711,47 +1683,6 @@ export const PROJECTS: Project[] = [
       {
         "type": "story-scene",
         "_id": "notchbuddy08",
-        "kicker": "IN ZAHLEN",
-        "title": "Ein Blick statt sechs Fenster.",
-        "c1": "#9D174D",
-        "controls": {
-          "bg": "dunkel",
-          "width": "breit",
-          "height": "auto",
-          "effect": "zoom",
-          "align": "mitte",
-          "glow": true
-        },
-        "slots": {
-          "inhalt": [
-            {
-              "type": "story-numbers",
-              "_id": "notchbuddy09",
-              "items": [
-                {
-                  "value": "10",
-                  "label": "Module in der Insel"
-                },
-                {
-                  "value": "1",
-                  "label": "Klick zum Aufklappen"
-                },
-                {
-                  "value": "0",
-                  "label": "Dateien gespeichert in der Ablage"
-                },
-                {
-                  "value": "2",
-                  "label": "KI-Werkzeuge im Blick"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "type": "story-scene",
-        "_id": "notchbuddy10",
         "kicker": "IN ARBEIT",
         "title": "Bald unter deiner Notch?",
         "text": "LD NotchBuddy entsteht gerade bei loona! designs — als Begleiter zu LD Buddy.",
@@ -1769,7 +1700,7 @@ export const PROJECTS: Project[] = [
           "inhalt": [
             {
               "type": "cta",
-              "_id": "notchbuddy11",
+              "_id": "notchbuddy09",
               "label": "Alle Projekte ansehen",
               "href": "/projekte",
               "controls": {
@@ -1817,60 +1748,125 @@ export const PROJECTS: Project[] = [
         "text": "Die neue Version von loona-designs: eine Plattform für Portfolio, Labs und Magazin — gepflegt im eigenen CMS LD Flow. Diese Seite ist mit genau diesem System gebaut.",
         "chips": [
           "Liquid Glass",
-          "Story-Seiten",
           "LD Flow",
           "Widgets",
-          "Zweisprachig",
-          "View Transitions"
+          "Zweisprachig"
         ],
         "cue": "Scrollen",
         "c1": "#A78BFA",
         "c2": "#FF7816",
-        "c3": "#38BDF8"
-      },
-      {
-        "type": "story-ticker",
-        "_id": "ldbeyond02",
-        "items": [
-          "Liquid Glass",
-          "Auto Contrast",
-          "Story-Seiten",
-          "Widgets",
-          "WYSIWYG",
-          "Versionen",
-          "Zwei-Faktor-Anmeldung",
-          "DE · EN"
-        ],
+        "c3": "#38BDF8",
         "controls": {
-          "look": "pillen",
-          "speed": "mittel",
-          "reverse": true
+          "layout": "zentriert"
         }
       },
       {
         "type": "story-words",
-        "_id": "ldbeyond03",
+        "_id": "ldbeyond02",
         "kicker": "WARUM",
         "text": "Eine Website, die man nie anfasst, veraltet. LD Beyond ist so gebaut, dass Ändern Spaß macht — direkt auf der Seite, ohne Code."
       },
       {
         "type": "story-scene",
-        "_id": "ldbeyond04",
-        "kicker": "ZWEI TEILE",
-        "title": "Die Bühne und der Regieraum.",
+        "_id": "ldbeyond03",
+        "kicker": "SO ENTSTEHT DIESE SEITE",
+        "title": "Vom leeren Blatt zur Story.",
         "controls": {
-          "bg": "keiner",
+          "bg": "karte",
           "width": "breit",
           "height": "auto",
           "effect": "hoch",
-          "align": "mitte",
+          "align": "links",
           "glow": false
         },
         "slots": {
           "inhalt": [
             {
+              "type": "story-steps",
+              "_id": "ldbeyond04",
+              "color": "#6D28D9",
+              "steps": [
+                {
+                  "icon": "▦",
+                  "title": "Bausteine wählen",
+                  "text": "Auftakt, Szenen, Scrollytelling, Galerie — als Widgets in LD Flow.",
+                  "screen": "editor",
+                  "screenTitle": "LD Beyond",
+                  "rows": [
+                    "Story: Auftakt | Dein Alltag. | ✦",
+                    "Story: Szene | Ein Tag mit LD Buddy | ▭",
+                    "Story: App-Galerie | Alle Ansichten | ▦",
+                    "Story: In Zahlen | Weniger Apps | #",
+                    "Button | Alle Projekte | →"
+                  ]
+                },
+                {
+                  "icon": "✎",
+                  "title": "Direkt auf der Seite schreiben",
+                  "text": "Texte ändert man in der Vorschau — was du siehst, wird veröffentlicht.",
+                  "screen": "editor",
+                  "screenTitle": "LD Beyond",
+                  "rows": [
+                    "Button | Alle Projekte | →",
+                    "Story: In Zahlen | Weniger Apps | #",
+                    "Story: App-Galerie | Alle Ansichten | ▦",
+                    "Story: Szene | Ein Tag mit LD Buddy | ▭",
+                    "Story: Auftakt | Dein Alltag. | ✦"
+                  ]
+                },
+                {
+                  "icon": "◐",
+                  "title": "Zweisprachig",
+                  "text": "Deutsch und Englisch je Dokument, Übersetzungen als Entwurf.",
+                  "screen": "feed",
+                  "screenTitle": "DE · EN",
+                  "rows": [
+                    "Deutsch | live | Story",
+                    "Englisch | Entwurf | Story",
+                    "Versionen | 12 | Verlauf"
+                  ]
+                },
+                {
+                  "icon": "↗",
+                  "title": "Veröffentlichen",
+                  "text": "Sofort oder geplant — mit Versionen zum Zurückholen.",
+                  "screen": "dashboard",
+                  "screenTitle": "loona-designs",
+                  "rows": [
+                    "Projekte | 16 | ▦",
+                    "Labs | 8 | ⚗",
+                    "Artikel | 23 | ✎",
+                    "Sprachen | DE · EN | ◐"
+                  ]
+                }
+              ],
+              "controls": {
+                "side": "links",
+                "device": "browser"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
+        "_id": "ldbeyond05",
+        "kicker": "ZWEI TEILE",
+        "title": "Die Bühne und der Regieraum.",
+        "c1": "#1E1B4B",
+        "controls": {
+          "bg": "dunkel",
+          "width": "breit",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "mitte",
+          "glow": true
+        },
+        "slots": {
+          "inhalt": [
+            {
               "type": "story-gallery",
-              "_id": "ldbeyond05",
+              "_id": "ldbeyond06",
               "color": "#6D28D9",
               "items": [
                 {
@@ -1921,39 +1917,12 @@ export const PROJECTS: Project[] = [
         }
       },
       {
-        "type": "story-app",
-        "_id": "ldbeyond06",
-        "kicker": "LD FLOW",
-        "title": "Bauen wie mit Bausteinen",
-        "text": "Story-Seiten entstehen aus Widgets: Auftakt, Szenen, Scrollytelling, Galerie, Zahlen. Texte schreibt man direkt in der Vorschau.",
-        "bullets": [
-          "WYSIWYG direkt auf der Seite",
-          "Versionen vergleichen und zurückholen",
-          "Geplant veröffentlichen",
-          "Deutsch und Englisch je Dokument"
-        ],
-        "color": "#6D28D9",
-        "screen": "editor",
-        "screenTitle": "Story",
-        "rows": [
-          "Story: Auftakt | Dein Alltag. | ✦",
-          "Story: Szene | Ein Tag mit LD Buddy | ▭",
-          "Story: App-Galerie | Alle Ansichten | ▦",
-          "Story: In Zahlen | Weniger Apps | #",
-          "Button | Alle Projekte | →"
-        ],
-        "controls": {
-          "side": "rechts",
-          "device": "browser"
-        }
-      },
-      {
         "type": "story-scene",
         "_id": "ldbeyond07",
         "kicker": "WAS DRINSTECKT",
         "title": "Plattform und CMS in einem.",
         "controls": {
-          "bg": "keiner",
+          "bg": "karte",
           "width": "breit",
           "height": "auto",
           "effect": "hoch",

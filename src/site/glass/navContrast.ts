@@ -70,7 +70,7 @@ export type ContrastSettings = Pick<Settings, 'theme' | 'autoC' | 'oppC' | 'ctSh
  * Menüschrift, etwas dichteres Glas, gedämpfte Schrift aufhellen. Ergänzt den Fix des Auto-Kontrasts (fix) und gibt
  * ihn erweitert zurück; den Schein setzt er direkt.
  */
-function applyFix2(pill: FixEl, key: string, fix: string, s: ContrastSettings, memo: ContrastMemo): string {
+function applyFix2(pill: FixEl, key: string, fix: string, s: ContrastSettings, memo: ContrastMemo, keepShadow = false): string {
   memo.fix2 ??= {};
   const points = sampleGlyphPoints(pill);
   const bs = getComputedStyle(document.body);
@@ -95,7 +95,7 @@ function applyFix2(pill: FixEl, key: string, fix: string, s: ContrastSettings, m
     stage = plan.stage;
     frost = plan.frost;
     if (stage) {
-      pill.style.textShadow = haloShadow(plan.halo, lightText);
+      if (!keepShadow) pill.style.textShadow = haloShadow(plan.halo, lightText);
       const add: string[] = [];
       if (plan.addPct > 0) {
         if (!/--glassTint:/.test(fix)) add.push(`--glassTint:${tok('--glassTint')}`);
@@ -177,15 +177,20 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
     for (const [pill, flipKey] of targets) {
       const r = pill.getBoundingClientRect();
       if (!r.width) continue;
-      // Fix 2 aus dem Spiel (Auto-Kontrast aus / Kontrast-Schatten): sein Milchglas zurücknehmen
-      if (pill.dataset.ctfix2 && (s.autoC === false || s.ctShadow === true)) {
-        delete pill.dataset.ctfix2;
-        applyFrost(pill, 0);
-      }
+      // Fix 2 ist eine eigene Option: er läuft auch ohne Auto-Kontrast und neben dem Kontrast-Schatten (dann ohne
+      // eigenen Schein) — sonst blieb das Glas bei diesen Einstellungen über scharfer Schrift unlesbar.
+      const fix2 = (f: string, keepShadow = false) => {
+        if (s.ctFix2 !== false) return applyFix2(pill, flipKey, f, s, memo, keepShadow);
+        if (pill.dataset.ctfix2) {
+          delete pill.dataset.ctfix2;
+          applyFrost(pill, 0);
+        }
+        return f;
+      };
       if (s.autoC === false) {
         memo.flip[flipKey] = false;
         pill.style.textShadow = '';
-        applyNavFix(pill, coverInk(theme, '', true));
+        applyNavFix(pill, coverInk(theme, fix2(''), true));
         continue;
       }
       const sampleEls = [...document.querySelectorAll('[data-ldsample]')];
@@ -304,7 +309,7 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
           pill.style.textShadow = '0 1px 1.5px rgba(' + col + ',' + a1 + '),0 2px ' + bl2 + 'px rgba(' + col + ',' + a2 + ')';
         }
         memo.flip[flipKey] = false;
-        applyNavFix(pill, coverInk(theme, '', true));
+        applyNavFix(pill, coverInk(theme, fix2('', true), true));
         continue;
       }
       pill.style.textShadow = '';
@@ -339,11 +344,7 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
           if (p > basePct + 1) fix = '--glassTint:#FFFFFF;--glassPct:' + p + '%;--muted:#3D4A5E;--soft:#55647A';
         }
       }
-      if (s.ctFix2 !== false) fix = applyFix2(pill, flipKey, fix, s, memo);
-      else if (pill.dataset.ctfix2) {
-        delete pill.dataset.ctfix2;
-        applyFrost(pill, 0);
-      }
+      fix = fix2(fix);
       applyNavFix(pill, coverInk(theme, fix));
     }
   };
