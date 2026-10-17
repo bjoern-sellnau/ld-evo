@@ -202,7 +202,14 @@ const PROJECT_FIELDS: FieldDef[] = [
     label: 'Story: Text neben dem Logo (optional)',
     type: 'text',
     max: 40,
-    help: 'Leer = bei Loona-Produkten der offizielle Schriftzug (z. B. „LD Buddy.“ mit „app · loona! designs“); sonst Zeichen + dieser Text.',
+    help: 'Einzeilig neben dem Zeichen, z. B. „LD Buddy.“ (ein Punkt am Ende erscheint in der Markenfarbe). Leer = nur das Zeichen.',
+  },
+  {
+    key: 'homeLabel',
+    label: 'Story: Beschriftung des Wegs zur Startseite',
+    type: 'text',
+    max: 30,
+    help: 'Ersetzt im Menü das LD-Logo, z. B. „Loona! Designs“ oder „Hallo“ (leer = „Loona! Designs“).',
   },
 ];
 

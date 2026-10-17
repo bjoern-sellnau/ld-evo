@@ -41,7 +41,7 @@ export function GlassSurface({
         boxShadow: lite
           ? 'inset 0 1.5px 1px var(--glasshi),inset 0 -9px 14px -11px rgba(0,0,0,0.35),var(--shadow)'
           : 'inset 0 1.5px 1px var(--glasshi),inset 0 -1px 1px rgba(255,255,255,0.07),inset 1px 0 1px rgba(255,255,255,0.09),inset -1px 0 1px rgba(255,255,255,0.09),inset 0 -9px 14px -11px rgba(0,0,0,0.35),var(--shadow)',
-        transition: '--glassTint 0.5s ease,--glassPct 0.5s ease',
+        transition: '--glassTint 0.5s ease,--glassPct 0.5s ease,text-shadow 0.5s ease',
         ...style,
       }}
     >

@@ -18,7 +18,7 @@ import { IconRail } from './IconRail';
 import { useScrollHide } from './useScrollHide';
 import { BrandMark, BrandSwap } from './BrandSwap';
 import swapStyles from './BrandSwap.module.css';
-import { useStoryBrand } from './storyBrand';
+import { useLatchedStoryBrand } from './storyBrand';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -42,7 +42,7 @@ export function SiteNav() {
   const pathname = canonicalPath(usePathname());
   const { navigation } = useContent();
   const back = useBack();
-  const brand = useStoryBrand();
+  const [brand, shownBrand] = useLatchedStoryBrand();
   const t = useT();
   const href = useHref();
   const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
@@ -164,7 +164,7 @@ export function SiteNav() {
                 width: folded ? foldW.mini : foldW.full,
                 boxSizing: 'border-box',
                 overflow: 'hidden',
-                transition: '--glassTint 0.5s ease,--glassPct 0.5s ease,width 0.5s cubic-bezier(0.32,1.1,0.35,1)',
+                transition: '--glassTint 0.5s ease,--glassPct 0.5s ease,text-shadow 0.5s ease,width 0.5s cubic-bezier(0.32,1.1,0.35,1)',
               }),
           } as unknown as CSSProperties
         }
@@ -285,7 +285,7 @@ export function SiteNav() {
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 7,
+
                     padding: sideActive ? '11px 14px' : '9px 15px',
                     borderRadius: itemRad,
                     fontSize: 13,
@@ -295,8 +295,7 @@ export function SiteNav() {
                     transition: 'transform 0.25s,background 0.25s,color 0.25s',
                   }}
                 >
-                  <span aria-hidden>⌂</span>
-                  {t('nav.homeShort')}
+                  {shownBrand?.homeLabel}
                 </Link>
               </span>
               {navigation

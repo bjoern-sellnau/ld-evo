@@ -1,7 +1,8 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { LoonaLockup, LoonaMark } from '@/components/brand';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { LoonaMark } from '@/components/brand';
+import { LOONA_PRODUCTS } from '@/components/brand/products';
 import { isSafeMediaSrc } from '@/cms/safe';
 import { useSite } from '../settings/SiteProvider';
 import type { StoryBrand } from './storyBrand';
@@ -10,45 +11,39 @@ import styles from './BrandSwap.module.css';
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 /**
- * Zeichen der Story-Marke. Loona-Produkte ohne eigenen Text: der offizielle Schriftzug aus dem Markensystem (wie
- * public/brand/<produkt>/lockup-*.svg — z. B. „LD Buddy.“ mit Akzentpunkt und „app · loona! designs“), genau wie das
- * LD-Logo. Mit eigenem Text bzw. eigenem Bild: Zeichen + Text.
+ * Zeichen der Story-Marke (nur das Zeichen, z. B. das „b“ von LD Buddy, oder ein eigenes Bild) und optional einzeilig
+ * ein Text daneben. Endet der Text auf „.“ (Schreibweise der Loona-Marken, z. B. „LD Buddy.“), steht der Punkt in der
+ * Markenfarbe — hell/dunkel wie im Lockup (products.ts: color bzw. deep).
  */
 export function BrandMark({ brand, size, withName = true }: { brand: StoryBrand; size: number; withName?: boolean }) {
   const { settings } = useSite();
-  if (brand.product !== 'eigenes' && !brand.name)
-    return (
-      <LoonaLockup
-        product={brand.product}
-        markSize={size}
-        theme={settings.theme}
-        variant={withName ? 'full' : 'mark'}
-        style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
-      />
-    );
   const src = brand.src && isSafeMediaSrc(brand.src) ? (brand.src.startsWith('/') ? BASE + brand.src : brand.src) : undefined;
+  const name = withName ? brand.name : undefined;
+  const dot = name?.endsWith('.') && brand.product !== 'eigenes';
+  const accent =
+    brand.product !== 'eigenes'
+      ? settings.theme === 'light'
+        ? LOONA_PRODUCTS[brand.product].deep
+        : LOONA_PRODUCTS[brand.product].color
+      : undefined;
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9, whiteSpace: 'nowrap' }}>
       {brand.product === 'eigenes' ? (
-        src && (
-          <img
-            src={src}
-            alt={withName && brand.name ? '' : (brand.alt ?? '')}
-            height={size}
-            style={{ height: size, width: 'auto', display: 'block' }}
-          />
-        )
+        src && <img src={src} alt={name ? '' : (brand.alt ?? '')} height={size} style={{ height: size, width: 'auto', display: 'block' }} />
       ) : (
         <LoonaMark
           product={brand.product}
           size={size}
           tone={settings.theme === 'light' ? 'ink' : 'color'}
-          decorative={!!(withName && brand.name)}
-          title={brand.name}
+          decorative={!!name}
+          title={brand.name || LOONA_PRODUCTS[brand.product].name}
         />
       )}
-      {withName && brand.name && (
-        <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--ink)' }}>{brand.name}</span>
+      {name && (
+        <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--ink)' }}>
+          {dot ? name.slice(0, -1) : name}
+          {dot && <span style={{ color: accent }}>.</span>}
+        </span>
       )}
     </span>
   );

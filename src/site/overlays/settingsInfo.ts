@@ -186,6 +186,14 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Zusätzlicher Schatten hinter der Menüschrift, wenn der Hintergrund unruhig ist.',
     en: 'Extra shadow behind the menu text when the background is busy.',
   },
+  'Auto Contrast Fix 2': {
+    de: 'Erkennt auch Schrift hinter dem Menü (z. B. große Überschriften beim Scrollen) und hilft sanft nach: erst ein weicher Schein hinter der Menüschrift, dann etwas dichteres Glas, zuletzt hellere Nebenschrift. Gedeckelt, damit das Glas Glas bleibt. Braucht Auto-Kontrast; Kontrast-Schatten hat Vorrang.',
+    en: 'Also detects text behind the menu (e.g. large headings while scrolling) and helps gently: first a soft glow behind the menu text, then slightly denser glass, finally brighter secondary text. Capped so the glass stays glass. Needs auto contrast; contrast shadow takes precedence.',
+  },
+  'Fix-2-Stärke': {
+    de: 'Wie kräftig Auto Contrast Fix 2 eingreift (Schein, Glas-Tönung, Schrift).',
+    en: 'How strongly Auto Contrast Fix 2 steps in (glow, glass tint, text).',
+  },
   'Scroll-BG': {
     de: 'Beim Scrollen erscheint hinter dem Menü ein ruhiger Hintergrundstreifen (mit Auto-Kontrast).',
     en: 'When scrolling, a calm background strip appears behind the menu (with auto contrast).',

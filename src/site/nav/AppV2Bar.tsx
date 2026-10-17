@@ -123,7 +123,8 @@ export function AppV2Bar() {
           pointerEvents: barHidden ? 'none' : 'auto',
           opacity: barHidden ? 0 : 1,
           transform: barHidden ? 'translateY(24px) scale(0.96)' : 'none',
-          transition: '--glassTint 0.5s ease,--glassPct 0.5s ease,opacity 0.3s ease,transform 0.5s cubic-bezier(0.32,1.2,0.35,1)',
+          transition:
+            '--glassTint 0.5s ease,--glassPct 0.5s ease,text-shadow 0.5s ease,opacity 0.3s ease,transform 0.5s cubic-bezier(0.32,1.2,0.35,1)',
           width,
           maxWidth: 420,
           height: APPV2_BAR_HEIGHT,

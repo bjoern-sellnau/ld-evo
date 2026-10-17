@@ -49,7 +49,7 @@ export function MobileBackPill({ tabBarHidden }: { tabBarHidden: boolean }) {
           color: back.color,
           cursor: 'pointer',
           whiteSpace: 'pre',
-          transition: '--glassTint 0.5s ease,--glassPct 0.5s ease,transform 0.2s,color 0.3s',
+          transition: '--glassTint 0.5s ease,--glassPct 0.5s ease,text-shadow 0.5s ease,transform 0.2s,color 0.3s',
         }}
       >
         <span data-ldfrost="1" aria-hidden style={{ borderRadius: 999 }} />
