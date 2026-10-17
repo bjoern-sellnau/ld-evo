@@ -26,6 +26,14 @@ export default defineWidget({
       ],
       { label: 'Fläche', default: 'karte' },
     ),
+    width: segment(
+      [
+        ['inhalt', 'Inhalt'],
+        ['breit', 'Breit'],
+        ['voll', 'Voll'],
+      ],
+      { label: 'Breite', default: 'breit' },
+    ),
     height: segment(
       [
         ['auto', 'Auto'],
@@ -45,7 +53,15 @@ export default defineWidget({
   },
   slots: { inhalt: slot('*', { label: 'Inhalt' }) },
   render: ({ controls, slots, ...p }) => (
-    <StoryScene {...p} bg={controls.bg} height={controls.height} effect={controls.effect} align={controls.align} glow={controls.glow}>
+    <StoryScene
+      {...p}
+      bg={controls.bg}
+      height={controls.height}
+      effect={controls.effect}
+      align={controls.align}
+      glow={controls.glow}
+      width={controls.width}
+    >
       {slots.inhalt}
     </StoryScene>
   ),

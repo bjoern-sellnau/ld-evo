@@ -16,6 +16,9 @@ import { useLogo } from '../settings/useLogo';
 import { LogoTile } from '../settings/LogoTile';
 import { IconRail } from './IconRail';
 import { useScrollHide } from './useScrollHide';
+import { BrandMark, BrandSwap } from './BrandSwap';
+import swapStyles from './BrandSwap.module.css';
+import { useStoryBrand } from './storyBrand';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -39,6 +42,7 @@ export function SiteNav() {
   const pathname = canonicalPath(usePathname());
   const { navigation } = useContent();
   const back = useBack();
+  const brand = useStoryBrand();
   const t = useT();
   const href = useHref();
   const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
@@ -191,33 +195,60 @@ export function SiteNav() {
             <span aria-hidden style={divider} />
           </span>
         )}
-        <Link
-          href={href('/')}
-          onClick={go('/')}
-          aria-label={t('nav.home')}
-          className={cx(styles.reset, styles.logo)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '8px 12px 8px 9px',
-            borderRadius: 999,
-            color: 'var(--ink)',
-            transition: 'transform 0.25s,color 0.25s',
-          }}
-        >
-          {/* LD-Lockup (Logo-Handoff Prompt 2): Zeichenhöhe 28 px, unter 480 px nur das Zeichen.
-              Textfarben folgen den Site-Tokens, damit Auto-Kontrast greift (Site-Nachtrag v23). */}
-          <LoonaLockup
-            markSize={28}
-            theme={settings.theme}
-            tone={logo.markTone(settings.theme)}
-            negativeColor={logo.negativeColor}
-            // „Logo ohne Schriftzug“ (Desktop, neu): nur das Zeichen wie in der Wide-2-Leiste
-            variant={(narrow && mobLogo !== 'wordmark') || (!mob && settings.logoMarkOnly) ? 'mark' : 'full'}
-            style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
-          />
-        </Link>
+        {/* Story-Seiten mit eigener Marke: LD-Logo gleitet hinaus, die Marke herein (BrandSwap, neu) */}
+        <BrandSwap
+          brand={brand}
+          ld={
+            <Link
+              href={href('/')}
+              onClick={go('/')}
+              aria-label={t('nav.home')}
+              className={cx(styles.reset, styles.logo)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 12px 8px 9px',
+                borderRadius: 999,
+                color: 'var(--ink)',
+                transition: 'transform 0.25s,color 0.25s',
+              }}
+            >
+              {/* LD-Lockup (Logo-Handoff Prompt 2): Zeichenhöhe 28 px, unter 480 px nur das Zeichen.
+                  Textfarben folgen den Site-Tokens, damit Auto-Kontrast greift (Site-Nachtrag v23). */}
+              <LoonaLockup
+                markSize={28}
+                theme={settings.theme}
+                tone={logo.markTone(settings.theme)}
+                negativeColor={logo.negativeColor}
+                // „Logo ohne Schriftzug“ (Desktop, neu): nur das Zeichen wie in der Wide-2-Leiste
+                variant={(narrow && mobLogo !== 'wordmark') || (!mob && settings.logoMarkOnly) ? 'mark' : 'full'}
+                style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
+              />
+            </Link>
+          }
+          brandNode={(b) => (
+            <a
+              href="#inhalt"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: settings.anim ? 'smooth' : 'auto' });
+              }}
+              aria-label={`${b.name || b.alt || ''} — ${t('nav.storyTop')}`}
+              className={cx(styles.reset, styles.logo)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 12px 8px 9px',
+                borderRadius: 999,
+                color: 'var(--ink)',
+                transition: 'transform 0.25s',
+              }}
+            >
+              <BrandMark brand={b} size={28} withName={!narrow} />
+            </a>
+          )}
+        />
 
         {collapseOn && (
           <button
@@ -245,6 +276,29 @@ export function SiteNav() {
           {!mob && (
             <>
               <span aria-hidden style={divider} />
+              {/* „Home“ ersetzt auf Story-Seiten mit eigener Marke die Funktion des LD-Logos */}
+              <span className={swapStyles.home} data-on={!!brand} inert={!brand || undefined} aria-hidden={!brand || undefined}>
+                <Link
+                  href={href('/')}
+                  onClick={go('/')}
+                  className={cx(styles.reset, styles.item)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    padding: sideActive ? '11px 14px' : '9px 15px',
+                    borderRadius: itemRad,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: 'var(--muted)',
+                    whiteSpace: 'nowrap',
+                    transition: 'transform 0.25s,background 0.25s,color 0.25s',
+                  }}
+                >
+                  <span aria-hidden>⌂</span>
+                  {t('nav.homeShort')}
+                </Link>
+              </span>
               {navigation
                 .filter((p) => !hide[p.href])
                 .map((p) => {

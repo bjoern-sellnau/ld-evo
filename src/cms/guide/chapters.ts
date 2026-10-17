@@ -485,6 +485,10 @@ export const CHAPTERS: Chapter[] = [
           ['Story: Wort für Wort', 'Großer Satz, der sich beim Scrollen einfärbt'],
           ['Story: Laufband · Seitwärts · Zahlen', 'Endlos-Ticker · Karten fahren seitlich vorbei · Kennzahlen zählen hoch'],
           ['Story: App-Feature', 'Gerät mit App-Screen neben Text und Häkchen-Liste'],
+          [
+            'Projekt: „Story: Logo im Menü“',
+            'Ersetzt auf der Story-Seite das LD-Logo durch eine Produktmarke oder ein eigenes Bild (+ optionaler Text); „⌂ Home“ führt zur Startseite',
+          ],
         ],
       },
       {
