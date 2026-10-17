@@ -5,6 +5,7 @@
  * 1:1 aus dem Prototyp (parseColor / relLum / applyNavFix / adjustNavContrast, Zeile 3907–4079).
  */
 import type { Settings } from '../settings/schema';
+import { haloShadow, lumOf, mixHex, planFix2, sampleGlyphLums } from './contrastFix2';
 import { adjustLogoColors, createLogoMemo, type LogoMemo } from './logoContrast';
 
 interface Rgba {
@@ -22,6 +23,8 @@ export interface ContrastMemo {
   flip: Record<string, boolean>;
   /** Gewähltes Material je Fläche (Vibrancy, App v2) — für die Hysterese. */
   scheme?: Record<string, 'dark' | 'light'>;
+  /** Gewählte Stufe von Auto Contrast Fix 2 je Fläche — für die Hysterese. */
+  fix2?: Record<string, number>;
   raf: number;
   to?: ReturnType<typeof setTimeout>;
   sampCv?: HTMLCanvasElement;
@@ -60,7 +63,54 @@ export function applyNavFix(pill: FixEl, fix: string): void {
   }
 }
 
-export type ContrastSettings = Pick<Settings, 'theme' | 'autoC' | 'oppC' | 'ctShadow' | 'ctStrength' | 'blurOn'>;
+export type ContrastSettings = Pick<Settings, 'theme' | 'autoC' | 'oppC' | 'ctShadow' | 'ctStrength' | 'blurOn' | 'ctFix2' | 'ctFix2Lvl'>;
+
+/**
+ * Auto Contrast Fix 2 (contrastFix2.ts): Schrift HINTER dem Glas mitmessen und sanft nachhelfen — Schein hinter der
+ * Menüschrift, etwas dichteres Glas, gedämpfte Schrift aufhellen. Ergänzt den Fix des Auto-Kontrasts (fix) und gibt
+ * ihn erweitert zurück; den Schein setzt er direkt.
+ */
+function applyFix2(pill: FixEl, key: string, fix: string, s: ContrastSettings, memo: ContrastMemo): string {
+  memo.fix2 ??= {};
+  const lums = sampleGlyphLums(pill, s.blurOn !== false);
+  const bs = getComputedStyle(document.body);
+  const tok = (k: string) => (new RegExp(`${k}:([^;]+)`).exec(fix)?.[1] ?? bs.getPropertyValue(k)).trim();
+  let stage = 0;
+  if (lums) {
+    const ink = tok('--ink');
+    const muted = tok('--muted');
+    const inkL = lumOf(ink) ?? 1;
+    // Tab-Leiste, Zurück-Pill und Glasknöpfe tönen mindestens 62 % (site.css)
+    const own = pill.id === 'ld-tabbar' || pill.id === 'ld-backpill' || pill.hasAttribute('data-ldcontrast');
+    const pct = Math.max(own ? 0.62 : 0, (parseFloat(tok('--glassPct')) || 42) / 100);
+    const lightText = inkL > 0.4;
+    const plan = planFix2(
+      lums,
+      { muted: lumOf(muted) ?? inkL, ink: inkL, tint: lumOf(tok('--glassTint')) ?? (lightText ? 0.01 : 1), pct, lightText },
+      s.ctFix2Lvl ?? 100,
+      memo.fix2[key] ?? 0,
+    );
+    stage = plan.stage;
+    if (stage) {
+      pill.style.textShadow = haloShadow(plan.halo, lightText);
+      const add: string[] = [];
+      if (plan.addPct > 0) {
+        if (!/--glassTint:/.test(fix)) add.push(`--glassTint:${tok('--glassTint')}`);
+        add.push(`--glassPct:${Math.round(pct * 100) + plan.addPct}%`);
+      }
+      if (plan.mutedMix > 0 && ink.startsWith('#') && muted.startsWith('#')) {
+        add.push(`--muted:${mixHex(muted, ink, plan.mutedMix)}`);
+        const soft = tok('--soft');
+        if (soft.startsWith('#')) add.push(`--soft:${mixHex(soft, ink, plan.mutedMix)}`);
+      }
+      const keys = add.map((a) => a.slice(0, a.indexOf(':') + 1));
+      fix = [...fix.split(';').filter((p) => p && !keys.some((k) => p.startsWith(k))), ...add].join(';');
+    }
+  }
+  memo.fix2[key] = stage;
+  if (pill.dataset.ctfix2 !== String(stage)) pill.dataset.ctfix2 = String(stage);
+  return fix;
+}
 
 /**
  * Cover-Farbe-Vollmodus (useCoverColor) überschreibt --ink/--muted/--soft am body mit der Schrift FÜR DAS COVER
@@ -280,6 +330,8 @@ export function adjustNavContrast(get: () => { s: ContrastSettings; overlayOpen:
           if (p > basePct + 1) fix = '--glassTint:#FFFFFF;--glassPct:' + p + '%;--muted:#3D4A5E;--soft:#55647A';
         }
       }
+      if (s.ctFix2 !== false) fix = applyFix2(pill, flipKey, fix, s, memo);
+      else if (pill.dataset.ctfix2) delete pill.dataset.ctfix2;
       applyNavFix(pill, coverInk(theme, fix));
     }
   };

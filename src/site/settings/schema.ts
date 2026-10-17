@@ -48,6 +48,9 @@ export interface Settings {
   oppC: boolean;
   ctShadow: boolean;
   ctStrength: number;
+  /** Auto Contrast Fix 2: Schrift hinter dem Glas mitmessen, sanft nachhelfen (neu, nicht im Prototyp). */
+  ctFix2: boolean;
+  ctFix2Lvl: number;
   scrollBg: boolean;
   coverFull: boolean;
   heroAnim: string;
@@ -127,6 +130,8 @@ export const DEFAULT_SETTINGS: Settings = {
   oppC: true,
   ctShadow: false,
   ctStrength: 100,
+  ctFix2: true,
+  ctFix2Lvl: 100,
   scrollBg: true,
   coverFull: true,
   heroAnim: 'flow',
@@ -221,6 +226,8 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   oppC: onUnlessOff('ld-oppc'),
   ctShadow: offUnlessOn('ld-ctshadow'),
   ctStrength: int('ld-ctstrength', 100),
+  ctFix2: onUnlessOff('ld-ctfix2'),
+  ctFix2Lvl: int('ld-ctfix2lvl', 100),
   scrollBg: onUnlessOff('ld-scrollbg'),
   coverFull: onUnlessOff('ld-coverfull'),
   // Alt-Stände 'mesh'/'portal' → 'ribbon'/'flow' (Nachtrag v6)

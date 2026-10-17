@@ -164,7 +164,7 @@ export function SiteNav() {
                 width: folded ? foldW.mini : foldW.full,
                 boxSizing: 'border-box',
                 overflow: 'hidden',
-                transition: '--glassTint 0.5s ease,--glassPct 0.5s ease,width 0.5s cubic-bezier(0.32,1.1,0.35,1)',
+                transition: '--glassTint 0.5s ease,--glassPct 0.5s ease,text-shadow 0.5s ease,width 0.5s cubic-bezier(0.32,1.1,0.35,1)',
               }),
           } as unknown as CSSProperties
         }

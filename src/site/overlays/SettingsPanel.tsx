@@ -191,6 +191,7 @@ const EN_LABELS: Record<string, string> = {
   'Kontr.': 'Contr.',
   Kontrast: 'Contrast',
   'Kontrast-Schatten': 'Contrast shadow',
+  'Fix-2-Stärke': 'Fix 2 strength',
   Kreis: 'Circle',
   'Links / Rechts': 'Left / right',
   Marke: 'Brand',
@@ -364,6 +365,7 @@ export function SettingsPanel() {
     { label: 'Auto-Kontrast', key: 'autoC', on: s.autoC },
     { label: 'Opposite Color', key: 'oppC', on: s.oppC },
     { label: 'Kontrast-Schatten', key: 'ctShadow', on: s.ctShadow },
+    { label: 'Auto Contrast Fix 2', key: 'ctFix2', on: s.ctFix2 },
     { label: 'Scroll-BG', key: 'scrollBg', on: s.scrollBg },
     { label: 'Cover-Farbe', key: 'coverFull', on: s.coverFull },
     { label: 'Flat', key: 'flat', on: s.flat },
@@ -1023,6 +1025,11 @@ export function SettingsPanel() {
           {s.ctShadow && (
             <Row label="Schatten-Stärke">
               <Range min={20} max={200} step={10} value={s.ctStrength} onChange={(v) => set('ctStrength', v)} label="Schatten-Stärke" />
+            </Row>
+          )}
+          {s.autoC && s.ctFix2 && !s.ctShadow && (
+            <Row label="Fix-2-Stärke">
+              <Range min={50} max={150} step={10} value={s.ctFix2Lvl} onChange={(v) => set('ctFix2Lvl', v)} label="Fix-2-Stärke" />
             </Row>
           )}
           {((hm === 'matrix' && s.mxCine) || hm === 'matrix2') && (

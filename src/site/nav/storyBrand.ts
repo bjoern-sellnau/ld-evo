@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import type { LoonaProductKey } from '@/components/brand/products';
 import { useContent } from '../content/ContentProvider';
 import { canonicalPath } from '../i18n/locale';
@@ -31,13 +31,16 @@ export function useStoryBrand(): StoryBrand | null {
   const pathname = canonicalPath(usePathname());
   const { projects } = useContent();
   const m = /^\/(projekte|labs)\/([^/]+)\/?$/.exec(pathname);
-  if (!m) return null;
-  const p = projects.find((x) => x.id === m[2]);
-  if (!p || p.layout !== 'story' || !p.brand || p.brand === 'ld') return null;
-  const homeLabel = p.homeLabel?.trim() || STORY_HOME_LABEL;
-  if (p.brand === 'eigenes')
-    return p.brandLogo?.src ? { product: 'eigenes', src: p.brandLogo.src, alt: p.brandLogo.alt, name: p.brandName, homeLabel } : null;
-  return PRODUCTS.has(p.brand) ? { product: p.brand as LoonaProductKey, name: p.brandName, homeLabel } : null;
+  const p = m ? projects.find((x) => x.id === m[2]) : undefined;
+  // Stabiles Objekt (useMemo): Effekte, die auf die Marke hören (BrandSwap, useLatchedStoryBrand), setzen sonst bei
+  // jedem Render neu → Endlosschleife (React #185).
+  return useMemo(() => {
+    if (!p || p.layout !== 'story' || !p.brand || p.brand === 'ld') return null;
+    const homeLabel = p.homeLabel?.trim() || STORY_HOME_LABEL;
+    if (p.brand === 'eigenes')
+      return p.brandLogo?.src ? { product: 'eigenes', src: p.brandLogo.src, alt: p.brandLogo.alt, name: p.brandName, homeLabel } : null;
+    return PRODUCTS.has(p.brand) ? { product: p.brand as LoonaProductKey, name: p.brandName, homeLabel } : null;
+  }, [p]);
 }
 
 /** Wie useStoryBrand, dazu die zuletzt aktive Marke — damit Texte beim Hinausgleiten stehen bleiben. */

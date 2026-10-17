@@ -728,7 +728,10 @@ export function StoryTicker({ items, speed, reverse, look }: { items: string[]; 
     const t = first.current;
     if (!motion || !b || !t) return;
     const fit = () => {
-      const one = t.scrollWidth / reps;
+      // Breite EINES Durchgangs exakt messen (Abstand zum ersten Eintrag der Wiederholung) — eine Schätzung über
+      // scrollWidth / reps schwankte um Bruchteile und ließ reps zwischen zwei Werten hin- und herspringen.
+      const kids = t.children as HTMLCollectionOf<HTMLElement>;
+      const one = reps > 1 && kids[items.length] ? kids[items.length].offsetLeft - kids[0].offsetLeft : t.scrollWidth;
       if (one > 0) {
         const need = Math.max(1, Math.ceil(b.clientWidth / one));
         if (need !== reps) setReps(need);
