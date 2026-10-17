@@ -1,6 +1,5 @@
 'use client';
 
-import type { CSSProperties } from 'react';
 import type { Project } from '@content/projects';
 import { EText } from '../cms/editing';
 import { WidgetList, type Block } from '../cms/Widgets';
@@ -18,9 +17,9 @@ export function StoryPage({ p }: { p: Project }) {
   const { mob } = useSite();
   const blocks = (p.story ?? []) as Block[];
   const hasHero = blocks[0]?.type === 'story-hero';
-  const padX = mob ? 18 : 32;
   return (
-    <article data-screen-label="Story" style={{ ['--story-bleed' as string]: `${padX}px` } as CSSProperties}>
+    // Volle/breite Abschnitte nutzen --bl/--br/--wl/--wr aus SitePage (Widescreen, Seitenleiste, Icon-Leiste)
+    <article data-screen-label="Story">
       {!hasHero && (
         <header style={{ padding: mob ? '118px 0 36px' : '150px 0 48px', maxWidth: 860 }}>
           <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: '0.14em', color: 'var(--accent)' }}>

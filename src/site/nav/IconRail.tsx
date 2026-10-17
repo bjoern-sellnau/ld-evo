@@ -10,6 +10,8 @@ import { useContent } from '../content/ContentProvider';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import { isActiveHref, navPadFor } from './pages';
+import { BrandMark, BrandSwap } from './BrandSwap';
+import { useStoryBrand } from './storyBrand';
 import { useBack } from './useBack';
 import styles from './SiteNav.module.css';
 
@@ -35,6 +37,7 @@ export function IconRail() {
   // Menü-Abstand je Seite (ld-navpad): oben/unten, Standard → 10 px wie im Prototyp; links/rechts nicht — die Leiste ist fest 64 px breit
   const pad = navPadFor(settings.navPad, pathname);
   const { navigation } = useContent();
+  const brand = useStoryBrand();
   const t = useT();
   const href = useHref();
   const back = useBack();
@@ -84,17 +87,46 @@ export function IconRail() {
             </button>
           </RailItem>
         )}
-        <RailItem id="home" tip={tip} label={t('nav.home')} {...tipProps('home')}>
-          <Link
-            href={href('/')}
-            onClick={go('/')}
-            aria-label={t('nav.home')}
-            className={styles.reset}
-            style={{ ...btn(false), height: 52 }}
-          >
-            <LogoTile variant="color" size={40} style={{ display: 'block' }} />
-          </Link>
+        {/* Story-Seiten mit eigener Marke: LD-Kachel gleitet hinaus, das Zeichen der Marke herein; darunter „Home“ */}
+        <RailItem id="home" tip={tip} label={brand ? brand.name || brand.alt || t('nav.storyTop') : t('nav.home')} {...tipProps('home')}>
+          <BrandSwap
+            brand={brand}
+            ld={
+              <Link
+                href={href('/')}
+                onClick={go('/')}
+                aria-label={t('nav.home')}
+                className={styles.reset}
+                style={{ ...btn(false), height: 52 }}
+              >
+                <LogoTile variant="color" size={40} style={{ display: 'block' }} />
+              </Link>
+            }
+            brandNode={(b) => (
+              <a
+                href="#inhalt"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: settings.anim ? 'smooth' : 'auto' });
+                }}
+                aria-label={`${b.name || b.alt || ''} — ${t('nav.storyTop')}`}
+                className={styles.reset}
+                style={{ ...btn(false), height: 52 }}
+              >
+                <BrandMark brand={b} size={36} withName={false} />
+              </a>
+            )}
+          />
         </RailItem>
+        {brand && (
+          <RailItem id="home2" tip={tip} label={t('nav.homeShort')} {...tipProps('home2')}>
+            <Link href={href('/')} onClick={go('/')} aria-label={t('nav.homeShort')} className={styles.reset} style={btn(false)}>
+              <span aria-hidden style={{ fontSize: 19 }}>
+                ⌂
+              </span>
+            </Link>
+          </RailItem>
+        )}
         <span aria-hidden style={divider} />
         {navigation
           .filter((n) => n.href !== '/' && !hide[n.href])

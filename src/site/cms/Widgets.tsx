@@ -209,7 +209,18 @@ export function WidgetList({
             key={b._id}
             style={{
               marginTop: i === 0 ? 0 : gap,
-              ...(lazyPaint && i > 0 ? { contentVisibility: 'auto', containIntrinsicSize: 'auto 900px' } : null),
+              // content-visibility schneidet alles ab, was über die Box hinausragt (Paint-Containment) — daher reicht die
+              // Box bis an den Rand (--bl/--br aus SitePage) und rückt den Inhalt um genau so viel wieder ein.
+              ...(lazyPaint && i > 0
+                ? {
+                    contentVisibility: 'auto',
+                    containIntrinsicSize: 'auto 900px',
+                    marginLeft: 'calc(-1 * var(--bl, 0px))',
+                    marginRight: 'calc(-1 * var(--br, 0px))',
+                    paddingLeft: 'var(--bl, 0px)',
+                    paddingRight: 'var(--br, 0px)',
+                  }
+                : null),
             }}
           >
             {inner}

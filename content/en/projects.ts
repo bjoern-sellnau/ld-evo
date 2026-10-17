@@ -544,34 +544,37 @@ export const PROJECTS: Project[] = [
     "id": "ldbuddy",
     "kind": "projekte",
     "kat": "App",
-    "tag": "APP CONCEPT",
+    "tag": "DESKTOP APP",
     "datum": "10/2026",
     "name": "LD Buddy",
     "mono": "LB",
-    "color": "#4C3BC9",
+    "color": "#BE185D",
     "featured": false,
-    "tool": "Claude Code · Next.js · React Native",
-    "desc": "One app for everyday admin: finances, orders, news, collections, household budget, shopping lists and bookmarks.",
+    "tool": "Tauri 2 · Next.js",
+    "desc": "Desktop app for everyday admin (Tauri 2 + Next.js): finances, orders, news, collections, household budget, shopping lists and bookmarks — with Chrome and Safari extensions, a mobile companion app and a link to LD NotchBuddy.",
     "ueberblick": "Seven little apps for seven little jobs — LD Buddy brings them together in one calm interface.",
     "ansatz": "Daily routines first, features second: what do you need in the morning, on the go, in the evening?",
     "stack": [
-      "Claude Code",
+      "Tauri 2",
       "Next.js",
-      "React Native",
-      "SQLite"
+      "Chrome-Extension",
+      "Safari-Extension",
+      "Companion-App",
+      "LD NotchBuddy"
     ],
     "ergebnis": "In progress — this story page shows the ideas.",
     "zitat": "The best everyday app is the one you forget until you need it.",
     "learnings": "Calm is a feature.",
     "layout": "story",
+    "brand": "buddy",
     "story": [
       {
         "type": "story-hero",
         "_id": "ldbuddy01",
-        "kicker": "LD BUDDY · APP CONCEPT",
+        "kicker": "LD BUDDY · DESKTOP APP",
         "title": "Your everyday.",
         "title2": "One buddy.",
-        "text": "Finances, orders, news, collections, household budget, shopping lists and bookmarks — in one app that thinks along instead of nagging.",
+        "text": "Finances, orders, news, collections, household budget, shopping lists and bookmarks — in one desktop app that thinks along instead of nagging. Plus extensions for Chrome and Safari and a mobile companion app.",
         "chips": [
           "Finances",
           "Orders",
@@ -582,9 +585,9 @@ export const PROJECTS: Project[] = [
           "Bookmarks"
         ],
         "cue": "Scroll",
-        "c1": "#6D5AE6",
-        "c2": "#22D3EE",
-        "c3": "#F472B6"
+        "c1": "#F472B6",
+        "c2": "#A78BFA",
+        "c3": "#FB923C"
       },
       {
         "type": "story-ticker",
@@ -613,14 +616,78 @@ export const PROJECTS: Project[] = [
       },
       {
         "type": "story-scene",
+        "_id": "ldbuddy15",
+        "kicker": "EVERYWHERE YOU ARE",
+        "title": "Desktop first. Browser and phone along for the ride.",
+        "controls": {
+          "bg": "keiner",
+          "width": "breit",
+          "height": "auto",
+          "effect": "hoch",
+          "align": "mitte",
+          "glow": false
+        },
+        "slots": {
+          "inhalt": [
+            {
+              "type": "story-bento",
+              "_id": "ldbuddy16",
+              "items": [
+                {
+                  "icon": "🖥️",
+                  "title": "Desktop app",
+                  "text": "LD Buddy's home — built with Tauri 2 and Next.js.",
+                  "size": "l",
+                  "color": "#BE185D",
+                  "screen": "dashboard",
+                  "rows": [
+                    "Spent in October | €1,284 | €",
+                    "Parcels on the way | 3 | 📦",
+                    "Shopping list | 6 open | 🛒",
+                    "Read later | 4 | 🔖"
+                  ]
+                },
+                {
+                  "icon": "🧩",
+                  "title": "Chrome extension",
+                  "text": "Send bookmarks, orders and prices straight from the browser to Buddy.",
+                  "size": "s"
+                },
+                {
+                  "icon": "🧭",
+                  "title": "Safari extension",
+                  "text": "The same for Safari.",
+                  "size": "s"
+                },
+                {
+                  "icon": "📱",
+                  "title": "Companion app",
+                  "text": "Along on mobile: tick off the list, check a parcel, capture a receipt.",
+                  "size": "s",
+                  "color": "#9D174D"
+                },
+                {
+                  "icon": "✨",
+                  "title": "LD NotchBuddy",
+                  "text": "Connected to the new LD NotchBuddy. app.",
+                  "size": "s"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "story-scene",
         "_id": "ldbuddy04",
         "kicker": "WHAT IT FEELS LIKE",
         "title": "A day with LD Buddy",
         "text": "From the first coffee to the couch — Buddy shows up when you need it and stays quiet when you don't.",
-        "c1": "#1E1B4B",
-        "c2": "#4C1D95",
+        "c1": "#2A0A1C",
+        "c2": "#831843",
         "controls": {
           "bg": "verlauf",
+          "width": "breit",
           "height": "auto",
           "effect": "hoch",
           "align": "links",
@@ -631,7 +698,7 @@ export const PROJECTS: Project[] = [
             {
               "type": "story-steps",
               "_id": "ldbuddy05",
-              "color": "#6D5AE6",
+              "color": "#BE185D",
               "steps": [
                 {
                   "icon": "☕",
@@ -703,7 +770,7 @@ export const PROJECTS: Project[] = [
               ],
               "controls": {
                 "side": "rechts",
-                "device": "phone"
+                "device": "browser"
               }
             }
           ]
@@ -716,6 +783,7 @@ export const PROJECTS: Project[] = [
         "title": "Seven areas. One interface.",
         "controls": {
           "bg": "keiner",
+          "width": "breit",
           "height": "auto",
           "effect": "hoch",
           "align": "mitte",
@@ -732,7 +800,7 @@ export const PROJECTS: Project[] = [
                   "title": "Finances",
                   "text": "All accounts and cards in one place, subscriptions detected automatically.",
                   "size": "l",
-                  "color": "#4C3BC9",
+                  "color": "#BE185D",
                   "screen": "finanzen",
                   "rows": [
                     "This month | €1,284.50",
@@ -830,6 +898,7 @@ export const PROJECTS: Project[] = [
         "title": "Your treasures, finally sorted.",
         "controls": {
           "bg": "keiner",
+          "width": "inhalt",
           "height": "auto",
           "effect": "fade",
           "align": "links",
@@ -874,7 +943,7 @@ export const PROJECTS: Project[] = [
             "kicker": "WISHLIST",
             "title": "Alerts for bargains",
             "text": "Buddy pings you when something on your wishlist turns up cheap.",
-            "color": "#4C3BC9"
+            "color": "#9D174D"
           }
         ]
       },
@@ -883,9 +952,10 @@ export const PROJECTS: Project[] = [
         "_id": "ldbuddy11",
         "kicker": "BY THE NUMBERS",
         "title": "Fewer apps, more calm.",
-        "c1": "#6D5AE6",
+        "c1": "#BE185D",
         "controls": {
           "bg": "dunkel",
+          "width": "breit",
           "height": "auto",
           "effect": "zoom",
           "align": "mitte",
@@ -923,11 +993,12 @@ export const PROJECTS: Project[] = [
         "_id": "ldbuddy13",
         "kicker": "IN THE WORKS",
         "title": "Ready for less clutter?",
-        "text": "LD Buddy is a concept by loona! designs and is being built right now. Curious, want to weigh in or test it? Drop me a line.",
-        "c1": "#6D5AE6",
-        "c2": "#DB2777",
+        "text": "LD Buddy is being built at loona! designs right now. Curious, want to weigh in or test it? Drop me a line.",
+        "c1": "#DB2777",
+        "c2": "#7C3AED",
         "controls": {
           "bg": "verlauf",
+          "width": "voll",
           "height": "screen",
           "effect": "blur",
           "align": "mitte",

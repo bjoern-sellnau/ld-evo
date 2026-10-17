@@ -53,7 +53,11 @@ export function toneVars(c1?: string, c2?: string): CSSProperties {
   } as CSSProperties;
 }
 
-const bleed: CSSProperties = { marginLeft: 'calc(-1 * var(--story-bleed, 0px))', marginRight: 'calc(-1 * var(--story-bleed, 0px))' };
+/** Volle Breite bis zum Bildschirm- bzw. Leistenrand (--bl/--br setzt SitePage je Ansicht). */
+const bleed: CSSProperties = { marginLeft: 'calc(-1 * var(--bl, 32px))', marginRight: 'calc(-1 * var(--br, 32px))' };
+/** Szenen-Breite: Inhalt (Spalte), Breit (bis 160 px je Seite mehr), Voll (randlos). */
+const sceneWidth = (w: string): CSSProperties =>
+  w === 'voll' ? bleed : w === 'breit' ? { marginLeft: 'calc(-1 * var(--wl, 0px))', marginRight: 'calc(-1 * var(--wr, 0px))' } : {};
 const kickerStyle: CSSProperties = {
   fontFamily: mono,
   fontSize: 11,
@@ -74,6 +78,7 @@ export function StoryScene({
   effect,
   glow,
   align,
+  width = 'breit',
   kicker,
   title,
   text,
@@ -83,6 +88,7 @@ export function StoryScene({
   c1?: string;
   c2?: string;
   bg: string;
+  width?: string;
   height: string;
   effect: string;
   glow: boolean;
@@ -143,12 +149,13 @@ export function StoryScene({
         className={[styles.scene, motion ? styles.moving : ''].join(' ')}
         style={{
           ...surface,
+          ...sceneWidth(width),
           padding: padded ? (mob ? '44px 20px' : 'clamp(48px, 7vw, 96px) clamp(28px, 6vw, 88px)') : '24px 0',
           minHeight: height === 'screen' ? 'min(100svh, 980px)' : undefined,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: height === 'screen' ? 'center' : undefined,
-          borderRadius: padded ? 32 : 0,
+          borderRadius: padded && width !== 'voll' ? 32 : 0,
         }}
       >
         {glow && padded && (
@@ -157,8 +164,11 @@ export function StoryScene({
             <span aria-hidden className={styles.glow} style={{ ['--gc' as string]: b, bottom: '-30%', right: '-15%' }} />
           </>
         )}
-        {head}
-        {children}
+        {/* Inhalt bleibt lesbar breit, auch wenn die Fläche randlos ist */}
+        <div style={{ width: '100%', maxWidth: 1480, margin: '0 auto' }}>
+          {head}
+          {children}
+        </div>
       </section>
     </Reveal>
   );
@@ -210,7 +220,8 @@ export function StoryHero({
         minHeight: 'min(100svh, 1000px)',
         display: 'flex',
         alignItems: 'center',
-        padding: mob ? (settings.mobModern ? '96px 22px 64px' : '130px 22px 72px') : '150px clamp(32px, 6vw, 96px) 110px',
+        // Text bündig mit der Inhaltsspalte, Hintergrund/Leuchten bis an den Rand
+        padding: mob ? (settings.mobModern ? '96px 22px 64px' : '130px 22px 72px') : '150px var(--br, 32px) 110px var(--bl, 32px)',
         boxSizing: 'border-box',
       }}
     >
@@ -222,7 +233,6 @@ export function StoryHero({
           position: 'relative',
           maxWidth: 1176,
           width: '100%',
-          margin: '0 auto',
           transform: 'translateY(calc(var(--p, 0) * 140px)) scale(calc(1 - var(--p, 0) * 0.1))',
           opacity: 'calc(1 - var(--p, 0) * 1.2)',
           transformOrigin: '50% 30%',
@@ -284,12 +294,46 @@ export function StoryHero({
             ))}
           </ul>
         )}
-        {cue && (
-          <div style={{ marginTop: mob ? 44 : 64, fontFamily: mono, fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--soft)' }}>
-            <span className={styles.cue}>↓</span> <EText path={`${path}.cue`} value={cue} />
-          </div>
-        )}
       </div>
+      {/* Scroll-Hinweis mittig am unteren Rand des Auftakts; blendet beim Scrollen schnell aus */}
+      {cue && (
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: mob ? 22 : 34,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 10,
+            fontFamily: mono,
+            fontSize: 10.5,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--soft)',
+            opacity: 'calc(1 - var(--p, 0) * 5)',
+            pointerEvents: 'none',
+          }}
+        >
+          <EText path={`${path}.cue`} value={cue} />
+          <span
+            aria-hidden
+            style={{
+              width: 24,
+              height: 38,
+              borderRadius: 999,
+              border: '1.5px solid var(--border)',
+              display: 'flex',
+              justifyContent: 'center',
+              paddingTop: 7,
+              boxSizing: 'border-box',
+            }}
+          >
+            <span className={styles.cue} style={{ width: 4, height: 8, borderRadius: 2, background: 'var(--soft)' }} />
+          </span>
+        </div>
+      )}
     </section>
   );
 }
@@ -327,8 +371,44 @@ interface ScreenData {
 }
 
 const screenOf = (d: ScreenData, accent: string) => (
-  <MockScreen kind={d.screen ?? 'dashboard'} title={d.screenTitle} rows={parseRows(d.rows)} accent={accent} image={d.image} />
+  <LazyMount>
+    <MockScreen kind={d.screen ?? 'dashboard'} title={d.screenTitle} rows={parseRows(d.rows)} accent={accent} image={d.image} />
+  </LazyMount>
 );
+
+/**
+ * Nachgebaute Screens sind Dekoration (aria-hidden bzw. Bild) und teuer im Aufbau — sie entstehen erst, wenn sie in die
+ * Nähe des Bildschirms kommen (600 px Vorlauf). Bis dahin füllt ein leerer Platzhalter den Rahmen: keine Verschiebung.
+ */
+function LazyMount({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || on) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- ohne Observer sofort aufbauen
+      setOn(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setOn(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: '600px 0px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [on]);
+  return (
+    <div ref={ref} style={{ width: '100%', height: '100%' }}>
+      {on ? children : null}
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------------------------------------------
 // Scrollytelling: Schritte scrollen, das Gerät bleibt stehen und wechselt den Screen
@@ -508,7 +588,8 @@ export function StoryBento({ items, path }: { items: Tile[]; path: string }) {
               className={styles.tile}
               style={{
                 flex: 1,
-                background: col ?? 'var(--card)',
+                // deckende Grundfläche unter der Karten-Tönung: Kontrastprüfung sieht nie „durch“ (auch bei content-visibility)
+                background: col ?? 'linear-gradient(var(--card), var(--card)), var(--bg)',
                 border: col ? 0 : '1px solid var(--border)',
                 padding: mob ? 22 : 28,
                 display: 'flex',
@@ -699,7 +780,8 @@ export function StoryHorizontal({ items, path }: { items: HCard[]; path: string 
           display: 'flex',
           flexDirection: 'column',
           gap: 12,
-          background: col ?? 'var(--card)',
+          // deckende Grundfläche unter der Karten-Tönung: Kontrastprüfung sieht nie „durch“ (auch bei content-visibility)
+          background: col ?? 'linear-gradient(var(--card), var(--card)), var(--bg)',
           border: col ? 0 : '1px solid var(--border)',
           ...toneVars(col),
         }}
@@ -745,7 +827,7 @@ export function StoryHorizontal({ items, path }: { items: HCard[]; path: string 
           style={{
             display: 'flex',
             gap: 18,
-            padding: '0 var(--story-bleed, 0px)',
+            padding: '0 var(--br, 32px) 0 var(--bl, 32px)',
             transform: 'translateX(calc(var(--p, 0) * var(--hx, 0) * -1px))',
             willChange: 'transform',
           }}

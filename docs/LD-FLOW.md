@@ -164,6 +164,14 @@ Scroll-Erzählung aus Widgets im Feld `story` (Typ `blocks`), gebaut in der Vors
   (Szenen nutzen `overflow: clip`).
 - Ladezeit: Abschnitte ab dem zweiten bekommen `content-visibility: auto`, Screens im Scrollytelling entstehen erst kurz
   vor ihrem Schritt (Budget `/projekte/ldbuddy` in `npm run test:perf`).
+- **Breite / Widescreen:** `SitePage` setzt je Ansicht (Desktop, Wide mit Seitenleiste, Wide 2 mit Icon-Leiste, mobil)
+  die freie Fläche neben dem Inhalt als CSS-Variablen `--bl`/`--br` (bis Bildschirm- bzw. Leistenrand) und `--wl`/`--wr`
+  (maßvolle Verbreiterung, je ≤ 160 px). Auftakt, Laufband und Seitwärts laufen randlos; Szenen haben die Breite
+  „Inhalt“, „Breit“ (Standard) oder „Voll“. Rein per CSS — kein Messen, kein Layout-Sprung.
+- **Eigene Marke im Menü:** Projekt-Felder `brand` (Loona-Produkt `buddy`/`flow`/`nova`/`ivy` oder `eigenes`),
+  `brandLogo` (Bild bei „eigenes“) und `brandName` (optionaler Text). Auf der Story-Seite gleitet das LD-Logo hinaus und
+  die Marke herein, „⌂ Home“ übernimmt den Weg zur Startseite (`src/site/nav/BrandSwap.tsx`, `storyBrand.ts`; Pille,
+  Seitenleiste, Icon-Leiste, mobil). Zurück auf anderen Seiten läuft es umgekehrt.
 - Beispiel **LD Buddy** (`content/projects.ts`, `content/en/projects.ts`); bestehende Installationen bekommen es einmalig
   über `seedAdditions` in `src/cms/db.ts` (meta `seed_ldbuddy`, gelöscht bleibt gelöscht).
 

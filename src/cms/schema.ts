@@ -182,6 +182,28 @@ const PROJECT_FIELDS: FieldDef[] = [
     help: 'Story: Die Seite besteht aus den Widgets unter „Story-Inhalt“ — am besten in der Vorschau bauen (Gruppe „Story“).',
   },
   { key: 'story', label: 'Story-Inhalt', type: 'blocks', allowed: '*' },
+  {
+    key: 'brand',
+    label: 'Story: Logo im Menü',
+    type: 'select',
+    options: [
+      ['ld', 'LD-Logo (Standard)'],
+      ['buddy', 'LD Buddy'],
+      ['flow', 'LD Flow'],
+      ['nova', 'LD Nova'],
+      ['ivy', 'LD Ivy'],
+      ['eigenes', 'Eigenes Bild'],
+    ],
+    help: 'Nur bei Layout „Story“: ersetzt im Menü das LD-Logo (animiert); an seiner Stelle erscheint der Eintrag „Home“.',
+  },
+  { key: 'brandLogo', label: 'Story: eigenes Logo (bei „Eigenes Bild“)', type: 'media' },
+  {
+    key: 'brandName',
+    label: 'Story: Text neben dem Logo (optional)',
+    type: 'text',
+    max: 40,
+    help: 'Leer = bei Loona-Produkten der offizielle Schriftzug (z. B. „LD Buddy.“ mit „app · loona! designs“); sonst Zeichen + dieser Text.',
+  },
 ];
 
 const ARTICLE_FIELDS: FieldDef[] = [
