@@ -1,7 +1,7 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { LoonaMark } from '@/components/brand';
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { LoonaLockup, LoonaMark } from '@/components/brand';
 import { isSafeMediaSrc } from '@/cms/safe';
 import { useSite } from '../settings/SiteProvider';
 import type { StoryBrand } from './storyBrand';
@@ -9,9 +9,23 @@ import styles from './BrandSwap.module.css';
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
-/** Zeichen der Story-Marke (Loona-Produkt oder eigenes Bild) + optionaler Text. */
+/**
+ * Zeichen der Story-Marke. Loona-Produkte ohne eigenen Text: der offizielle Schriftzug aus dem Markensystem (wie
+ * public/brand/<produkt>/lockup-*.svg — z. B. „LD Buddy.“ mit Akzentpunkt und „app · loona! designs“), genau wie das
+ * LD-Logo. Mit eigenem Text bzw. eigenem Bild: Zeichen + Text.
+ */
 export function BrandMark({ brand, size, withName = true }: { brand: StoryBrand; size: number; withName?: boolean }) {
   const { settings } = useSite();
+  if (brand.product !== 'eigenes' && !brand.name)
+    return (
+      <LoonaLockup
+        product={brand.product}
+        markSize={size}
+        theme={settings.theme}
+        variant={withName ? 'full' : 'mark'}
+        style={{ color: 'var(--ink)', '--loona-lockup-muted': 'var(--muted)' } as CSSProperties}
+      />
+    );
   const src = brand.src && isSafeMediaSrc(brand.src) ? (brand.src.startsWith('/') ? BASE + brand.src : brand.src) : undefined;
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9, whiteSpace: 'nowrap' }}>

@@ -567,7 +567,6 @@ export const PROJECTS: Project[] = [
     "learnings": "Calm is a feature.",
     "layout": "story",
     "brand": "buddy",
-    "brandName": "LD Buddy",
     "story": [
       {
         "type": "story-hero",

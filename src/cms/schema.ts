@@ -197,7 +197,13 @@ const PROJECT_FIELDS: FieldDef[] = [
     help: 'Nur bei Layout „Story“: ersetzt im Menü das LD-Logo (animiert); an seiner Stelle erscheint der Eintrag „Home“.',
   },
   { key: 'brandLogo', label: 'Story: eigenes Logo (bei „Eigenes Bild“)', type: 'media' },
-  { key: 'brandName', label: 'Story: Text neben dem Logo (optional)', type: 'text', max: 40, help: 'z. B. „LD Buddy“' },
+  {
+    key: 'brandName',
+    label: 'Story: Text neben dem Logo (optional)',
+    type: 'text',
+    max: 40,
+    help: 'Leer = bei Loona-Produkten der offizielle Schriftzug (z. B. „LD Buddy.“ mit „app · loona! designs“); sonst Zeichen + dieser Text.',
+  },
 ];
 
 const ARTICLE_FIELDS: FieldDef[] = [
