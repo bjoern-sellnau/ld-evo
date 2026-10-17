@@ -15,6 +15,8 @@ import styles from './welcome.module.css';
  * Danach steht die Adresse auf der Startseite (replaceState), damit Neu-Laden nicht noch einmal abspielt.
  * Zum Ausprobieren: /welcome?effekt=kacheln|glitch|pixel|welle.
  */
+/** Unterpfad (GitHub Pages): eigene Pfade wie /welcome/… bzw. /media/… brauchen ihn — wie BrandSwap. */
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 const EFFECTS = ['kacheln', 'glitch', 'pixel', 'welle'] as const;
 type Effect = (typeof EFFECTS)[number];
 const DURATION: Record<Effect, number> = { kacheln: 1500, glitch: 1500, pixel: 1500, welle: 1800 };
@@ -26,7 +28,8 @@ export function Welcome() {
   const t = useT();
   const href = useHref();
   const motion = useMotionOk();
-  const img = home.welcomeOld?.src && isSafeMediaSrc(home.welcomeOld.src) ? home.welcomeOld : null;
+  const raw = home.welcomeOld?.src && isSafeMediaSrc(home.welcomeOld.src) ? home.welcomeOld : null;
+  const img = raw ? { ...raw, src: raw.src.startsWith('/') ? BASE + raw.src : raw.src } : null;
   const [phase, setPhase] = useState<'old' | 'run' | 'done'>(img ? 'old' : 'done');
   const [effect, setEffect] = useState<Effect>('kacheln');
   // Natürliche Größe des schon sichtbaren Bildes — Kacheln/Pixel starten damit ohne erneutes Laden (kein Aufblitzen)
@@ -38,7 +41,7 @@ export function Welcome() {
   const finish = () => {
     setPhase('done');
     try {
-      window.history.replaceState(window.history.state, '', href('/'));
+      window.history.replaceState(window.history.state, '', BASE + href('/'));
     } catch {
       // Adresse bleibt /welcome — kein Problem
     }

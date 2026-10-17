@@ -36,6 +36,22 @@ export const EXTRA_MODES: Record<string, ExtraModeMeta> = {
   silk: { label: 'Seidenfäden', renderer: 'canvas2d', bg: '#05040A', sample: '0.06,0.06', lum: 0.06 },
   cells: { label: 'Zellteilung', renderer: 'canvas2d', bg: '#050A0C', sample: '0.07,0.07', lum: 0.07 },
   ldswarm: { label: 'LD-Partikel', renderer: 'canvas2d', bg: '#06050A', sample: '0.06,0.06', lum: 0.06 },
+  // Zweite Welle (17.10.2026), Renderer in renderers2.ts
+  zeitreise: { label: 'Zeitreise 2007 → heute', renderer: 'canvas2d', bg: '#070910', sample: '0.06,0.06', lum: 0.08 },
+  livecode: { label: 'Live-Code', renderer: 'canvas2d', bg: '#06080D', sample: '0.05,0.05', lum: 0.06 },
+  agent: { label: 'Agent-Terminal', renderer: 'canvas2d', bg: '#05070C', sample: '0.05,0.05', lum: 0.06 },
+  commits: { label: 'Commit-Galaxie', renderer: 'canvas2d', bg: '#04050A', sample: '0.05,0.05', lum: 0.05 },
+  fluid: { label: 'Cursor-Flüssigkeit', renderer: 'canvas2d', bg: '#05060B', sample: '0.07,0.07', lum: 0.08 },
+  magnet: { label: 'Magnetische Zeichen', renderer: 'canvas2d', bg: '#05060B', sample: '0.06,0.06', lum: 0.07 },
+  lens: { label: 'Glas-Lupe', renderer: 'webgl', bg: '#06070D', sample: '0.12,0.12', lum: 0.12 },
+  tetris: { label: 'Pixel-Tetris', renderer: 'canvas2d', bg: '#06070C', sample: '0.06,0.06', lum: 0.08 },
+  raycast: { label: 'Retro-Raycaster', renderer: 'canvas2d', bg: '#05060C', sample: '0.08,0.08', lum: 0.1 },
+  descent: { label: '6D-Flug', renderer: 'canvas2d', bg: '#04050A', sample: '0.05,0.05', lum: 0.06 },
+  synthwave: { label: 'Synthwave-Straße', renderer: 'canvas2d', bg: '#07040F', sample: '0.1,0.1', lum: 0.12 },
+  paper: { label: 'Papierschichten', renderer: 'canvas2d', bg: '#0A0B12', sample: '0.1,0.1', lum: 0.12 },
+  sky: { label: 'Tageszeit-Himmel (Berlin)', renderer: 'canvas2d', bg: '#0A1230', sample: '0.12,0.12', lum: 0.14 },
+  weather: { label: 'Wetter Berlin', renderer: 'canvas2d', bg: '#1A2433', sample: '0.14,0.14', lum: 0.15 },
+  inkwater: { label: 'Tinte im Wasser', renderer: 'webgl', bg: '#04070C', sample: '0.06,0.06', lum: 0.07 },
 };
 
 export const isExtraMode = (mode: string): boolean => mode in EXTRA_MODES;
