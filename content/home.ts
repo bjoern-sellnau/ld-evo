@@ -33,4 +33,10 @@ export const HOME: HomeContent = {
   ],
   intro: 'Senior Full-Stack / Software Engineer — React, TypeScript, Web & Mobile. Seit 18+ Jahren baue ich Dinge fürs Web, die bleiben.',
   featured: ['corefall', 'covert', 'neuewebsite'],
+  // Bildschirmfoto der bisherigen Startseite (loona-designs.de/startseite.htm, vom Inhaber geliefert, 10/2026)
+  welcomeOld: {
+    src: '/welcome/alte-startseite.webp',
+    alt: 'Die bisherige Startseite von loona-designs.de: blaues Kopfband mit Logo und „What the web can be“, Menü, Qualifikationen und Porträt mit Loona-Logo',
+  },
+  welcomeEffect: 'kacheln',
 };

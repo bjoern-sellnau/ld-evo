@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { isSafeMediaSrc } from '@/cms/safe';
 import { useContent } from '../content/ContentProvider';
 import { useHref, useT } from '../i18n/LocaleProvider';
@@ -29,6 +29,10 @@ export function Welcome() {
   const img = home.welcomeOld?.src && isSafeMediaSrc(home.welcomeOld.src) ? home.welcomeOld : null;
   const [phase, setPhase] = useState<'old' | 'run' | 'done'>(img ? 'old' : 'done');
   const [effect, setEffect] = useState<Effect>('kacheln');
+  // Natürliche Größe des schon sichtbaren Bildes — Kacheln/Pixel starten damit ohne erneutes Laden (kein Aufblitzen)
+  // (per Ref gelesen: das Bild ist oft schon vor der Hydration geladen, onLoad käme dann nie)
+  const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
+  const shotRef = useRef<HTMLImageElement>(null);
   const goRef = useRef<HTMLButtonElement>(null);
 
   const finish = () => {
@@ -50,6 +54,8 @@ export function Welcome() {
     // ?effekt=pixel probiert einen Effekt direkt aus (sonst Einstellung aus LD Flow)
     const pick = new URLSearchParams(window.location.search).get('effekt') ?? home.welcomeEffect;
     setEffect(EFFECTS.includes(pick as Effect) ? (pick as Effect) : EFFECTS[Math.floor(Math.random() * EFFECTS.length)]);
+    const im = shotRef.current;
+    if (im?.naturalWidth) setNat({ w: im.naturalWidth, h: im.naturalHeight });
     setPhase('run');
   };
 
@@ -74,7 +80,7 @@ export function Welcome() {
   }, [phase, effect, motion]);
 
   if (phase === 'done' || !img) return null;
-  const shot = <img className={styles.shot} src={img.src} alt={img.alt || t('welcome.old')} draggable={false} />;
+  const shot = <img className={styles.shot} src={img.src} alt={img.alt || t('welcome.old')} draggable={false} ref={shotRef} />;
   const running = phase === 'run';
   return (
     <div
@@ -87,8 +93,8 @@ export function Welcome() {
         <div className={running ? styles.fade : undefined} style={{ position: 'absolute', inset: 0 }}>
           {shot}
         </div>
-      ) : effect === 'kacheln' ? (
-        <Tiles src={img.src} />
+      ) : effect === 'kacheln' && nat ? (
+        <Tiles src={img.src} nat={nat} />
       ) : effect === 'glitch' ? (
         <div className={styles.glitch}>
           <svg aria-hidden width="0" height="0" style={{ position: 'absolute' }}>
@@ -100,7 +106,7 @@ export function Welcome() {
           <img className={styles.shot} src={img.src} alt="" aria-hidden draggable={false} />
         </div>
       ) : effect === 'pixel' ? (
-        <Pixels src={img.src} />
+        <Pixels src={img.src} fallback={shot} />
       ) : (
         <div className={styles.wave}>{shot}</div>
       )}
@@ -118,14 +124,8 @@ export function Welcome() {
 }
 
 /** Kacheln: das Bild (wie object-fit: cover, oben ausgerichtet) in ein Raster geschnitten; Mitte zuerst. */
-function Tiles({ src }: { src: string }) {
-  const [size, setSize] = useState<{ w: number; h: number; vw: number; vh: number } | null>(null);
-  useEffect(() => {
-    const im = new Image();
-    im.onload = () => setSize({ w: im.naturalWidth, h: im.naturalHeight, vw: window.innerWidth, vh: window.innerHeight });
-    im.src = src;
-  }, [src]);
-  if (!size) return null;
+function Tiles({ src, nat }: { src: string; nat: { w: number; h: number } }) {
+  const size = { ...nat, vw: window.innerWidth, vh: window.innerHeight };
   const cols = size.vw < 700 ? 6 : 12;
   const rows = Math.max(4, Math.round((cols * size.vh) / size.vw));
   const scale = Math.max(size.vw / size.w, size.vh / size.h);
@@ -169,8 +169,9 @@ function Tiles({ src }: { src: string }) {
 }
 
 /** Pixel: die alte Seite wird gröber (Canvas ohne Glättung), dann lösen sich die Blöcke zufällig auf. */
-function Pixels({ src }: { src: string }) {
+function Pixels({ src, fallback }: { src: string; fallback: ReactNode }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const [drawn, setDrawn] = useState(false);
   useEffect(() => {
     const cv = ref.current;
     const ctx = cv?.getContext('2d');
@@ -189,6 +190,7 @@ function Pixels({ src }: { src: string }) {
       const sctx = small.getContext('2d');
       const t0 = performance.now();
       let order: number[] | null = null;
+      let drawn0 = false;
       const frame = (now: number) => {
         const p = Math.min(1, (now - t0) / 1500);
         // 0–0,55: gröber werden (Blockgröße 1 → 48 px), danach Blöcke zufällig entfernen
@@ -201,6 +203,10 @@ function Pixels({ src }: { src: string }) {
         ctx.imageSmoothingEnabled = false;
         ctx.clearRect(0, 0, vw, vh);
         ctx.drawImage(small, 0, 0, cw, ch, 0, 0, cw * block, ch * block);
+        if (!drawn0) {
+          drawn0 = true;
+          setDrawn(true);
+        }
         if (p > 0.55) {
           order ??= Array.from({ length: cw * ch }, (_, i) => i).sort(() => Math.random() - 0.5);
           const gone = Math.floor(((p - 0.55) / 0.45) * order.length);
@@ -216,5 +222,10 @@ function Pixels({ src }: { src: string }) {
     im.src = src;
     return () => cancelAnimationFrame(raf);
   }, [src]);
-  return <canvas ref={ref} aria-hidden className={styles.pixel} />;
+  return (
+    <>
+      {!drawn && fallback}
+      <canvas ref={ref} aria-hidden className={styles.pixel} />
+    </>
+  );
 }
