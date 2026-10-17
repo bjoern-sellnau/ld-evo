@@ -179,6 +179,18 @@ Scroll-Erzählung aus Widgets im Feld `story` (Typ `blocks`), gebaut in der Vors
   bestehende Installationen bekommen sie einmalig über `seedAdditions` in `src/cms/db.ts` (meta `seed_ldbuddy`,
   `seed_coe`, `seed_notchbuddy`, `seed_ldbeyond`; gelöscht bleibt gelöscht).
 
+## Landing Page „Welcome“ (`/welcome`, `/en/welcome`)
+
+- Zeigt zuerst die **alte Website** als Screenshot und verwandelt sie dann in die neue Startseite, die darunter schon
+  gerendert liegt (`src/site/welcome/Welcome.tsx`, Route `welcomeRoute` in `src/site/routes.tsx`, nicht indexiert).
+- Pflege in LD Flow → Startseite: „Welcome: Screenshot der alten Website“ (Bild), „Welcome: Effekt“ (Kacheln, Glitch,
+  Pixel, Welle, Zufall), „Welcome: Hinweis“. Ohne Screenshot zeigt `/welcome` direkt die Startseite.
+- Startwert: Bildschirmfoto der bisherigen Startseite (`public/welcome/alte-startseite.webp`, vom Inhaber geliefert);
+  bestehende Installationen bekommen es einmalig über `seedWelcome` in `src/cms/db.ts` (meta `seed_welcome`).
+- Ablauf: alte Seite ~3 s (oder Klick auf „Zur neuen Website“), Effekt, danach steht die Adresse auf `/` (Neu-Laden
+  spielt nicht erneut). „Überspringen“ bzw. Esc beendet sofort; ohne Bewegung nur kurzes Überblenden; kein Splash.
+- Ausprobieren: `/welcome?effekt=kacheln|glitch|pixel|welle`.
+
 ## Tests
 
 - `npm test` — u. a. `tests/unit/cms.test.ts`: alle Prototyp-Inhalte bestehen das Schema verlustfrei; Link-/Rich-Text-

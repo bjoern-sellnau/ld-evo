@@ -1,13 +1,13 @@
 'use client';
 
-import { useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
+import { useRef, useState, type KeyboardEvent } from 'react';
 import { EText } from '../cms/editing';
 import { inkOn } from '../lib/color';
 import { useT } from '../i18n/LocaleProvider';
 import { useSite } from '../settings/SiteProvider';
 import { useMotionOk } from './motion';
 import { Reveal } from './Reveal';
-import { Device, kickerStyle, okHex, screenOf, STORY_DEFAULT_COLOR, type ScreenData } from './Story';
+import { AppFrame, kickerStyle, okHex, screenOf, STORY_DEFAULT_COLOR, type ScreenData } from './Story';
 import styles from './story.module.css';
 
 /**
@@ -20,96 +20,6 @@ export interface GalleryItem extends ScreenData {
   label?: string;
   device?: string;
   caption?: string;
-}
-
-/** Angedeuteter Seiteninhalt hinter Erweiterungen (Dekoration). */
-function FauxPage() {
-  return (
-    <div aria-hidden style={{ padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ width: '46%', height: 18, borderRadius: 6, background: '#d9dde6' }} />
-      {[92, 84, 88, 60].map((w, i) => (
-        <div key={i} style={{ width: `${w}%`, height: 10, borderRadius: 5, background: '#e5e8ef' }} />
-      ))}
-      <div style={{ width: '70%', aspectRatio: '16 / 7', borderRadius: 10, background: '#e9ecf2', marginTop: 6 }} />
-    </div>
-  );
-}
-
-const dots = (
-  <span aria-hidden style={{ display: 'flex', gap: 6 }}>
-    {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
-      <span key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
-    ))}
-  </span>
-);
-
-/** Rahmen je Ausführung. h = Höhe der Inhaltsfläche. */
-export function AppFrame({ kind, label, h, children }: { kind: string; label?: string; h: string; children: ReactNode }) {
-  if (kind === 'phone') return <Device kind="phone">{children}</Device>;
-  if (kind === 'browser')
-    return (
-      <Device kind="browser" style={{ width: '100%' }}>
-        {children}
-      </Device>
-    );
-  const shell: CSSProperties = {
-    width: '100%',
-    borderRadius: 14,
-    overflow: 'hidden',
-    background: '#101318',
-    boxShadow: '0 0 0 1px rgba(255,255,255,0.12) inset, 0 40px 80px -30px rgba(0,0,0,0.55)',
-  };
-  const body: CSSProperties = { height: h, position: 'relative', overflow: 'hidden', background: '#f6f7fb', color: '#141821' };
-  if (kind === 'desktop')
-    return (
-      <div style={shell}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 12px', background: '#1d2129' }}>
-          {dots}
-          <span style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#c9d1dd', marginRight: 46 }}>{label}</span>
-        </div>
-        <div style={body}>{children}</div>
-      </div>
-    );
-  // Browser mit Erweiterung: Chrome (Popup unter dem Puzzle-Symbol), Safari (Popup mit Pfeil), Seitenleiste
-  const safari = kind === 'safari';
-  const bar = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: safari ? '#e8e9ed' : '#202329' }}>
-      {dots}
-      <span
-        aria-hidden
-        style={{
-          flex: 1,
-          height: 24,
-          borderRadius: safari ? 7 : 999,
-          background: safari ? '#fff' : '#33373f',
-          margin: safari ? '0 12%' : 0,
-        }}
-      />
-      <span aria-hidden style={{ fontSize: 13, color: safari ? '#5b6270' : '#c9d1dd' }}>
-        {kind === 'sidebar' ? '▥' : '⧉'}
-      </span>
-    </div>
-  );
-  return (
-    <div style={{ ...shell, background: safari ? '#e8e9ed' : '#101318' }}>
-      {bar}
-      <div style={{ ...body, display: 'flex' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <FauxPage />
-        </div>
-        {kind === 'sidebar' ? (
-          <div style={{ width: 'min(42%, 340px)', position: 'relative', borderLeft: '1px solid #d9dde6' }}>{children}</div>
-        ) : (
-          <div
-            className={styles.popup}
-            style={{ top: 8, right: safari ? '18%' : 12, width: 'min(300px, 72%)', height: 'calc(100% - 16px)' }}
-          >
-            {children}
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }
 
 export function StoryGallery({

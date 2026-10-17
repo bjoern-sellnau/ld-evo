@@ -204,6 +204,7 @@ function migrate(db: DatabaseSync) {
     seedIfEmpty(db);
     backfillSingletons(db);
     seedAdditions(db);
+    seedWelcome(db);
     seedTranslations(db);
     db.exec('COMMIT');
   } catch (e) {
@@ -292,6 +293,32 @@ function seedAdditions(db: DatabaseSync) {
       ).run(a.collection, a.id, pos, JSON.stringify(en.data), now, now);
     db.prepare('INSERT INTO meta (key, value) VALUES (?, ?)').run(a.key, String(now));
   }
+}
+
+/**
+ * Landing Page /welcome: bestehende Installationen bekommen den Screenshot der alten Website und den Effekt einmalig
+ * in die veröffentlichte Startseite (meta seed_welcome) — nur, wo noch kein eigener Screenshot gesetzt ist.
+ */
+function seedWelcome(db: DatabaseSync) {
+  if (db.prepare("SELECT 1 FROM meta WHERE key = 'seed_welcome'").get()) return;
+  const rows = db.prepare("SELECT locale, published FROM docs WHERE collection = 'home' AND id = 'home'").all() as {
+    locale: string;
+    published: string | null;
+  }[];
+  for (const r of rows) {
+    if (!r.published) continue;
+    const data = JSON.parse(r.published) as Record<string, unknown>;
+    if (data.welcomeOld) continue;
+    const seed = seedDocs(r.locale === 'en' ? 'en' : 'de').find((d) => d.collection === 'home')?.data;
+    if (!seed?.welcomeOld) continue;
+    data.welcomeOld = seed.welcomeOld;
+    data.welcomeEffect ??= seed.welcomeEffect;
+    db.prepare("UPDATE docs SET published = ? WHERE collection = 'home' AND id = 'home' AND locale = ?").run(
+      JSON.stringify(data),
+      r.locale,
+    );
+  }
+  db.prepare("INSERT INTO meta (key, value) VALUES ('seed_welcome', ?)").run(String(Date.now()));
 }
 
 /**

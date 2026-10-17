@@ -474,7 +474,7 @@ export const CHAPTERS: Chapter[] = [
         rows: [
           [
             'Story: Auftakt',
-            'Bildschirmfüllender Einstieg mit Riesen-Titel, Verlaufszeile und Leuchten — enthält das h1, daher einmal und zuerst',
+            'Bildschirmfüllender Einstieg mit Riesen-Titel — Stile Verlauf, Zentriert, Mit Gerät (Text + App-Screen), Bühne (Farbfläche); enthält das h1, daher einmal und zuerst',
           ],
           [
             'Story: Szene',
@@ -500,6 +500,12 @@ export const CHAPTERS: Chapter[] = [
         kind: 'tip',
         title: 'App-Screens ohne Screenshots',
         text: 'Screens werden nachgebaut (Finanzen, Haushaltsbuch, Einkaufsliste, Bestellungen, Neuigkeiten, Sammlung, Lesezeichen, Übersicht, Limits & Status, Systemwerte, Notch-Insel, Spiel-HUD, CMS-Editor). Inhalt pro Zeile: `Beschriftung | Wert | Zusatz` — z. B. `Miete | -950,00 € | ⌂`, bei Listen `Brot | 1 | ✓` für abgehakt, bei Systemwerten `CPU-Kerne | 40 62 18 77` für Balken je Kern, beim Spiel-HUD ist die erste Zeile der Modus. Ein eigener Screenshot im Feld „Eigener Screenshot“ ersetzt den nachgebauten Screen.',
+      },
+      {
+        t: 'callout',
+        kind: 'tip',
+        title: 'Landing Page „Welcome“',
+        text: '`/welcome` zeigt die alte Website und verwandelt sie in die neue Startseite. Bild, Effekt (Kacheln, Glitch, Pixel, Welle, Zufall) und Hinweis pflegst du unter Startseite → „Welcome: …“. Ausprobieren: `/welcome?effekt=pixel`.',
       },
       {
         t: 'callout',

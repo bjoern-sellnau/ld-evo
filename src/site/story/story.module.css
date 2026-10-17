@@ -92,6 +92,19 @@
   }
 }
 
+/* Gerät im Auftakt schwebt sanft */
+.moving .float {
+  animation: storyFloat 7s ease-in-out infinite alternate;
+}
+@keyframes storyFloat {
+  from {
+    transform: translateY(-6px) rotate(-0.6deg);
+  }
+  to {
+    transform: translateY(8px) rotate(0.6deg);
+  }
+}
+
 /* ---- Ticker ---- */
 .ticker {
   display: flex;
@@ -206,6 +219,7 @@
     transition: none;
   }
   .moving .glow,
+  .moving .float,
   .moving .cue,
   .moving .track {
     animation: none;

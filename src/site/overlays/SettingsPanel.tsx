@@ -1027,7 +1027,7 @@ export function SettingsPanel() {
               <Range min={20} max={200} step={10} value={s.ctStrength} onChange={(v) => set('ctStrength', v)} label="Schatten-Stärke" />
             </Row>
           )}
-          {s.autoC && s.ctFix2 && !s.ctShadow && (
+          {s.ctFix2 && (
             <Row label="Fix-2-Stärke">
               <Range min={50} max={150} step={10} value={s.ctFix2Lvl} onChange={(v) => set('ctFix2Lvl', v)} label="Fix-2-Stärke" />
             </Row>

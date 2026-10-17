@@ -188,6 +188,9 @@ export function StoryHero({
   c2,
   c3,
   cue,
+  layout = 'verlauf',
+  device = 'desktop',
+  screen,
   path,
 }: {
   kicker?: string;
@@ -199,6 +202,10 @@ export function StoryHero({
   c2?: string;
   c3?: string;
   cue?: string;
+  /** Stil des Auftakts: verlauf (Titel links, Verlaufszeile), zentriert, geraet (Text + Gerät), buehne (Farbfläche) */
+  layout?: string;
+  device?: string;
+  screen?: ScreenData;
   path: string;
 }) {
   const { mob, settings } = useSite();
@@ -208,12 +215,18 @@ export function StoryHero({
   const g1 = okHex(c1) ?? STORY_DEFAULT_COLOR;
   const g2 = okHex(c2) ?? '#22D3EE';
   const g3 = okHex(c3) ?? '#F472B6';
+  const center = layout === 'zentriert';
+  const stage = layout === 'buehne';
+  const withDevice = layout === 'geraet';
   return (
     <section
       ref={ref}
       className={motion ? styles.moving : undefined}
       style={{
         ...bleed,
+        // Bühne: ganze Fläche in den Story-Farben, Schrift über toneVars kontrastsicher (≥ 4,5:1 auf beiden Enden)
+        ...(stage ? { background: `linear-gradient(135deg, ${g1}, ${okHex(c2) ?? g1})`, ...toneVars(g1, okHex(c2)) } : null),
+        textAlign: center ? 'center' : undefined,
         position: 'relative',
         isolation: 'isolate',
         overflow: 'hidden',
@@ -226,13 +239,29 @@ export function StoryHero({
       }}
     >
       {/* Leuchten rechts — hinter dem (links stehenden) Text bliebe der Kontrast sonst im Light Mode nicht ≥ 4,5:1 */}
-      <span aria-hidden className={styles.glow} style={{ ['--gc' as string]: g1, top: '-18%', right: '-14%', opacity: 0.42 }} />
-      <span aria-hidden className={styles.glow} style={{ ['--gc' as string]: g2, bottom: '-34%', right: '12%', opacity: 0.32 }} />
+      {center ? (
+        <span
+          aria-hidden
+          className={styles.glow}
+          style={{ ['--gc' as string]: g1, top: '-30%', left: '20%', width: '60%', opacity: 0.3 }}
+        />
+      ) : stage ? (
+        <span aria-hidden className={styles.glow} style={{ ['--gc' as string]: g3, top: '-30%', right: '-20%', opacity: 0.35 }} />
+      ) : (
+        <>
+          <span aria-hidden className={styles.glow} style={{ ['--gc' as string]: g1, top: '-18%', right: '-14%', opacity: 0.42 }} />
+          <span aria-hidden className={styles.glow} style={{ ['--gc' as string]: g2, bottom: '-34%', right: '12%', opacity: 0.32 }} />
+        </>
+      )}
       <div
         style={{
           position: 'relative',
-          maxWidth: 1176,
+          maxWidth: withDevice ? 1320 : 1176,
+          margin: center ? '0 auto' : undefined,
           width: '100%',
+          ...(withDevice && !mob
+            ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.15fr)', gap: 56, alignItems: 'center' }
+            : null),
           transform: 'translateY(calc(var(--p, 0) * 140px)) scale(calc(1 - var(--p, 0) * 0.1))',
           opacity: 'calc(1 - var(--p, 0) * 1.2)',
           transformOrigin: '50% 30%',
@@ -241,58 +270,94 @@ export function StoryHero({
           ['--g3' as string]: g3,
         }}
       >
-        {kicker && (
-          <Reveal effect="fade">
-            <div style={kickerStyle}>
-              <EText path={`${path}.kicker`} value={kicker} />
-            </div>
-          </Reveal>
-        )}
-        <h1 className={styles.heroTitle} style={{ fontSize: mob ? 'clamp(44px, 13vw, 64px)' : 'clamp(64px, 9vw, 136px)', marginTop: 18 }}>
-          <EText path={`${path}.title`} value={title} />
-          {title2 && (
-            <>
-              <br />
-              <span className={styles.gradText}>
-                <EText path={`${path}.title2`} value={title2} />
-              </span>
-            </>
+        <div>
+          {kicker && (
+            <Reveal effect="fade">
+              <div style={kickerStyle}>
+                <EText path={`${path}.kicker`} value={kicker} />
+              </div>
+            </Reveal>
           )}
-        </h1>
-        {text && (
-          <p
+          <h1
+            className={styles.heroTitle}
             style={{
-              fontSize: mob ? 17 : 21,
-              lineHeight: 1.55,
-              color: 'var(--muted)',
-              maxWidth: 640,
-              margin: '26px 0 0',
-              textWrap: 'pretty',
+              fontSize: mob
+                ? 'clamp(44px, 13vw, 64px)'
+                : withDevice
+                  ? 'clamp(54px, 6vw, 96px)'
+                  : stage
+                    ? 'clamp(72px, 11vw, 168px)'
+                    : 'clamp(64px, 9vw, 136px)',
+              marginTop: 18,
             }}
           >
-            <EText path={`${path}.text`} value={text} multiline />
-          </p>
-        )}
-        {!!chips?.length && (
-          <ul style={{ display: 'flex', flexWrap: 'wrap', gap: 8, listStyle: 'none', padding: 0, margin: '30px 0 0' }}>
-            {chips.map((c, i) => (
-              <Reveal as="li" key={i} effect="hoch" delay={120 + i * 70}>
-                <span
-                  style={{
-                    display: 'inline-block',
-                    padding: '9px 15px',
-                    borderRadius: 999,
-                    border: '1px solid var(--border)',
-                    background: 'var(--card)',
-                    fontSize: 13,
-                    fontWeight: 600,
-                  }}
-                >
-                  {c}
+            <EText path={`${path}.title`} value={title} />
+            {title2 && (
+              <>
+                <br />
+                {/* Auf der Bühne ohne Verlaufsschrift — die Farbfläche ist schon der Verlauf */}
+                <span className={stage ? undefined : styles.gradText} style={stage ? { opacity: 0.85 } : undefined}>
+                  <EText path={`${path}.title2`} value={title2} />
                 </span>
-              </Reveal>
-            ))}
-          </ul>
+              </>
+            )}
+          </h1>
+          {text && (
+            <p
+              style={{
+                fontSize: mob ? 17 : 21,
+                lineHeight: 1.55,
+                color: 'var(--muted)',
+                maxWidth: 640,
+                margin: center ? '26px auto 0' : '26px 0 0',
+                textWrap: 'pretty',
+              }}
+            >
+              <EText path={`${path}.text`} value={text} multiline />
+            </p>
+          )}
+          {!!chips?.length && (
+            <ul
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: center ? 'center' : undefined,
+                gap: 8,
+                listStyle: 'none',
+                padding: 0,
+                margin: '30px 0 0',
+              }}
+            >
+              {chips.map((c, i) => (
+                <Reveal as="li" key={i} effect="hoch" delay={120 + i * 70}>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      padding: '9px 15px',
+                      borderRadius: 999,
+                      border: '1px solid var(--border)',
+                      background: 'var(--card)',
+                      fontSize: 13,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {c}
+                  </span>
+                </Reveal>
+              ))}
+            </ul>
+          )}
+        </div>
+        {withDevice && (
+          <Reveal effect="zoom" delay={200} style={{ marginTop: mob ? 40 : 0 }}>
+            <div className={styles.float} style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: device === 'phone' ? (mob ? 'min(240px, 70vw)' : 300) : '100%' }}>
+                <AppFrame kind={device} h={mob ? '300px' : 'min(48vh, 440px)'}>
+                  {screenOf(screen ?? {}, g1)}
+                </AppFrame>
+              </div>
+            </div>
+          </Reveal>
         )}
       </div>
       {/* Scroll-Hinweis mittig am unteren Rand des Auftakts; blendet beim Scrollen schnell aus */}
@@ -359,6 +424,96 @@ export function Device({ kind, children, style }: { kind: string; children: Reac
   return (
     <div className={styles.phone} style={style}>
       <div className={styles.screen}>{children}</div>
+    </div>
+  );
+}
+
+/** Angedeuteter Seiteninhalt hinter Erweiterungen (Dekoration). */
+function FauxPage() {
+  return (
+    <div aria-hidden style={{ padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ width: '46%', height: 18, borderRadius: 6, background: '#d9dde6' }} />
+      {[92, 84, 88, 60].map((w, i) => (
+        <div key={i} style={{ width: `${w}%`, height: 10, borderRadius: 5, background: '#e5e8ef' }} />
+      ))}
+      <div style={{ width: '70%', aspectRatio: '16 / 7', borderRadius: 10, background: '#e9ecf2', marginTop: 6 }} />
+    </div>
+  );
+}
+
+const dots = (
+  <span aria-hidden style={{ display: 'flex', gap: 6 }}>
+    {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
+      <span key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
+    ))}
+  </span>
+);
+
+/** Rahmen je Ausführung. h = Höhe der Inhaltsfläche. */
+export function AppFrame({ kind, label, h, children }: { kind: string; label?: string; h: string; children: ReactNode }) {
+  if (kind === 'phone') return <Device kind="phone">{children}</Device>;
+  if (kind === 'browser')
+    return (
+      <Device kind="browser" style={{ width: '100%' }}>
+        {children}
+      </Device>
+    );
+  const shell: CSSProperties = {
+    width: '100%',
+    borderRadius: 14,
+    overflow: 'hidden',
+    background: '#101318',
+    boxShadow: '0 0 0 1px rgba(255,255,255,0.12) inset, 0 40px 80px -30px rgba(0,0,0,0.55)',
+  };
+  const body: CSSProperties = { height: h, position: 'relative', overflow: 'hidden', background: '#f6f7fb', color: '#141821' };
+  if (kind === 'desktop')
+    return (
+      <div style={shell}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 12px', background: '#1d2129' }}>
+          {dots}
+          <span style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#c9d1dd', marginRight: 46 }}>{label}</span>
+        </div>
+        <div style={body}>{children}</div>
+      </div>
+    );
+  // Browser mit Erweiterung: Chrome (Popup unter dem Puzzle-Symbol), Safari (Popup mit Pfeil), Seitenleiste
+  const safari = kind === 'safari';
+  const bar = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: safari ? '#e8e9ed' : '#202329' }}>
+      {dots}
+      <span
+        aria-hidden
+        style={{
+          flex: 1,
+          height: 24,
+          borderRadius: safari ? 7 : 999,
+          background: safari ? '#fff' : '#33373f',
+          margin: safari ? '0 12%' : 0,
+        }}
+      />
+      <span aria-hidden style={{ fontSize: 13, color: safari ? '#5b6270' : '#c9d1dd' }}>
+        {kind === 'sidebar' ? '▥' : '⧉'}
+      </span>
+    </div>
+  );
+  return (
+    <div style={{ ...shell, background: safari ? '#e8e9ed' : '#101318' }}>
+      {bar}
+      <div style={{ ...body, display: 'flex' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <FauxPage />
+        </div>
+        {kind === 'sidebar' ? (
+          <div style={{ width: 'min(42%, 340px)', position: 'relative', borderLeft: '1px solid #d9dde6' }}>{children}</div>
+        ) : (
+          <div
+            className={styles.popup}
+            style={{ top: 8, right: safari ? '18%' : 12, width: 'min(300px, 72%)', height: 'calc(100% - 16px)' }}
+          >
+            {children}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -534,8 +689,12 @@ export function StorySteps({
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              opacity: i === active ? 1 : 0.55,
-              transition: 'opacity 0.45s',
+              // Inaktive Schritte ohne Abdimmen (Deckkraft senkte die Nebenschrift auf schlichtem Grund unter 4,5:1):
+              // stattdessen etwas kleiner und entsättigt (wirkt auf Symbol und Akzente, graue Schrift bleibt gleich)
+              transform: i === active ? 'none' : 'scale(0.96)',
+              filter: i === active ? 'none' : 'saturate(0.2)',
+              transformOrigin: 'left center',
+              transition: 'transform 0.45s, filter 0.45s',
             }}
           >
             {stepText(s, i)}

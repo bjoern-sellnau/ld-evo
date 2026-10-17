@@ -29,6 +29,20 @@ describe('Story-Seiten', () => {
     expect(norm(value.story)).toEqual(norm(buddy.data.story));
   });
 
+  it('alle Story-Beispiele bestehen die Validierung und sehen verschieden aus', () => {
+    const ids = ['ldbuddy', 'coe', 'notchbuddy', 'ldbeyond'];
+    const docs = ids.map((id) => seedDocs('de').find((d) => d.collection === 'projects' && d.id === id)!);
+    for (const d of docs) {
+      expect(d.data.layout, d.id).toBe('story');
+      expect(validateDoc('projects', d.data).errors, d.id).toEqual({});
+    }
+    // jede Seite mit eigenem Auftakt-Stil und eigener Abfolge der Bausteine
+    const heroStyles = docs.map((d) => (d.data.story as { controls?: { layout?: string } }[])[0].controls?.layout ?? 'verlauf');
+    expect(new Set(heroStyles).size).toBe(ids.length);
+    const order = docs.map((d) => (d.data.story as { type: string }[]).map((b) => b.type).join(','));
+    expect(new Set(order).size).toBe(ids.length);
+  });
+
   it('beginnt mit dem Auftakt (h1) und nutzt alle Story-Widgets', () => {
     const story = buddy.data.story as { type: string; slots?: Record<string, { type: string }[]> }[];
     expect(story[0].type).toBe('story-hero');
