@@ -236,3 +236,91 @@
     opacity: 0;
   }
 }
+
+/* ---- Countdown-Tür ---- */
+.door {
+  position: absolute;
+  inset: 0;
+  perspective: 1600px;
+  background: radial-gradient(60% 80% at 50% 50%, rgba(255, 214, 140, calc(var(--glow, 0.2) * 0.9)), transparent 70%), #000;
+}
+.leafL,
+.leafR {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
+.leafL {
+  left: 0;
+  transform-origin: left center;
+  box-shadow: inset -10px 0 20px -12px rgba(0, 0, 0, 0.7);
+}
+.leafR {
+  left: 50%;
+  transform-origin: right center;
+  box-shadow: inset 10px 0 20px -12px rgba(0, 0, 0, 0.7);
+}
+/* Lichtfuge in der Mitte: wird mit dem Countdown heller */
+.seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 1px);
+  width: 2px;
+  background: rgba(255, 226, 170, var(--glow, 0.2));
+  box-shadow: 0 0 calc(var(--glow, 0.2) * 40px) calc(var(--glow, 0.2) * 6px) rgba(255, 200, 120, calc(var(--glow, 0.2) * 0.8));
+}
+.count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: rgba(10, 14, 22, 0.8);
+  color: #fff;
+  font:
+    800 56px/1 var(--ld-font-mono),
+    monospace;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16) inset,
+    0 20px 50px -12px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+}
+.doorOpen {
+  background: transparent;
+}
+.doorOpen .leafL {
+  animation: welcomeDoorL 1.4s cubic-bezier(0.6, 0, 0.3, 1) both;
+}
+.doorOpen .leafR {
+  animation: welcomeDoorR 1.4s cubic-bezier(0.6, 0, 0.3, 1) both;
+}
+.doorOpen .seam {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+@keyframes welcomeDoorL {
+  to {
+    transform: rotateY(-105deg);
+    filter: brightness(0.5);
+  }
+}
+@keyframes welcomeDoorR {
+  to {
+    transform: rotateY(105deg);
+    filter: brightness(0.5);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .doorOpen .leafL,
+  .doorOpen .leafR {
+    animation: welcomeFade 0.35s linear both;
+  }
+}
