@@ -58,7 +58,10 @@ describe('Mehrsprachigkeit in der Datenbank', () => {
       { id: 'corefall', locale: 'de', live: 1, draft: 0 },
       { id: 'corefall', locale: 'en', live: 0, draft: 1 }, // Übersetzungsentwurf aus content/en
       { id: 'eigenes', locale: 'de', live: 1, draft: 0 }, // kein Startinhalt → keine Übersetzung
+      { id: 'ldbuddy', locale: 'de', live: 1, draft: 0 }, // neues Beispiel (seedAdditions), einmalig ergänzt
+      { id: 'ldbuddy', locale: 'en', live: 0, draft: 1 },
     ]);
+    expect(db().prepare("SELECT 1 AS ok FROM meta WHERE key = 'seed_ldbuddy'").get()).toEqual({ ok: 1 });
     expect(db().prepare('SELECT locale FROM revisions').get()).toEqual(expect.objectContaining({ locale: 'de' }));
     expect(db().prepare("SELECT value FROM meta WHERE key = 'schema_version'").get()).toEqual(expect.objectContaining({ value: '8' }));
     // Ausnahme Navigation: englische Menü-Beschriftungen sind sofort live
@@ -70,6 +73,7 @@ describe('Mehrsprachigkeit in der Datenbank', () => {
     expect(before.map((p) => [p.id, p.desc, p._lang])).toEqual([
       ['corefall', 'Bearbeitet auf Deutsch', 'de'],
       ['eigenes', 'Nur in dieser Installation', 'de'],
+      ['ldbuddy', expect.stringContaining('Alltagskram'), 'de'],
     ]);
     commitPublish('projects', 'corefall', { name: 'Corefall', desc: 'Edited in English' }, 'test', 'en');
     const after = repo.publishedDocs('projects', 'en');

@@ -13,13 +13,22 @@ import w_projects from './projects';
 import w_quote from './quote';
 import w_section from './section';
 import w_stats from './stats';
+import w_story_app from './story-app';
+import w_story_bento from './story-bento';
+import w_story_hero from './story-hero';
+import w_story_horizontal from './story-horizontal';
+import w_story_numbers from './story-numbers';
+import w_story_scene from './story-scene';
+import w_story_steps from './story-steps';
+import w_story_ticker from './story-ticker';
+import w_story_words from './story-words';
 import w_tabs from './tabs';
 import w_testimonial from './testimonial';
 import w_text from './text';
 import w_timeline from './timeline';
 import w_video from './video';
 
-const list: RegisteredWidget[] = [w_chapter, w_columns, w_contact, w_cta, w_faq, w_gallery, w_image, w_pattern, w_pricing_card, w_projects, w_quote, w_section, w_stats, w_tabs, w_testimonial, w_text, w_timeline, w_video];
+const list: RegisteredWidget[] = [w_chapter, w_columns, w_contact, w_cta, w_faq, w_gallery, w_image, w_pattern, w_pricing_card, w_projects, w_quote, w_section, w_stats, w_story_app, w_story_bento, w_story_hero, w_story_horizontal, w_story_numbers, w_story_scene, w_story_steps, w_story_ticker, w_story_words, w_tabs, w_testimonial, w_text, w_timeline, w_video];
 
 export const WIDGETS: Record<string, RegisteredWidget> = {};
 for (const w of list) {

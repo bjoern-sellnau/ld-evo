@@ -149,6 +149,24 @@ Einmal-Link (1 h), der auf sicherem Weg weitergegeben wird.
 
 Formular, Validierung, Speichern und Vorschau ergeben sich automatisch aus der Definition.
 
+## Story-Seiten (Projekte im Layout „Story“)
+
+Projekte haben zwei Detailseiten-Layouts (Feld `layout`): **Case Study** (Kapitel 01–06, Prototyp) und **Story** — eine
+Scroll-Erzählung aus Widgets im Feld `story` (Typ `blocks`), gebaut in der Vorschau wie jede andere Seite.
+
+- Darstellung: `src/site/pages/StoryPage.tsx` (Abschluss mit verwandten Projekten wie die Case Study).
+- Widgets: `src/widgets/story-*.tsx` (Gruppe „Story“: Auftakt, Szene, Scrollytelling, Feature-Kacheln, Wort für Wort,
+  Laufband, Seitwärts, Zahlen, App-Feature); Bausteine in `src/site/story/` (Bewegung `motion.ts`, Einblenden
+  `Reveal.tsx`, nachgebaute App-Screens `MockScreen.tsx`). Auswahl-Listen in `options.ts` (ohne `'use client'`, weil der
+  Server sie zur Validierung liest).
+- Bewegung nur mit „Animationen“ an und ohne `prefers-reduced-motion`; Scroll-Fortschritt läuft als CSS-Variable `--p`
+  ohne React-Render pro Frame. Sticky-Inhalte (Scrollytelling, Seitwärts) brauchen Vorfahren ohne `overflow: hidden`
+  (Szenen nutzen `overflow: clip`).
+- Ladezeit: Abschnitte ab dem zweiten bekommen `content-visibility: auto`, Screens im Scrollytelling entstehen erst kurz
+  vor ihrem Schritt (Budget `/projekte/ldbuddy` in `npm run test:perf`).
+- Beispiel **LD Buddy** (`content/projects.ts`, `content/en/projects.ts`); bestehende Installationen bekommen es einmalig
+  über `seedAdditions` in `src/cms/db.ts` (meta `seed_ldbuddy`, gelöscht bleibt gelöscht).
+
 ## Tests
 
 - `npm test` — u. a. `tests/unit/cms.test.ts`: alle Prototyp-Inhalte bestehen das Schema verlustfrei; Link-/Rich-Text-

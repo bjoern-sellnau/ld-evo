@@ -463,6 +463,41 @@ export const CHAPTERS: Chapter[] = [
           'Zyklen (Vorlage verweist auf sich selbst) werden erkannt und nicht gerendert.',
         ],
       },
+      { t: 'h', text: 'Story-Seiten (Scroll-Erlebnis)' },
+      {
+        t: 'p',
+        text: 'Projekte können statt der Case Study eine **Story** sein: Projekt öffnen → „Layout der Detailseite“ auf **Story** → in der Vorschau unter „Story-Inhalt“ mit „+“ Widgets der Gruppe **Story** einfügen. Beispiel: [LD Buddy](/projekte/ldbuddy).',
+      },
+      {
+        t: 'table',
+        head: ['Widget', 'Wofür'],
+        rows: [
+          [
+            'Story: Auftakt',
+            'Bildschirmfüllender Einstieg mit Riesen-Titel, Verlaufszeile und Leuchten — enthält das h1, daher einmal und zuerst',
+          ],
+          [
+            'Story: Szene',
+            'Kapitel-Fläche (Karte, Farbe, Verlauf, Dunkel), optional bildschirmhoch, mit Einblend-Effekt; nimmt beliebige Widgets auf',
+          ],
+          ['Story: Scrollytelling', 'Schritte scrollen, das Gerät (Telefon/Browser) bleibt stehen und wechselt den Screen'],
+          ['Story: Feature-Kacheln', 'Bento-Raster in vier Größen, mit Farbe und Mini-Screen'],
+          ['Story: Wort für Wort', 'Großer Satz, der sich beim Scrollen einfärbt'],
+          ['Story: Laufband · Seitwärts · Zahlen', 'Endlos-Ticker · Karten fahren seitlich vorbei · Kennzahlen zählen hoch'],
+          ['Story: App-Feature', 'Gerät mit App-Screen neben Text und Häkchen-Liste'],
+        ],
+      },
+      {
+        t: 'callout',
+        kind: 'tip',
+        title: 'App-Screens ohne Screenshots',
+        text: 'Screens werden nachgebaut (Finanzen, Haushaltsbuch, Einkaufsliste, Bestellungen, Neuigkeiten, Sammlung, Lesezeichen, Übersicht). Inhalt pro Zeile: `Beschriftung | Wert | Zusatz` — z. B. `Miete | -950,00 € | ⌂`, bei Listen `Brot | 1 | ✓` für abgehakt. Ein eigener Screenshot im Feld „Eigener Screenshot“ ersetzt den nachgebauten Screen.',
+      },
+      {
+        t: 'callout',
+        kind: 'info',
+        text: 'Bewegung respektiert „Animationen aus“ und `prefers-reduced-motion`: dann steht alles sofort da, Seitwärts wird wischbar, das Laufband steht still. Eigene Farbflächen setzen Text-, Linien- und Akzentfarben selbst kontrastsicher (≥ 4,5:1).',
+      },
       {
         t: 'source',
         file: 'src/site/cms/Widgets.tsx',

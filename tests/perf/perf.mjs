@@ -10,7 +10,7 @@ import { chromium } from '@playwright/test';
 import { launchOptions } from '../browser.mjs';
 
 const U = process.env.BASE_URL ?? 'http://localhost:3123';
-const PAGES = ['/', '/projekte', '/tech', '/reise', '/ueber-mich', '/projekte/neuewebsite', '/tech/a1'];
+const PAGES = ['/', '/projekte', '/tech', '/reise', '/ueber-mich', '/projekte/neuewebsite', '/projekte/ldbuddy', '/tech/a1'];
 /** Budgets je Seite (Web-Vitals „gut“: LCP ≤ 2,5 s, CLS ≤ 0,1; TBT ≤ 200 ms ist Lighthouse „gut“). */
 const BUDGET = {
   lcp: Number(process.env.BUDGET_LCP ?? 2500),

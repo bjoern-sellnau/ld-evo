@@ -101,6 +101,22 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Darstellung der .Tech-Übersicht: Karten-Raster, Magazin mit Titelgeschichte und Inhaltsverzeichnis oder Blog mit versetzten Kacheln (Masonry) samt Anlesetext und Lesezeit.',
     en: 'Layout of the .Tech overview: card grid, magazine with cover story and table of contents, or blog with staggered tiles (masonry) including excerpt and reading time.',
   },
+  'Footer-Marke': {
+    de: 'Marke links im Footer: „Loona! Designs“ mit farbigem „!“, einfarbig oder als LD-Logo.',
+    en: 'Brand on the left of the footer: “Loona! Designs” with colored “!”, single-colored or as the LD logo.',
+  },
+  'Footer-Zusatz': {
+    de: 'Freier Text hinter der Marke, z. B. „/// the web. my passion“. Leer lassen blendet ihn aus.',
+    en: 'Free text after the brand, e.g. “/// the web. my passion”. Leave empty to hide it.',
+  },
+  Copyright: {
+    de: 'Copyright-Zeile in der Mitte des Footers: eine Vorlage wählen oder frei eingeben. Leer lassen blendet sie aus.',
+    en: 'Copyright line in the middle of the footer: pick a preset or type your own. Leave empty to hide it.',
+  },
+  'Footer-Links': {
+    de: 'Links rechts im Footer (LinkedIn, GitHub, Impressum, Sprache) als Text oder als Symbole.',
+    en: 'Links on the right of the footer (LinkedIn, GitHub, legal notice, language) as text or as icons.',
+  },
   'Page-Transition': {
     de: 'Animation beim Wechsel zwischen Seiten.',
     en: 'Animation when switching between pages.',

@@ -174,11 +174,20 @@ export function WidgetList({
   path,
   allow = '*',
   accent,
+  gap = 28,
+  lazyPaint = false,
 }: {
   blocks: Block[] | undefined;
   path: string;
   allow?: '*' | string[];
   accent?: string;
+  /** Abstand zwischen den Widgets (Story-Seiten: eigener Rhythmus). */
+  gap?: number;
+  /**
+   * Ab dem zweiten Widget `content-visibility: auto`: Abschnitte außerhalb des Bildschirms werden erst beim
+   * Heranscrollen gelayoutet/gezeichnet (Story-Seiten — viel Inhalt, mobil zählt jede Millisekunde bis zum ersten Bild).
+   */
+  lazyPaint?: boolean;
 }) {
   const parentAccent = useContext(AccentCtx);
   const edit = useContext(WEditCtx);
@@ -196,7 +205,13 @@ export function WidgetList({
             {inner}
           </WidgetFrame>
         ) : (
-          <section key={b._id} style={{ marginTop: i === 0 ? 0 : 28 }}>
+          <section
+            key={b._id}
+            style={{
+              marginTop: i === 0 ? 0 : gap,
+              ...(lazyPaint && i > 0 ? { contentVisibility: 'auto', containIntrinsicSize: 'auto 900px' } : null),
+            }}
+          >
             {inner}
           </section>
         );

@@ -13,6 +13,15 @@ export type ThemeColorMode = 'brand' | 'site';
 /** Laufender Sekundenzähler auf „Hallo“: schlicht, rollende Walzen oder Fallblatt (Flughafentafel/Klapp-Radiowecker). */
 export type CounterFx = 'plain' | 'roll' | 'flap';
 /** .Tech-Übersicht: Karten-Raster (Prototyp), Magazin oder Blog mit Masonry (beide neu, nicht im Prototyp). */
+/** Footer links (neu, nicht im Prototyp): Wortmarke mit Akzent-„!“ (Prototyp), Wortmarke einfarbig oder LD-Logo. */
+export type FootBrand = 'accent' | 'plain' | 'logo';
+/** Vorgaben für den Footer (Prototyp Zeile 900 ff.). */
+export const FOOT_TAG_DEFAULT = '/// the web. my passion';
+export const FOOT_COPY_PRESETS = [
+  '© 2026 BJÖRN SELLNAU — BERLIN',
+  '© 2026 LOONA! DESIGNS / BJÖRN SELLNAU',
+  '© LOONA! DESIGNS / BJÖRN SELLNAU',
+] as const;
 export type TechLayout = 'cards' | 'magazin' | 'blog';
 /** Logo oben im Mobil-Modus: Glas-Pille mit Zeichen (Prototyp), Pille mit Wortmarke, App-Kachel, erst beim Scrollen. */
 export type MobLogo = 'pill' | 'wordmark' | 'tile' | 'scroll';
@@ -81,6 +90,13 @@ export interface Settings {
   themeColor: ThemeColorMode;
   counterFx: CounterFx;
   techLayout: TechLayout;
+  footBrand: FootBrand;
+  /** Zusatz hinter der Marke, frei (leer = keiner). */
+  footTag: string;
+  /** Copyright-Zeile, frei (leer = keine). */
+  footCopy: string;
+  /** Links rechts als Text oder als Symbole. */
+  footIcons: boolean;
   reiseBg: boolean;
   mobLogo: MobLogo;
   mobDesign: MobDesign;
@@ -147,6 +163,10 @@ export const DEFAULT_SETTINGS: Settings = {
   themeColor: 'brand',
   counterFx: 'plain',
   techLayout: 'cards',
+  footBrand: 'accent',
+  footTag: FOOT_TAG_DEFAULT,
+  footCopy: FOOT_COPY_PRESETS[0],
+  footIcons: false,
   reiseBg: false,
   mobLogo: 'pill',
   mobDesign: 'proto',
@@ -247,6 +267,15 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
     read: (r) => (r === 'roll' || r === 'flap' ? r : 'plain'),
     write: (v) => (v === 'plain' ? null : v),
   },
+  // Neu (nicht im Prototyp): Footer anpassbar
+  footBrand: {
+    key: 'ld-footbrand',
+    read: (r) => (r === 'plain' || r === 'logo' ? r : 'accent'),
+    write: (v) => (v === 'accent' ? null : v),
+  },
+  footTag: str<string>('ld-foottag', FOOT_TAG_DEFAULT),
+  footCopy: str<string>('ld-footcopy', FOOT_COPY_PRESETS[0]),
+  footIcons: offUnlessOn('ld-footicons'),
   // Neu (nicht im Prototyp): .Tech als Magazin
   techLayout: {
     key: 'ld-techlayout',

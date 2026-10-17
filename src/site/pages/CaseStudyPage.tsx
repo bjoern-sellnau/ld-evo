@@ -12,31 +12,27 @@ import { useSite } from '../settings/SiteProvider';
 import { Chapter, GallerySlots, RelatedCard, related } from './detail';
 import styles from './detail.module.css';
 import { useHref, useT } from '../i18n/LocaleProvider';
+import { StoryPage } from './StoryPage';
+
+/** Projekt-Detailseite: Case Study (Prototyp) oder — Layout „Story“ in LD Flow — die Scroll-Story aus Widgets. */
+export function CaseStudyPage({ p }: { p: Project }) {
+  return p.layout === 'story' ? <StoryPage p={p} /> : <CaseStudyClassic p={p} />;
+}
 
 /** Case Study (Kapitel 01–06 + Verwandte). Markup/Werte: Prototyp Zeile 535–619. */
-export function CaseStudyPage({ p }: { p: Project }) {
-  const { settings: s, mob, vtTarget, morphOk, from, navigate, setOverlay } = useSite();
+function CaseStudyClassic({ p }: { p: Project }) {
+  const { settings: s, mob, vtTarget, morphOk, from } = useSite();
   const coverFull = s.coverFull;
   useCoverColor(p.color, coverFull, s.themeColor);
   const ink = inkOn(p.color);
   const acc = coverFull ? ink : 'var(--accent)';
-  const { projects } = useContent();
-  const list = projects.filter((x) => x.kind === p.kind);
-  const rel = related(list, p);
   const t = useT();
-  const lh = useHref();
-  const listHref = p.kind === 'labs' ? '/labs' : '/projekte';
   const facts = [
     { k: t('case.tool'), v: p.tool || '—' },
     { k: t('case.period'), v: p.datum || '—' },
     { k: t('case.category'), v: p.kat || '—' },
     { k: t('case.status'), v: p.link ? t('case.livePlayable') : p.tag || '—' },
   ];
-  const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-    e.preventDefault();
-    navigate(href, { keepVt: false });
-  };
   const padX = mob ? 18 : 32;
   const prefix = from === '/' ? 'cf-' : 'c-';
 
@@ -225,52 +221,75 @@ export function CaseStudyPage({ p }: { p: Project }) {
           labels={[t('case.slot1'), t('case.slot2'), t('case.slot3')]}
         />
 
-        <section style={{ marginTop: 56 }} aria-labelledby="rel-title">
-          <h2 id="rel-title" style={{ fontFamily: mono, fontSize: 10.5, fontWeight: 400, letterSpacing: '0.18em', color: acc, margin: 0 }}>
-            {p.kind === 'labs' ? t('case.relatedLabs') : t('case.relatedProjects')}
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(3,1fr)', gap: 12, marginTop: 16 }}>
-            {rel.map((r) => (
-              <RelatedCard
-                key={r.id}
-                href={projectHref(r)}
-                onClick={go(projectHref(r))}
-                color={r.color}
-                ink={inkOn(r.color)}
-                meta={`${r.tag} · ${r.datum}`}
-                stripes
-              >
-                <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-                  <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.25 }}>{r.name}</span>
-                  <span aria-hidden style={{ fontSize: 26, fontWeight: 800, opacity: 0.35, flex: 'none', lineHeight: 1 }}>
-                    {r.mono}
-                  </span>
-                </div>
-              </RelatedCard>
-            ))}
-          </div>
-        </section>
-
-        <div
-          style={{
-            borderTop: '1px solid var(--hair)',
-            marginTop: 32,
-            padding: '22px 0 60px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 12,
-            flexWrap: 'wrap',
-          }}
-        >
-          <a href={lh(listHref)} onClick={go(listHref)} className={styles.textLink} style={{ color: acc }}>
-            {t('case.all')}
-          </a>
-          <button type="button" onClick={() => setOverlay('kontakt')} className={styles.textLink} style={{ color: acc }}>
-            {t('case.similar')}
-          </button>
-        </div>
+        <CaseOutro p={p} acc={acc} />
       </div>
     </article>
+  );
+}
+
+/** Verwandte Projekte + „Alle …“ / „Ähnliches Projekt?“ — gemeinsam für Case Study und Story. */
+export function CaseOutro({ p, acc }: { p: Project; acc: string }) {
+  const { mob, navigate, setOverlay } = useSite();
+  const { projects } = useContent();
+  const rel = related(
+    projects.filter((x) => x.kind === p.kind),
+    p,
+  );
+  const t = useT();
+  const lh = useHref();
+  const listHref = p.kind === 'labs' ? '/labs' : '/projekte';
+  const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    navigate(href, { keepVt: false });
+  };
+  return (
+    <>
+      <section style={{ marginTop: 56 }} aria-labelledby="rel-title">
+        <h2 id="rel-title" style={{ fontFamily: mono, fontSize: 10.5, fontWeight: 400, letterSpacing: '0.18em', color: acc, margin: 0 }}>
+          {p.kind === 'labs' ? t('case.relatedLabs') : t('case.relatedProjects')}
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(3,1fr)', gap: 12, marginTop: 16 }}>
+          {rel.map((r) => (
+            <RelatedCard
+              key={r.id}
+              href={projectHref(r)}
+              onClick={go(projectHref(r))}
+              color={r.color}
+              ink={inkOn(r.color)}
+              meta={`${r.tag} · ${r.datum}`}
+              stripes
+            >
+              <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.25 }}>{r.name}</span>
+                <span aria-hidden style={{ fontSize: 26, fontWeight: 800, opacity: 0.35, flex: 'none', lineHeight: 1 }}>
+                  {r.mono}
+                </span>
+              </div>
+            </RelatedCard>
+          ))}
+        </div>
+      </section>
+
+      <div
+        style={{
+          borderTop: '1px solid var(--hair)',
+          marginTop: 32,
+          padding: '22px 0 60px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
+        <a href={lh(listHref)} onClick={go(listHref)} className={styles.textLink} style={{ color: acc }}>
+          {t('case.all')}
+        </a>
+        <button type="button" onClick={() => setOverlay('kontakt')} className={styles.textLink} style={{ color: acc }}>
+          {t('case.similar')}
+        </button>
+      </div>
+    </>
   );
 }
