@@ -9,9 +9,10 @@ describe('Story-Seiten', () => {
 
   it('LD Buddy ist eine Story und übersteht die Validierung vollständig (inkl. verschachtelter Szenen)', () => {
     expect(buddy.data.layout).toBe('story');
-    // eigene Marke im Menü: Loona-Produkt „buddy“ (src/components/brand/products.ts) mit offiziellem Schriftzug
+    // eigene Marke im Menü: Zeichen „b“ (Loona-Produkt „buddy“, src/components/brand) + einzeiliger Text; Weg nach Hause
     expect(buddy.data.brand).toBe('buddy');
-    expect(buddy.data.brandName).toBeUndefined();
+    expect(buddy.data.brandName).toBe('LD Buddy.');
+    expect(buddy.data.homeLabel).toBe('Loona! Designs');
     const { value, errors } = validateDoc('projects', buddy.data);
     expect(errors).toEqual({});
     // Validierung ergänzt höchstens leere Listen (z. B. „Zeilen“ ohne Einträge) — sonst bleibt alles erhalten

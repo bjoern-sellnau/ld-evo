@@ -11,6 +11,7 @@ import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import { isActiveHref, navPadFor } from './pages';
 import { BrandMark, BrandSwap } from './BrandSwap';
+import { LoonaMark } from '@/components/brand';
 import { useStoryBrand } from './storyBrand';
 import { useBack } from './useBack';
 import styles from './SiteNav.module.css';
@@ -119,11 +120,10 @@ export function IconRail() {
           />
         </RailItem>
         {brand && (
-          <RailItem id="home2" tip={tip} label={t('nav.homeShort')} {...tipProps('home2')}>
-            <Link href={href('/')} onClick={go('/')} aria-label={t('nav.homeShort')} className={styles.reset} style={btn(false)}>
-              <span aria-hidden style={{ fontSize: 19 }}>
-                ⌂
-              </span>
+          // Weg zur Startseite als kleines LD-Zeichen (statt Haus); Beschriftung aus LD Flow als Tooltip/Name
+          <RailItem id="home2" tip={tip} label={brand.homeLabel} {...tipProps('home2')}>
+            <Link href={href('/')} onClick={go('/')} aria-label={brand.homeLabel} className={styles.reset} style={btn(false)}>
+              <LoonaMark product="ld" size={22} tone={settings.theme === 'light' ? 'ink' : 'color'} decorative />
             </Link>
           </RailItem>
         )}

@@ -54,6 +54,8 @@ export interface Project {
   brandLogo?: GalleryImage;
   /** Story: optionaler Text neben dem Zeichen, z. B. „LD Buddy“. */
   brandName?: string;
+  /** Story: Beschriftung des Menüeintrags zur Startseite (statt LD-Logo), z. B. „Loona! Designs“ oder „Hallo“. */
+  homeLabel?: string;
 }
 
 /** Widget-Block einer Story — gleiche Form wie Block in src/site/cms/Widgets.tsx. */
@@ -626,6 +628,8 @@ export const PROJECTS: Project[] = [
     "learnings": "Ruhe ist ein Feature.",
     "layout": "story",
     "brand": "buddy",
+    "brandName": "LD Buddy.",
+    "homeLabel": "Loona! Designs",
     "story": [
       {
         "type": "story-hero",

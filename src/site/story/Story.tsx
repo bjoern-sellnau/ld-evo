@@ -718,15 +718,41 @@ export function StoryTicker({ items, speed, reverse, look }: { items: string[]; 
         {t}
       </span>
     );
+  // Endlos auch auf Widescreens: eine Spur muss mindestens so breit sein wie die Fläche, sonst entsteht beim Durchlaufen
+  // eine Lücke. Daher die Einträge so oft wiederholen, wie nötig (gemessen); das Tempo bleibt gleich (Dauer × Wiederholungen).
+  const box = useRef<HTMLDivElement>(null);
+  const first = useRef<HTMLDivElement>(null);
+  const [reps, setReps] = useState(1);
+  useLayoutEffect(() => {
+    const b = box.current;
+    const t = first.current;
+    if (!motion || !b || !t) return;
+    const fit = () => {
+      const one = t.scrollWidth / reps;
+      if (one > 0) {
+        const need = Math.max(1, Math.ceil(b.clientWidth / one));
+        if (need !== reps) setReps(need);
+      }
+    };
+    fit();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(fit) : null;
+    ro?.observe(b);
+    return () => ro?.disconnect();
+  }, [motion, reps, items.length]);
   if (!motion) return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>{items.map(item)}</div>;
+  const set = (k: number) => Array.from({ length: reps }, (_, r) => items.map((x, i) => item(x, k * 1000 + r * 100 + i)));
+  const base = { langsam: 70, mittel: 42, schnell: 22 }[speed] ?? 42;
   return (
     <div
+      ref={box}
       className={[styles.ticker, styles.moving, reverse ? styles.reverse : ''].join(' ')}
-      style={{ ...bleed, ['--dur' as string]: `${{ langsam: 70, mittel: 42, schnell: 22 }[speed] ?? 42}s` }}
+      style={{ ...bleed, ['--dur' as string]: `${base * reps}s` }}
     >
-      <div className={styles.track}>{items.map(item)}</div>
+      <div ref={first} className={styles.track}>
+        {set(0)}
+      </div>
       <div className={styles.track} aria-hidden>
-        {items.map(item)}
+        {set(1)}
       </div>
     </div>
   );

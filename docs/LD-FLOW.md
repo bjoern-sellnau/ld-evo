@@ -169,8 +169,9 @@ Scroll-Erzählung aus Widgets im Feld `story` (Typ `blocks`), gebaut in der Vors
   (maßvolle Verbreiterung, je ≤ 160 px). Auftakt, Laufband und Seitwärts laufen randlos; Szenen haben die Breite
   „Inhalt“, „Breit“ (Standard) oder „Voll“. Rein per CSS — kein Messen, kein Layout-Sprung.
 - **Eigene Marke im Menü:** Projekt-Felder `brand` (Loona-Produkt `buddy`/`flow`/`nova`/`ivy` oder `eigenes`),
-  `brandLogo` (Bild bei „eigenes“) und `brandName` (optionaler Text). Auf der Story-Seite gleitet das LD-Logo hinaus und
-  die Marke herein, „⌂ Home“ übernimmt den Weg zur Startseite (`src/site/nav/BrandSwap.tsx`, `storyBrand.ts`; Pille,
+  `brandLogo` (Bild bei „eigenes“), `brandName` (optionaler Text, einzeilig — nur das Zeichen + Name, kein Lockup) und
+  `homeLabel` (frei wählbar, z. B. „Loona! Designs“ oder „Hallo“; leer = „Loona! Designs“). Auf der Story-Seite gleitet
+  das LD-Logo hinaus und die Marke herein, der Menüpunkt mit `homeLabel` übernimmt den Weg zur Startseite (`src/site/nav/BrandSwap.tsx`, `storyBrand.ts`; Pille,
   Seitenleiste, Icon-Leiste, mobil). Zurück auf anderen Seiten läuft es umgekehrt.
 - Beispiel **LD Buddy** (`content/projects.ts`, `content/en/projects.ts`); bestehende Installationen bekommen es einmalig
   über `seedAdditions` in `src/cms/db.ts` (meta `seed_ldbuddy`, gelöscht bleibt gelöscht).

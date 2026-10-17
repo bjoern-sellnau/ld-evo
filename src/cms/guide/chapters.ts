@@ -487,7 +487,7 @@ export const CHAPTERS: Chapter[] = [
           ['Story: App-Feature', 'Gerät mit App-Screen neben Text und Häkchen-Liste'],
           [
             'Projekt: „Story: Logo im Menü“',
-            'Ersetzt auf der Story-Seite das LD-Logo durch eine Produktmarke oder ein eigenes Bild (+ optionaler Text); „⌂ Home“ führt zur Startseite',
+            'Ersetzt auf der Story-Seite das LD-Logo durch eine Produktmarke oder ein eigenes Bild (+ optionaler einzeiliger Text); ein Menüpunkt mit frei wählbarem Namen („Story: Beschriftung des Wegs zur Startseite“, z. B. „Loona! Designs“) führt zur Startseite',
           ],
         ],
       },
