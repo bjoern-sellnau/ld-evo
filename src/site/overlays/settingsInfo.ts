@@ -117,6 +117,18 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Links rechts im Footer (LinkedIn, GitHub, Impressum, Sprache) als Text oder als Symbole.',
     en: 'Links on the right of the footer (LinkedIn, GitHub, legal notice, language) as text or as icons.',
   },
+  'Schluss: Röhren-Monitor aus': {
+    de: 'Live-Build: Wenn die Seite fertig gebaut ist, schaltet das Terminal ab wie ein alter Röhren-Monitor — das Bild fällt zu einer hellen Linie zusammen, die zum Punkt schrumpft und verglimmt. Aus: Das Terminal bleibt gedimmt stehen.',
+    en: 'Live build: once the page is built, the terminal switches off like an old CRT monitor — the picture collapses into a bright line that shrinks to a dot and fades. Off: the terminal stays, dimmed.',
+  },
+  'Terminal: Links / Rechts': {
+    de: 'Live-Build: wo das Terminal-Fenster waagerecht erscheint (links … rechts). „Default wiederherstellen“ setzt es wieder neben den Hero-Text.',
+    en: 'Live build: where the terminal window appears horizontally (left … right). “Restore default” puts it back next to the hero text.',
+  },
+  'Terminal: Oben / Unten': {
+    de: 'Live-Build: wo das Terminal-Fenster senkrecht erscheint (oben … unten). Verschoben wird es etwas kleiner, damit es Platz hat.',
+    en: 'Live build: where the terminal window appears vertically (top … bottom). When moved it gets a little smaller so it fits.',
+  },
   'Wetter-Vorschau': {
     de: 'Nur für den Wetter-Hero: zeigt eine feste Wetterlage statt des echten Berliner Wetters — zum Testen aller Darstellungen, ohne auf Regen zu warten. „Live“ = echtes Wetter.',
     en: 'Weather hero only: shows a fixed condition instead of the real Berlin weather — to test every look without waiting for rain. “Live” = real weather.',

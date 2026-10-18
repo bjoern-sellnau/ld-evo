@@ -311,6 +311,9 @@ const EN_LABELS: Record<string, string> = {
   'Page-Transition': 'Page transition',
   'Welcome-Effekt': 'Welcome effect',
   'Wetter-Vorschau': 'Weather preview',
+  'Schluss: Röhren-Monitor aus': 'Ending: CRT switch-off',
+  'Terminal: Links / Rechts': 'Terminal: left / right',
+  'Terminal: Oben / Unten': 'Terminal: top / bottom',
   Tageszeit: 'Time of day',
   Live: 'Live',
   Nebel: 'Fog',
@@ -1190,6 +1193,31 @@ export function SettingsPanel() {
               </Row>
               <Row label="Oben / Unten">
                 <Range min={0} max={100} step={1} value={cfg.y ?? 50} onChange={(v) => setCfg(hm, 'y', v)} label="Oben / Unten" />
+              </Row>
+            </>
+          )}
+          {hm.startsWith('build') && (
+            <>
+              <Toggle label="Schluss: Röhren-Monitor aus" on={!!cfg.crt} onToggle={() => setCfg(hm, 'crt', !cfg.crt)} />
+              <Row label="Terminal: Links / Rechts">
+                <Range
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={typeof cfg.tx === 'number' ? cfg.tx : 100}
+                  onChange={(v) => setCfg(hm, 'tx', v)}
+                  label="Terminal: Links / Rechts"
+                />
+              </Row>
+              <Row label="Terminal: Oben / Unten">
+                <Range
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={typeof cfg.ty === 'number' ? cfg.ty : 0}
+                  onChange={(v) => setCfg(hm, 'ty', v)}
+                  label="Terminal: Oben / Unten"
+                />
               </Row>
             </>
           )}

@@ -55,6 +55,14 @@ export const EXTRA_MODES: Record<string, ExtraModeMeta> = {
   // Live-Build (build.ts): schwarze Seite, Terminal baut die Startseite, Elemente erscheinen nach und nach
   buildcode: { label: 'Live-Build: Code', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },
   buildcodets: { label: 'Live-Build: Code (Timeshift)', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },
+  buildserver: { label: 'Live-Build: Dev-Server + Code', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },
+  buildserverts: {
+    label: 'Live-Build: Dev-Server + Code (Timeshift)',
+    renderer: 'canvas2d',
+    bg: '#000000',
+    sample: '0.03,0.03',
+    lum: 0.03,
+  },
   buildagents: { label: 'Live-Build: Agents', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },
   buildagentsts: { label: 'Live-Build: Agents (Timeshift)', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },
 };

@@ -1855,6 +1855,7 @@ body[data-ldbuild]:not(.still):not([data-ldbuild~='title']) [data-ldb='title']:n
 body[data-ldbuild]:not(.still):not([data-ldbuild~='role']) [data-ldb='role']:not(:focus-within),
 body[data-ldbuild]:not(.still):not([data-ldbuild~='intro']) [data-ldb='intro']:not(:focus-within),
 body[data-ldbuild]:not(.still):not([data-ldbuild~='cta']) [data-ldb='cta']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='scroll']) [data-ldb='scroll']:not(:focus-within),
 body[data-ldbuild]:not(.still):not([data-ldbuild~='stats']) [data-ldb='stats']:not(:focus-within),
 body[data-ldbuild]:not(.still):not([data-ldbuild~='featured']) [data-ldb='featured']:not(:focus-within),
 body[data-ldbuild]:not(.still):not([data-ldbuild~='news']) [data-ldb='news']:not(:focus-within) {
@@ -1865,6 +1866,16 @@ body[data-ldbuild]:not(.still):not([data-ldbuild~='news']) [data-ldb='news']:not
 body[data-ldbuild]:not(.still):not([data-ldbuild~='nav']) [data-ld-vp] > :not(main):not(:focus-within),
 body[data-ldbuild]:not(.still):not([data-ldbuild~='footer']) #fuss:not(:focus-within) {
   opacity: 0 !important;
+}
+/* Während des Baus: Hero-Fläche (Canvas) bildschirmhoch, ohne Ausblend-Maske und über dem Hero, damit das Terminal
+   überall stehen kann. */
+body[data-ldbuild]:not(.still) #ld-hero > [data-ldpara] {
+  /* Terminal liegt über den Hero-Elementen (Wunsch); der Canvas ist außerhalb des Fensters durchsichtig */
+  z-index: 4;
+  background: transparent !important;
+  height: calc(100vh + 140px) !important;
+  -webkit-mask: none !important;
+  mask: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
   body[data-ldbuild] [data-ldb] {
