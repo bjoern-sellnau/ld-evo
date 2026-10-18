@@ -13,6 +13,8 @@ export function applyBody(s: Settings, body: HTMLElement = document.body) {
   cl.toggle('still', !s.anim);
   cl.toggle('ldsafari', isSafari());
   cl.toggle('hc', s.hc);
+  cl.toggle('ldfocus', s.focusStrong);
+  cl.toggle('ldlinkline', s.linkLine);
   cl.toggle('noshadow', !s.shadowOn);
   cl.toggle('flat', s.flat);
   cl.toggle('noblur', !s.blurOn);

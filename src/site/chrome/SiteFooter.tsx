@@ -39,6 +39,7 @@ export function SiteFooter() {
   if (pathname === '/reise') return null;
   return (
     <footer
+      id="fuss"
       style={{
         display: 'flex',
         justifyContent: 'space-between',

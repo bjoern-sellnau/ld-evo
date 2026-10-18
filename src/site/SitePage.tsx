@@ -27,6 +27,8 @@ export function SitePage({ children }: { children: ReactNode }) {
   return (
     <main
       id="inhalt"
+      // Ziel der Sprunglinks und des Welcome-Übergangs: per Skript fokussierbar, nicht per Tab
+      tabIndex={-1}
       style={
         {
           ...(bleed as CSSProperties),
