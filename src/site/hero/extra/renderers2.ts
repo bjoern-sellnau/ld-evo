@@ -68,6 +68,34 @@ void main(){vec2 uv=gl_FragCoord.xy/u_res.y;vec2 m=u_mouse.xy/u_res.y;float R=0.
 
 /* ------------------------------------------------------------------------------------------- Canvas 2D ------ */
 
+/** Ortszeit Berlin und Sonnenauf-/-untergang (Stunden, gebrochen) — für Tageszeit-Himmel und Wetter. */
+const berlin = () => {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('de-DE', {
+    timeZone: 'Europe/Berlin',
+    hour: 'numeric',
+    minute: 'numeric',
+    hourCycle: 'h23',
+  }).formatToParts(now);
+  const h = Number(parts.find((p) => p.type === 'hour')?.value ?? 12);
+  const m = Number(parts.find((p) => p.type === 'minute')?.value ?? 0);
+  // Sonnenauf-/-untergang Berlin (52,52° N), einfache Näherung über die Deklination; Ortszeit inkl. Sommerzeit
+  const day = Math.floor(
+    (Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - Date.UTC(now.getUTCFullYear(), 0, 0)) / 864e5,
+  );
+  const decl = 23.44 * Math.sin((TAU * (284 + day)) / 365);
+  const lat = (52.52 * Math.PI) / 180;
+  const ha = (Math.acos(-Math.tan(lat) * Math.tan((decl * Math.PI) / 180)) * 180) / Math.PI;
+  const tzOff = (h - now.getUTCHours() + 24) % 24;
+  const noon = 12 - 13.405 / 15 + tzOff;
+  return {
+    now: h + m / 60,
+    rise: noon - ha / 15,
+    set: noon + ha / 15,
+    label: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+  };
+};
+
 /** Zeiger: echter Zeiger, sonst ein langsam wandernder „Geister-Zeiger“ (so lebt die Szene auch ohne Maus). */
 const ghost = (c: Ctx2D, t: number) =>
   c.ptr.active
@@ -903,32 +931,6 @@ export const MORE_2D: Record<string, Mode2D> = {
       v: rand(0.004, 0.01),
       i,
     }));
-    const berlin = () => {
-      const now = new Date();
-      const parts = new Intl.DateTimeFormat('de-DE', {
-        timeZone: 'Europe/Berlin',
-        hour: 'numeric',
-        minute: 'numeric',
-        hourCycle: 'h23',
-      }).formatToParts(now);
-      const h = Number(parts.find((p) => p.type === 'hour')?.value ?? 12);
-      const m = Number(parts.find((p) => p.type === 'minute')?.value ?? 0);
-      // Sonnenauf-/-untergang Berlin (52,52° N), einfache Näherung über die Deklination; Ortszeit inkl. Sommerzeit
-      const day = Math.floor(
-        (Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - Date.UTC(now.getUTCFullYear(), 0, 0)) / 864e5,
-      );
-      const decl = 23.44 * Math.sin((TAU * (284 + day)) / 365);
-      const lat = (52.52 * Math.PI) / 180;
-      const ha = (Math.acos(-Math.tan(lat) * Math.tan((decl * Math.PI) / 180)) * 180) / Math.PI;
-      const tzOff = (h - now.getUTCHours() + 24) % 24;
-      const noon = 12 - 13.405 / 15 + tzOff;
-      return {
-        now: h + m / 60,
-        rise: noon - ha / 15,
-        set: noon + ha / 15,
-        label: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
-      };
-    };
     let info = berlin();
     let next = 0;
     const KEYS: [number, string, string][] = [
@@ -1009,6 +1011,7 @@ export const MORE_2D: Record<string, Mode2D> = {
   },
 
   // Wetter Berlin: echtes Wetter über die eigene Route /api/wetter (keine Besucherdaten an Dritte); ohne Daten ruhig bewölkt.
+  // Tag/Nacht: von der Route, sonst aus dem Sonnenstand über Berlin (z. B. GitHub Pages, dort gibt es keine Route).
   // Wetter-Vorschau (Einstellungen): Wetterlage, Tageszeit und Wind fest wählen, um alle Darstellungen zu testen.
   weather: (c) => {
     const pv = typeof c.cfg.wx === 'string' && c.cfg.wx !== 'live' ? c.cfg.wx : null;
@@ -1021,8 +1024,12 @@ export const MORE_2D: Record<string, Mode2D> = {
         .then((r) => (r.ok ? r.json() : { ok: false }))
         .then((d: W) => (w = d))
         .catch(() => {});
-    const drops: { x: number; y: number; v: number }[] = [];
-    let flash = 0;
+    const sunDay = () => {
+      const b = berlin();
+      return b.now >= b.rise && b.now < b.set;
+    };
+    let dayNow = sunDay();
+    let nextSun = 0;
     const kind = () => {
       if (pv) return pv;
       const code = w.code ?? 3;
@@ -1034,6 +1041,49 @@ export const MORE_2D: Record<string, Mode2D> = {
       return 'wolken';
     };
     const ICON: Record<string, string> = { klar: '☀', wolken: '☁', regen: '☂', schnee: '❄', nebel: '≋', gewitter: 'ϟ' };
+
+    // Wolken-Sprite: viele weiche, überlappende Kreise (Kumulus-Form, unten flacher) — einmal gerendert, dann nur
+    // noch skaliert gezeichnet. Je Farbe ein Sprite.
+    const sprites = new Map<string, HTMLCanvasElement>();
+    const sprite = (col: string) => {
+      let cv = sprites.get(col);
+      if (cv) return cv;
+      cv = document.createElement('canvas');
+      cv.width = 360;
+      cv.height = 180;
+      const sg = cv.getContext('2d')!;
+      let seed = 7;
+      const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      const puffs: [number, number, number][] = [];
+      for (let i = 0; i < 16; i++) {
+        const x = 70 + r() * 220;
+        const top = 1 - Math.abs(x - 180) / 120; // in der Mitte höher
+        puffs.push([x, 118 - r() * 34 * Math.max(0.2, top), 26 + r() * 30 * Math.max(0.4, top)]);
+      }
+      for (const [x, y, rad] of puffs) {
+        const gr = sg.createRadialGradient(x, y, 0, x, y, rad);
+        gr.addColorStop(0, col.replace('A)', '0.55)'));
+        gr.addColorStop(0.55, col.replace('A)', '0.32)'));
+        gr.addColorStop(1, col.replace('A)', '0)'));
+        sg.fillStyle = gr;
+        sg.beginPath();
+        sg.arc(x, y, rad, 0, TAU);
+        sg.fill();
+      }
+      sprites.set(col, cv);
+      return cv;
+    };
+    // Wolken in drei Tiefen (hinten klein/langsam/blass, vorn groß/schneller)
+    const clouds = Array.from({ length: 14 }, (_, i) => ({
+      x: Math.random() * 1.6,
+      y: rand(0.04, 0.42),
+      s: rand(0.7, 1.4),
+      l: i % 3,
+    }));
+    const drops: { x: number; y: number; v: number }[] = [];
+    let flash = 0;
+    let bolt: { x: number; pts: [number, number][] } | null = null;
+
     return {
       still: 30,
       frame(t, dt) {
@@ -1041,50 +1091,113 @@ export const MORE_2D: Record<string, Mode2D> = {
         const W = c.W();
         const H = c.H();
         const k = kind();
-        const day = pvDay ?? w.day ?? true;
+        if (t > nextSun) {
+          dayNow = sunDay();
+          nextSun = t + 60;
+        }
+        const day = pvDay ?? w.day ?? dayNow;
+        const wind = (pvWind ?? w.wind ?? 10) / 10;
+        const dark = k === 'gewitter' || k === 'regen';
         g.globalCompositeOperation = 'source-over';
+
+        // Himmel je Wetterlage und Tageszeit
+        const SKY: Record<string, [string, string, string, string]> = {
+          // [Tag oben, Tag unten, Nacht oben, Nacht unten]
+          klar: ['#0f3a6a', '#3b7cb8', '#03050d', '#0b1530'],
+          wolken: ['#3a4a5e', '#6d7d90', '#06080f', '#141a28'],
+          regen: ['#2a3340', '#4a5564', '#04060b', '#10151f'],
+          schnee: ['#5a6676', '#9aa5b3', '#0a0d16', '#1d2433'],
+          nebel: ['#59626d', '#8a929b', '#0b0e14', '#1e232b'],
+          gewitter: ['#151a24', '#2a3140', '#020308', '#0a0d16'],
+        };
+        const sk = SKY[k] ?? SKY.wolken;
         const sky = g.createLinearGradient(0, 0, 0, H);
-        sky.addColorStop(0, day ? (k === 'klar' ? '#0f3a6a' : '#1a2433') : '#05070f');
-        sky.addColorStop(1, day ? (k === 'klar' ? '#2c6aa3' : '#2b3442') : '#0d1222');
+        sky.addColorStop(0, day ? sk[0] : sk[2]);
+        sky.addColorStop(1, day ? sk[1] : sk[3]);
         g.fillStyle = sky;
         g.fillRect(0, 0, W, H);
-        if (k === 'klar') {
+
+        // Sterne nachts (bei klarem/leicht bewölktem Himmel)
+        if (!day && (k === 'klar' || k === 'wolken'))
+          for (let i = 0; i < 90; i++) {
+            const sx = ((Math.sin(i * 91.7) + 1) / 2) * W;
+            const sy = ((Math.sin(i * 47.3) + 1) / 2) * H * 0.6;
+            g.fillStyle = `rgba(230,236,255,${(0.25 + 0.35 * Math.abs(Math.sin(t * 0.8 + i))) * (k === 'klar' ? 1 : 0.4)})`;
+            g.fillRect(sx, sy, 1.4, 1.4);
+          }
+        // Sonne / Mond (bei Wolken nur als Schimmer dahinter)
+        if (k === 'klar' || k === 'wolken') {
           const sx = W * 0.78;
-          const sy = H * 0.28;
-          const rg = g.createRadialGradient(sx, sy, 0, sx, sy, 160);
-          rg.addColorStop(0, day ? 'rgba(255,232,170,0.9)' : 'rgba(225,232,255,0.85)');
-          rg.addColorStop(0.2, day ? 'rgba(255,200,120,0.4)' : 'rgba(200,210,250,0.25)');
+          const sy = H * 0.26;
+          const a = k === 'klar' ? 1 : 0.45;
+          const rg = g.createRadialGradient(sx, sy, 0, sx, sy, 170);
+          rg.addColorStop(0, day ? `rgba(255,236,180,${0.95 * a})` : `rgba(228,234,255,${0.9 * a})`);
+          rg.addColorStop(0.18, day ? `rgba(255,205,130,${0.45 * a})` : `rgba(200,212,250,${0.22 * a})`);
           rg.addColorStop(1, 'rgba(0,0,0,0)');
           g.fillStyle = rg;
-          g.fillRect(sx - 170, sy - 170, 340, 340);
+          g.fillRect(sx - 180, sy - 180, 360, 360);
         }
-        // Wolkenbänder (auch bei Regen/Schnee/Gewitter); Wind bestimmt das Tempo
-        const wind = (pvWind ?? w.wind ?? 10) / 10;
-        if (k !== 'klar')
-          for (let l = 0; l < 3; l++)
-            for (let i = 0; i < 7; i++) {
-              const x = ((i * 0.19 + t * 0.01 * wind * (l + 1)) % 1.4) - 0.2;
-              g.fillStyle = `rgba(${k === 'gewitter' ? '60,64,80' : '170,180,200'},${0.05 + l * 0.03})`;
-              g.beginPath();
-              g.ellipse(x * W, H * (0.15 + l * 0.1 + Math.sin(i) * 0.04), 140 + l * 40, 36 + l * 8, 0, 0, TAU);
-              g.fill();
-            }
-        if (k === 'nebel')
-          for (let i = 0; i < 6; i++) {
-            g.fillStyle = 'rgba(200,205,215,0.05)';
-            g.fillRect(0, H * (0.3 + i * 0.1) + Math.sin(t * 0.3 + i) * 10, W, 40);
+
+        // Wolken (nicht bei klarem Himmel; bei Nebel nur wenige, blass)
+        if (k !== 'klar') {
+          const col =
+            k === 'gewitter'
+              ? 'rgba(52,58,74,A)'
+              : dark
+                ? day
+                  ? 'rgba(120,130,146,A)'
+                  : 'rgba(58,66,82,A)'
+                : day
+                  ? 'rgba(236,240,246,A)'
+                  : 'rgba(92,102,122,A)';
+          const sp = sprite(col);
+          const n = k === 'nebel' ? 5 : k === 'wolken' ? 10 : clouds.length;
+          for (let i = 0; i < n; i++) {
+            const cl = clouds[i];
+            const depth = 0.55 + cl.l * 0.3; // 0.55 … 1.15
+            const x = ((cl.x + t * 0.006 * wind * depth) % 1.6) - 0.3;
+            const w2 = 360 * cl.s * depth * (W / 1280 + 0.4);
+            const h2 = w2 / 2;
+            g.globalAlpha = (k === 'nebel' ? 0.35 : 0.55 + cl.l * 0.2) * (dark ? 1.1 : 1);
+            g.drawImage(sp, x * W - w2 / 2, cl.y * H - h2 / 2, w2, h2);
           }
+          g.globalAlpha = 1;
+        }
+
+        // Nebel: weiche, langsam ziehende Schwaden über der unteren Hälfte + Dunst nach unten dichter
+        if (k === 'nebel') {
+          const haze = g.createLinearGradient(0, H * 0.25, 0, H);
+          haze.addColorStop(0, 'rgba(200,206,214,0)');
+          haze.addColorStop(1, day ? 'rgba(206,212,220,0.55)' : 'rgba(120,128,140,0.4)');
+          g.fillStyle = haze;
+          g.fillRect(0, 0, W, H);
+          const sp = sprite(day ? 'rgba(226,230,236,A)' : 'rgba(130,138,150,A)');
+          for (let i = 0; i < 7; i++) {
+            const depth = 0.6 + (i % 3) * 0.25;
+            const x = (((i * 0.37 + t * 0.004 * (0.5 + wind * 0.5) * depth) % 1.8) - 0.4) * W;
+            const y = H * (0.38 + i * 0.075) + Math.sin(t * 0.25 + i) * 8;
+            const w2 = W * (0.7 + (i % 2) * 0.3);
+            g.globalAlpha = 0.5;
+            g.drawImage(sp, x - w2 / 2, y - 60, w2, 120); // flach gezogen = Schwade
+          }
+          g.globalAlpha = 1;
+        }
+
+        // Niederschlag
         if (k === 'regen' || k === 'schnee' || k === 'gewitter') {
           const n = k === 'schnee' ? 220 : 380;
           while (drops.length < n) drops.push({ x: rand(0, W), y: rand(-H, H), v: rand(0.7, 1.3) });
           drops.length = n;
           g.strokeStyle = 'rgba(190,210,240,0.35)';
-          g.fillStyle = 'rgba(240,245,255,0.8)';
+          g.lineWidth = 1;
           for (const d of drops) {
             if (k === 'schnee') {
               d.y += d.v * 40 * dt;
               d.x += Math.sin(t + d.v * 9) * 0.4 + wind * 0.3;
-              g.fillRect(d.x, d.y, 2.2, 2.2);
+              g.fillStyle = `rgba(245,248,255,${0.5 + d.v * 0.3})`;
+              g.beginPath();
+              g.arc(d.x, d.y, 1 + d.v, 0, TAU);
+              g.fill();
             } else {
               d.y += d.v * 520 * dt;
               d.x += wind * 60 * dt;
@@ -1093,20 +1206,39 @@ export const MORE_2D: Record<string, Mode2D> = {
               g.lineTo(d.x - wind * 3, d.y - 12 * d.v);
               g.stroke();
             }
-            if (d.y > H) {
+            if (d.y > H || d.x > W + 40) {
               d.y = rand(-40, 0);
               d.x = rand(-40, W);
             }
           }
         }
+        // Gewitter: Blitz mit Verästelung + Aufhellung
         if (k === 'gewitter') {
-          if (Math.random() < dt * 0.25) flash = 1;
-          flash = Math.max(0, flash - dt * 3);
-          if (flash > 0) {
-            g.fillStyle = `rgba(230,235,255,${flash * 0.35})`;
-            g.fillRect(0, 0, W, H);
+          if (!bolt && Math.random() < dt * 0.22) {
+            const bx = rand(W * 0.45, W * 0.95);
+            const pts: [number, number][] = [[bx, 0]];
+            let x = bx;
+            for (let y = 0; y < H * 0.7; y += rand(18, 36)) pts.push([(x += rand(-22, 22)), y]);
+            bolt = { x: bx, pts };
+            flash = 1;
           }
+          flash = Math.max(0, flash - dt * 2.6);
+          if (flash > 0) {
+            g.fillStyle = `rgba(220,228,255,${flash * 0.3})`;
+            g.fillRect(0, 0, W, H);
+            if (bolt && flash > 0.5) {
+              g.strokeStyle = `rgba(240,244,255,${flash})`;
+              g.lineWidth = 2;
+              g.beginPath();
+              bolt.pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+              g.stroke();
+            }
+          } else bolt = null;
         }
+
+        // Hero-Text (links) lesbar halten: helle Tageshimmel (Nebel, Schnee, Wolken) links abdunkeln
+        veil(c, day ? (k === 'klar' || dark ? 0.35 : 0.6) : 0.2);
+
         g.font = `600 12px ${monoFont()}`;
         g.fillStyle = 'rgba(235,240,248,0.72)';
         g.textAlign = 'right';

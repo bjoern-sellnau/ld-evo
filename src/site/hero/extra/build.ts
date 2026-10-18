@@ -8,7 +8,10 @@
  * Kopplung an die Seite: body[data-ldbuild] = Liste der fertigen Teile (z. B. "nav title cta"). Versteckt wird per
  * CSS (site.css, „Live-Build“) nur, solange das Attribut steht; die Elemente tragen data-ldb="…" (HalloPage), die
  * Navigation/Fußzeile werden über ihre Container erfasst. Sicherheitsnetze: „Animationen aus“ → sofort alles da;
- * Klick, Taste oder Scrollen → überspringen; Abbau des Renderers → Attribut weg; CSS zeigt nach 40 s ohnehin alles.
+ * Klick, Taste oder Scrollen → überspringen; Abbau des Renderers → Attribut weg; Boot-Script gibt nach 120 s alles frei.
+ *
+ * Dramaturgie (Wunsch: „als baue man die Seite gerade“): erst nichts, dann öffnet sich das Terminal, der Cursor blinkt,
+ * dann wird langsam getippt; jedes Element erscheint erst, wenn sein Code fertig ist.
  */
 import type { Ctx2D, ExtraRenderer, Mode2D } from './renderers';
 
@@ -25,7 +28,25 @@ const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 const L = (de: string, en: string) => (typeof document !== 'undefined' && document.documentElement.lang.startsWith('en') ? en : de);
 
 /** Zeitachse: normal = Echtzeit; Timeshift = Tempo steigt linear (nach 10 s etwa dreifach). */
-const clockOf = (shift: boolean) => (t: number) => (shift ? t + (t * t) / 10 : t);
+const clockOf = (shift: boolean) => (t: number) => (shift ? t + (t * t) / 40 : t);
+/** Ablauf: so lange schwarz, dann öffnet sich das Fenster (OPEN s), dann blinkt der Cursor bis zum ersten Tastendruck. */
+const BLACK = 1.8;
+const OPEN = 0.9;
+const TYPE_AT = BLACK + OPEN + 1.4;
+const easeOut = (x: number) => 1 - Math.pow(1 - x, 3);
+/** Fenster „aufziehen“ (leicht wachsen + einblenden). Gibt die Deckkraft zurück; danach g.restore() aufrufen. */
+const openWindow = (c: Ctx2D, f: { x: number; y: number; w: number; h: number }, tau: number) => {
+  const o = easeOut(clamp01((tau - BLACK) / OPEN));
+  const g = c.g;
+  g.save();
+  const cx = f.x + f.w / 2;
+  const cy = f.y + f.h / 2;
+  const sc = 0.9 + 0.1 * o;
+  g.translate(cx, cy);
+  g.scale(sc, sc);
+  g.translate(-cx, -cy);
+  return o;
+};
 
 /** Steuert body[data-ldbuild] (siehe Dateikopf). */
 function pageLink(onSkip: () => void) {
@@ -128,22 +149,18 @@ interface Line {
 const SCRIPT: Line[] = [
   { k: 'cmd', s: '$ cd ld-evo && nvim src/site/nav/SiteNav.tsx' },
   { k: 'code', s: 'export function SiteNav() {' },
-  { k: 'code', s: '  const { settings, navigate } = useSite();' },
   { k: 'code', s: '  const t = useT();' },
   { k: 'code', s: '  return (' },
   { k: 'code', s: '    <nav aria-label={t(\'nav.main\')} className="ldnavvt">' },
   { k: 'code', s: "      <Link href={href('/')}><LoonaLockup /></Link>" },
   { k: 'code', s: '      {items.map((it) => <NavLink key={it.path} {...it} />)}' },
   { k: 'code', s: '    </nav>', show: ['nav'] },
-  { k: 'code', s: '  );' },
   { k: 'code', s: '}' },
   { k: 'ok', s: '"SiteNav.tsx" 214L written' },
   { k: 'gap', s: '' },
   { k: 'cmd', s: '$ nvim src/site/pages/HalloPage.tsx' },
   { k: 'code', s: 'export function HalloPage() {' },
   { k: 'code', s: '  const { home } = useContent();' },
-  { k: 'code', s: '  const hm = heroMode(s);' },
-  { k: 'code', s: '  useExtraHero(hm, s);' },
   { k: 'code', s: '  return (' },
   { k: 'code', s: '    <div id="ld-hero">' },
   { k: 'code', s: '      <EText path="kicker" value={home.kicker} />', show: ['kicker'] },
@@ -153,20 +170,16 @@ const SCRIPT: Line[] = [
   { k: 'code', s: '      </h1>', show: ['title'] },
   { k: 'code', s: '      <span aria-live="polite">{role}</span>', show: ['role'] },
   { k: 'code', s: '      <p><EText path="intro" value={home.intro} multiline /></p>', show: ['intro'] },
-  { k: 'code', s: "      <button onClick={() => navigate('/projekte')}>" },
-  { k: 'code', s: "        {t('home.ctaProjects')} ›" },
-  { k: 'code', s: '      </button>' },
-  { k: 'code', s: "      <button onClick={() => setOverlay('kontakt')}>…</button>", show: ['cta'] },
+  { k: 'code', s: "      <Button href='/projekte'>{t('home.ctaProjects')}</Button>" },
+  { k: 'code', s: "      <Button onClick={hallo}>{t('home.ctaHello')}</Button>", show: ['cta'] },
   { k: 'code', s: '    </div>' },
   { k: 'code', s: '    <CareerCounter value={seconds} fx={s.counterFx} />', show: ['stats'] },
-  { k: 'code', s: '    …' },
   { k: 'code', s: '    <section aria-labelledby="featured-title">' },
   { k: 'code', s: '      {featured.map((p) => <ProjectCard key={p.id} p={p} />)}' },
   { k: 'code', s: '    </section>', show: ['featured'] },
   { k: 'code', s: '    <section aria-labelledby="news-title">' },
   { k: 'code', s: '      {news.map((a) => <NewsCard key={a.id} a={a} />)}' },
   { k: 'code', s: '    </section>', show: ['news'] },
-  { k: 'code', s: '  );' },
   { k: 'code', s: '}' },
   { k: 'ok', s: '"HalloPage.tsx" 484L written' },
   { k: 'gap', s: '' },
@@ -179,13 +192,12 @@ const SCRIPT: Line[] = [
   { k: 'cmd', s: '$ npm run dev' },
   { k: 'info', s: '▲ Next.js 16 · Local: http://localhost:3000' },
   { k: 'ok', s: '✓ Ready in 1.2s' },
-  { k: 'ok', s: '✓ Compiled / in 840ms' },
 ];
-const CPS = { cmd: 40, code: 95 }; // Zeichen je Sekunde (normal)
-const PAUSE: Record<Kind, number> = { cmd: 0.35, code: 0.05, ok: 0.35, info: 0.3, gap: 0.15 };
+const CPS = { cmd: 16, code: 40 }; // Zeichen je Sekunde (normal) — bewusst Tipp-Tempo
+const PAUSE: Record<Kind, number> = { cmd: 0.8, code: 0.12, ok: 0.9, info: 0.5, gap: 0.5 };
 
 const timeline = () => {
-  let at = 0.9; // das Terminal blendet erst ein
+  let at = TYPE_AT; // erst öffnet sich das Terminal
   return SCRIPT.map((l) => {
     const typed = l.k === 'cmd' || l.k === 'code';
     const dur = typed ? l.s.length / CPS[l.k as 'cmd' | 'code'] : 0;
@@ -210,7 +222,7 @@ const codeMode =
   (shift: boolean): Mode2D =>
   (c) => {
     const rows = timeline();
-    const END = rows[rows.length - 1].end + 0.6;
+    const END = rows[rows.length - 1].end + 1.2;
     const clock = clockOf(shift);
     let skipped = false;
     let finished = false;
@@ -241,7 +253,7 @@ const codeMode =
         const f = frameOf(c);
         // fertig: Terminal tritt zurück (schmal liegt es hinter dem Hero-Text)
         const back = finished ? clamp01((t - doneAt) / 1.2) : 0;
-        const alpha = clamp01(tau / 0.9) * (1 - back * (f.wide ? 0.45 : 0.8));
+        const alpha = openWindow(c, f, tau) * (1 - back * (f.wide ? 0.45 : 0.8));
         windowChrome(c, f, 'zsh — ld-evo', alpha);
 
         const fs = f.wide ? 13 : 11.5;
@@ -284,6 +296,7 @@ const codeMode =
           g.textAlign = 'left';
         }
         g.globalAlpha = 1;
+        g.restore();
       },
     } satisfies ExtraRenderer;
   };
@@ -371,7 +384,7 @@ const agentsMode =
         g.fillRect(0, 0, c.W(), c.H());
         const f = frameOf(c);
         const back = finished ? clamp01((t - doneAt) / 1.2) : 0;
-        const alpha = clamp01(tau / 0.9) * (1 - back * (f.wide ? 0.45 : 0.8));
+        const alpha = openWindow(c, f, tau) * (1 - back * (f.wide ? 0.45 : 0.8));
         windowChrome(c, f, 'claude — orchestrator', alpha);
 
         const fs = f.wide ? 12.5 : 11;
@@ -379,11 +392,19 @@ const agentsMode =
         g.font = `${fs}px ${mono}`;
         const nDone = AGENTS.filter((a) => tau >= a.start + a.dur).length;
         g.fillStyle = 'rgba(240,244,250,0.95)';
-        g.fillText(
-          L('> baue die Startseite — eine Komponente je Agent', '> build the home page — one component per agent'),
-          f.x + 14,
-          f.y + 50,
-        );
+        // Auftrag wird erst getippt, dann starten die Agenten
+        const ask = L('> baue die Startseite — eine Komponente je Agent', '> build the home page — one component per agent');
+        const typed = Math.max(0, Math.floor((tau - TYPE_AT) * 18));
+        g.fillText(ask.slice(0, typed), f.x + 14, f.y + 50);
+        if (tau < AGENTS[0].start) {
+          if (typed >= ask.length || Math.floor(t * 2.2) % 2 === 0) {
+            g.fillStyle = c.col(1, 0.95);
+            g.fillRect(f.x + 15 + g.measureText(ask.slice(0, typed)).width, f.y + 50 - fs + 2, fs * 0.55, fs + 1);
+          }
+          g.globalAlpha = 1;
+          g.restore();
+          return;
+        }
         g.fillStyle = nDone === AGENTS.length ? c.col(2, 0.95) : c.col(1, 0.95);
         g.fillText(
           nDone === AGENTS.length
@@ -418,6 +439,7 @@ const agentsMode =
             g.fillRect(f.x + 14, y + fs * 0.5, (f.w - 28) * p, 2);
           });
           g.globalAlpha = 1;
+          g.restore();
           return;
         }
         AGENTS.forEach((a, i) => {
@@ -466,6 +488,7 @@ const agentsMode =
           g.textAlign = 'left';
         }
         g.globalAlpha = 1;
+        g.restore();
       },
     } satisfies ExtraRenderer;
   };
