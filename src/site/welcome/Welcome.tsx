@@ -64,10 +64,7 @@ export function Welcome() {
     }
     // Fokus an den Anfang der neuen Seite (das Overlay mit dem Fokus verschwindet)
     const main = document.getElementById('inhalt');
-    if (main) {
-      if (!main.hasAttribute('tabindex')) main.setAttribute('tabindex', '-1');
-      main.focus({ preventScroll: true });
-    }
+    main?.focus({ preventScroll: true });
   };
   const start = () => {
     if (phase !== 'old') return;

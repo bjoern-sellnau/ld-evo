@@ -4,6 +4,7 @@ import { ContentProvider } from '@/site/content/ContentProvider';
 import { GlassDriver } from '@/site/glass/GlassDriver';
 import { PhoneFrame } from '@/site/chrome/PhoneFrame';
 import { ScrollChrome } from '@/site/chrome/ScrollChrome';
+import { SkipLinks } from '@/site/chrome/SkipLinks';
 import { LocaleProvider } from '@/site/i18n/LocaleProvider';
 import type { Locale } from '@/site/i18n/locale';
 import { MobileMenu } from '@/site/nav/MobileMenu';
@@ -25,6 +26,7 @@ export function SiteShell({ locale, children }: { locale: Locale; children: Reac
     <LocaleProvider locale={locale}>
       <ContentProvider value={content}>
         <SiteProvider>
+          <SkipLinks />
           <Splash />
           {/* data-ld-vp: auf schmalen Bildschirmen erst sichtbar, wenn das Layout zur Breite passt (CLS-Schutz, site.css) */}
           <div data-ld-vp style={{ display: 'contents' }}>

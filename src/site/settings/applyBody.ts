@@ -13,6 +13,8 @@ export function applyBody(s: Settings, body: HTMLElement = document.body) {
   cl.toggle('still', !s.anim);
   cl.toggle('ldsafari', isSafari());
   cl.toggle('hc', s.hc);
+  cl.toggle('ldfocus', s.focusStrong);
+  cl.toggle('ldlinkline', s.linkLine);
   cl.toggle('noshadow', !s.shadowOn);
   cl.toggle('flat', s.flat);
   cl.toggle('noblur', !s.blurOn);
@@ -47,4 +49,5 @@ export function applyThemeColor(mode: Settings['themeColor'], body: HTMLElement 
  * Vor dem ersten Paint (inline im <head>): Theme-Klasse setzen, damit Light-Nutzer keinen Dark-Blitz sehen.
  * Der Rest synchronisiert sich nach der Hydration über den SettingsProvider.
  */
-export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem('ld-theme');if(t==='light')document.body.classList.add('light');if(localStorage.getItem('ld-anim')==='off')document.body.classList.add('still');if(localStorage.getItem('ld-splash')==='off')document.body.classList.add('ldnosplash')}catch(e){}`;
+// Live-Build-Hero (hero/extra/build.ts): Startseite schon vor dem ersten Bild verstecken, sonst blitzt sie kurz auf.
+export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem('ld-theme');if(t==='light')document.body.classList.add('light');if(localStorage.getItem('ld-anim')==='off')document.body.classList.add('still');if(localStorage.getItem('ld-splash')==='off')document.body.classList.add('ldnosplash');if(/^build/.test(localStorage.getItem('ld-heroanim')||'')&&localStorage.getItem('ld-anim')!=='off'&&/^([/]en)?[/]?$/.test(location.pathname.slice(${JSON.stringify(process.env.NEXT_PUBLIC_BASE_PATH ?? '')}.length))){document.body.setAttribute('data-ldbuild','');setTimeout(function(){document.body.removeAttribute('data-ldbuild')},45000)}}catch(e){}`;

@@ -293,6 +293,8 @@ const EN_LABELS: Record<string, string> = {
   Sprache: 'Language',
   'Page-Transition': 'Page transition',
   'Welcome-Effekt': 'Welcome effect',
+  'Fokus deutlich': 'Strong focus ring',
+  'Links unterstreichen': 'Underline links',
   'Wie in LD Flow': 'As set in LD Flow',
   Kacheln: 'Tiles',
   Welle: 'Wave',
@@ -379,6 +381,8 @@ export function SettingsPanel() {
 
   const switches: { label: string; key: keyof Settings; on: boolean }[] = [
     { label: 'High Contrast', key: 'hc', on: s.hc },
+    { label: 'Fokus deutlich', key: 'focusStrong', on: s.focusStrong },
+    { label: 'Links unterstreichen', key: 'linkLine', on: s.linkLine },
     { label: 'Schatten', key: 'shadowOn', on: s.shadowOn },
     { label: 'Blur', key: 'blurOn', on: s.blurOn },
     { label: 'Refraction', key: 'refrOn', on: s.refrOn },

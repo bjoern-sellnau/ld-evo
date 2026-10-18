@@ -37,6 +37,10 @@ export interface Settings {
   theme: Theme;
   anim: boolean;
   hc: boolean;
+  /** Barrierefreiheit (neu, nicht im Prototyp): kräftiger Fokusrahmen an allen Bedienelementen. */
+  focusStrong: boolean;
+  /** Barrierefreiheit (neu): Links im Fließtext immer unterstrichen. */
+  linkLine: boolean;
   shadowOn: boolean;
   flat: boolean;
   blurOn: boolean;
@@ -121,6 +125,8 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
   anim: true,
   hc: false,
+  focusStrong: false,
+  linkLine: false,
   shadowOn: true,
   flat: false,
   blurOn: true,
@@ -218,6 +224,8 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   theme: str<Theme>('ld-theme', 'dark'),
   anim: { key: 'ld-anim', read: (r) => (r === null ? true : r === 'on'), write: (v) => (v ? 'on' : 'off') },
   hc: offUnlessOn('ld-hc'),
+  focusStrong: offUnlessOn('ld-focus'),
+  linkLine: offUnlessOn('ld-linkline'),
   shadowOn: onUnlessOff('ld-shadow'),
   flat: offUnlessOn('ld-flat'),
   blurOn: onUnlessOff('ld-blur'),

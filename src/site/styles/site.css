@@ -1763,3 +1763,112 @@ body.ldcover.light [data-ldown] {
 .ldfold > #ld-navrest > * {
   flex-shrink: 0;
 }
+
+/* ── Barrierefreiheit (neu, nicht im Prototyp) ─────────────────────────────────────────────────────────────────
+   Fokusziele der Sprunglinks/des Welcome-Übergangs (tabindex="-1", keine Bedienelemente): kein Rahmen um die ganze
+   Seite — der nächste Tab zeigt den Fokus am Bedienelement. */
+#inhalt:focus,
+#fuss:focus {
+  outline: none;
+}
+/* Sprunglinks: unsichtbar (aber vorlesbar), bis einer den Tastaturfokus hat — dann die ganze Gruppe oben links */
+.ldskip {
+  position: fixed;
+  z-index: 10050;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: calc(100vw - 24px);
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.ldskip:focus-within {
+  clip-path: none;
+  width: auto;
+  height: auto;
+  overflow: visible;
+}
+.ldskip a,
+.ldskip button {
+  font:
+    600 14px/1.2 var(--ld-font-sans),
+    sans-serif;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--ink);
+  color: var(--bg);
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+.ldskip a:focus-visible,
+.ldskip button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+/* „Fokus deutlich“: dicker Rahmen in Schriftfarbe (≥ 4.5:1 zum Hintergrund) plus Akzent-Hof */
+body.ldfocus :focus-visible {
+  outline: 3px solid var(--ink) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 70%, transparent) !important;
+}
+body.ldfocus #inhalt:focus-visible,
+body.ldfocus #fuss:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* „Links unterstreichen“: Links im Fließtext nicht nur an der Farbe erkennbar (WCAG 1.4.1) */
+body.ldlinkline main#inhalt :is(p, li, dd, td, figcaption, blockquote) a,
+body.ldlinkline footer a {
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+/* Live-Build-Hero (src/site/hero/extra/build.ts): Solange body[data-ldbuild] steht, ist die Seite schwarz und nur die
+   schon „gebauten“ Teile (Liste im Attribut) sind sichtbar. Unsichtbare Teile bleiben für Screenreader im Baum;
+   Tastaturfokus macht sein Element sofort sichtbar. !important, weil Hero-Text und Menü eigene Inline-Deckkraft haben.
+   Sicherheitsnetz gegen eine dauerhaft schwarze Seite: Boot-Script (applyBody.ts) entfernt das Attribut nach 45 s.
+   Menü/Fußzeile nur über die Deckkraft (fixierte Leisten haben eigene transform-Werte). */
+html:has(body[data-ldbuild]:not(.still)),
+body[data-ldbuild]:not(.still) {
+  background: #000 !important;
+}
+body[data-ldbuild] [data-ldb] {
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1),
+    filter 0.6s ease;
+}
+body[data-ldbuild] [data-ld-vp] > :not(main),
+body[data-ldbuild] #fuss {
+  transition: opacity 0.6s ease;
+}
+body[data-ldbuild]:not(.still):not([data-ldbuild~='kicker']) [data-ldb='kicker']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='title']) [data-ldb='title']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='role']) [data-ldb='role']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='intro']) [data-ldb='intro']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='cta']) [data-ldb='cta']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='stats']) [data-ldb='stats']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='featured']) [data-ldb='featured']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='news']) [data-ldb='news']:not(:focus-within) {
+  opacity: 0 !important;
+  transform: translateY(10px);
+  filter: blur(6px);
+}
+body[data-ldbuild]:not(.still):not([data-ldbuild~='nav']) [data-ld-vp] > :not(main):not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='footer']) #fuss:not(:focus-within) {
+  opacity: 0 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-ldbuild] [data-ldb] {
+    transform: none !important;
+    filter: none !important;
+  }
+}

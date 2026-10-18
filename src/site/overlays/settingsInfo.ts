@@ -165,6 +165,14 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Die Hero-Animation ohne eigenen Hintergrund — die Seitenfarbe scheint durch.',
     en: 'The hero animation without its own background — the page color shows through.',
   },
+  'Fokus deutlich': {
+    de: 'Dicker, kontrastreicher Rahmen um das Element, das gerade per Tastatur ausgewählt ist — leichter zu verfolgen.',
+    en: 'Thick, high-contrast ring around the element currently selected via keyboard — easier to follow.',
+  },
+  'Links unterstreichen': {
+    de: 'Links im Text immer unterstreichen, nicht nur an der Farbe erkennbar.',
+    en: 'Always underline links in text, not only marked by colour.',
+  },
   'High Contrast': {
     de: 'Dunklerer Hintergrund und kräftigere Ränder für bessere Lesbarkeit.',
     en: 'Darker background and stronger borders for better readability.',
