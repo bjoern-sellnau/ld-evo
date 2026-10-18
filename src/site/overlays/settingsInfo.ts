@@ -129,6 +129,10 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Wetter-Hero (nach „Wind fest einstellen“): eigene Windstärke statt der gemessenen — bewegt Wolken, Regen und Schnee schneller oder langsamer.',
     en: 'Weather hero (after “Fixed wind”): your own wind speed instead of the measured one — moves clouds, rain and snow faster or slower.',
   },
+  'Footer-Logo': {
+    de: 'Welche Logo-Variante im Footer steht (bei Footer-Marke „Logo“) — dieselbe Auswahl wie beim Favicon.',
+    en: 'Which logo variant the footer shows (with footer brand “Logo”) — the same choice as for the favicon.',
+  },
   'Welcome-Effekt': {
     de: 'Wie sich auf /welcome die alte Website in die neue verwandelt: Kacheln, Glitch, Pixel, Welle, Risse, Brennen, Countdown-Tür (20 s) oder Zufall. „Wie in LD Flow“ nimmt die Einstellung der Startseite.',
     en: 'How the old website turns into the new one on /welcome: tiles, glitch, pixel, wave, cracks, burn, countdown door (20 s) or random. “As set in LD Flow” uses the home page setting.',

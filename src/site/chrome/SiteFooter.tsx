@@ -9,6 +9,7 @@ import { useHref, useT } from '../i18n/LocaleProvider';
 import { canonicalPath } from '../i18n/locale';
 import { LanguageSwitch } from '../i18n/LanguageSwitch';
 import { LoonaTile } from '@/components/brand';
+import { FAVICONS, faviconUri } from '../settings/favicon';
 import type { ReactNode } from 'react';
 
 /** Symbole der Footer-Links (GitHub: Octicons „mark-github“, MIT; LinkedIn: Simple Icons, CC0). */
@@ -52,7 +53,15 @@ export function SiteFooter() {
     >
       <span style={{ fontSize: 13.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         {settings.footBrand === 'logo' ? (
-          <LoonaTile product="ld" variant="color" size={26} title="Loona! Designs" style={{ display: 'block' }} />
+          // Variante wie beim Favicon; „Farb-Kachel“ = bisheriges LoonaTile (Standard)
+          (() => {
+            const f = FAVICONS.find((x) => x.key === settings.footLogo);
+            return !f || f.key === 'color' ? (
+              <LoonaTile product="ld" variant="color" size={26} title="Loona! Designs" style={{ display: 'block' }} />
+            ) : (
+              <img src={faviconUri(f.svg)} alt="Loona! Designs" width={26} height={26} style={{ display: 'block' }} />
+            );
+          })()
         ) : (
           <span>
             Loona<span style={settings.footBrand === 'plain' ? undefined : { color: 'var(--accent)' }}>!</span> Designs

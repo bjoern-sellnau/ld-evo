@@ -150,6 +150,7 @@ const EN_LABELS: Record<string, string> = {
   'Menü-Elemente': 'Menu elements',
   'Tech-Layout': 'Tech layout',
   'Footer-Marke': 'Footer brand',
+  'Footer-Logo': 'Footer logo',
   'Footer-Zusatz': 'Footer tagline',
   'Footer-Links': 'Footer links',
   'Eigener Copyright-Text': 'Custom copyright text',
@@ -779,6 +780,35 @@ export function SettingsPanel() {
               label="Footer-Marke"
             />
           </Row>
+          {s.footBrand === 'logo' && (
+            <Row label="Footer-Logo">
+              {/* gleiche Varianten wie das Favicon */}
+              <span role="radiogroup" aria-label={sl('Footer-Logo')} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                {FAVICONS.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={s.footLogo === f.key}
+                    aria-label={sl(f.label)}
+                    title={sl(f.label)}
+                    onClick={() => set('footLogo', f.key)}
+                    style={{
+                      width: 30,
+                      height: 30,
+                      padding: 4,
+                      borderRadius: 9,
+                      cursor: 'pointer',
+                      border: `1.5px solid ${s.footLogo === f.key ? 'var(--accent)' : 'var(--border)'}`,
+                      background: f.key.startsWith('neg') ? '#3A3F4A' : 'transparent',
+                    }}
+                  >
+                    <img src={faviconUri(f.svg)} alt="" width={20} height={20} style={{ display: 'block' }} />
+                  </button>
+                ))}
+              </span>
+            </Row>
+          )}
           <Row label="Footer-Zusatz" column>
             <input
               value={s.footTag}

@@ -100,6 +100,8 @@ export interface Settings {
   counterFx: CounterFx;
   techLayout: TechLayout;
   footBrand: FootBrand;
+  /** Footer-Marke „Logo“: welche Variante (gleiche Auswahl wie das Favicon, favicon.ts). */
+  footLogo: string;
   /** Zusatz hinter der Marke, frei (leer = keiner). */
   footTag: string;
   /** Copyright-Zeile, frei (leer = keine). */
@@ -178,6 +180,7 @@ export const DEFAULT_SETTINGS: Settings = {
   counterFx: 'plain',
   techLayout: 'cards',
   footBrand: 'accent',
+  footLogo: 'color',
   footTag: FOOT_TAG_DEFAULT,
   footCopy: FOOT_COPY_PRESETS[0],
   footIcons: false,
@@ -292,6 +295,7 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
     read: (r) => (r === 'plain' || r === 'logo' ? r : 'accent'),
     write: (v) => (v === 'accent' ? null : v),
   },
+  footLogo: str<string>('ld-footlogo', 'color'),
   footTag: str<string>('ld-foottag', FOOT_TAG_DEFAULT),
   footCopy: str<string>('ld-footcopy', FOOT_COPY_PRESETS[0]),
   footIcons: offUnlessOn('ld-footicons'),
