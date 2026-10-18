@@ -459,6 +459,7 @@ function ScrollIndicator({ hidden }: { hidden: boolean }) {
   return (
     <div
       aria-hidden
+      data-ldb="scroll"
       style={{
         position: 'fixed',
         left: '50%',

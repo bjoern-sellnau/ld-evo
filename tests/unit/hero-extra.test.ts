@@ -19,8 +19,8 @@ describe('Zusätzliche Hero-Animationen', () => {
       expect(m.lum).toBeLessThan(0.3);
     }
   });
-  it('Live-Build: vier Varianten (Code/Agents × normal/Timeshift), das Boot-Script erkennt sie', () => {
-    expect(BUILD_KEYS).toEqual(['buildcode', 'buildcodets', 'buildagents', 'buildagentsts']);
+  it('Live-Build: sechs Varianten (Code/Dev-Server/Agents × normal/Timeshift), das Boot-Script erkennt sie', () => {
+    expect(BUILD_KEYS).toEqual(['buildcode', 'buildcodets', 'buildserver', 'buildserverts', 'buildagents', 'buildagentsts']);
     for (const k of BUILD_KEYS) expect(EXTRA_MODES[k]?.renderer, k).toBe('canvas2d');
     // gültiges JavaScript (Regex-Escapes im Template-String!)
     expect(() => new Function(THEME_BOOT_SCRIPT)).not.toThrow();

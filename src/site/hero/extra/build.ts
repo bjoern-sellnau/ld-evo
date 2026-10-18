@@ -16,7 +16,7 @@
 import type { Ctx2D, ExtraRenderer, Mode2D } from './renderers';
 
 const TAU = Math.PI * 2;
-const PARTS = ['nav', 'kicker', 'title', 'role', 'intro', 'cta', 'stats', 'featured', 'news', 'footer'] as const;
+const PARTS = ['nav', 'kicker', 'title', 'role', 'intro', 'cta', 'scroll', 'stats', 'featured', 'news', 'footer'] as const;
 type Part = (typeof PARTS)[number];
 
 const monoFont = () => {
@@ -34,18 +34,56 @@ const BLACK = 1.8;
 const OPEN = 0.9;
 const TYPE_AT = BLACK + OPEN + 1.4;
 const easeOut = (x: number) => 1 - Math.pow(1 - x, 3);
-/** Fenster „aufziehen“ (leicht wachsen + einblenden). Gibt die Deckkraft zurück; danach g.restore() aufrufen. */
-const openWindow = (c: Ctx2D, f: { x: number; y: number; w: number; h: number }, tau: number) => {
+/**
+ * Fenster „aufziehen“ (leicht wachsen + einblenden). Gibt die Deckkraft zurück; am Ende endFrame() aufrufen.
+ * crtP ≥ 0: Schluss-Effekt „Röhren-Monitor aus“ (Einstellung) — erst fällt das Bild zu einer Linie zusammen, dann
+ * schrumpft die Linie zum Punkt.
+ */
+const openWindow = (c: Ctx2D, f: { x: number; y: number; w: number; h: number }, tau: number, crtP = -1) => {
   const o = easeOut(clamp01((tau - BLACK) / OPEN));
   const g = c.g;
   g.save();
   const cx = f.x + f.w / 2;
   const cy = f.y + f.h / 2;
   const sc = 0.9 + 0.1 * o;
+  const { sx, sy } = crtScale(crtP);
   g.translate(cx, cy);
-  g.scale(sc, sc);
+  g.scale(sc * sx, sc * sy);
   g.translate(-cx, -cy);
   return o;
+};
+const easeIn = (x: number) => x * x * x;
+const crtScale = (p: number) =>
+  p < 0
+    ? { sx: 1, sy: 1 }
+    : {
+        sy: p < 0.45 ? Math.max(0.006, 1 - easeIn(p / 0.45)) : 0.006,
+        sx: p < 0.45 ? 1 : Math.max(0.002, 1 - easeIn(clamp01((p - 0.45) / 0.3))),
+      };
+/** Bildaufbau abschließen; beim Röhren-Effekt das Bild überstrahlen und Linie/Punkt nachglühen lassen. */
+const endFrame = (c: Ctx2D, f: { x: number; y: number; w: number; h: number }, crtP: number) => {
+  const g = c.g;
+  if (crtP >= 0) {
+    g.globalAlpha = 1;
+    g.fillStyle = `rgba(230,242,255,${Math.min(1, crtP * 2.4) * 0.92})`;
+    g.fillRect(f.x, f.y, f.w, f.h);
+  }
+  g.globalAlpha = 1;
+  g.restore();
+  if (crtP < 0.4) return;
+  // Linie bzw. Punkt mit Nachglühen
+  const { sx } = crtScale(crtP);
+  const cx = f.x + f.w / 2;
+  const cy = f.y + f.h / 2;
+  const fade = 1 - clamp01((crtP - 0.8) / 0.55);
+  const lw = Math.max(3, f.w * sx);
+  const glow = g.createRadialGradient(cx, cy, 0, cx, cy, Math.max(24, lw * 0.6));
+  glow.addColorStop(0, `rgba(210,232,255,${0.55 * fade})`);
+  glow.addColorStop(1, 'rgba(210,232,255,0)');
+  g.fillStyle = glow;
+  g.fillRect(cx - lw, cy - lw, lw * 2, lw * 2);
+  g.fillStyle = `rgba(255,255,255,${fade})`;
+  g.fillRect(cx - lw / 2, cy - 1.5, lw, 3);
 };
 
 /** Steuert body[data-ldbuild] (siehe Dateikopf). */
@@ -83,7 +121,7 @@ function pageLink(onSkip: () => void) {
       write();
       live = false;
       unlisten();
-      endTimer = setTimeout(() => delete body.dataset.ldbuild, 900);
+      endTimer = setTimeout(() => delete body.dataset.ldbuild, 1300);
     },
     dispose() {
       unlisten();
@@ -103,10 +141,19 @@ const frameOf = (c: Ctx2D) => {
   const cv = document.getElementById('ld-extra-canvas');
   const off = cv ? cv.getBoundingClientRect().top + window.scrollY : -140;
   const top = Math.max(0, 96 - off);
-  const bottom = Math.min(H * 0.66, window.innerHeight - off - 36);
-  const x = wide ? W * 0.5 : 14;
+  // Während des Baus ist die Fläche bildschirmhoch und ohne Maske (site.css) — dann bis zum unteren Rand
+  const building = document.body.hasAttribute('data-ldbuild');
+  const bottom = Math.min(building ? H - 20 : H * 0.66, window.innerHeight - off - 36);
   const w = wide ? Math.min(W * 0.44, 640) : W - 28;
-  return { wide, x, y: top, w, h: Math.max(160, bottom - top) };
+  // Position aus den Einstellungen (Regler „Links / Rechts“, „Oben / Unten“, je 0–100); ohne Wert wie bisher:
+  // Desktop rechts neben dem Hero-Text, oben unter der Menüleiste, so hoch wie möglich.
+  const tx = typeof c.cfg.tx === 'number' ? c.cfg.tx / 100 : null;
+  const ty = typeof c.cfg.ty === 'number' ? c.cfg.ty / 100 : null;
+  const x = tx !== null ? 14 + (W - 28 - w) * tx : wide ? W * 0.5 : 14;
+  const full = Math.max(160, bottom - top);
+  const h = ty !== null ? Math.min(full, Math.max(200, (bottom - top) * 0.6)) : full;
+  const y = ty !== null ? top + Math.max(0, bottom - top - h) * ty : top;
+  return { wide, x, y, w, h };
 };
 const windowChrome = (c: Ctx2D, f: ReturnType<typeof frameOf>, title: string, alpha: number) => {
   const g = c.g;
@@ -137,13 +184,15 @@ const windowChrome = (c: Ctx2D, f: ReturnType<typeof frameOf>, title: string, al
 
 /* ----------------------------------------------------------------------------------- Variante 1: Code ------- */
 
-type Kind = 'cmd' | 'code' | 'ok' | 'info' | 'gap';
+type Kind = 'cmd' | 'code' | 'ok' | 'info' | 'gap' | 'tab';
 interface Line {
   k: Kind;
   s: string;
   /** Diese Teile erscheinen auf der Seite, sobald die Zeile fertig getippt ist. */
   show?: Part[];
 }
+/** Zeile mit Zeitplan; tab = Terminal-Tab, in dem sie steht (k: 'tab' wechselt den Tab, s = '1' | '2'). */
+type Row = Line & { at: number; end: number; tab: string };
 // Gekürzte Auszüge des echten Codes (src/site/nav/SiteNav.tsx, src/site/pages/HalloPage.tsx, src/site/cards/*,
 // src/site/chrome/SiteFooter.tsx) — „…“ markiert ausgelassene Stellen.
 const SCRIPT: Line[] = [
@@ -172,6 +221,7 @@ const SCRIPT: Line[] = [
   { k: 'code', s: '      <p><EText path="intro" value={home.intro} multiline /></p>', show: ['intro'] },
   { k: 'code', s: "      <Button href='/projekte'>{t('home.ctaProjects')}</Button>" },
   { k: 'code', s: "      <Button onClick={hallo}>{t('home.ctaHello')}</Button>", show: ['cta'] },
+  { k: 'code', s: '      <ScrollIndicator hidden={scrolled} />', show: ['scroll'] },
   { k: 'code', s: '    </div>' },
   { k: 'code', s: '    <CareerCounter value={seconds} fx={s.counterFx} />', show: ['stats'] },
   { k: 'code', s: '    <section aria-labelledby="featured-title">' },
@@ -194,18 +244,71 @@ const SCRIPT: Line[] = [
   { k: 'ok', s: '✓ Ready in 1.2s' },
 ];
 const CPS = { cmd: 16, code: 40 }; // Zeichen je Sekunde (normal) — bewusst Tipp-Tempo
-const PAUSE: Record<Kind, number> = { cmd: 0.8, code: 0.12, ok: 0.9, info: 0.5, gap: 0.5 };
+const PAUSE: Record<Kind, number> = { cmd: 0.8, code: 0.12, ok: 0.9, info: 0.5, gap: 0.5, tab: 0.9 };
 
-const timeline = () => {
+const timeline = (script: Line[]): Row[] => {
   let at = TYPE_AT; // erst öffnet sich das Terminal
-  return SCRIPT.map((l) => {
+  let tab = '1';
+  return script.map((l) => {
     const typed = l.k === 'cmd' || l.k === 'code';
     const dur = typed ? l.s.length / CPS[l.k as 'cmd' | 'code'] : 0;
-    const row = { ...l, at, end: at + dur };
+    if (l.k === 'tab') tab = l.s;
+    const row = { ...l, at, end: at + dur, tab };
     at = row.end + PAUSE[l.k];
     return row;
   });
 };
+
+/*
+ * Variante „Dev-Server zuerst“ (Wunsch vom 18.10.2026): Tab 1 startet den Dev-Server, dann geht es in Tab 2 zum Code.
+ * Gebaut wird nur, was man oben auf der Seite sieht — Menü, Hero, Hero-Fußleiste (Zähler) und Scroll-Hinweis; Featured,
+ * News und Fußzeile erscheinen erst am Ende mit. Zum Schluss zurück in Tab 1: der Server hat neu kompiliert.
+ */
+const SCRIPT_DEV: Line[] = [
+  { k: 'cmd', s: '$ cd ld-evo && npm run dev' },
+  { k: 'info', s: '▲ Next.js 16 (Turbopack)' },
+  { k: 'info', s: '  - Local:   http://localhost:3000' },
+  { k: 'ok', s: '✓ Ready in 1.1s' },
+  { k: 'info', s: '○ Compiling / …' },
+  { k: 'ok', s: '✓ Compiled / in 820ms' },
+  { k: 'info', s: 'GET / 200 in 912ms' },
+  { k: 'tab', s: '2' },
+  { k: 'cmd', s: '$ nvim src/site/nav/SiteNav.tsx' },
+  { k: 'code', s: 'export function SiteNav() {' },
+  { k: 'code', s: '  const t = useT();' },
+  { k: 'code', s: '  return (' },
+  { k: 'code', s: '    <nav aria-label={t(\'nav.main\')} className="ldnavvt">' },
+  { k: 'code', s: "      <Link href={href('/')}><LoonaLockup /></Link>" },
+  { k: 'code', s: '      {items.map((it) => <NavLink key={it.path} {...it} />)}' },
+  { k: 'code', s: '    </nav>', show: ['nav'] },
+  { k: 'code', s: '}' },
+  { k: 'ok', s: '"SiteNav.tsx" written' },
+  { k: 'gap', s: '' },
+  { k: 'cmd', s: '$ nvim src/site/pages/HalloPage.tsx' },
+  { k: 'code', s: 'export function HalloPage() {' },
+  { k: 'code', s: '  const { home } = useContent();' },
+  { k: 'code', s: '  return (' },
+  { k: 'code', s: '    <div id="ld-hero">' },
+  { k: 'code', s: '      <EText path="kicker" value={home.kicker} />', show: ['kicker'] },
+  { k: 'code', s: '      <h1>' },
+  { k: 'code', s: '        <EText path="titleLine1" value={home.titleLine1} />' },
+  { k: 'code', s: '        <EText path="titleLine2" value={home.titleLine2} />' },
+  { k: 'code', s: '      </h1>', show: ['title'] },
+  { k: 'code', s: '      <span aria-live="polite">{role}</span>', show: ['role'] },
+  { k: 'code', s: '      <p><EText path="intro" value={home.intro} multiline /></p>', show: ['intro'] },
+  { k: 'code', s: "      <Button href='/projekte'>{t('home.ctaProjects')}</Button>" },
+  { k: 'code', s: "      <Button onClick={hallo}>{t('home.ctaHello')}</Button>", show: ['cta'] },
+  { k: 'code', s: '      <ScrollIndicator hidden={scrolled} />', show: ['scroll'] },
+  { k: 'code', s: '    </div>' },
+  { k: 'code', s: '    <div className="hero-footer">' },
+  { k: 'code', s: '      <CareerCounter value={seconds} fx={s.counterFx} />' },
+  { k: 'code', s: '      <Stat value="18+" label={t(\'home.years\')} />' },
+  { k: 'code', s: '    </div>', show: ['stats'] },
+  { k: 'ok', s: '"HalloPage.tsx" written' },
+  { k: 'tab', s: '1' },
+  { k: 'ok', s: '✓ Compiled / in 96ms' },
+  { k: 'info', s: 'GET / 200 in 38ms' },
+];
 
 const tokColor = (c: Ctx2D, tok: string) =>
   /^(import|from|export|function|const|return)$/.test(tok)
@@ -219,9 +322,11 @@ const tokColor = (c: Ctx2D, tok: string) =>
           : 'rgba(228,233,242,0.92)';
 
 const codeMode =
-  (shift: boolean): Mode2D =>
+  (shift: boolean, script: Line[] = SCRIPT): Mode2D =>
   (c) => {
-    const rows = timeline();
+    const rows = timeline(script);
+    const tabbed = rows.some((r) => r.k === 'tab');
+    let hmrAt = -9; // letzte Einblendung — Tab 1 (Dev-Server) blinkt dann kurz („Hot Reload“)
     const END = rows[rows.length - 1].end + 1.2;
     const clock = clockOf(shift);
     let skipped = false;
@@ -237,6 +342,7 @@ const codeMode =
         const tau = skipped || still ? END + 10 : clock(t);
         // Seite: alle Teile der fertig getippten Zeilen zeigen
         for (let i = shownTo + 1; i < rows.length && rows[i].end <= tau; i++) {
+          if (rows[i].show) hmrAt = rows[i].end;
           rows[i].show?.forEach((p) => link.show(p));
           shownTo = i;
         }
@@ -248,22 +354,57 @@ const codeMode =
 
         const g = c.g;
         g.globalCompositeOperation = 'source-over';
-        g.fillStyle = '#000';
-        g.fillRect(0, 0, c.W(), c.H());
+        // durchsichtig: Während des Baus liegt die Fläche ÜBER dem Hero (site.css), schwarz ist der Seitenhintergrund;
+        // danach liegt sie wieder dahinter und ihr eigener Hintergrund ist schwarz.
+        g.clearRect(0, 0, c.W(), c.H());
         const f = frameOf(c);
         // fertig: Terminal tritt zurück (schmal liegt es hinter dem Hero-Text)
-        const back = finished ? clamp01((t - doneAt) / 1.2) : 0;
-        const alpha = openWindow(c, f, tau) * (1 - back * (f.wide ? 0.45 : 0.8));
+        // Schluss: Terminal tritt zurück (schmal liegt es hinter dem Hero-Text) — oder schaltet ab wie ein Röhren-Monitor
+        const crtP = c.cfg.crt && finished ? (still ? 9 : (t - doneAt) / 0.9) : -1;
+        if (crtP > 1.4) return;
+        const back = finished && crtP < 0 ? clamp01((t - doneAt) / 1.2) : 0;
+        // frei platziert (Regler): am Ende ganz ausblenden — danach schrumpft die Fläche wieder auf Hero-Höhe
+        const fade = typeof c.cfg.ty === 'number' ? 1 : f.wide ? 0.45 : 0.8;
+        const alpha = openWindow(c, f, tau, crtP) * (1 - back * fade);
         windowChrome(c, f, 'zsh — ld-evo', alpha);
 
         const fs = f.wide ? 13 : 11.5;
         g.font = `${fs}px ${monoFont()}`;
         const lh = fs * 1.62;
         const maxCols = Math.floor((f.w - 28) / (fs * 0.6));
-        const vis = rows.filter((r) => r.at <= tau);
-        const fit = Math.floor((f.h - 46) / lh);
+        // Tabs: aktiver Tab = letzter Wechsel bis jetzt; gezeigt werden nur seine Zeilen
+        let active = '1';
+        for (const r of rows) if (r.k === 'tab' && r.at <= tau) active = r.s;
+        const top = tabbed ? 30 + 28 : 30;
+        if (tabbed) {
+          const labels: [string, string][] = [
+            ['1', 'npm run dev'],
+            ['2', 'nvim'],
+          ];
+          g.font = `${fs * 0.88}px ${monoFont()}`;
+          labels.forEach(([id, txt], i) => {
+            const tw = Math.min(170, (f.w - 28) / 2);
+            const tx0 = f.x + 10 + i * (tw + 6);
+            const on = id === active;
+            g.fillStyle = on ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.025)';
+            g.beginPath();
+            g.roundRect(tx0, f.y + 34, tw, 21, 6);
+            g.fill();
+            // „Hot Reload“: Server-Tab leuchtet kurz grün, wenn eine Komponente fertig ist
+            const hot = id === '1' && active !== '1' && tau - hmrAt < 0.9;
+            g.fillStyle = hot ? 'rgb(40,200,64)' : on ? c.col(1, 0.95) : 'rgba(170,180,196,0.45)';
+            g.beginPath();
+            g.arc(tx0 + 10, f.y + 44.5, 3, 0, TAU);
+            g.fill();
+            g.fillStyle = on ? 'rgba(240,244,250,0.95)' : 'rgba(170,180,196,0.7)';
+            g.fillText(`${id}  ${txt}`, tx0 + 19, f.y + 48.5);
+          });
+          g.font = `${fs}px ${monoFont()}`;
+        }
+        const vis = rows.filter((r) => r.at <= tau && r.k !== 'tab' && (!tabbed || r.tab === active));
+        const fit = Math.floor((f.h - top - 16) / lh);
         const from = Math.max(0, vis.length - fit);
-        let y = f.y + 30 + lh;
+        let y = f.y + top + lh;
         vis.slice(from).forEach((r, i, arr) => {
           const typing = (r.k === 'cmd' || r.k === 'code') && tau < r.end;
           const n = typing ? Math.floor(((tau - r.at) / (r.end - r.at)) * r.s.length) : r.s.length;
@@ -295,8 +436,7 @@ const codeMode =
           g.fillText((shift ? 'timeshift ▸▸ · ' : '') + L('Klick = überspringen', 'click = skip'), f.x + f.w - 12, f.y + f.h + 18);
           g.textAlign = 'left';
         }
-        g.globalAlpha = 1;
-        g.restore();
+        endFrame(c, f, crtP);
       },
     } satisfies ExtraRenderer;
   };
@@ -327,7 +467,7 @@ const AGENTS: Agent[] = [
   },
   {
     comp: 'Intro + CTA',
-    show: ['intro', 'cta'],
+    show: ['intro', 'cta', 'scroll'],
     start: 2.6,
     dur: 6.6,
     steps: ['Read dict.ts (DE/EN)', 'Write Buttons', 'Test Fokus + Tastatur'],
@@ -380,11 +520,17 @@ const agentsMode =
 
         const g = c.g;
         g.globalCompositeOperation = 'source-over';
-        g.fillStyle = '#000';
-        g.fillRect(0, 0, c.W(), c.H());
+        // durchsichtig: Während des Baus liegt die Fläche ÜBER dem Hero (site.css), schwarz ist der Seitenhintergrund;
+        // danach liegt sie wieder dahinter und ihr eigener Hintergrund ist schwarz.
+        g.clearRect(0, 0, c.W(), c.H());
         const f = frameOf(c);
-        const back = finished ? clamp01((t - doneAt) / 1.2) : 0;
-        const alpha = openWindow(c, f, tau) * (1 - back * (f.wide ? 0.45 : 0.8));
+        // Schluss: Terminal tritt zurück (schmal liegt es hinter dem Hero-Text) — oder schaltet ab wie ein Röhren-Monitor
+        const crtP = c.cfg.crt && finished ? (still ? 9 : (t - doneAt) / 0.9) : -1;
+        if (crtP > 1.4) return;
+        const back = finished && crtP < 0 ? clamp01((t - doneAt) / 1.2) : 0;
+        // frei platziert (Regler): am Ende ganz ausblenden — danach schrumpft die Fläche wieder auf Hero-Höhe
+        const fade = typeof c.cfg.ty === 'number' ? 1 : f.wide ? 0.45 : 0.8;
+        const alpha = openWindow(c, f, tau, crtP) * (1 - back * fade);
         windowChrome(c, f, 'claude — orchestrator', alpha);
 
         const fs = f.wide ? 12.5 : 11;
@@ -401,8 +547,7 @@ const agentsMode =
             g.fillStyle = c.col(1, 0.95);
             g.fillRect(f.x + 15 + g.measureText(ask.slice(0, typed)).width, f.y + 50 - fs + 2, fs * 0.55, fs + 1);
           }
-          g.globalAlpha = 1;
-          g.restore();
+          endFrame(c, f, crtP);
           return;
         }
         g.fillStyle = nDone === AGENTS.length ? c.col(2, 0.95) : c.col(1, 0.95);
@@ -438,8 +583,7 @@ const agentsMode =
             g.fillStyle = ok ? 'rgb(40,200,64)' : c.col(i % 5, 0.95);
             g.fillRect(f.x + 14, y + fs * 0.5, (f.w - 28) * p, 2);
           });
-          g.globalAlpha = 1;
-          g.restore();
+          endFrame(c, f, crtP);
           return;
         }
         AGENTS.forEach((a, i) => {
@@ -487,8 +631,7 @@ const agentsMode =
           g.fillText((shift ? 'timeshift ▸▸ · ' : '') + L('Klick = überspringen', 'click = skip'), f.x + f.w - 12, f.y + f.h + 18);
           g.textAlign = 'left';
         }
-        g.globalAlpha = 1;
-        g.restore();
+        endFrame(c, f, crtP);
       },
     } satisfies ExtraRenderer;
   };
@@ -496,6 +639,8 @@ const agentsMode =
 export const BUILD_2D: Record<string, Mode2D> = {
   buildcode: codeMode(false),
   buildcodets: codeMode(true),
+  buildserver: codeMode(false, SCRIPT_DEV),
+  buildserverts: codeMode(true, SCRIPT_DEV),
   buildagents: agentsMode(false),
   buildagentsts: agentsMode(true),
 };
