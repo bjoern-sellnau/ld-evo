@@ -7,6 +7,7 @@
  */
 
 // Zweite Welle (Wunsch vom 17.10.2026) in eigener Datei, nutzt die Helfer von hier (Zyklus nur zur Laufzeit)
+import { BUILD_2D } from './build';
 import { MORE_2D, MORE_SHADERS } from './renderers2';
 
 export type Rgb = [number, number, number];
@@ -845,7 +846,7 @@ const MODES_2D: Record<string, Mode2D> = {
 const factory = (mode: string, cv: HTMLCanvasElement, pal: readonly string[], bgHex: string, ptr: Pointer): ExtraRenderer | null => {
   const shader = SHADERS[mode] ?? MORE_SHADERS[mode];
   if (shader) return glMode(shader)(cv, pal, ptr);
-  const m = MODES_2D[mode] ?? MORE_2D[mode];
+  const m = MODES_2D[mode] ?? MORE_2D[mode] ?? BUILD_2D[mode];
   if (!m) return null;
   const g = cv.getContext('2d');
   if (!g) return null;

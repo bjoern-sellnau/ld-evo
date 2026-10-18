@@ -1830,3 +1830,45 @@ body.ldlinkline footer a {
   text-underline-offset: 3px;
   text-decoration-thickness: 1.5px;
 }
+
+/* Live-Build-Hero (src/site/hero/extra/build.ts): Solange body[data-ldbuild] steht, ist die Seite schwarz und nur die
+   schon „gebauten“ Teile (Liste im Attribut) sind sichtbar. Unsichtbare Teile bleiben für Screenreader im Baum;
+   Tastaturfokus macht sein Element sofort sichtbar. !important, weil Hero-Text und Menü eigene Inline-Deckkraft haben.
+   Sicherheitsnetz gegen eine dauerhaft schwarze Seite: Boot-Script (applyBody.ts) entfernt das Attribut nach 45 s.
+   Menü/Fußzeile nur über die Deckkraft (fixierte Leisten haben eigene transform-Werte). */
+html:has(body[data-ldbuild]:not(.still)),
+body[data-ldbuild]:not(.still) {
+  background: #000 !important;
+}
+body[data-ldbuild] [data-ldb] {
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1),
+    filter 0.6s ease;
+}
+body[data-ldbuild] [data-ld-vp] > :not(main),
+body[data-ldbuild] #fuss {
+  transition: opacity 0.6s ease;
+}
+body[data-ldbuild]:not(.still):not([data-ldbuild~='kicker']) [data-ldb='kicker']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='title']) [data-ldb='title']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='role']) [data-ldb='role']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='intro']) [data-ldb='intro']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='cta']) [data-ldb='cta']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='stats']) [data-ldb='stats']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='featured']) [data-ldb='featured']:not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='news']) [data-ldb='news']:not(:focus-within) {
+  opacity: 0 !important;
+  transform: translateY(10px);
+  filter: blur(6px);
+}
+body[data-ldbuild]:not(.still):not([data-ldbuild~='nav']) [data-ld-vp] > :not(main):not(:focus-within),
+body[data-ldbuild]:not(.still):not([data-ldbuild~='footer']) #fuss:not(:focus-within) {
+  opacity: 0 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-ldbuild] [data-ldb] {
+    transform: none !important;
+    filter: none !important;
+  }
+}

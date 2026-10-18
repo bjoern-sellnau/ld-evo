@@ -80,6 +80,11 @@ export function HalloPage() {
   const cineDone = useHeroShader(s);
   // 20 zusätzliche Modi (neu, nicht im Prototyp): eigenes Canvas, die Prototyp-Engine ignoriert sie
   useExtraHero(hm, s);
+  // Live-Build: das Boot-Script versteckt die Seite schon vor dem ersten Bild, wenn der Modus gespeichert ist —
+  // ist er hier doch nicht aktiv (z. B. Performance-Modus), sofort wieder freigeben.
+  useEffect(() => {
+    if (!hm.startsWith('build')) delete document.body.dataset.ldbuild;
+  }, [hm]);
 
   const padX = mob ? 18 : 32;
   // Cinematic (Matrix/Matrix v2) blendet den Hero-Text aus; mit „Hero-Text danach“ kommt er nach dem Cinematic zurück.
@@ -171,6 +176,7 @@ export function HalloPage() {
         {def.renderer === 'css' && <FlowHero />}
         <div
           aria-hidden
+          data-ldb="title"
           style={{
             position: 'absolute',
             top: 330,
@@ -187,6 +193,7 @@ export function HalloPage() {
 
         <div style={{ position: 'relative', padding: heroPad, maxWidth: 640 }}>
           <div
+            data-ldb="kicker"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -213,6 +220,7 @@ export function HalloPage() {
             <EText path="kicker" value={home.kicker} />
           </div>
           <h1
+            data-ldb="title"
             style={{
               fontSize: mob ? 40 : 62,
               fontWeight: 700,
@@ -231,6 +239,7 @@ export function HalloPage() {
             </span>
           </h1>
           <div
+            data-ldb="role"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -273,6 +282,7 @@ export function HalloPage() {
             </span>
           </div>
           <p
+            data-ldb="intro"
             style={{
               margin: '18px 0 0',
               fontSize: 16,
@@ -285,7 +295,7 @@ export function HalloPage() {
           >
             <EText path="intro" value={home.intro} multiline />
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 30 }}>
+          <div data-ldb="cta" style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 30 }}>
             <button
               type="button"
               onClick={() => navigate('/projekte')}
@@ -341,6 +351,7 @@ export function HalloPage() {
       </div>
 
       <div
+        data-ldb="stats"
         style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -376,7 +387,7 @@ export function HalloPage() {
         </div>
       </div>
 
-      <section style={{ padding: '64px 0 8px' }} aria-labelledby="featured-title">
+      <section data-ldb="featured" style={{ padding: '64px 0 8px' }} aria-labelledby="featured-title">
         <SectionHead
           kicker={t('home.featuredKicker')}
           title={t('home.featuredTitle')}
@@ -391,7 +402,7 @@ export function HalloPage() {
         </div>
       </section>
 
-      <section style={{ padding: '64px 0 80px' }} aria-labelledby="news-title">
+      <section data-ldb="news" style={{ padding: '64px 0 80px' }} aria-labelledby="news-title">
         <SectionHead
           kicker={t('home.newsKicker')}
           title={t('home.newsTitle')}
