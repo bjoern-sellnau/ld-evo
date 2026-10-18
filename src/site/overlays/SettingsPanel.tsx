@@ -66,6 +66,22 @@ const WELCOME_SEGS = [
   ['zufall', 'Zufall'],
 ] as const;
 
+// Wetter-Hero: Vorschau aller Darstellungen (sonst echtes Wetter aus /api/wetter)
+const WX_SEGS = [
+  ['live', 'Live'],
+  ['klar', 'Klar'],
+  ['wolken', 'Wolken'],
+  ['regen', 'Regen'],
+  ['schnee', 'Schnee'],
+  ['nebel', 'Nebel'],
+  ['gewitter', 'Gewitter'],
+] as const;
+const WX_DAY_SEGS = [
+  ['live', 'Live'],
+  ['tag', 'Tag'],
+  ['nacht', 'Nacht'],
+] as const;
+
 const VT_SEGS = [
   ['fade', 'Fade'],
   ['slide', 'Slide'],
@@ -293,6 +309,15 @@ const EN_LABELS: Record<string, string> = {
   Sprache: 'Language',
   'Page-Transition': 'Page transition',
   'Welcome-Effekt': 'Welcome effect',
+  'Wetter-Vorschau': 'Weather preview',
+  Tageszeit: 'Time of day',
+  Live: 'Live',
+  Nebel: 'Fog',
+  Gewitter: 'Thunderstorm',
+  Tag: 'Day',
+  Nacht: 'Night',
+  'Wind fest einstellen': 'Fixed wind',
+  'Wind (km/h)': 'Wind (km/h)',
   'Fokus deutlich': 'Strong focus ring',
   'Links unterstreichen': 'Underline links',
   'Wie in LD Flow': 'As set in LD Flow',
@@ -1136,6 +1161,37 @@ export function SettingsPanel() {
               <Row label="Oben / Unten">
                 <Range min={0} max={100} step={1} value={cfg.y ?? 50} onChange={(v) => setCfg(hm, 'y', v)} label="Oben / Unten" />
               </Row>
+            </>
+          )}
+          {hm === 'weather' && (
+            <>
+              <Row label="Wetter-Vorschau" column>
+                <Seg
+                  options={WX_SEGS}
+                  value={(cfg.wx as string) || 'live'}
+                  onChange={(v) => setCfg(hm, 'wx', v)}
+                  label="Wetter-Vorschau"
+                  wrap
+                />
+              </Row>
+              <Row label="Tageszeit">
+                <Seg
+                  options={WX_DAY_SEGS}
+                  value={(cfg.wxDay as string) || 'live'}
+                  onChange={(v) => setCfg(hm, 'wxDay', v)}
+                  label="Tageszeit"
+                />
+              </Row>
+              <Toggle
+                label="Wind fest einstellen"
+                on={typeof cfg.wxWind === 'number'}
+                onToggle={() => setCfg(hm, 'wxWind', typeof cfg.wxWind === 'number' ? undefined : 20)}
+              />
+              {typeof cfg.wxWind === 'number' && (
+                <Row label="Wind (km/h)">
+                  <Range min={0} max={80} step={5} value={cfg.wxWind} onChange={(v) => setCfg(hm, 'wxWind', v)} label="Wind (km/h)" />
+                </Row>
+              )}
             </>
           )}
           {hm === 'ribbon' && (

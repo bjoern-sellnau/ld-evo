@@ -169,6 +169,8 @@ export interface Ctx2D {
   bg: string;
   /** Zeiger (Maus/Finger) relativ zum Canvas in CSS-Pixeln; active = in den letzten 2 s bewegt. */
   ptr: Pointer;
+  /** Modus-Einstellungen aus dem Einstellungs-Panel (heroCfg[modus], z. B. Wetter-Vorschau). */
+  cfg: Record<string, unknown>;
 }
 export type Mode2D = (c: Ctx2D) => ExtraRenderer;
 
@@ -843,7 +845,14 @@ const MODES_2D: Record<string, Mode2D> = {
 
 /* ------------------------------------------------------------------------------------------------ Lauf ------------ */
 
-const factory = (mode: string, cv: HTMLCanvasElement, pal: readonly string[], bgHex: string, ptr: Pointer): ExtraRenderer | null => {
+const factory = (
+  mode: string,
+  cv: HTMLCanvasElement,
+  pal: readonly string[],
+  bgHex: string,
+  ptr: Pointer,
+  cfg: Record<string, unknown>,
+): ExtraRenderer | null => {
   const shader = SHADERS[mode] ?? MORE_SHADERS[mode];
   if (shader) return glMode(shader)(cv, pal, ptr);
   const m = MODES_2D[mode] ?? MORE_2D[mode] ?? BUILD_2D[mode];
@@ -860,6 +869,7 @@ const factory = (mode: string, cv: HTMLCanvasElement, pal: readonly string[], bg
     pal: rgb,
     bg: `rgba(${br},${bgc},${bb},ALPHA)`,
     ptr,
+    cfg,
     col: (i, a = 1) => {
       const x = Math.max(0, Math.min(4, i));
       const k = Math.min(3, Math.floor(x));
@@ -894,7 +904,7 @@ export function runExtra(
   cv: HTMLCanvasElement,
   mode: string,
   pal: readonly string[],
-  opts: { anim: boolean; fpsHalf: boolean; bg: string },
+  opts: { anim: boolean; fpsHalf: boolean; bg: string; cfg?: Record<string, unknown> },
 ): () => void {
   // Zeiger für die interaktiven Modi: Maus und Finger (der Canvas selbst liegt unter dem Hero-Text)
   const ptr: Pointer = { x: 0, y: 0, vx: 0, vy: 0, active: false };
@@ -912,7 +922,7 @@ export function runExtra(
     idle = setTimeout(() => (ptr.active = false), 2000);
   };
   window.addEventListener('pointermove', onMove, { passive: true });
-  const r = factory(mode, cv, pal, opts.bg, ptr);
+  const r = factory(mode, cv, pal, opts.bg, ptr, opts.cfg ?? {});
   if (!r) {
     window.removeEventListener('pointermove', onMove);
     return () => {};

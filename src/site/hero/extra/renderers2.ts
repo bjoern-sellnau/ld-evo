@@ -1008,8 +1008,12 @@ export const MORE_2D: Record<string, Mode2D> = {
     };
   },
 
-  // Wetter Berlin: echtes Wetter über die eigene Route /api/wetter (keine Besucherdaten an Dritte); ohne Daten ruhig bewölkt
+  // Wetter Berlin: echtes Wetter über die eigene Route /api/wetter (keine Besucherdaten an Dritte); ohne Daten ruhig bewölkt.
+  // Wetter-Vorschau (Einstellungen): Wetterlage, Tageszeit und Wind fest wählen, um alle Darstellungen zu testen.
   weather: (c) => {
+    const pv = typeof c.cfg.wx === 'string' && c.cfg.wx !== 'live' ? c.cfg.wx : null;
+    const pvDay = c.cfg.wxDay === 'tag' ? true : c.cfg.wxDay === 'nacht' ? false : null;
+    const pvWind = typeof c.cfg.wxWind === 'number' ? c.cfg.wxWind : null;
     type W = { ok: boolean; t?: number; code?: number; day?: boolean; wind?: number };
     let w: W = { ok: false };
     if (typeof fetch !== 'undefined')
@@ -1020,6 +1024,7 @@ export const MORE_2D: Record<string, Mode2D> = {
     const drops: { x: number; y: number; v: number }[] = [];
     let flash = 0;
     const kind = () => {
+      if (pv) return pv;
       const code = w.code ?? 3;
       if (code >= 95) return 'gewitter';
       if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'schnee';
@@ -1036,7 +1041,7 @@ export const MORE_2D: Record<string, Mode2D> = {
         const W = c.W();
         const H = c.H();
         const k = kind();
-        const day = w.day ?? true;
+        const day = pvDay ?? w.day ?? true;
         g.globalCompositeOperation = 'source-over';
         const sky = g.createLinearGradient(0, 0, 0, H);
         sky.addColorStop(0, day ? (k === 'klar' ? '#0f3a6a' : '#1a2433') : '#05070f');
@@ -1054,7 +1059,7 @@ export const MORE_2D: Record<string, Mode2D> = {
           g.fillRect(sx - 170, sy - 170, 340, 340);
         }
         // Wolkenbänder (auch bei Regen/Schnee/Gewitter); Wind bestimmt das Tempo
-        const wind = (w.wind ?? 10) / 10;
+        const wind = (pvWind ?? w.wind ?? 10) / 10;
         if (k !== 'klar')
           for (let l = 0; l < 3; l++)
             for (let i = 0; i < 7; i++) {
@@ -1105,7 +1110,15 @@ export const MORE_2D: Record<string, Mode2D> = {
         g.font = `600 12px ${monoFont()}`;
         g.fillStyle = 'rgba(235,240,248,0.72)';
         g.textAlign = 'right';
-        g.fillText(w.ok && typeof w.t === 'number' ? `Berlin · ${ICON[k]} ${Math.round(w.t)} °C` : 'Berlin', W - 24, H - 22);
+        const live = w.ok && typeof w.t === 'number' ? `Berlin · ${ICON[k]} ${Math.round(w.t)} °C` : 'Berlin';
+        // Vorschau deutlich kennzeichnen, damit sie nicht für echtes Wetter gehalten wird
+        g.fillText(
+          pv || pvDay !== null || pvWind !== null
+            ? `${pv ? (ICON[k] ?? '') : ''} ${document.documentElement.lang.startsWith('en') ? 'Preview' : 'Vorschau'} · ${live}`
+            : live,
+          W - 24,
+          H - 22,
+        );
         g.textAlign = 'left';
       },
     };
