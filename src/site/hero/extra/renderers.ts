@@ -6,7 +6,10 @@
  * runExtra() übernimmt Größe, Sichtbarkeit (nur sichtbar + Tab aktiv), „30 fps“ und „Animationen aus“ (Standbild).
  */
 
-type Rgb = [number, number, number];
+// Zweite Welle (Wunsch vom 17.10.2026) in eigener Datei, nutzt die Helfer von hier (Zyklus nur zur Laufzeit)
+import { MORE_2D, MORE_SHADERS } from './renderers2';
+
+export type Rgb = [number, number, number];
 
 export interface ExtraRenderer {
   frame(t: number, dt: number): void;
@@ -16,7 +19,7 @@ export interface ExtraRenderer {
   still?: number;
 }
 
-const hexRgb = (h: string): Rgb => {
+export const hexRgb = (h: string): Rgb => {
   const x = h.replace('#', '');
   const v = x.length === 3 ? [...x].map((c) => c + c).join('') : x.padEnd(6, '0');
   return [parseInt(v.slice(0, 2), 16), parseInt(v.slice(2, 4), 16), parseInt(v.slice(4, 6), 16)];
@@ -26,7 +29,7 @@ const hexRgb = (h: string): Rgb => {
 
 const VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.0,1.0);}';
 const FS_HEAD = `precision highp float;
-uniform vec2 u_res;uniform float u_time;uniform vec3 u_p[5];
+uniform vec2 u_res;uniform float u_time;uniform vec3 u_p[5];uniform vec3 u_mouse;
 float hash(float n){return fract(sin(n)*43758.5453123);}
 float hash1(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 vec2 hash2(vec2 p){return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);}
@@ -85,8 +88,8 @@ const SHADERS: Record<string, string> = {
  vec3 col=palw(length(p)*0.8-t*0.2)*m*0.85+palw(t*0.1)*0.04;col*=smoothstep(1.2,0.2,length(p));gl_FragColor=vec4(col,1.0);}`,
 };
 
-function glMode(body: string) {
-  return (cv: HTMLCanvasElement, pal: readonly string[]): ExtraRenderer | null => {
+export function glMode(body: string) {
+  return (cv: HTMLCanvasElement, pal: readonly string[], ptr?: Pointer): ExtraRenderer | null => {
     let gl: WebGLRenderingContext | null = null;
     try {
       gl = cv.getContext('webgl', {
@@ -123,6 +126,10 @@ function glMode(body: string) {
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     const uRes = gl.getUniformLocation(pr, 'u_res');
     const uTime = gl.getUniformLocation(pr, 'u_time');
+    const uMouse = gl.getUniformLocation(pr, 'u_mouse');
+    // Zeiger weich nachziehen (Shader bekommen Gerätepixel, y von unten)
+    let mx = 0.62;
+    let my = 0.5;
     gl.uniform3fv(gl.getUniformLocation(pr, 'u_p'), new Float32Array(pal.flatMap((h) => hexRgb(h).map((v) => v / 255))));
     return {
       resize(w, h) {
@@ -131,6 +138,14 @@ function glMode(body: string) {
       frame(t) {
         gl!.uniform2f(uRes, cv.width, cv.height);
         gl!.uniform1f(uTime, t);
+        if (uMouse) {
+          const dpr = cv.width / Math.max(1, cv.clientWidth);
+          const tx = ptr?.active ? ptr.x / Math.max(1, cv.clientWidth) : 0.62 + 0.18 * Math.sin(t * 0.3);
+          const ty = ptr?.active ? 1 - ptr.y / Math.max(1, cv.clientHeight) : 0.5 + 0.2 * Math.sin(t * 0.23);
+          mx += (tx - mx) * 0.12;
+          my += (ty - my) * 0.12;
+          gl!.uniform3f(uMouse, mx * cv.clientWidth * dpr, my * cv.clientHeight * dpr, ptr?.active ? 1 : 0);
+        }
         gl!.drawArrays(gl!.TRIANGLES, 0, 3);
       },
       dispose() {
@@ -142,7 +157,7 @@ function glMode(body: string) {
 
 /* --------------------------------------------------------------------------------------------- Canvas 2D ---------- */
 
-interface Ctx2D {
+export interface Ctx2D {
   g: CanvasRenderingContext2D;
   /** Größe in CSS-Pixeln (der Kontext ist bereits auf devicePixelRatio skaliert). */
   W: () => number;
@@ -151,13 +166,23 @@ interface Ctx2D {
   /** Palettenfarbe i (0..4, gebrochen = gemischt) mit Deckkraft a. */
   col: (i: number, a?: number) => string;
   bg: string;
+  /** Zeiger (Maus/Finger) relativ zum Canvas in CSS-Pixeln; active = in den letzten 2 s bewegt. */
+  ptr: Pointer;
 }
-type Mode2D = (c: Ctx2D) => ExtraRenderer;
+export type Mode2D = (c: Ctx2D) => ExtraRenderer;
 
-const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
+export interface Pointer {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  active: boolean;
+}
+
+export const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
 
 /** Wertrauschen (für Strömungsfeld & Co.), deterministisch. */
-const vnoise = (() => {
+export const vnoise = (() => {
   const h = (x: number, y: number) => {
     const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
     return s - Math.floor(s);
@@ -175,7 +200,7 @@ const vnoise = (() => {
   };
 })();
 
-const fade = (c: Ctx2D, a: number) => {
+export const fade = (c: Ctx2D, a: number) => {
   c.g.globalCompositeOperation = 'source-over';
   c.g.fillStyle = c.bg.replace('ALPHA', String(a));
   c.g.fillRect(0, 0, c.W(), c.H());
@@ -817,9 +842,10 @@ const MODES_2D: Record<string, Mode2D> = {
 
 /* ------------------------------------------------------------------------------------------------ Lauf ------------ */
 
-const factory = (mode: string, cv: HTMLCanvasElement, pal: readonly string[], bgHex: string): ExtraRenderer | null => {
-  if (SHADERS[mode]) return glMode(SHADERS[mode])(cv, pal);
-  const m = MODES_2D[mode];
+const factory = (mode: string, cv: HTMLCanvasElement, pal: readonly string[], bgHex: string, ptr: Pointer): ExtraRenderer | null => {
+  const shader = SHADERS[mode] ?? MORE_SHADERS[mode];
+  if (shader) return glMode(shader)(cv, pal, ptr);
+  const m = MODES_2D[mode] ?? MORE_2D[mode];
   if (!m) return null;
   const g = cv.getContext('2d');
   if (!g) return null;
@@ -832,6 +858,7 @@ const factory = (mode: string, cv: HTMLCanvasElement, pal: readonly string[], bg
     H: () => size.h,
     pal: rgb,
     bg: `rgba(${br},${bgc},${bb},ALPHA)`,
+    ptr,
     col: (i, a = 1) => {
       const x = Math.max(0, Math.min(4, i));
       const k = Math.min(3, Math.floor(x));
@@ -868,8 +895,27 @@ export function runExtra(
   pal: readonly string[],
   opts: { anim: boolean; fpsHalf: boolean; bg: string },
 ): () => void {
-  const r = factory(mode, cv, pal, opts.bg);
-  if (!r) return () => {};
+  // Zeiger für die interaktiven Modi: Maus und Finger (der Canvas selbst liegt unter dem Hero-Text)
+  const ptr: Pointer = { x: 0, y: 0, vx: 0, vy: 0, active: false };
+  let idle: ReturnType<typeof setTimeout> | undefined;
+  const onMove = (e: PointerEvent) => {
+    const b = cv.getBoundingClientRect();
+    const x = e.clientX - b.left;
+    const y = e.clientY - b.top;
+    ptr.vx = ptr.active ? x - ptr.x : 0;
+    ptr.vy = ptr.active ? y - ptr.y : 0;
+    ptr.x = x;
+    ptr.y = y;
+    ptr.active = y >= 0 && y <= b.height;
+    clearTimeout(idle);
+    idle = setTimeout(() => (ptr.active = false), 2000);
+  };
+  window.addEventListener('pointermove', onMove, { passive: true });
+  const r = factory(mode, cv, pal, opts.bg, ptr);
+  if (!r) {
+    window.removeEventListener('pointermove', onMove);
+    return () => {};
+  }
   const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
   const fit = () => {
     const w = Math.max(1, Math.round(cv.clientWidth * DPR));
@@ -895,6 +941,8 @@ export function runExtra(
     ro.observe(cv);
     return () => {
       ro.disconnect();
+      window.removeEventListener('pointermove', onMove);
+      clearTimeout(idle);
       r.dispose?.();
     };
   }
@@ -921,6 +969,8 @@ export function runExtra(
   raf = requestAnimationFrame(loop);
   return () => {
     cancelAnimationFrame(raf);
+    window.removeEventListener('pointermove', onMove);
+    clearTimeout(idle);
     io.disconnect();
     ro.disconnect();
     r.dispose?.();

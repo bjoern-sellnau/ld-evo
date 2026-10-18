@@ -83,6 +83,8 @@ export interface Settings {
   heroStats: boolean;
   fullHero: boolean;
   pageVt: string;
+  /** Effekt der Landing Page /welcome ('flow' = wie in LD Flow eingestellt). */
+  welcomeFx: string;
   detailPlain: boolean;
   mxCine: boolean;
   mxT1: string | null;
@@ -158,6 +160,7 @@ export const DEFAULT_SETTINGS: Settings = {
   heroStats: false,
   fullHero: false,
   pageVt: 'fade',
+  welcomeFx: 'flow',
   detailPlain: false,
   mxCine: true,
   mxT1: null,
@@ -259,6 +262,7 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   heroStats: offUnlessOn('ld-herostats'),
   fullHero: offUnlessOn('ld-fullhero'),
   pageVt: str<string>('ld-pagevt', 'fade'),
+  welcomeFx: str<string>('ld-welcomefx', 'flow'),
   detailPlain: offUnlessOn('ld-detailplain'),
   mxCine: onUnlessOff('ld-mxcine'),
   mxT1: nullableStr('ld-mxt1'),

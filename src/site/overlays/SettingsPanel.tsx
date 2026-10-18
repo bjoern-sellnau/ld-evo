@@ -54,6 +54,18 @@ const HERO_SEGS = [
   ...Object.entries(EXTRA_MODES).map(([k, m]) => [k, m.label] as const),
 ] as const;
 
+const WELCOME_SEGS = [
+  ['flow', 'Wie in LD Flow'],
+  ['kacheln', 'Kacheln'],
+  ['glitch', 'Glitch'],
+  ['pixel', 'Pixel'],
+  ['welle', 'Welle'],
+  ['risse', 'Risse'],
+  ['brand', 'Brennen'],
+  ['tuer', 'Countdown-Tür'],
+  ['zufall', 'Zufall'],
+] as const;
+
 const VT_SEGS = [
   ['fade', 'Fade'],
   ['slide', 'Slide'],
@@ -280,6 +292,14 @@ const EN_LABELS: Record<string, string> = {
   Blau: 'Blue',
   Sprache: 'Language',
   'Page-Transition': 'Page transition',
+  'Welcome-Effekt': 'Welcome effect',
+  'Wie in LD Flow': 'As set in LD Flow',
+  Kacheln: 'Tiles',
+  Welle: 'Wave',
+  Risse: 'Cracks',
+  Brennen: 'Burn',
+  'Countdown-Tür': 'Countdown door',
+  Zufall: 'Random',
   'Zähler-Animation': 'Counter animation',
   'Mobil-Logo': 'Mobile logo',
   'Mobil-Design': 'Mobile design',
@@ -781,6 +801,9 @@ export function SettingsPanel() {
           <Row label="Page-Transition" column>
             <Seg options={VT_SEGS} value={s.pageVt || 'fade'} onChange={(v) => set('pageVt', v)} label="Page-Transition" wrap />
             <Toggle label="Detailseiten immer schlicht (Fade)" on={s.detailPlain} onToggle={() => toggle('detailPlain')} small />
+          </Row>
+          <Row label="Welcome-Effekt" column>
+            <Seg options={WELCOME_SEGS} value={s.welcomeFx || 'flow'} onChange={(v) => set('welcomeFx', v)} label="Welcome-Effekt" wrap />
           </Row>
           {hm === 'aurora' && (
             <Row label="Aurora-Preset">

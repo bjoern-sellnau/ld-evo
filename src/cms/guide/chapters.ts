@@ -505,7 +505,7 @@ export const CHAPTERS: Chapter[] = [
         t: 'callout',
         kind: 'tip',
         title: 'Landing Page „Welcome“',
-        text: '`/welcome` zeigt die alte Website und verwandelt sie in die neue Startseite. Bild, Effekt (Kacheln, Glitch, Pixel, Welle, Zufall) und Hinweis pflegst du unter Startseite → „Welcome: …“. Ausprobieren: `/welcome?effekt=pixel`.',
+        text: '`/welcome` zeigt die alte Website und verwandelt sie in die neue Startseite. Bild, Effekt (Kacheln, Glitch, Pixel, Welle, Risse, Brennen, Countdown-Tür, Zufall) und Hinweis pflegst du unter Startseite → „Welcome: …“; Besucher können den Effekt in den Einstellungen selbst wählen. Ausprobieren: `/welcome?effekt=tuer`.',
       },
       {
         t: 'callout',

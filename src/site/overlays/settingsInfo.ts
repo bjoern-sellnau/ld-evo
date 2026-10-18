@@ -117,6 +117,10 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Links rechts im Footer (LinkedIn, GitHub, Impressum, Sprache) als Text oder als Symbole.',
     en: 'Links on the right of the footer (LinkedIn, GitHub, legal notice, language) as text or as icons.',
   },
+  'Welcome-Effekt': {
+    de: 'Wie sich auf /welcome die alte Website in die neue verwandelt: Kacheln, Glitch, Pixel, Welle, Risse, Brennen, Countdown-Tür (20 s) oder Zufall. „Wie in LD Flow“ nimmt die Einstellung der Startseite.',
+    en: 'How the old website turns into the new one on /welcome: tiles, glitch, pixel, wave, cracks, burn, countdown door (20 s) or random. “As set in LD Flow” uses the home page setting.',
+  },
   'Page-Transition': {
     de: 'Animation beim Wechsel zwischen Seiten.',
     en: 'Animation when switching between pages.',

@@ -4,41 +4,61 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { isSafeMediaSrc } from '@/cms/safe';
 import { useContent } from '../content/ContentProvider';
 import { useHref, useT } from '../i18n/LocaleProvider';
+import { useSite } from '../settings/SiteProvider';
 import { useMotionOk } from '../story/motion';
+import { Burn, Cracks, Door } from './effects';
 import styles from './welcome.module.css';
 
 /**
  * Landing Page /welcome (neu, nicht im Prototyp): zeigt zuerst die ALTE Website (Screenshot aus LD Flow, Startseite →
  * „Welcome: Screenshot der alten Website“) und verwandelt sie dann per Effekt in die neue Startseite, die darunter
- * schon fertig gerendert liegt (HalloPage). Effekte: Kacheln, Glitch, Pixel, Welle — oder Zufall. Ohne Bewegung
- * (prefers-reduced-motion / „Animationen aus“) nur ein kurzes Überblenden. Ohne Screenshot gibt es kein Overlay.
+ * schon fertig gerendert liegt (HalloPage). Effekte: Kacheln, Glitch, Pixel, Welle, Risse, Brennen, Countdown-Tür —
+ * oder Zufall. Welcher: ?effekt=… > Einstellungen („Welcome-Effekt“) > LD Flow. Ohne Bewegung (prefers-reduced-motion
+ * / „Animationen aus“) nur ein kurzes Überblenden. Ohne Screenshot gibt es kein Overlay.
  * Danach steht die Adresse auf der Startseite (replaceState), damit Neu-Laden nicht noch einmal abspielt.
- * Zum Ausprobieren: /welcome?effekt=kacheln|glitch|pixel|welle.
  */
-const EFFECTS = ['kacheln', 'glitch', 'pixel', 'welle'] as const;
-type Effect = (typeof EFFECTS)[number];
-const DURATION: Record<Effect, number> = { kacheln: 1500, glitch: 1500, pixel: 1500, welle: 1800 };
-/** Wie lange die alte Seite steht, bevor sie sich von selbst verwandelt. */
+/** Unterpfad (GitHub Pages): eigene Pfade wie /welcome/… bzw. /media/… brauchen ihn — wie BrandSwap. */
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+export const WELCOME_EFFECTS = ['kacheln', 'glitch', 'pixel', 'welle', 'risse', 'brand', 'tuer'] as const;
+type Effect = (typeof WELCOME_EFFECTS)[number];
+const DURATION: Record<Effect, number> = { kacheln: 1500, glitch: 1500, pixel: 1500, welle: 1800, risse: 2700, brand: 2800, tuer: 1500 };
+/** Wie lange die alte Seite steht, bevor sie sich von selbst verwandelt (Tür: Countdown 20 s). */
 const HOLD_MS = 3200;
+const DOOR_S = 20;
+
+const pickEffect = (want: string | null | undefined): Effect =>
+  WELCOME_EFFECTS.includes(want as Effect) ? (want as Effect) : WELCOME_EFFECTS[Math.floor(Math.random() * WELCOME_EFFECTS.length)];
 
 export function Welcome() {
   const { home } = useContent();
+  const { settings, hydrated } = useSite();
   const t = useT();
   const href = useHref();
   const motion = useMotionOk();
-  const img = home.welcomeOld?.src && isSafeMediaSrc(home.welcomeOld.src) ? home.welcomeOld : null;
+  const raw = home.welcomeOld?.src && isSafeMediaSrc(home.welcomeOld.src) ? home.welcomeOld : null;
+  const img = raw ? { ...raw, src: raw.src.startsWith('/') ? BASE + raw.src : raw.src } : null;
   const [phase, setPhase] = useState<'old' | 'run' | 'done'>(img ? 'old' : 'done');
-  const [effect, setEffect] = useState<Effect>('kacheln');
+  const [effect, setEffect] = useState<Effect | null>(null);
+  const [left, setLeft] = useState(DOOR_S);
   // Natürliche Größe des schon sichtbaren Bildes — Kacheln/Pixel starten damit ohne erneutes Laden (kein Aufblitzen)
   // (per Ref gelesen: das Bild ist oft schon vor der Hydration geladen, onLoad käme dann nie)
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
   const shotRef = useRef<HTMLImageElement>(null);
   const goRef = useRef<HTMLButtonElement>(null);
 
+  // Effekt erst nach der Hydration wählen (Einstellungen und Adresse sind erst dann bekannt)
+  useEffect(() => {
+    if (!hydrated || effect) return;
+    const url = new URLSearchParams(window.location.search).get('effekt');
+    const own = settings.welcomeFx && settings.welcomeFx !== 'flow' ? settings.welcomeFx : null;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Wahl hängt an Adresse/localStorage (nur im Browser)
+    setEffect(pickEffect(url ?? own ?? home.welcomeEffect));
+  }, [hydrated, effect, settings.welcomeFx, home.welcomeEffect]);
+
   const finish = () => {
     setPhase('done');
     try {
-      window.history.replaceState(window.history.state, '', href('/'));
+      window.history.replaceState(window.history.state, '', BASE + href('/'));
     } catch {
       // Adresse bleibt /welcome — kein Problem
     }
@@ -51,29 +71,31 @@ export function Welcome() {
   };
   const start = () => {
     if (phase !== 'old') return;
-    // ?effekt=pixel probiert einen Effekt direkt aus (sonst Einstellung aus LD Flow)
-    const pick = new URLSearchParams(window.location.search).get('effekt') ?? home.welcomeEffect;
-    setEffect(EFFECTS.includes(pick as Effect) ? (pick as Effect) : EFFECTS[Math.floor(Math.random() * EFFECTS.length)]);
     const im = shotRef.current;
     if (im?.naturalWidth) setNat({ w: im.naturalWidth, h: im.naturalHeight });
     setPhase('run');
   };
 
   useEffect(() => {
-    if (phase !== 'old') return;
+    if (phase !== 'old' || !effect) return;
     goRef.current?.focus({ preventScroll: true });
-    const id = setTimeout(start, HOLD_MS);
+    const door = effect === 'tuer';
+    const id = setTimeout(start, door ? DOOR_S * 1000 : HOLD_MS);
+    // Countdown der Tür (sekündlich)
+    const t0 = Date.now();
+    const tick = door ? setInterval(() => setLeft(Math.max(0, DOOR_S - Math.floor((Date.now() - t0) / 1000))), 250) : undefined;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && finish();
     window.addEventListener('keydown', onKey);
     return () => {
       clearTimeout(id);
+      clearInterval(tick);
       window.removeEventListener('keydown', onKey);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- nur beim Wechsel der Phase neu armieren
-  }, [phase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- nur beim Wechsel von Phase/Effekt neu armieren
+  }, [phase, effect]);
 
   useEffect(() => {
-    if (phase !== 'run') return;
+    if (phase !== 'run' || !effect) return;
     const id = setTimeout(finish, motion ? DURATION[effect] : 350);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Ablauf hängt nur an Phase und Effekt
@@ -82,6 +104,7 @@ export function Welcome() {
   if (phase === 'done' || !img) return null;
   const shot = <img className={styles.shot} src={img.src} alt={img.alt || t('welcome.old')} draggable={false} ref={shotRef} />;
   const running = phase === 'run';
+  const door = effect === 'tuer' && motion;
   return (
     <div
       role="dialog"
@@ -89,9 +112,20 @@ export function Welcome() {
       aria-label={t('welcome.dialog')}
       className={[styles.overlay, running ? styles.running : ''].join(' ')}
     >
-      {!running || !motion ? (
+      {door ? (
+        <>
+          {/* Bild für Screenreader/Größe; sichtbar sind die Türflügel */}
+          <div style={{ position: 'absolute', inset: 0, opacity: 0 }}>{shot}</div>
+          <Door src={img.src} open={running} total={DOOR_S} left={left} />
+        </>
+      ) : !running || !motion ? (
         <div className={running ? styles.fade : undefined} style={{ position: 'absolute', inset: 0 }}>
           {shot}
+          {effect === 'tuer' && !running && (
+            <div className={styles.count} aria-hidden>
+              <span>{left}</span>
+            </div>
+          )}
         </div>
       ) : effect === 'kacheln' && nat ? (
         <Tiles src={img.src} nat={nat} />
@@ -107,6 +141,14 @@ export function Welcome() {
         </div>
       ) : effect === 'pixel' ? (
         <Pixels src={img.src} fallback={shot} />
+      ) : effect === 'risse' ? (
+        <Fallback shot={shot}>
+          <Cracks src={img.src} />
+        </Fallback>
+      ) : effect === 'brand' ? (
+        <Fallback shot={shot}>
+          <Burn src={img.src} />
+        </Fallback>
       ) : (
         <div className={styles.wave}>{shot}</div>
       )}
@@ -120,6 +162,21 @@ export function Welcome() {
         </button>
       </div>
     </div>
+  );
+}
+
+/** Altes Bild darunter, bis der Canvas-Effekt das erste Bild gezeichnet hat (kein Aufblitzen der neuen Seite). */
+function Fallback({ shot, children }: { shot: ReactNode; children: ReactNode }) {
+  const [show, setShow] = useState(true);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setShow(false)));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  return (
+    <>
+      {show && shot}
+      {children}
+    </>
   );
 }
 
