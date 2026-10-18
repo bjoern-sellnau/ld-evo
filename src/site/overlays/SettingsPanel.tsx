@@ -66,6 +66,22 @@ const WELCOME_SEGS = [
   ['zufall', 'Zufall'],
 ] as const;
 
+// Wetter-Hero: Vorschau aller Darstellungen (sonst echtes Wetter aus /api/wetter)
+const WX_SEGS = [
+  ['live', 'Live'],
+  ['klar', 'Klar'],
+  ['wolken', 'Wolken'],
+  ['regen', 'Regen'],
+  ['schnee', 'Schnee'],
+  ['nebel', 'Nebel'],
+  ['gewitter', 'Gewitter'],
+] as const;
+const WX_DAY_SEGS = [
+  ['live', 'Live'],
+  ['tag', 'Tag'],
+  ['nacht', 'Nacht'],
+] as const;
+
 const VT_SEGS = [
   ['fade', 'Fade'],
   ['slide', 'Slide'],
@@ -134,6 +150,7 @@ const EN_LABELS: Record<string, string> = {
   'Menü-Elemente': 'Menu elements',
   'Tech-Layout': 'Tech layout',
   'Footer-Marke': 'Footer brand',
+  'Footer-Logo': 'Footer logo',
   'Footer-Zusatz': 'Footer tagline',
   'Footer-Links': 'Footer links',
   'Eigener Copyright-Text': 'Custom copyright text',
@@ -293,6 +310,15 @@ const EN_LABELS: Record<string, string> = {
   Sprache: 'Language',
   'Page-Transition': 'Page transition',
   'Welcome-Effekt': 'Welcome effect',
+  'Wetter-Vorschau': 'Weather preview',
+  Tageszeit: 'Time of day',
+  Live: 'Live',
+  Nebel: 'Fog',
+  Gewitter: 'Thunderstorm',
+  Tag: 'Day',
+  Nacht: 'Night',
+  'Wind fest einstellen': 'Fixed wind',
+  'Wind (km/h)': 'Wind (km/h)',
   'Fokus deutlich': 'Strong focus ring',
   'Links unterstreichen': 'Underline links',
   'Wie in LD Flow': 'As set in LD Flow',
@@ -754,6 +780,35 @@ export function SettingsPanel() {
               label="Footer-Marke"
             />
           </Row>
+          {s.footBrand === 'logo' && (
+            <Row label="Footer-Logo">
+              {/* gleiche Varianten wie das Favicon */}
+              <span role="radiogroup" aria-label={sl('Footer-Logo')} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                {FAVICONS.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={s.footLogo === f.key}
+                    aria-label={sl(f.label)}
+                    title={sl(f.label)}
+                    onClick={() => set('footLogo', f.key)}
+                    style={{
+                      width: 30,
+                      height: 30,
+                      padding: 4,
+                      borderRadius: 9,
+                      cursor: 'pointer',
+                      border: `1.5px solid ${s.footLogo === f.key ? 'var(--accent)' : 'var(--border)'}`,
+                      background: f.key.startsWith('neg') ? '#3A3F4A' : 'transparent',
+                    }}
+                  >
+                    <img src={faviconUri(f.svg)} alt="" width={20} height={20} style={{ display: 'block' }} />
+                  </button>
+                ))}
+              </span>
+            </Row>
+          )}
           <Row label="Footer-Zusatz" column>
             <input
               value={s.footTag}
@@ -1136,6 +1191,37 @@ export function SettingsPanel() {
               <Row label="Oben / Unten">
                 <Range min={0} max={100} step={1} value={cfg.y ?? 50} onChange={(v) => setCfg(hm, 'y', v)} label="Oben / Unten" />
               </Row>
+            </>
+          )}
+          {hm === 'weather' && (
+            <>
+              <Row label="Wetter-Vorschau" column>
+                <Seg
+                  options={WX_SEGS}
+                  value={(cfg.wx as string) || 'live'}
+                  onChange={(v) => setCfg(hm, 'wx', v)}
+                  label="Wetter-Vorschau"
+                  wrap
+                />
+              </Row>
+              <Row label="Tageszeit">
+                <Seg
+                  options={WX_DAY_SEGS}
+                  value={(cfg.wxDay as string) || 'live'}
+                  onChange={(v) => setCfg(hm, 'wxDay', v)}
+                  label="Tageszeit"
+                />
+              </Row>
+              <Toggle
+                label="Wind fest einstellen"
+                on={typeof cfg.wxWind === 'number'}
+                onToggle={() => setCfg(hm, 'wxWind', typeof cfg.wxWind === 'number' ? undefined : 20)}
+              />
+              {typeof cfg.wxWind === 'number' && (
+                <Row label="Wind (km/h)">
+                  <Range min={0} max={80} step={5} value={cfg.wxWind} onChange={(v) => setCfg(hm, 'wxWind', v)} label="Wind (km/h)" />
+                </Row>
+              )}
             </>
           )}
           {hm === 'ribbon' && (
