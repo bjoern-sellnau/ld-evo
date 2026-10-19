@@ -26,6 +26,7 @@ const de = {
   'nav.contact': 'Kontakt',
   'nav.backPill': '‹ Zurück',
   // Sprunglinks (Barrierefreiheit): erscheinen beim ersten Tab
+  'splash.skip': 'Klick oder Taste = überspringen',
   'skip.label': 'Sprunglinks',
   'skip.main': 'Zum Inhalt springen',
   'skip.nav': 'Zur Navigation',
@@ -224,6 +225,7 @@ const en: Record<UiKey, string> = {
   'nav.collapse': 'Collapse menu',
   'nav.contact': 'Contact',
   'nav.backPill': '‹ Back',
+  'splash.skip': 'Click or press a key to skip',
   'skip.label': 'Skip links',
   'skip.main': 'Skip to content',
   'skip.nav': 'Skip to navigation',

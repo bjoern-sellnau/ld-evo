@@ -314,6 +314,7 @@ const EN_LABELS: Record<string, string> = {
   'Schluss: Röhren-Monitor aus': 'Ending: CRT switch-off',
   'Terminal: Links / Rechts': 'Terminal: left / right',
   'Terminal: Oben / Unten': 'Terminal: top / bottom',
+  Zentrieren: 'Center',
   Tageszeit: 'Time of day',
   Live: 'Live',
   Nebel: 'Fog',
@@ -609,6 +610,7 @@ export function SettingsPanel() {
                 ['logo', 'LD Logo'],
                 ['lines', 'Lines'],
                 ['sketch', 'Sketch'],
+                ['terminal', 'Terminal'],
               ]}
               value={s.splashAnim}
               onChange={(v) => {
@@ -1219,6 +1221,16 @@ export function SettingsPanel() {
                   label="Terminal: Oben / Unten"
                 />
               </Row>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 0 7px' }}>
+                {/* beide Regler auf die Mitte */}
+                <button
+                  type="button"
+                  onClick={() => set('heroCfg', { ...s.heroCfg, [hm]: { ...cfg, tx: 50, ty: 50 } })}
+                  className={styles.reset}
+                >
+                  {sl('Zentrieren')}
+                </button>
+              </div>
             </>
           )}
           {hm === 'weather' && (

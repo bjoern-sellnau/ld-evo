@@ -8,6 +8,7 @@ import { useSite } from '../settings/SiteProvider';
 import { SKETCH_HTML } from './sketchMarkup';
 import { LogoTile } from '../settings/LogoTile';
 import { FULL_BOX, PHONE_BOX } from '../chrome/phoneBox';
+import { TerminalSplash, terminalSplashMs } from './TerminalSplash';
 
 /** Event, mit dem das Einstellungs-Panel den gewählten Splash sofort zur Vorschau abspielt (Nachtrag v17). */
 export const SPLASH_REPLAY_EVENT = 'ld-splash-replay';
@@ -36,11 +37,30 @@ export function Splash() {
       return;
     }
     setPhase(2);
-    const t1 = setTimeout(() => setPhase(1), 2500);
-    const t2 = setTimeout(() => setPhase(0), 3100);
+    // Terminal-Splash dauert so lange, wie getippt wird (bei „Animationen aus“ kurz); Klick/Taste überspringt
+    const term = s.splashAnim === 'terminal';
+    const show = term ? (s.anim ? terminalSplashMs(heroMode(s)) : 1200) : 2500;
+    let t1 = setTimeout(() => setPhase(1), show);
+    let t2 = setTimeout(() => setPhase(0), show + 600);
+    const skip = () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      setPhase(1);
+      t1 = t2 = setTimeout(() => setPhase(0), 600);
+      off();
+    };
+    const off = () => {
+      window.removeEventListener('pointerdown', skip);
+      window.removeEventListener('keydown', skip);
+    };
+    if (term) {
+      window.addEventListener('pointerdown', skip);
+      window.addEventListener('keydown', skip);
+    }
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      off();
     };
     // Nur beim Start und bei einer Vorschau neu armieren — nicht bei jeder Einstellungsänderung.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,6 +112,7 @@ export function Splash() {
         pointerEvents: phase === 2 ? 'auto' : 'none',
       }}
     >
+      {anim === 'terminal' && <TerminalSplash mode={hm} still={!s.anim} />}
       {anim === 'sketch' && (
         <div
           style={{
