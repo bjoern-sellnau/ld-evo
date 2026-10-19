@@ -9,6 +9,7 @@ import { SKETCH_HTML } from './sketchMarkup';
 import { LogoTile } from '../settings/LogoTile';
 import { FULL_BOX, PHONE_BOX } from '../chrome/phoneBox';
 import { TerminalSplash, terminalSplashMs } from './TerminalSplash';
+import { EXTRA_MODES } from '../hero/extra/meta';
 
 /** Event, mit dem das Einstellungs-Panel den gewählten Splash sofort zur Vorschau abspielt (Nachtrag v17). */
 export const SPLASH_REPLAY_EVENT = 'ld-splash-replay';
@@ -47,7 +48,7 @@ export function Splash() {
     // Terminal-Splash dauert so lange, wie getippt wird (bei „Animationen aus“ kurz); Klick/Taste überspringt
     document.body.classList.remove('ldnosplash');
     const term = (urlSplash() ?? s.splashAnim) === 'terminal';
-    const show = term ? (s.anim ? terminalSplashMs(heroMode(s)) : 1200) : 2500;
+    const show = term ? (s.anim ? terminalSplashMs(heroMode(s), EXTRA_MODES[heroMode(s)]?.label) : 1200) : 2500;
     let t1 = setTimeout(() => setPhase(1), show);
     let t2 = setTimeout(() => setPhase(0), show + 600);
     const skip = () => {
@@ -120,7 +121,7 @@ export function Splash() {
         pointerEvents: phase === 2 ? 'auto' : 'none',
       }}
     >
-      {anim === 'terminal' && <TerminalSplash mode={hm} still={!s.anim} />}
+      {anim === 'terminal' && <TerminalSplash mode={hm} anim={s.anim} />}
       {anim === 'sketch' && (
         <div
           style={{

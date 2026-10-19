@@ -138,7 +138,13 @@ const frameOf = (c: Ctx2D) => {
   const wide = W > 760;
   // Der Canvas beginnt über dem Bildschirmrand (Hero-Fläche top −140): Fenster unter die Menüleiste setzen und
   // innerhalb des sichtbaren Bereichs bzw. vor der Ausblend-Maske (68 %) enden lassen.
-  const cv = document.getElementById('ld-extra-canvas');
+  // Splash (Splash.tsx): bildschirmfüllender Canvas, Fenster mittig
+  if (c.cfg.splash) {
+    const w = Math.min(W - 32, 680);
+    const h = Math.min(H - 140, 440);
+    return { wide, x: (W - w) / 2, y: (H - h) / 2, w, h };
+  }
+  const cv = c.cv ?? document.getElementById('ld-extra-canvas');
   const off = cv ? cv.getBoundingClientRect().top + window.scrollY : -140;
   const top = Math.max(0, 96 - off);
   // Während des Baus ist die Fläche bildschirmhoch und ohne Maske (site.css) — dann bis zum unteren Rand
@@ -322,16 +328,17 @@ const tokColor = (c: Ctx2D, tok: string) =>
           : 'rgba(228,233,242,0.92)';
 
 const codeMode =
-  (shift: boolean, script: Line[] = SCRIPT): Mode2D =>
+  (shift: boolean, script: Line[] | ((c: Ctx2D) => Line[]) = SCRIPT): Mode2D =>
   (c) => {
-    const rows = timeline(script);
+    const rows = timeline(typeof script === 'function' ? script(c) : script);
     const tabbed = rows.some((r) => r.k === 'tab');
     let hmrAt = -9; // letzte Einblendung — Tab 1 (Dev-Server) blinkt dann kurz („Hot Reload“)
     const END = rows[rows.length - 1].end + 1.2;
     const clock = clockOf(shift);
     let skipped = false;
     let finished = false;
-    const link = pageLink(() => (skipped = true));
+    // Im Splash nichts an der Seite verstecken (sie liegt ohnehin darunter) — überspringen regelt Splash.tsx
+    const link = c.cfg.splash ? { show: () => {}, finish: () => {}, dispose: () => {} } : pageLink(() => (skipped = true));
     let shownTo = -1;
     let doneAt = -1;
     return {
@@ -429,7 +436,7 @@ const codeMode =
           y += lh;
         });
         // Hinweis: überspringen
-        if (!finished && !still) {
+        if (!finished && !still && !c.cfg.splash) {
           g.font = `11px ${monoFont()}`;
           g.fillStyle = 'rgba(200,208,222,0.55)';
           g.textAlign = 'right';
@@ -635,6 +642,33 @@ const agentsMode =
       },
     } satisfies ExtraRenderer;
   };
+
+/**
+ * Splash „Terminal“ (Splash.tsx): derselbe Ablauf wie „Live-Build: Dev-Server + Code“ (gleiches Tempo, zwei Tabs), aber
+ * statt <div id="ld-hero"> steht die gewählte Hero-Animation im Code (cfg.hero / cfg.heroLabel) — die lädt danach.
+ * Zum Schluss schaltet das Terminal ab wie ein Röhren-Monitor (cfg.crt).
+ */
+const splashScript = (hero: string, label?: string): Line[] => {
+  let inHero = false;
+  return SCRIPT_DEV.map((l) => {
+    if (l.s === '    <div id="ld-hero">') {
+      inHero = true;
+      return { ...l, s: `    <Hero animation="${hero}">${label ? ` {/* ${label} */}` : ''}` };
+    }
+    if (inHero && l.s === '    </div>') {
+      inHero = false;
+      return { ...l, s: '    </Hero>' };
+    }
+    return l;
+  });
+};
+const splashOf = (c: Ctx2D) => splashScript(String(c.cfg.hero ?? 'flow'), c.cfg.heroLabel as string | undefined);
+/** Dauer des Splash in ms: Tippen + Ausklang + Röhren-Effekt. */
+export const terminalSplashMs = (hero: string, label?: string) => {
+  const rows = timeline(splashScript(hero, label));
+  return Math.round((rows[rows.length - 1].end + 1.2 + 1.5) * 1000);
+};
+export const SPLASH_2D: Record<string, Mode2D> = { splashterm: codeMode(false, splashOf) };
 
 export const BUILD_2D: Record<string, Mode2D> = {
   buildcode: codeMode(false),
