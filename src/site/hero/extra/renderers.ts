@@ -7,7 +7,7 @@
  */
 
 // Zweite Welle (Wunsch vom 17.10.2026) in eigener Datei, nutzt die Helfer von hier (Zyklus nur zur Laufzeit)
-import { BUILD_2D } from './build';
+import { BUILD_2D, SPLASH_2D } from './build';
 import { MORE_2D, MORE_SHADERS } from './renderers2';
 
 export type Rgb = [number, number, number];
@@ -171,6 +171,8 @@ export interface Ctx2D {
   ptr: Pointer;
   /** Modus-Einstellungen aus dem Einstellungs-Panel (heroCfg[modus], z. B. Wetter-Vorschau). */
   cfg: Record<string, unknown>;
+  /** Der Canvas selbst (z. B. für seine Lage auf der Seite). */
+  cv?: HTMLCanvasElement;
 }
 export type Mode2D = (c: Ctx2D) => ExtraRenderer;
 
@@ -855,7 +857,7 @@ const factory = (
 ): ExtraRenderer | null => {
   const shader = SHADERS[mode] ?? MORE_SHADERS[mode];
   if (shader) return glMode(shader)(cv, pal, ptr);
-  const m = MODES_2D[mode] ?? MORE_2D[mode] ?? BUILD_2D[mode];
+  const m = MODES_2D[mode] ?? MORE_2D[mode] ?? BUILD_2D[mode] ?? SPLASH_2D[mode];
   if (!m) return null;
   const g = cv.getContext('2d');
   if (!g) return null;
@@ -870,6 +872,7 @@ const factory = (
     bg: `rgba(${br},${bgc},${bb},ALPHA)`,
     ptr,
     cfg,
+    cv,
     col: (i, a = 1) => {
       const x = Math.max(0, Math.min(4, i));
       const k = Math.min(3, Math.floor(x));
