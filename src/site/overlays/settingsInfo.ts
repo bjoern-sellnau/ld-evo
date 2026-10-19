@@ -44,8 +44,8 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     en: 'Animated background of the large area at the top of the home page.',
   },
   'Splash-Animation': {
-    de: 'Welche Intro-Animation beim Laden der Website läuft (wenn „Splash-Screen“ an ist).',
-    en: 'Which intro animation plays when the site loads (if “Splash screen” is on).',
+    de: 'Welche Intro-Animation beim Laden der Website läuft (wenn „Splash-Screen“ an ist). „Terminal“: Ein Terminal startet den Dev-Server und schreibt den sichtbaren Teil der Startseite samt Hero-Animation — danach lädt die Seite mit dieser Hero-Animation; Klick oder Taste überspringt.',
+    en: 'Which intro animation plays when the site loads (if “Splash screen” is on). “Terminal”: a terminal starts the dev server and writes the visible part of the home page including the hero animation — then the page loads with that hero animation; click or key skips.',
   },
   'Mobil-Design': {
     de: 'Gestaltung der Telefon-Ansicht: Prototyp, App (Tab-Leiste und Bottom-Sheet), App v2, Editorial (Magazin-Stil) oder Lab (experimentell).',
