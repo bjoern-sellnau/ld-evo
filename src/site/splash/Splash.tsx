@@ -14,6 +14,13 @@ import { TerminalSplash, terminalSplashMs } from './TerminalSplash';
 export const SPLASH_REPLAY_EVENT = 'ld-splash-replay';
 
 const mono = 'var(--ld-font-mono),monospace';
+const SPLASH_KINDS = ['logo', 'lines', 'sketch', 'terminal'];
+/** Testen ohne Einstellungen: ?splash=terminal (bzw. logo/lines/sketch) spielt diesen Splash beim Laden immer ab. */
+const urlSplash = () => {
+  if (typeof window === 'undefined') return null;
+  const v = new URLSearchParams(window.location.search).get('splash');
+  return v && SPLASH_KINDS.includes(v) ? v : null;
+};
 const BAR = 'linear-gradient(90deg,rgba(255,178,36,0),#FFB224,#FF7A2F,rgba(255,122,47,0))';
 
 /**
@@ -31,14 +38,15 @@ export function Splash() {
 
   useEffect(() => {
     if (!hydrated) return;
-    if ((!s.splashOn || welcome) && run === 0) {
+    if ((!s.splashOn || welcome) && run === 0 && !urlSplash()) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Splash-Ablauf hängt an Einstellungen aus localStorage, erst nach der Hydration bekannt
       setPhase(0);
       return;
     }
     setPhase(2);
     // Terminal-Splash dauert so lange, wie getippt wird (bei „Animationen aus“ kurz); Klick/Taste überspringt
-    const term = s.splashAnim === 'terminal';
+    document.body.classList.remove('ldnosplash');
+    const term = (urlSplash() ?? s.splashAnim) === 'terminal';
     const show = term ? (s.anim ? terminalSplashMs(heroMode(s)) : 1200) : 2500;
     let t1 = setTimeout(() => setPhase(1), show);
     let t2 = setTimeout(() => setPhase(0), show + 600);
@@ -76,7 +84,7 @@ export function Splash() {
   }, []);
 
   if (phase === 0) return null;
-  const anim = hydrated ? s.splashAnim || 'logo' : null;
+  const anim = hydrated ? (run === 0 && urlSplash()) || s.splashAnim || 'logo' : null;
   const hm = heroMode(s);
   const sk: Record<string, string> = {
     skNavTopDisp: !mob && !sideActive ? 'block' : 'none',
