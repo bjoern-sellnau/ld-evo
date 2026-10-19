@@ -87,8 +87,10 @@ const endFrame = (c: Ctx2D, f: { x: number; y: number; w: number; h: number }, c
 };
 
 /** Steuert body[data-ldbuild] (siehe Dateikopf). */
-function pageLink(onSkip: () => void) {
+function pageLink(onSkip: () => void, splash2 = false) {
   const body = document.body;
+  // Splash 2: zusätzlich body[data-ldsplash2] — die Hero-Animation bleibt bis zum Schluss verborgen (site.css)
+  if (splash2 && !body.classList.contains('still')) body.dataset.ldsplash2 = '';
   const done = new Set<Part>();
   let live = !body.classList.contains('still');
   const write = () => {
@@ -121,12 +123,16 @@ function pageLink(onSkip: () => void) {
       write();
       live = false;
       unlisten();
-      endTimer = setTimeout(() => delete body.dataset.ldbuild, 1300);
+      endTimer = setTimeout(() => {
+        delete body.dataset.ldbuild;
+        delete body.dataset.ldsplash2;
+      }, 1300);
     },
     dispose() {
       unlisten();
       clearTimeout(endTimer);
       delete body.dataset.ldbuild;
+      delete body.dataset.ldsplash2;
     },
   };
 }
@@ -139,6 +145,12 @@ const frameOf = (c: Ctx2D) => {
   // Der Canvas beginnt über dem Bildschirmrand (Hero-Fläche top −140): Fenster unter die Menüleiste setzen und
   // innerhalb des sichtbaren Bereichs bzw. vor der Ausblend-Maske (68 %) enden lassen.
   // Splash (Splash.tsx): bildschirmfüllender Canvas, Fenster mittig
+  // Splash 2: rechts neben dem Hero-Text (der links währenddessen entsteht), schmal unten
+  if (c.cfg.splash2) {
+    const w = wide ? Math.min(W * 0.44, 640) : W - 28;
+    const h = wide ? Math.min(H - 190, 520) : Math.min(H * 0.42, 360);
+    return { wide, x: wide ? W * 0.52 : 14, y: wide ? 112 : H - h - 70, w, h };
+  }
   if (c.cfg.splash) {
     const w = Math.min(W - 32, 680);
     const h = Math.min(H - 140, 440);
@@ -338,7 +350,10 @@ const codeMode =
     let skipped = false;
     let finished = false;
     // Im Splash nichts an der Seite verstecken (sie liegt ohnehin darunter) — überspringen regelt Splash.tsx
-    const link = c.cfg.splash ? { show: () => {}, finish: () => {}, dispose: () => {} } : pageLink(() => (skipped = true));
+    const link =
+      c.cfg.splash && !c.cfg.splash2
+        ? { show: () => {}, finish: () => {}, dispose: () => {} }
+        : pageLink(() => (skipped = true), !!c.cfg.splash2);
     let shownTo = -1;
     let doneAt = -1;
     return {
@@ -668,7 +683,10 @@ export const terminalSplashMs = (hero: string, label?: string) => {
   const rows = timeline(splashScript(hero, label));
   return Math.round((rows[rows.length - 1].end + 1.2 + 1.5) * 1000);
 };
-export const SPLASH_2D: Record<string, Mode2D> = { splashterm: codeMode(false, splashOf) };
+export const SPLASH_2D: Record<string, Mode2D> = {
+  splashterm: codeMode(false, splashOf),
+  splashterm2: codeMode(false, splashOf),
+};
 
 export const BUILD_2D: Record<string, Mode2D> = {
   buildcode: codeMode(false),

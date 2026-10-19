@@ -15,7 +15,12 @@ import { useT } from '../i18n/LocaleProvider';
  */
 export { terminalSplashMs } from '../hero/extra/build';
 
-export function TerminalSplash({ mode, anim }: { mode: string; anim: boolean }) {
+/**
+ * variant 2 („Terminal 2“): Splash ist durchsichtig, die Seite darunter schwarz, und ihre Elemente erscheinen, sobald ihr
+ * Code fertig ist (wie die Hero-Animation „Live-Build“, Kopplung über body[data-ldbuild]); die gewählte
+ * Hero-Animation blendet erst am Schluss ein (body[data-ldsplash2], site.css).
+ */
+export function TerminalSplash({ mode, anim, variant = 1 }: { mode: string; anim: boolean; variant?: 1 | 2 }) {
   const t = useT();
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -24,21 +29,21 @@ export function TerminalSplash({ mode, anim }: { mode: string; anim: boolean }) 
     void import('../hero/extra/renderers').then(({ runExtra }) => {
       const cv = ref.current;
       if (gone || !cv) return;
-      stop = runExtra(cv, 'splashterm', ['#FFB224', '#FF7A2F', '#FF9F5A', '#FF7A9C', '#5BD97A'], {
+      stop = runExtra(cv, variant === 2 ? 'splashterm2' : 'splashterm', ['#FFB224', '#FF7A2F', '#FF9F5A', '#FF7A9C', '#5BD97A'], {
         anim,
         fpsHalf: false,
         bg: '#000000',
-        cfg: { splash: true, crt: true, hero: mode, heroLabel: EXTRA_MODES[mode]?.label },
+        cfg: { splash: true, splash2: variant === 2, crt: true, hero: mode, heroLabel: EXTRA_MODES[mode]?.label },
       });
     });
     return () => {
       gone = true;
       stop();
     };
-  }, [mode, anim]);
+  }, [mode, anim, variant]);
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#000' }}>
+    <div style={{ position: 'absolute', inset: 0, background: variant === 2 ? 'transparent' : '#000' }}>
       <canvas ref={ref} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
       <span
         style={{

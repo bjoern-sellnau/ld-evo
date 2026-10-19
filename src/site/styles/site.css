@@ -1869,7 +1869,7 @@ body[data-ldbuild]:not(.still):not([data-ldbuild~='footer']) #fuss:not(:focus-wi
 }
 /* Während des Baus: Hero-Fläche (Canvas) bildschirmhoch, ohne Ausblend-Maske und über dem Hero, damit das Terminal
    überall stehen kann. */
-body[data-ldbuild]:not(.still) #ld-hero > [data-ldpara] {
+body[data-ldbuild]:not(.still):not([data-ldsplash2]) #ld-hero > [data-ldpara] {
   /* Terminal liegt über den Hero-Elementen (Wunsch); der Canvas ist außerhalb des Fensters durchsichtig */
   z-index: 4;
   background: transparent !important;
@@ -1882,4 +1882,13 @@ body[data-ldbuild]:not(.still) #ld-hero > [data-ldpara] {
     transform: none !important;
     filter: none !important;
   }
+}
+
+/* Splash „Terminal 2“ (splash/TerminalSplash.tsx): Die Seite entsteht unter dem durchsichtigen Splash; die gewählte
+   Hero-Animation blendet erst am Schluss ein (Attribut entfernt build.ts → pageLink). */
+#ld-hero > [data-ldpara] {
+  transition: opacity 1.2s ease;
+}
+body[data-ldsplash2]:not(.still) #ld-hero > [data-ldpara] {
+  opacity: 0 !important;
 }
