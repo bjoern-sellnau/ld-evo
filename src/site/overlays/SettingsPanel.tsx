@@ -611,6 +611,7 @@ export function SettingsPanel() {
                 ['lines', 'Lines'],
                 ['sketch', 'Sketch'],
                 ['terminal', 'Terminal'],
+                ['terminal2', 'Terminal 2'],
               ]}
               value={s.splashAnim}
               onChange={(v) => {

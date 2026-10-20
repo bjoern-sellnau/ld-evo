@@ -15,7 +15,7 @@ import { EXTRA_MODES } from '../hero/extra/meta';
 export const SPLASH_REPLAY_EVENT = 'ld-splash-replay';
 
 const mono = 'var(--ld-font-mono),monospace';
-const SPLASH_KINDS = ['logo', 'lines', 'sketch', 'terminal'];
+const SPLASH_KINDS = ['logo', 'lines', 'sketch', 'terminal', 'terminal2'];
 /** Testen ohne Einstellungen: ?splash=terminal (bzw. logo/lines/sketch) spielt diesen Splash beim Laden immer ab. */
 const urlSplash = () => {
   if (typeof window === 'undefined') return null;
@@ -35,7 +35,10 @@ export function Splash() {
   const [phase, setPhase] = useState<0 | 1 | 2>(2);
   const [run, setRun] = useState(0);
   // Landing Page /welcome hat ihren eigenen Auftritt (alte Website → neue) — dort kein Splash
-  const welcome = canonicalPath(usePathname()) === '/welcome';
+  const path = canonicalPath(usePathname());
+  const welcome = path === '/welcome';
+  // „Terminal 2“ baut die Elemente der Startseite auf — anderswo gibt es die nicht, dort läuft „Terminal“
+  const kindOf = (k: string) => (k === 'terminal2' && path !== '/' ? 'terminal' : k);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -47,7 +50,7 @@ export function Splash() {
     setPhase(2);
     // Terminal-Splash dauert so lange, wie getippt wird (bei „Animationen aus“ kurz); Klick/Taste überspringt
     document.body.classList.remove('ldnosplash');
-    const term = (urlSplash() ?? s.splashAnim) === 'terminal';
+    const term = /^terminal/.test(kindOf(urlSplash() ?? s.splashAnim));
     const show = term ? (s.anim ? terminalSplashMs(heroMode(s), EXTRA_MODES[heroMode(s)]?.label) : 1200) : 2500;
     let t1 = setTimeout(() => setPhase(1), show);
     let t2 = setTimeout(() => setPhase(0), show + 600);
@@ -85,7 +88,7 @@ export function Splash() {
   }, []);
 
   if (phase === 0) return null;
-  const anim = hydrated ? (run === 0 && urlSplash()) || s.splashAnim || 'logo' : null;
+  const anim = hydrated ? kindOf((run === 0 && urlSplash()) || s.splashAnim || 'logo') : null;
   const hm = heroMode(s);
   const sk: Record<string, string> = {
     skNavTopDisp: !mob && !sideActive ? 'block' : 'none',
@@ -115,13 +118,15 @@ export function Splash() {
         zIndex: 200,
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'radial-gradient(90% 70% at 50% 38%,#101A2E,#0A1220 70%)',
+        // Terminal 2: durchsichtig — darunter entsteht die (schwarze) Seite
+        background: anim === 'terminal2' ? 'transparent' : 'radial-gradient(90% 70% at 50% 38%,#101A2E,#0A1220 70%)',
         opacity: phase === 2 ? 1 : 0,
         transition: 'opacity 0.5s ease',
         pointerEvents: phase === 2 ? 'auto' : 'none',
       }}
     >
       {anim === 'terminal' && <TerminalSplash mode={hm} anim={s.anim} />}
+      {anim === 'terminal2' && <TerminalSplash mode={hm} anim={s.anim} variant={2} />}
       {anim === 'sketch' && (
         <div
           style={{

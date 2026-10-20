@@ -83,7 +83,8 @@ export function HalloPage() {
   // Live-Build: das Boot-Script versteckt die Seite schon vor dem ersten Bild, wenn der Modus gespeichert ist —
   // ist er hier doch nicht aktiv (z. B. Performance-Modus), sofort wieder freigeben.
   useEffect(() => {
-    if (!hm.startsWith('build')) delete document.body.dataset.ldbuild;
+    // (nicht während Splash „Terminal 2“ — der baut die Seite gerade auf)
+    if (!hm.startsWith('build') && !('ldsplash2' in document.body.dataset)) delete document.body.dataset.ldbuild;
   }, [hm]);
 
   const padX = mob ? 18 : 32;
