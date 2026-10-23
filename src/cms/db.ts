@@ -206,6 +206,7 @@ function migrate(db: DatabaseSync) {
     seedAdditions(db);
     seedWelcome(db);
     seedPortfolio(db);
+    seedLabsMove(db);
     seedTranslations(db);
     db.exec('COMMIT');
   } catch (e) {
@@ -368,6 +369,33 @@ function seedPortfolio(db: DatabaseSync) {
     if (dr) db.prepare("UPDATE docs SET draft = ? WHERE collection = 'projects' AND id = ? AND locale = ?").run(dr, r.id, r.locale);
   }
   db.prepare("INSERT INTO meta (key, value) VALUES ('seed_portfolio', ?)").run(String(Date.now()));
+}
+
+/**
+ * KI-Projekte gehören zu Labs (Wunsch vom 23.10.2026): Neue Webseite, LD Buddy, LD NotchBuddy und LD Beyond wechseln
+ * einmalig (meta seed_labs_move) von „projekte“ nach „labs“ — nur, wo die Art noch auf dem alten Startwert steht.
+ */
+const LABS_MOVE = ['neuewebsite', 'ldbuddy', 'notchbuddy', 'ldbeyond'];
+
+function seedLabsMove(db: DatabaseSync) {
+  if (db.prepare("SELECT 1 FROM meta WHERE key = 'seed_labs_move'").get()) return;
+  const sel = db.prepare("SELECT locale, published, draft FROM docs WHERE collection = 'projects' AND id = ?");
+  for (const id of LABS_MOVE) {
+    for (const r of sel.all(id) as { locale: string; published: string | null; draft: string | null }[]) {
+      const fix = (json: string | null) => {
+        if (!json) return null;
+        const cur = JSON.parse(json) as Record<string, unknown>;
+        if (cur.kind !== 'projekte') return null;
+        cur.kind = 'labs';
+        return JSON.stringify(cur);
+      };
+      const pub = fix(r.published);
+      const dr = fix(r.draft);
+      if (pub) db.prepare("UPDATE docs SET published = ? WHERE collection = 'projects' AND id = ? AND locale = ?").run(pub, id, r.locale);
+      if (dr) db.prepare("UPDATE docs SET draft = ? WHERE collection = 'projects' AND id = ? AND locale = ?").run(dr, id, r.locale);
+    }
+  }
+  db.prepare("INSERT INTO meta (key, value) VALUES ('seed_labs_move', ?)").run(String(Date.now()));
 }
 
 /**

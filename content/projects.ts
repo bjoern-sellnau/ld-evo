@@ -172,7 +172,7 @@ export const PROJECTS: Project[] = [
   },
   {
     "id": "neuewebsite",
-    "kind": "projekte",
+    "kind": "labs",
     "kat": "Website",
     "tag": "RELAUNCH",
     "datum": "bald online",
@@ -661,7 +661,7 @@ export const PROJECTS: Project[] = [
   },
   {
     "id": "ldbuddy",
-    "kind": "projekte",
+    "kind": "labs",
     "kat": "App",
     "tag": "DESKTOP-APP",
     "datum": "10/2026",
@@ -1487,7 +1487,7 @@ export const PROJECTS: Project[] = [
   },
   {
     "id": "notchbuddy",
-    "kind": "projekte",
+    "kind": "labs",
     "kat": "App",
     "tag": "MAC-APP",
     "datum": "10/2026",
@@ -1773,7 +1773,7 @@ export const PROJECTS: Project[] = [
   },
   {
     "id": "ldbeyond",
-    "kind": "projekte",
+    "kind": "labs",
     "kat": "Website",
     "tag": "PLATTFORM",
     "datum": "10/2026",

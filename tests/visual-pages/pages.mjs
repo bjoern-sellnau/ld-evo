@@ -29,7 +29,19 @@ const DIFF = path.join(DIR, 'diff');
 const UPDATE = process.env.UPDATE === '1';
 /** Höchstens 0,5 % abweichende Pixel (Kantenglättung/Schrift-Hinting schwanken minimal). */
 const TOLERANCE = 0.005;
-const PAGES = ['/', '/projekte', '/labs', '/tech', '/reise', '/ueber-mich', '/impressum', '/projekte/neuewebsite', '/tech/a1', '/en', '/en/about'];
+const PAGES = [
+  '/',
+  '/projekte',
+  '/labs',
+  '/tech',
+  '/reise',
+  '/ueber-mich',
+  '/impressum',
+  '/labs/neuewebsite',
+  '/tech/a1',
+  '/en',
+  '/en/about',
+];
 
 rmSync(DIFF, { recursive: true, force: true });
 mkdirSync(BASE, { recursive: true });

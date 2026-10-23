@@ -466,7 +466,7 @@ export const CHAPTERS: Chapter[] = [
       { t: 'h', text: 'Story-Seiten (Scroll-Erlebnis)' },
       {
         t: 'p',
-        text: 'Projekte können statt der Case Study eine **Story** sein: Projekt öffnen → „Layout der Detailseite“ auf **Story** → in der Vorschau unter „Story-Inhalt“ mit „+“ Widgets der Gruppe **Story** einfügen. Beispiel: [LD Buddy](/projekte/ldbuddy).',
+        text: 'Projekte können statt der Case Study eine **Story** sein: Projekt öffnen → „Layout der Detailseite“ auf **Story** → in der Vorschau unter „Story-Inhalt“ mit „+“ Widgets der Gruppe **Story** einfügen. Beispiel: [LD Buddy](/labs/ldbuddy).',
       },
       {
         t: 'table',
