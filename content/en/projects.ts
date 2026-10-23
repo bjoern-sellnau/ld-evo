@@ -31,7 +31,8 @@ export const PROJECTS: Project[] = [
     ],
     "ergebnis": "Playable in the browser. The fastest way to grasp what AI-assisted game development feels like in 2026.",
     "zitat": "Six degrees of freedom don't forgive sloppy math.",
-    "learnings": "Quaternions early, UI late — and game feel happens in the last ten percent. The AI partner speeds up the first ninety."
+    "learnings": "Quaternions early, UI late — and game feel happens in the last ten percent. The AI partner speeds up the first ninety.",
+    "status": "● playable · in progress"
   },
   {
     "id": "covert",
@@ -57,7 +58,8 @@ export const PROJECTS: Project[] = [
     ],
     "ergebnis": "Playable in the browser — and the blueprint for the Arena spin-off.",
     "zitat": "One game logic, three cameras — architecture pays off in perspectives.",
-    "learnings": "Keeping renderers swappable costs one day and saves three. Switching perspectives isn't a feature, it's an architecture test."
+    "learnings": "Keeping renderers swappable costs one day and saves three. Switching perspectives isn't a feature, it's an architecture test.",
+    "status": "● playable · in progress"
   },
   {
     "id": "openbooking",
@@ -157,7 +159,7 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Ten years in service — longevity as proof of quality.",
     "zitat": "Ten years online is the best Lighthouse score.",
     "learnings": "Simple tech ages most gracefully — the fewer dependencies, the longer a site lives.",
-    "status": "online since 03/2016"
+    "status": "online since 12 Mar 2016"
   },
   {
     "id": "du2015",
@@ -181,7 +183,7 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Replaced by DesignUpdate 2016 after just under a year.",
     "zitat": "Some versions are bridges — important, even if you only cross them briefly.",
     "learnings": "Short iteration cycles on your own site keep the craft warm.",
-    "status": "replaced 2016"
+    "status": "online 26 Apr 2015 – 2016"
   },
   {
     "id": "du2011",
@@ -206,7 +208,7 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Four years online, then came 2015.",
     "zitat": "Saying goodbye to Flash was a fresh start.",
     "learnings": "Technology switches work best on your own project — before you recommend them to clients.",
-    "status": "replaced 2015"
+    "status": "online 19 Aug 2011 – 2015"
   },
   {
     "id": "autowerkstatt",
@@ -255,7 +257,13 @@ export const PROJECTS: Project[] = [
     "ergebnis": "It stayed a concept — the shop-system thinking stayed too.",
     "zitat": "Even unpublished work pays into the account.",
     "learnings": "Concepts are practice rooms: whoever designs shops later understands billing systems faster.",
-    "status": "Concept"
+    "status": "Concept",
+    "gallery": [
+      {
+        "src": "/projekte/cattshop/1.webp",
+        "alt": "Online shop concept “CATT Shop” (2006): product detail with cart"
+      }
+    ]
   },
   {
     "id": "ld2006",
@@ -279,7 +287,21 @@ export const PROJECTS: Project[] = [
     "ergebnis": "A time capsule of the Flash era — screenshots in the archive.",
     "zitat": "Splash screens were our View Transitions.",
     "learnings": "Aesthetics age, care doesn't — the attention to detail from 2006 still holds up today.",
-    "status": "Archive"
+    "status": "Archive",
+    "gallery": [
+      {
+        "src": "/projekte/ld2006/1.webp",
+        "alt": "Loona! Designs ld2006: home page with news and Covert Operations banner"
+      },
+      {
+        "src": "/projekte/ld2006/2.webp",
+        "alt": "ld2006: intro page “what the web can be”"
+      },
+      {
+        "src": "/projekte/ld2006/3.webp",
+        "alt": "ld2006: about page with skills"
+      }
+    ]
   },
   {
     "id": "fahrschule",
@@ -303,7 +325,17 @@ export const PROJECTS: Project[] = [
     "ergebnis": "A portfolio piece from the early years.",
     "zitat": "Fictional clients are the most patient.",
     "learnings": "Free work shows your own signature more clearly than any brief.",
-    "status": "Concept"
+    "status": "Concept",
+    "gallery": [
+      {
+        "src": "/projekte/fahrschule/1.webp",
+        "alt": "Driving school concept (2006): home page with licence classes and dates"
+      },
+      {
+        "src": "/projekte/fahrschule/2.webp",
+        "alt": "Driving school concept: layout grid with header and gallery area"
+      }
+    ]
   },
   {
     "id": "catt2005",
@@ -327,7 +359,13 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Online for several years; offline today.",
     "zitat": "Every client site is a small promise.",
     "learnings": "IT service providers as clients sharpen your own precision — they look at the details.",
-    "status": "no longer online"
+    "status": "no longer online",
+    "gallery": [
+      {
+        "src": "/projekte/catt2005/1.webp",
+        "alt": "CATT Service (2005): home page with services"
+      }
+    ]
   },
   {
     "id": "hannoback",
@@ -351,7 +389,13 @@ export const PROJECTS: Project[] = [
     "ergebnis": "The client could edit content themselves — support effort close to zero.",
     "zitat": "The best CMS is the one the client understands.",
     "learnings": "Build tools to the user's measure — a lesson that carries from MiniCMS to WorkBench.",
-    "status": "no longer online"
+    "status": "no longer online",
+    "gallery": [
+      {
+        "src": "/projekte/hannoback/1.webp",
+        "alt": "Hannoback (2005): catalogue of used machines"
+      }
+    ]
   },
   {
     "id": "yayci",
@@ -376,7 +420,21 @@ export const PROJECTS: Project[] = [
     "ergebnis": "The first big e-commerce job.",
     "zitat": "Without frameworks, you learn what frameworks do.",
     "learnings": "Building e-commerce from scratch makes every later shop system self-explanatory.",
-    "status": "no longer online"
+    "status": "no longer online",
+    "gallery": [
+      {
+        "src": "/projekte/yayci/1.webp",
+        "alt": "Computer Handel Yayci (2004): home page with deal of the day"
+      },
+      {
+        "src": "/projekte/yayci/2.webp",
+        "alt": "Yayci online shop: computer category"
+      },
+      {
+        "src": "/projekte/yayci/3.webp",
+        "alt": "Yayci online shop: home page with daily price"
+      }
+    ]
   },
   {
     "id": "cot2003",

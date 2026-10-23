@@ -11,9 +11,19 @@ export const VARIANT_WIDTHS = [640, 1280, 2400] as const;
 /** Eigene Medien aus LD Flow (`/media/<id>`) — nur für diese gibt es Varianten. */
 const OWN_MEDIA = /^\/media\/[\w-]{8,32}$/;
 
-/** URL einer bestimmten Breite (fremde/statische Quellen bleiben unverändert). */
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+/**
+ * Statische Dateien aus public/ (z. B. /projekte/yayci/1.webp) mit Basispfad — nötig in der GitHub-Pages-Vorschau
+ * (/ld-evo/…). Eigene Medien (/media/…), fremde URLs und schon präfixierte Pfade bleiben unverändert.
+ */
+export function withBase(src: string): string {
+  if (!BASE || !src.startsWith('/') || src.startsWith('//') || OWN_MEDIA.test(src)) return src;
+  return src === BASE || src.startsWith(`${BASE}/`) ? src : BASE + src;
+}
+
+/** URL einer bestimmten Breite (fremde/statische Quellen bleiben unverändert, statische mit Basispfad). */
 export function mediaUrl(src: string, width: number): string {
-  return OWN_MEDIA.test(src) ? `${src}?w=${width}` : src;
+  return OWN_MEDIA.test(src) ? `${src}?w=${width}` : withBase(src);
 }
 
 /**

@@ -92,7 +92,8 @@ export const PROJECTS: Project[] = [
     ],
     "ergebnis": "Im Browser spielbar. Der schnellste Weg zu begreifen, wie sich KI-gestützte Spielentwicklung 2026 anfühlt.",
     "zitat": "Sechs Freiheitsgrade verzeihen keine unsaubere Mathematik.",
-    "learnings": "Quaternionen früh, UI spät — und Spielgefühl entsteht in den letzten zehn Prozent. Der KI-Partner beschleunigt die ersten neunzig."
+    "learnings": "Quaternionen früh, UI spät — und Spielgefühl entsteht in den letzten zehn Prozent. Der KI-Partner beschleunigt die ersten neunzig.",
+    "status": "● spielbar · in Arbeit"
   },
   {
     "id": "covert",
@@ -118,7 +119,8 @@ export const PROJECTS: Project[] = [
     ],
     "ergebnis": "Im Browser spielbar — und die Blaupause für den Arena-Ableger.",
     "zitat": "Eine Spiellogik, drei Kameras — Architektur zahlt sich in Perspektiven aus.",
-    "learnings": "Renderer austauschbar zu halten kostet einen Tag und spart drei. Perspektivwechsel ist kein Feature, sondern ein Architekturtest."
+    "learnings": "Renderer austauschbar zu halten kostet einen Tag und spart drei. Perspektivwechsel ist kein Feature, sondern ein Architekturtest.",
+    "status": "● spielbar · in Arbeit"
   },
   {
     "id": "openbooking",
@@ -218,7 +220,7 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Zehn Jahre im Dienst — Langlebigkeit als Qualitätsbeweis.",
     "zitat": "Zehn Jahre online ist das beste Lighthouse-Ergebnis.",
     "learnings": "Einfache Technik altert am würdevollsten — je weniger Abhängigkeiten, desto länger lebt eine Seite.",
-    "status": "online seit 03/2016"
+    "status": "online seit 12.03.2016"
   },
   {
     "id": "du2015",
@@ -242,7 +244,7 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Nach knapp einem Jahr vom DesignUpdate 2016 abgelöst.",
     "zitat": "Manche Versionen sind Brücken — wichtig, auch wenn man nur kurz drübergeht.",
     "learnings": "Kurze Iterationszyklen auf der eigenen Seite halten das Handwerk warm.",
-    "status": "abgelöst 2016"
+    "status": "online 26.04.2015 – 2016"
   },
   {
     "id": "du2011",
@@ -267,7 +269,7 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Vier Jahre online, dann kam 2015.",
     "zitat": "Der Abschied von Flash war ein Neuanfang.",
     "learnings": "Technologie-Wechsel gelingen am besten am eigenen Projekt — bevor man sie Kunden empfiehlt.",
-    "status": "abgelöst 2015"
+    "status": "online 19.08.2011 – 2015"
   },
   {
     "id": "autowerkstatt",
@@ -316,7 +318,13 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Blieb Entwurf — das Denken in Shop-Systemen blieb.",
     "zitat": "Auch unveröffentlichte Arbeit zahlt aufs Konto ein.",
     "learnings": "Entwürfe sind Übungsräume: Wer Shops entwirft, versteht später Billing-Systeme schneller.",
-    "status": "Entwurf"
+    "status": "Entwurf",
+    "gallery": [
+      {
+        "src": "/projekte/cattshop/1.webp",
+        "alt": "Onlineshop-Entwurf „CATT Shop“ (2006): Produktdetail mit Warenkorb"
+      }
+    ]
   },
   {
     "id": "ld2006",
@@ -340,7 +348,21 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Zeitkapsel der Flash-Ära — Screenshots im Archiv.",
     "zitat": "Splash-Screens waren unsere View Transitions.",
     "learnings": "Ästhetik altert, Sorgfalt nicht — die Liebe zum Detail von 2006 trägt bis heute.",
-    "status": "Archiv"
+    "status": "Archiv",
+    "gallery": [
+      {
+        "src": "/projekte/ld2006/1.webp",
+        "alt": "Loona! Designs ld2006: Startseite mit Neuigkeiten und Covert-Operations-Banner"
+      },
+      {
+        "src": "/projekte/ld2006/2.webp",
+        "alt": "ld2006: Intro-Seite „what the web can be“"
+      },
+      {
+        "src": "/projekte/ld2006/3.webp",
+        "alt": "ld2006: Über-mich-Seite mit Fähigkeiten"
+      }
+    ]
   },
   {
     "id": "fahrschule",
@@ -364,7 +386,17 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Portfolio-Stück der frühen Jahre.",
     "zitat": "Fiktive Kunden sind die geduldigsten.",
     "learnings": "Freie Arbeiten zeigen die eigene Handschrift deutlicher als jedes Briefing.",
-    "status": "Entwurf"
+    "status": "Entwurf",
+    "gallery": [
+      {
+        "src": "/projekte/fahrschule/1.webp",
+        "alt": "Fahrschul-Entwurf (2006): Startseite mit Führerscheinklassen und Terminen"
+      },
+      {
+        "src": "/projekte/fahrschule/2.webp",
+        "alt": "Fahrschul-Entwurf: Layout-Raster mit Header- und Galerie-Bereich"
+      }
+    ]
   },
   {
     "id": "catt2005",
@@ -388,7 +420,13 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Mehrere Jahre online; heute offline.",
     "zitat": "Jede Kundenseite ist ein kleines Versprechen.",
     "learnings": "IT-Dienstleister als Kunden schärfen die eigene Präzision — dort schaut man auf Details.",
-    "status": "nicht mehr online"
+    "status": "nicht mehr online",
+    "gallery": [
+      {
+        "src": "/projekte/catt2005/1.webp",
+        "alt": "CATT Service (2005): Startseite mit Leistungen"
+      }
+    ]
   },
   {
     "id": "hannoback",
@@ -412,7 +450,13 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Der Kunde konnte selbst pflegen — Support-Aufwand nahe null.",
     "zitat": "Das beste CMS ist das, das der Kunde versteht.",
     "learnings": "Werkzeuge auf Nutzermaß bauen — eine Lektion, die von MiniCMS bis WorkBench trägt.",
-    "status": "nicht mehr online"
+    "status": "nicht mehr online",
+    "gallery": [
+      {
+        "src": "/projekte/hannoback/1.webp",
+        "alt": "Hannoback (2005): Katalog der Gebrauchtmaschinen"
+      }
+    ]
   },
   {
     "id": "yayci",
@@ -437,7 +481,21 @@ export const PROJECTS: Project[] = [
     "ergebnis": "Der erste große E-Commerce-Auftrag.",
     "zitat": "Ohne Frameworks lernt man, was Frameworks leisten.",
     "learnings": "E-Commerce von Grund auf zu bauen erklärt jedes spätere Shop-System von selbst.",
-    "status": "nicht mehr online"
+    "status": "nicht mehr online",
+    "gallery": [
+      {
+        "src": "/projekte/yayci/1.webp",
+        "alt": "Computer Handel Yayci (2004): Startseite mit Angebot des Tages"
+      },
+      {
+        "src": "/projekte/yayci/2.webp",
+        "alt": "Yayci-Onlineshop: Kategorie Computer"
+      },
+      {
+        "src": "/projekte/yayci/3.webp",
+        "alt": "Yayci-Onlineshop: Startseite mit Tagespreis"
+      }
+    ]
   },
   {
     "id": "cot2003",
