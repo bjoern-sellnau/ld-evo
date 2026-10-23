@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { EXTRA_MODES } from '@/site/hero/extra/meta';
 import { MORE_KEYS } from '@/site/hero/extra/renderers2';
 import { BUILD_KEYS } from '@/site/hero/extra/build';
+import { HORIZON_SHADERS } from '@/site/hero/extra/horizons';
 import { THEME_BOOT_SCRIPT } from '@/site/settings/applyBody';
 
 describe('Zusätzliche Hero-Animationen', () => {
@@ -25,5 +26,12 @@ describe('Zusätzliche Hero-Animationen', () => {
     // gültiges JavaScript (Regex-Escapes im Template-String!)
     expect(() => new Function(THEME_BOOT_SCRIPT)).not.toThrow();
     expect(THEME_BOOT_SCRIPT).toContain('data-ldbuild');
+  });
+  it('Zwei Horizonte: Wechsel + je eine Szene, alle als WebGL-Modus wählbar', () => {
+    expect(Object.keys(HORIZON_SHADERS)).toEqual(['horizons', 'aurum', 'viola']);
+    for (const k of Object.keys(HORIZON_SHADERS)) {
+      expect(EXTRA_MODES[k]?.renderer, k).toBe('webgl');
+      expect(HORIZON_SHADERS[k]).toContain('void main()');
+    }
   });
 });

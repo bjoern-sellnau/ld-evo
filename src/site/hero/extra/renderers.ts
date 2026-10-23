@@ -8,6 +8,7 @@
 
 // Zweite Welle (Wunsch vom 17.10.2026) in eigener Datei, nutzt die Helfer von hier (Zyklus nur zur Laufzeit)
 import { BUILD_2D, SPLASH_2D } from './build';
+import { HORIZON_SHADERS } from './horizons';
 import { MORE_2D, MORE_SHADERS } from './renderers2';
 
 export type Rgb = [number, number, number];
@@ -855,7 +856,7 @@ const factory = (
   ptr: Pointer,
   cfg: Record<string, unknown>,
 ): ExtraRenderer | null => {
-  const shader = SHADERS[mode] ?? MORE_SHADERS[mode];
+  const shader = SHADERS[mode] ?? MORE_SHADERS[mode] ?? HORIZON_SHADERS[mode];
   if (shader) return glMode(shader)(cv, pal, ptr);
   const m = MODES_2D[mode] ?? MORE_2D[mode] ?? BUILD_2D[mode] ?? SPLASH_2D[mode];
   if (!m) return null;
