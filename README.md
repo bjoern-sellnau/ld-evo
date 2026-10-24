@@ -2,9 +2,56 @@
 
 Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Code, keine CI).
 
+- [20 Varianten — Terminal bis Pinnwand (33–56 s)](#20-varianten)
 - [Reel 3 — „Director's Cut“ (2:12 min, Negativ-Logo, SPREE|FALL)](#reel-3--directors-cut)
 - [Reel 2 — „BJOERN.EXE“ (80 s, mehr Action)](#reel-2--bjoernexe)
 - [Reel 1 — Intro (36 s)](#reel-1--intro)
+
+## 20 Varianten
+
+Kurze Reels (33–56 s, 1080×1920, 30 fps, H.264 + AAC, ≈ −15 LUFS, True Peak ≤ −1 dBTP) in 20 Stilen, alle mit derselben Engine
+([`quelle-varianten/engine.js`](quelle-varianten/engine.js), je Stil eine Datei `vNN.js`).
+Übersicht aller Titelbilder: [`varianten/uebersicht.jpg`](varianten/uebersicht.jpg).
+
+| # | Stil | Idee | Dauer | Größe |
+| --- | --- | --- | --- | --- |
+| 01 | [**Terminal**](varianten/v01-terminal.mp4) | Shell-Sitzung: Boot, ASCII-Negativ-Logo, `cat stationen.log`, `./award --show`, Röhre aus | 50 s | 19 MB |
+| 02 | [**Swiss**](varianten/v02-swiss.mp4) | Internationaler Typografischer Stil: Papier, Schwarz, Rot, Raster – „Gold.“ passend zum Swiss-Web-Award | 51 s | 6 MB |
+| 03 | [**Arcade**](varianten/v03-arcade.mp4) | 8-Bit-Jump’n’Run: Stationen als Stages, „Gold Star“, Bonus „Tech Lead“, Highscore-Tafel | 50 s | 9 MB |
+| 04 | [**Outrun**](varianten/v04-outrun.mp4) | Synthwave: Sonnenuntergang, Gitterstraße, Chrom-Schrift, Stationen als Autobahnschilder | 50 s | 28 MB |
+| 05 | [**Abflugtafel**](varianten/v05-abflugtafel.mp4) | Split-Flap-Tafel: Zeit = Jahr, Ziel = Station, Status, Bordkarte zum Schluss | 54 s | 9 MB |
+| 06 | [**Blueprint**](varianten/v06-blueprint.mp4) | LD-Zeichen mit Maßlinien konstruiert (R 20, R 12, Raster 46), Negativraum schraffiert, Karriere als Bauabschnitte | 52 s | 15 MB |
+| 07 | [**Glitch**](varianten/v07-glitch.mp4) | Datamosh-Montage auf jedem halben Schlag, Schlagworte, VHS-Rauschen | 52 s | 38 MB |
+| 08 | [**Magazin**](varianten/v08-magazin.mp4) | Sonderausgabe: Titelseite, umgeblätterte Doppelseiten (Anfänge, Gold, Ausbilder, Tech Lead, Labs), Rückseite | 56 s | 19 MB |
+| 09 | [**Daten**](varianten/v09-daten.mp4) | Gantt-Diagramm 2002–2026 mit exakten Monaten, Fokus-Karten, Kennzahlen | 54 s | 10 MB |
+| 10 | [**Kosmos**](varianten/v10-kosmos.mp4) | Negativ-Logo als Sonne, Stationen als Planeten, Warp in die Schwarzen Löcher, Sterne formen den Negativraum | 50 s | 13 MB |
+| 11 | [**Negativraum**](varianten/v11-negativraum.mp4) | Marken-Film: L-Kanal und D-Counter, Muster, passgenau ins Zeichen, Kachel („Logo only negative“) | 33 s | 14 MB |
+| 12 | [**Pop-Art**](varianten/v12-pop-art.mp4) | Comic mit Rasterpunkten, Panels, Sprechblasen, „GOLD!“, „TECH LEAD!“ | 44 s | 15 MB |
+| 13 | [**RPG**](varianten/v13-rpg.mp4) | Charakterbogen, Fertigkeitenbaum, Questlog, Errungenschaften (Zertifikate) | 50 s | 11 MB |
+| 14 | [**News**](varianten/v14-news.mp4) | Nachrichtensendung: LIVE, Story-Karten, Bauchbinden, Laufband aller Stationen | 46 s | 14 MB |
+| 15 | [**Code-Regen**](varianten/v15-code-regen.mp4) | Fallende Zeichen, der Negativraum leuchtet im Regen, Name rastet ein, Stationen werden entschlüsselt | 40 s | 17 MB |
+| 16 | [**Liniennetz**](varianten/v16-liniennetz.mp4) | U-Bahn-Plan mit vier Linien, ein Zug fährt die Karriere chronologisch ab | 50 s | 8 MB |
+| 17 | [**Showreel**](varianten/v17-showreel.mp4) | Nur die Hero-Animationen der neuen Website: Split-Screens, Schnitte, Mosaik im Negativraum | 40 s | 26 MB |
+| 18 | [**SPREE|FALL-Trailer**](varianten/v18-spreefall-trailer.mp4) | Kinotrailer: Texttafeln aus dem README, Walk-Clip, Schnittgewitter, Titel | 56 s | 23 MB |
+| 19 | [**Keynote**](varianten/v19-keynote.mp4) | Hell und ruhig: eine Aussage pro Takt, Verlaufsschrift, Geräte mit der neuen Website | 50 s | 5 MB |
+| 20 | [**Pinnwand**](varianten/v20-pinnwand.mp4) | Korkwand mit Polaroids, Notizzetteln und rotem Faden | 49 s | 38 MB |
+
+**Inhaltlicher Stand (gegenüber Reel 1–3):**
+
+- **Neu** (Angaben von Björn Sellnau): Gadmin 4 CMS (09/2007 – 2009), Planung & Umsetzung des Mobile-Relaunchs
+  MySwitzerland.com (01/2016 – 04/2017) → **Gold, Best of Swiss Web 2017, Kategorie Mobile**, Azubi-Recruiting
+  (08/2018 – 03/2019), Ausbilder Fachinformatiker Anwendungsentwicklung (03/2019 – 02/2020), BMW Neuwagensuche
+  (01/2022 – 05/2023, ab 09/2022 **Tech Lead**), Tabletop Herald App (04/2024 – 12/2025).
+- **Weggelassen:** öffentliche Repositories und GitHub-Zahlen, Three.js, Tauri 2, Rust.
+- **Award geprüft:** Gewinnerlisten Best of Swiss Web 2017 (werbewoche.ch, m&k, netzwoche.ch): Gold in „Mobile“ für den
+  „Relaunch Mobile MySwitzerland.com“ (Auftraggeber Schweiz Tourismus; Auftragnehmer u. a. PIXELTEX). PIXELTEX-Blog:
+  „MySwitzerland Mobile holt Gold bei #BestOfSwissWeb“ (Umsetzung im Gadmin CMS).
+- Alles Weitere wie bei Reel 1–3 (loona-designs.de, Inhalte der neuen Website, Repo ld-spreefall mit
+  Kartendaten © OpenStreetMap-Mitwirkende).
+
+Quelle zum Neu-Rendern: `quelle-varianten/v.html?v=NN` über einen lokalen Server öffnen; für die Varianten mit
+Bildfolgen (Kosmos, Showreel, Keynote, SPREE|FALL-Trailer) vorher `sh bildfolgen.sh` im Ordner `quelle-varianten`.
+`REEL.frame(t)` ist asynchron, `REEL.music()` liefert die Musik als WAV.
 
 ## Reel 3 — „Director's Cut“
 
