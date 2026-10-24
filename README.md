@@ -2,8 +2,56 @@
 
 Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Code, keine CI).
 
+- [Reel 3 — „Director's Cut“ (2:12 min, Negativ-Logo, SPREE|FALL)](#reel-3--directors-cut)
 - [Reel 2 — „BJOERN.EXE“ (80 s, mehr Action)](#reel-2--bjoernexe)
 - [Reel 1 — Intro (36 s)](#reel-1--intro)
+
+## Reel 3 — „Director's Cut“
+
+| Datei | Format | Größe |
+| --- | --- | --- |
+| [`bjoern-sellnau-reel-3.mp4`](bjoern-sellnau-reel-3.mp4) | 1080×1920, 2:12 min, 30 fps, H.264 + AAC, −14 LUFS | 76 MB (beste Qualität) |
+| [`bjoern-sellnau-reel-3-1080p-klein.mp4`](bjoern-sellnau-reel-3-1080p-klein.mp4) | 1080×1920, stärker komprimiert | 30 MB |
+| [`bjoern-sellnau-reel-3-720p.mp4`](bjoern-sellnau-reel-3-720p.mp4) | 720×1280 | 20 MB |
+| [`bjoern-sellnau-reel-3-cover.jpg`](bjoern-sellnau-reel-3-cover.jpg) | Titelbild 1080×1920 | 0,2 MB |
+
+### Ablauf (126 BPM, 68 Takte, fünf Kapitel)
+
+- **Kaltstart mit dem Negativ-Logo:** Das LD-Zeichen zeichnet sich als Linie, füllt sich, L und D gleiten auseinander,
+  und der Negativraum dazwischen (L-Kanal + D-Counter) bleibt leuchtend stehen. Dann fliegt die Kamera hinein.
+- **Titel:** BJÖRN SELLNAU als Fenster, durch das man Unter den Linden aus SPREE|FALL sieht.
+- **01 ORIGIN:** 3D-Karussell der frühen Projekte 2002–2006 (Originalbilder), die bisherige loona-designs.de, PIXELTEX, Berlin
+- **02 CRAFT:** Split-Flap-Abfahrtstafel der Stationen, Stack-Walze, Sekundenzähler seit 01.09.2007, Zertifikate
+- **03 PLAY:** Corefall, Covert Operations und **SPREE|FALL**: Walk durch Berlin, 12 Schnitte (Tor, Fernsehturm, Reichstag,
+  Spree, Nacht, Mechs, Titanfall, Einsturz, Helikopter …), die sieben Spiele
+- **04 BUILD:** Live-Build im Zeitraffer (die Seite schreibt sich selbst), Montage von 14 Hero-Animationen der neuen
+  Website (mit Negativ-Logo im Menü), GitHub, Labs
+- **05 BEYOND:** Materna SE, „Gerade am Lernen“, „Das Web. Meine Leidenschaft.“, Outro: Negativraum und Zeichen
+  fügen sich zur LD-Kachel
+
+**Negativ-Logo:** Pfade 1:1 aus `src/components/brand/LoonaNegative.tsx` (L-Kanal `M8 11H16V27H19L22 35H8Z`,
+D-Counter `M21 11H24A12 12 0 0 1 24 35L21 27Z`), das Zeichen aus `glyphs.tsx`, beide im selben 46er-System.
+Es dient im Video auch als **Blende zwischen den Kapiteln**: Die nächste Szene erscheint in den Formen des
+Negativraums, die bis über das ganze Bild wachsen.
+
+### Quellen (geprüft, Stand 24.10.2026)
+
+- **SPREE|FALL** — Repository `bjoern-sellnau/ld-spreefall`: README (Open-World-Shooter in Berlin, aus OpenStreetMap
+  generiert, keine Engine, keine 3D-Bibliothek, eigener WebGL2-Renderer, Physik, Sound, sieben Spiele),
+  Screenshots aus `docs/screenshots/` und der Walk-Clip `docs/media/gate-to-tower.webm`.
+  Die Screenshots entstanden laut `docs/screenshots/index.json` in der Sandbox (Offline-Fallback-Stadt mit 1.663 Gebäuden);
+  die veröffentlichte Fassung baut die Stadt aus den echten OSM-Daten. Kartendaten im Spiel: © OpenStreetMap-Mitwirkende (ODbL).
+  Szenen mit Gewaltdarstellung (Blut) wurden bewusst nicht verwendet.
+- **Neue Website** (`ld-evo`): Hero-Animationen und Live-Build lokal aufgenommen (Einstellung „Logo only negative“,
+  Bilder mit gesteuerter Uhr, daher flüssig), Labs, Zahl der Hero-Animationen (27 + 44 = 71), Inhalte aus `content/*.ts`
+- **loona-designs.de** — Über mich (Stationen, Zertifikate), Portfolio (Projekte 2002–2006, Originalbilder)
+- **github.com/bjoern-sellnau** — Bio, Status „Learning new things like: Rust, Tauri 2, Turborepo, Tailwind …“,
+  326 öffentliche Repositories, angepinnte Repos, Pull Shark ×2, YOLO
+- Sekundenzähler: 604.206.000 s von 01.09.2007, 09:00 bis 24.10.2026, 12:00 (Berliner Zeit), wie der Zähler der Website
+
+Quelle zum Neu-Rendern: [`quelle-3/reel3.html`](quelle-3/reel3.html). Die Bildfolgen (Hero-Aufnahmen, Live-Build, Walk)
+liegen platzsparend als Clips in `quelle-3/clips/`; `sh clips/extract.sh` (im Ordner `quelle-3`) macht daraus wieder
+die Einzelbilder. `REEL.frame(t)` ist hier asynchron (lädt die Bildfolgen nach).
 
 ## Reel 2 — „BJOERN.EXE“
 
@@ -73,6 +121,6 @@ Herunterladen: Datei anklicken → „Download raw file“.
 
 ## Quelle neu rendern
 
-`quelle/reel.html` (Reel 1) bzw. `quelle-2/reel2.html` (Reel 2) zeichnet jedes Bild deterministisch (`REEL.frame(t)`)
+`quelle/reel.html` (Reel 1), `quelle-2/reel2.html` (Reel 2) bzw. `quelle-3/reel3.html` (Reel 3) zeichnet jedes Bild deterministisch (`REEL.frame(t)`)
 und erzeugt die Musik (`REEL.music()`). Den Ordner über einen lokalen Server öffnen (z. B. `python3 -m http.server`), dann die Bilder per
 Playwright abgreifen und mit ffmpeg zu MP4 zusammensetzen (30 fps, libx264, AAC; Lautheit `loudnorm=I=-14:TP=-1.5`).
