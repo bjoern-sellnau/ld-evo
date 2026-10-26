@@ -10,6 +10,7 @@
 import { BUILD_2D, SPLASH_2D } from './build';
 import { HORIZON_SHADERS } from './horizons';
 import { MORE_2D, MORE_SHADERS } from './renderers2';
+import { LOONA_ZEICHEN } from '@/components/brand/products';
 
 export type Rgb = [number, number, number];
 
@@ -807,11 +808,11 @@ const MODES_2D: Record<string, Mode2D> = {
       off.width = w;
       off.height = h;
       const og = off.getContext('2d')!;
-      // Negativraum des LD-Monogramms (Pfade wie LoonaNegative / assets/negative-space-demo.svg)
+      // Zeichen (Brand-System 2026-10, LOONA_ZEICHEN — der Negativraum des Badge-Monogramms)
       const s = Math.min(w, h) / 46;
       og.setTransform(s, 0, 0, s, w * 0.68 - 22 * s, h * 0.56 - 23 * s);
-      og.fill(new Path2D('M8 11H16V27H19L22 35H8Z'));
-      og.fill(new Path2D('M21 11H24A12 12 0 0 1 24 35L21 27Z'));
+      og.fill(new Path2D(LOONA_ZEICHEN.l));
+      og.fill(new Path2D(LOONA_ZEICHEN.moon));
       const d = og.getImageData(0, 0, w, h).data;
       const pts: [number, number][] = [];
       const step = Math.max(3, Math.round(Math.min(w, h) / 120));

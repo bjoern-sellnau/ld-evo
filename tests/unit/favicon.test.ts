@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { FAVICONS, applyFavicon } from '@/site/settings/favicon';
+import { FAVICONS, applyFavicon, faviconChoice } from '@/site/settings/favicon';
 
 /** Minimaler <link>-Ersatz (Vitest läuft hier ohne DOM). */
 const fakeLink = (href: string, type: string) => {
@@ -30,5 +30,11 @@ describe('Favicon-Auswahl', () => {
   it('fünf Varianten, jede ein vollständiges SVG', () => {
     expect(FAVICONS).toHaveLength(5);
     FAVICONS.forEach((f) => expect(f.svg).toMatch(/^<svg [^>]*viewBox=.*<\/svg>$/));
+  });
+  it('Standard = Zeichen (wie public/favicon.svg), Kacheln mit Badge-Geometrie; alter Schlüssel „neg“ → Standard', () => {
+    expect(faviconChoice('default')?.svg).toContain('viewBox="6 9 32 28"');
+    expect(faviconChoice('ink')?.svg).toContain('translate(9.6 8.6) scale(1.018)');
+    expect(faviconChoice('neg')?.key).toBe('default');
+    expect(faviconChoice('gibtsnicht')).toBeUndefined();
   });
 });

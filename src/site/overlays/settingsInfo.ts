@@ -44,8 +44,8 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     en: 'Animated background of the large area at the top of the home page.',
   },
   'Splash-Animation': {
-    de: 'Welche Intro-Animation beim Laden der Website läuft (wenn „Splash-Screen“ an ist). „Terminal“: Ein Terminal startet den Dev-Server und schreibt den sichtbaren Teil der Startseite samt Hero-Animation — danach lädt die Seite mit dieser Hero-Animation; Klick oder Taste überspringt. „Terminal 2“: Auf der Startseite erscheinen die Elemente (Menü, Hero, Zähler, Scroll-Hinweis) schon während des Tippens, sobald ihr Code fertig ist.',
-    en: 'Which intro animation plays when the site loads (if “Splash screen” is on). “Terminal”: a terminal starts the dev server and writes the visible part of the home page including the hero animation — then the page loads with that hero animation; click or key skips. “Terminal 2”: on the home page the elements (menu, hero, counter, scroll hint) appear while typing, as soon as their code is done.',
+    de: 'Welche Intro-Animation beim Laden der Website läuft (wenn „Splash-Screen“ an ist). „Terminal“: Ein Terminal startet den Dev-Server und schreibt den sichtbaren Teil der Startseite samt Hero-Animation — danach lädt die Seite mit dieser Hero-Animation; Klick oder Taste überspringt. „Terminal 2“: Auf der Startseite erscheinen die Elemente (Menü, Hero, Zähler, Scroll-Hinweis) schon während des Tippens, sobald ihr Code fertig ist. „Reveal“, „Sweep“ und „Alt → Neu“ sind die Logo-Animationen des Brand-Systems: Das Zeichen baut sich auf und wird zum Schriftzug; der Lade-Sweep; das alte Logo verwandelt sich ins neue (6 s).',
+    en: 'Which intro animation plays when the site loads (if “Splash screen” is on). “Terminal”: a terminal starts the dev server and writes the visible part of the home page including the hero animation — then the page loads with that hero animation; click or key skips. “Terminal 2”: on the home page the elements (menu, hero, counter, scroll hint) appear while typing, as soon as their code is done. “Reveal”, “Sweep” and “Old → new” are the logo animations of the brand system: the mark assembles and becomes the wordmark; the loading sweep; the old logo turns into the new one (6 s).',
   },
   'Mobil-Design': {
     de: 'Gestaltung der Telefon-Ansicht: Prototyp, App (Tab-Leiste und Bottom-Sheet), App v2, Editorial (Magazin-Stil) oder Lab (experimentell).',
@@ -150,8 +150,8 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     en: 'How the old website turns into the new one on /welcome: tiles, glitch, pixel, wave, cracks, burn, countdown door (20 s) or random. “As set in LD Flow” uses the home page setting.',
   },
   'Page-Transition': {
-    de: 'Animation beim Wechsel zwischen Seiten.',
-    en: 'Animation when switching between pages.',
+    de: 'Animation beim Wechsel zwischen Seiten. „Slash-Wipe“: Die orange Fläche mit der Schräge aus dem Logo fegt über die Seite.',
+    en: 'Animation when switching between pages. “Slash wipe”: the orange area with the slant from the logo sweeps across the page.',
   },
   'Detailseiten immer schlicht (Fade)': {
     de: 'Beim Öffnen und Verlassen von Projekt-, Labs- und Artikelseiten immer nur sanft überblenden.',
@@ -264,12 +264,12 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     en: 'On “My Journey” the image of the current station sits blurred in the background.',
   },
   'Logo negativ': {
-    de: 'Zeigt das Logo als Negativ — die Buchstaben L und D entstehen aus dem freien Raum.',
-    en: 'Shows the logo as a negative — the letters L and D are formed by the empty space.',
+    de: 'Tauscht die Farben des Logos: Kachel in Orange statt Tinte, das Zeichen in Cream (dunkel) bzw. Tinte (hell).',
+    en: 'Swaps the logo colors: tile in orange instead of ink, the mark in cream (dark) or ink (light).',
   },
   'Logo only negative (nur LD)': {
-    de: 'Vom Negativ-Logo nur die Buchstaben L und D — ohne Spalt und Fuge.',
-    en: 'Only the letters L and D of the negative logo — without gap and joint.',
+    de: 'Statt der Kachel nur das Zeichen (L und Mond — der Negativraum der Kachel) in frei wählbarer Farbe.',
+    en: 'Instead of the tile only the mark (L and moon — the negative space of the tile) in a color of your choice.',
   },
   'Logo-Farbe: Auto (Kontrast)': {
     de: 'Das Logo wechselt je nach Hintergrund zwischen farbiger und dunkler Kachel — animiert.',

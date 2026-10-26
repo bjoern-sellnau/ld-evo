@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { spaceGrotesk } from '@/lib/fonts';
+import { manrope, spaceGrotesk } from '@/lib/fonts';
 import { siteIcons } from '@/lib/site-icons';
 import { instrumentSans, jetbrainsMono } from '@/site/fonts';
 import { translate } from '@/site/i18n/dict';
@@ -47,7 +47,10 @@ export const rootViewport: Viewport = {
 
 export function RootDocument({ locale, children }: { locale: Locale; children: ReactNode }) {
   return (
-    <html lang={htmlLang(locale)} className={`${spaceGrotesk.variable} ${instrumentSans.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang={htmlLang(locale)}
+      className={`${spaceGrotesk.variable} ${manrope.variable} ${instrumentSans.variable} ${jetbrainsMono.variable}`}
+    >
       {/* Body-Klassen (light, still, …) setzen Boot-Script und SiteProvider — daher suppressHydrationWarning. */}
       <body suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />

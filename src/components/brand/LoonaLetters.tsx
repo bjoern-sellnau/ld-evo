@@ -1,5 +1,5 @@
 import type { SVGAttributes } from 'react';
-import { LOONA_PRODUCTS } from './products';
+import { LOONA_BADGE, LOONA_PRODUCTS } from './products';
 
 interface LetterProps extends Omit<SVGAttributes<SVGSVGElement>, 'children'> {
   /** Höhe in px. */
@@ -7,7 +7,7 @@ interface LetterProps extends Omit<SVGAttributes<SVGSVGElement>, 'children'> {
   color?: string;
 }
 
-/** Einzelbuchstabe L des Monogramms (assets/l.svg, viewBox 0 0 22 40). */
+/** Einzelbuchstabe L des Badge-Monogramms (Brand-System 2026-10, assets/loona-badge.svg; viewBox 0 0 22 40). */
 export function LoonaLetterL({ size = 40, color = LOONA_PRODUCTS.ld.color, ...rest }: LetterProps) {
   return (
     <svg
@@ -20,13 +20,13 @@ export function LoonaLetterL({ size = 40, color = LOONA_PRODUCTS.ld.color, ...re
       {...rest}
     >
       <g transform="translate(0 -3)">
-        <path d="M0 3H8V35H19L22 43H0Z" fill={color} />
+        <path d={LOONA_BADGE.l} fill={color} />
       </g>
     </svg>
   );
 }
 
-/** Einzelbuchstabe D des Monogramms (assets/d.svg, viewBox 0 0 33 40). */
+/** Einzelbuchstabe D des Badge-Monogramms (Mond mit Negativraum; viewBox 0 0 33 40). */
 export function LoonaLetterD({ size = 40, color = LOONA_PRODUCTS.ld.color, ...rest }: LetterProps) {
   return (
     <svg
@@ -39,7 +39,7 @@ export function LoonaLetterD({ size = 40, color = LOONA_PRODUCTS.ld.color, ...re
       {...rest}
     >
       <g transform="translate(-11 -3)">
-        <path d="M11 3H24A20 20 0 0 1 24 43H25L19 27H16V11H11ZM21 11H24A12 12 0 0 1 24 35L21 27Z" fill={color} fillRule="evenodd" />
+        <path d={LOONA_BADGE.d} fill={color} fillRule="evenodd" />
       </g>
     </svg>
   );

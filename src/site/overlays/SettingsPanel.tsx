@@ -114,6 +114,8 @@ const VT_SEGS = [
   ['star', 'Stern'],
   ['melt', 'Schmelzen'],
   ['portal', 'Portal'],
+  // Logo-Animation des Brand-Systems 2026-10 (src/site/vt/slashWipe.ts)
+  ['slash', 'Slash-Wipe'],
 ] as const;
 
 const HERO_PARTS = [
@@ -294,8 +296,8 @@ const EN_LABELS: Record<string, string> = {
   'Ink-Kachel': 'Ink tile',
   'Farb-Kachel': 'Color tile',
   'Cream-Kachel': 'Cream tile',
-  'Negativ Orange': 'Negative orange',
-  'Negativ Cream': 'Negative cream',
+  Zeichen: 'Mark',
+  'Zeichen Cream': 'Mark cream',
   Hintergrundfarbe: 'Background color',
   Aus: 'Off',
   Textschatten: 'text shadow',
@@ -354,6 +356,8 @@ const EN_LABELS: Record<string, string> = {
   Wackelpudding: 'Jelly',
   Stern: 'Star',
   Schmelzen: 'Melt',
+  'Slash-Wipe': 'Slash wipe',
+  'Alt → Neu': 'Old → new',
   'Reise: Bild-Hintergrund': 'Journey: image background',
   Schlicht: 'Plain',
   Walze: 'Rolling',
@@ -612,6 +616,10 @@ export function SettingsPanel() {
                 ['sketch', 'Sketch'],
                 ['terminal', 'Terminal'],
                 ['terminal2', 'Terminal 2'],
+                // Logo-Animationen des Brand-Systems 2026-10
+                ['reveal', 'Reveal'],
+                ['sweep', 'Sweep'],
+                ['wandel', 'Alt → Neu'],
               ]}
               value={s.splashAnim}
               onChange={(v) => {

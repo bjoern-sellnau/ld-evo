@@ -123,7 +123,7 @@ export function IconRail() {
           // Weg zur Startseite als kleines LD-Zeichen (statt Haus); Beschriftung aus LD Flow als Tooltip/Name
           <RailItem id="home2" tip={tip} label={brand.homeLabel} {...tipProps('home2')}>
             <Link href={href('/')} onClick={go('/')} aria-label={brand.homeLabel} className={styles.reset} style={btn(false)}>
-              <LoonaMark product="ld" size={22} tone={settings.theme === 'light' ? 'ink' : 'color'} decorative />
+              <LoonaMark product="ld" size={22} motion="hover" decorative />
             </Link>
           </RailItem>
         )}

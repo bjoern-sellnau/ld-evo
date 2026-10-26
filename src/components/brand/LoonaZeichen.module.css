@@ -1,0 +1,257 @@
+/*
+ * Logo-Animationen (Brand-README „Animationen“; Keyframes aus Loona Brand Kit.dc.html, Runde 7a/8a).
+ * Nur transform/opacity auf Formen mit Clip/Maske auf die Silhouette — keine Pfad-Morphs. Koordinaten in
+ * SVG-Einheiten (CSS-px auf SVG-Elementen = Nutzereinheiten des Zeichens, viewBox 6 9 32 28 bzw. Badge 0 0 64 64).
+ * Einmalige Bewegungen: Grundzustand = Endbild, die Keyframes laufen „from“ → Endbild. Ohne Animation
+ * („Animationen aus“ = body.still, prefers-reduced-motion) steht damit sofort das Endbild.
+ * .loop = Vorführschleife wie im Kit (mit Haltephasen und den Kit-Dauern), z. B. für /brand.
+ */
+
+/* ── Sweep (es lädt): Slash-Ausschnitt wandert durch die Silhouette, 1,5 s ∞ ──
+ * README nennt translateX −22 → +8; das Kit (Prototyp) läuft bis +16 — erst dort hat der Slash die Silhouette ganz
+ * verlassen (rechte Mondkante x 36). Bei Widerspruch gilt der Prototyp. */
+@keyframes loonaSweep {
+  0% {
+    transform: translateX(-22px);
+  }
+  100% {
+    transform: translateX(16px);
+  }
+}
+.sweep {
+  animation: loonaSweep 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* ── Füllstand (Fortschritt): translateX = Fortschritt · 30 − 22, linear mit 200 ms Glättung ── */
+.progress {
+  transform: translateX(calc(var(--progress, 0) * 30px - 22px));
+  transition: transform 0.2s linear;
+}
+
+/* ── Blinken (Seite baut): Slash an/aus, 1,1 s steps(1) ∞ ── */
+@keyframes loonaBlink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0;
+  }
+}
+.blink {
+  animation: loonaBlink 1.1s steps(1) infinite;
+}
+
+/* ── Reveal (Intro, 1,2 s): L von links, Mond ab 10 % von unten ── */
+@keyframes loonaRevealL {
+  from {
+    transform: translateX(-14px);
+    opacity: 0;
+  }
+}
+@keyframes loonaRevealD {
+  0%,
+  10% {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+}
+.revealL {
+  animation: loonaRevealL 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.revealD {
+  animation: loonaRevealD 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* ── Mondphase (Badge wird aktiv, 0,9 s): Tinte-Scheibe gleitet aus dem kleinen Mond, der Mond füllt sich ── */
+@keyframes loonaMoon {
+  from {
+    transform: translateX(0);
+  }
+}
+.moon {
+  transform: translateX(-26px);
+  animation: loonaMoon 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) var(--loona-moon-delay, 0s) both;
+}
+
+/* ── Hover Zeichen → Bewegtes Zeichen: Fuge füllt sich von oben, dann erscheint der Slash (steps(1)); zurück umgekehrt.
+ * Dauer der Füllung wie im Kit (loonaGapFill: 30 % → 48 % von 3 s = 0,54 s). Auslöser: Hover/Fokus auf dem Zeichen
+ * oder seinem Link/Button. */
+.gap {
+  transform: scaleY(0);
+  transform-origin: 16px 11px;
+  transition: transform 0.54s cubic-bezier(0.65, 0, 0.35, 1) 0.05s;
+}
+.hoverSlash {
+  opacity: 0;
+  transition: opacity 0s linear 0s;
+}
+.hover:hover .gap,
+:is(a, button):is(:hover, :focus-visible) .hover .gap {
+  transform: scaleY(1);
+  transition-delay: 0s;
+}
+.hover:hover .hoverSlash,
+:is(a, button):is(:hover, :focus-visible) .hover .hoverSlash {
+  opacity: 1;
+  transition-delay: 0.54s;
+}
+
+/* ── Endbild Loader: Bewegtes Zeichen → Zeichen per Crossfade 150 ms (data-done) ── */
+.layer {
+  transition: opacity 0.15s linear;
+}
+[data-done='true'] > .moving,
+[data-done='false'] > .final {
+  opacity: 0;
+}
+
+/* ── Ruhe: Loader zeigen das Zeichen mit pulsierendem Punkt (Brand Guide S. 9 „Ruhe ist Default“) ── */
+@keyframes loonaPulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+.still {
+  display: none;
+}
+.dot {
+  animation: loonaPulse 1.4s ease-in-out infinite;
+}
+
+/* ── Vorführschleifen (Kit 7a/8a) ── */
+@keyframes loonaRevealLLoop {
+  0% {
+    transform: translateX(-14px);
+    opacity: 0;
+  }
+  35%,
+  85% {
+    transform: none;
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 0;
+  }
+}
+@keyframes loonaRevealDLoop {
+  0%,
+  10% {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  45%,
+  85% {
+    transform: none;
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 0;
+  }
+}
+@keyframes loonaGapFillLoop {
+  0%,
+  30% {
+    transform: scaleY(0);
+  }
+  48%,
+  100% {
+    transform: scaleY(1);
+  }
+}
+@keyframes loonaBandInLoop {
+  0%,
+  60% {
+    opacity: 0;
+  }
+  62%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes loonaMoonLoop {
+  0%,
+  20% {
+    transform: translateX(0);
+  }
+  70%,
+  88% {
+    transform: translateX(-26px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes loonaFillLoop {
+  0% {
+    transform: translateX(-22px);
+  }
+  100% {
+    transform: translateX(16px);
+  }
+}
+.loop .revealL {
+  animation: loonaRevealLLoop 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+.loop .revealD {
+  animation: loonaRevealDLoop 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+.loop .gap {
+  animation: loonaGapFillLoop 3s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.loop .hoverSlash {
+  animation: loonaBandInLoop 3s steps(1) infinite;
+}
+.loop .moon {
+  animation: loonaMoonLoop 2.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+/* Füllstand als Vorführung: Kit läuft den Sweep-Weg in 2,4 s */
+.loop .progress {
+  animation: loonaFillLoop 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* ── Ruhe: prefers-reduced-motion und „Animationen aus“ ── */
+@media (prefers-reduced-motion: reduce) {
+  .sweep,
+  .blink,
+  .revealL,
+  .revealD,
+  .moon,
+  .loop .revealL,
+  .loop .revealD,
+  .loop .gap,
+  .loop .hoverSlash,
+  .loop .moon,
+  .loop .progress {
+    animation: none;
+  }
+  .progress,
+  .layer {
+    transition: none;
+  }
+  .gap,
+  .hoverSlash {
+    display: none;
+  }
+  .moving {
+    display: none;
+  }
+  .still {
+    display: inline;
+  }
+}
+:global(body.still) :is(.sweep, .blink, .revealL, .revealD, .moon, .gap, .hoverSlash, .progress, .dot) {
+  animation: none;
+}
+:global(body.still) :is(.progress, .layer) {
+  transition: none;
+}
+:global(body.still) :is(.gap, .hoverSlash, .moving) {
+  display: none;
+}
+:global(body.still) .still {
+  display: inline;
+}

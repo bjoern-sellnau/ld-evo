@@ -178,6 +178,20 @@ body.still [data-ldsplash] * {
     transform: translateY(0);
   }
 }
+/* Splash „Reveal“ (Brand-System 2026-10): Zeichen groß → Lockup (scale .72), Wortmarke wächst daneben auf */
+@keyframes ldSpRevMark {
+  from {
+    transform: scale(1.3889);
+  }
+}
+@keyframes ldSpRevText {
+  from {
+    max-width: 0;
+  }
+  to {
+    max-width: var(--ld-rev-w, 640px);
+  }
+}
 @keyframes ldSplashBar {
   from {
     transform: translateX(-110%);
@@ -1698,8 +1712,9 @@ body.md-lab main#inhalt h2 {
 .ld-autotile[data-tone='ink'] > [data-v='ink'] {
   opacity: 1;
 }
-/* Zeichen/Negativ-Logo mit Farbe „Auto“: Füllung per CSS (statt Attribut), damit der Farbwechsel weich überblendet */
-[data-ldlogoauto='fill'] :is(path, circle):not([fill='none']) {
+/* Zeichen/Negativ-Logo mit Farbe „Auto“: Füllung per CSS (statt Attribut), damit der Farbwechsel weich überblendet.
+   Masken (Slash-Ausschnitt der Logo-Animationen) behalten ihr Schwarz/Weiß. */
+[data-ldlogoauto='fill'] :is(path, circle):not([fill='none']):not(mask *) {
   fill: var(--ld-logo-auto, #ff7816);
   transition: fill 0.5s ease;
 }

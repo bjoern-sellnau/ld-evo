@@ -822,7 +822,7 @@ export const CHAPTERS: Chapter[] = [
         t: 'files',
         items: [
           ['design/', 'Handoffs: Site-Prototyp, LD Timeline, Shader Wallpapers (Quelle der Wahrheit)'],
-          ['docs/', 'Logo-Handoff, LD-FLOW.md (Betrieb/Sicherheit in Kurzform)'],
+          ['docs/', 'Brand-Handoff (Kernmarke + Animationen), Logo-Handoff (Produktfamilie), LD-FLOW.md (Betrieb/Sicherheit in Kurzform)'],
           ['content/', 'Startinhalte (Seed) — 1:1 aus den Prototypen'],
           ['scripts/', 'Generatoren (Prototyp → Code), Marken-Assets, Widget-Registry'],
           ['src/app/(main)', 'Website-Routen + /brand'],

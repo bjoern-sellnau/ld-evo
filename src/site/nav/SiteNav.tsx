@@ -218,6 +218,8 @@ export function SiteNav() {
                   Textfarben folgen den Site-Tokens, damit Auto-Kontrast greift (Site-Nachtrag v23). */}
               <LoonaLockup
                 markSize={28}
+                // Logo-Animation „Hover“ (Brand-System 2026-10): Fuge füllt sich, der Slash erscheint
+                motion="hover"
                 theme={settings.theme}
                 tone={logo.markTone(settings.theme)}
                 negativeColor={logo.negativeColor}
