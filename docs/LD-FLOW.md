@@ -163,7 +163,7 @@ Scroll-Erzählung aus Widgets im Feld `story` (Typ `blocks`), gebaut in der Vors
   ohne React-Render pro Frame. Sticky-Inhalte (Scrollytelling, Seitwärts) brauchen Vorfahren ohne `overflow: hidden`
   (Szenen nutzen `overflow: clip`).
 - Ladezeit: Abschnitte ab dem zweiten bekommen `content-visibility: auto`, Screens im Scrollytelling entstehen erst kurz
-  vor ihrem Schritt (Budget `/projekte/ldbuddy` in `npm run test:perf`).
+  vor ihrem Schritt (Budget `/labs/ldbuddy` in `npm run test:perf`).
 - **Breite / Widescreen:** `SitePage` setzt je Ansicht (Desktop, Wide mit Seitenleiste, Wide 2 mit Icon-Leiste, mobil)
   die freie Fläche neben dem Inhalt als CSS-Variablen `--bl`/`--br` (bis Bildschirm- bzw. Leistenrand) und `--wl`/`--wr`
   (maßvolle Verbreiterung, je ≤ 160 px). Auftakt, Laufband und Seitwärts laufen randlos; Szenen haben die Breite

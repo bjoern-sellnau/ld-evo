@@ -1,10 +1,11 @@
 'use client';
 
-import { applyFavicon } from './favicon';
+import { applyFavicon, blinkFavicon } from './favicon';
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useLayoutEffect, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { REVEAL_MODES, WILD_MODES, pageVtClasses, runVt, trackVtOrigin } from '../vt/runVt';
+import { slashWipe, slashWipeAllowed } from '../vt/slashWipe';
 import { applyBody, applyThemeColor } from './applyBody';
 import { DEFAULT_SETTINGS, readSettings, writeSetting, type MobDesign, type Settings } from './schema';
 import { useHitCounter } from '../stats/useHitCounter';
@@ -116,6 +117,29 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     return () => mo.disconnect();
   }, [favicon, hydrated]);
 
+  // Logo-Animation „Blinken“ (Brand-System 2026-10: „Seite baut“): Favicon blinkt, solange sich die Seite aufbaut
+  // (body[data-ldbuild] — Hero „Live-Build“, Splash „Terminal 2“); danach wieder die gewählte Variante.
+  const anim = settings.anim;
+  useEffect(() => {
+    if (!hydrated || !anim) return;
+    let stop: (() => void) | undefined;
+    const check = () => {
+      const on = document.body.hasAttribute('data-ldbuild');
+      if (on && !stop) stop = blinkFavicon(favicon);
+      else if (!on && stop) {
+        stop();
+        stop = undefined;
+      }
+    };
+    check();
+    const mo = new MutationObserver(check);
+    mo.observe(document.body, { attributes: true, attributeFilter: ['data-ldbuild'] });
+    return () => {
+      mo.disconnect();
+      stop?.();
+    };
+  }, [favicon, hydrated, anim]);
+
   // Mobil-Design als Body-Klasse (md-app / md-editorial / md-lab) — Inhalte werden per CSS umgestaltet (site.css).
   const vm = settings.viewMode;
   const mobNow = vm === 'mobile' || (vm === 'auto' && viewport.isMobile);
@@ -192,20 +216,19 @@ export function SiteProvider({ children }: { children: ReactNode }) {
       if (isDetailPath(href) && !isDetailPath(current)) setFrom(current);
       // „Detailseiten immer schlicht (Fade)“ (ld-detailplain) erzwingt Fade bei Detail-Navigation.
       const mode = s.detailPlain && detailNav ? 'fade' : s.pageVt || 'fade';
-      runVt(
-        pageVtClasses(mode),
-        () =>
-          new Promise<void>((resolve) => {
-            const t = setTimeout(resolve, 1500);
-            pending.current = () => {
-              clearTimeout(t);
-              resolve();
-            };
-            if (!opts?.keepVt) flushSync(() => setVtTarget(null));
-            router.push(href);
-          }),
-        { anim: s.anim, hold: 130 },
-      );
+      const apply = () =>
+        new Promise<void>((resolve) => {
+          const t = setTimeout(resolve, 1500);
+          pending.current = () => {
+            clearTimeout(t);
+            resolve();
+          };
+          if (!opts?.keepVt) flushSync(() => setVtTarget(null));
+          router.push(href);
+        });
+      // „Slash-Wipe“ (Logo-Animation des Brand-Systems) läuft ohne View Transition; ohne Bewegung → Überblendung.
+      if (mode === 'slash' && s.anim && slashWipeAllowed()) slashWipe(apply);
+      else runVt(pageVtClasses(mode === 'slash' ? 'fade' : mode), apply, { anim: s.anim, hold: 130 });
     },
     [router, locale],
   );

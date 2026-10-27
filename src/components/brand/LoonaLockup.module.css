@@ -1,12 +1,10 @@
 /*
- * Maße als Anteil der Zeichenhöhe m, abgeleitet aus den Lockup-Assets (Zeichen 40 hoch):
- *   Produkte  family/<key>/lockup-*.svg  Abstand 16 → 0.4 · Zeile 1 22px, Baseline 20 → 0.55 / 0.5
- *                                        Zeile 2 10px, Baseline 36 → 0.25 / 0.9 · letter-spacing 3.2px = 0.32em
- *   Kernmarke assets/lockup-*.svg        Abstand 20 → 0.5  · Zeile 1 30px, Baseline 24 → 0.75 / 0.6
- *                                        Zeile 2 11px, Baseline 42 → 0.275 / 1.05, Einzug 2px → 0.05
- *                                        letter-spacing 3.5px = 0.318em
+ * Lockups der Produktfamilie — Maße als Anteil der Zeichenhöhe m, abgeleitet aus den Lockup-Assets (Zeichen 40 hoch):
+ *   family/<key>/lockup-*.svg  Abstand 16 → 0.4 · Zeile 1 22px, Baseline 20 → 0.55 / 0.5
+ *                              Zeile 2 10px, Baseline 36 → 0.25 / 0.9 · letter-spacing 3.2px = 0.32em
  * Bei line-height 1 liegt die Baseline von Space Grotesk bei 0.846·font-size
  * ((1 + ascent 0.984 − descent 0.292) / 2, hhea-Metriken der Google-Fonts-Datei).
+ * Die Kernmarke (ld) hat seit dem Brand-System 2026-10 die einzeilige Wortmarke (.word, unten).
  */
 .lockup {
   --loona-baseline: 0.846;
@@ -23,16 +21,6 @@
   font-family: var(--loona-font-sans, system-ui, sans-serif);
   line-height: 1;
   white-space: nowrap;
-}
-
-.lockup[data-core] {
-  --gap: 0.5;
-  --l1: 0.75;
-  --l1-base: 0.6;
-  --l2: 0.275;
-  --l2-base: 1.05;
-  --l2-indent: 0.05;
-  --l2-track: calc(3.5em / 11);
 }
 
 .lockup[data-theme='dark'] {
@@ -73,4 +61,53 @@
   margin-top: calc(
     (var(--l2-base) - var(--l1-base) - var(--loona-baseline) * var(--l2) + var(--loona-baseline) * var(--l1) - var(--l1)) * var(--loona-m)
   );
+}
+
+/*
+ * Wortmarke der Kernmarke (Brand Guide S. 07 „Typografie & Wortmarke“): Zeichen-Kontur 69 px zu Manrope 64 px,
+ * Abstand 26 px zur SVG-Box (viewBox 6 9 32 28, Luft 2 Einheiten = 5,75 px) → 31,75 px ab Kontur. Als Anteil der
+ * Zeichenhöhe m: Schrift 64/69 = 0.9275·m, Abstand 31.75/69 = 0.46·m; vertikal mittig, line-height 1.
+ * Unterzeile (README „Wortmarke“): JetBrains Mono 500, 12–14 px.
+ */
+.word {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(0.46 * var(--loona-m));
+  font-family: var(--loona-font-wordmark, system-ui, sans-serif);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.word[data-theme='dark'] {
+  color: var(--loona-cream);
+  --loona-lockup-muted: var(--loona-muted-dark);
+}
+
+.word[data-theme='light'] {
+  color: var(--loona-ink);
+  --loona-lockup-muted: var(--loona-muted-light);
+}
+
+.wordText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(0.3 * var(--loona-m));
+}
+
+.wordName {
+  font-weight: 800;
+  font-size: calc(0.9275 * var(--loona-m));
+  letter-spacing: -0.035em;
+}
+
+.wordLight {
+  font-weight: 500;
+}
+
+.wordTag {
+  font-family: var(--ld-font-mono, 'JetBrains Mono'), ui-monospace, monospace;
+  font-weight: 500;
+  font-size: clamp(12px, calc(0.22 * var(--loona-m)), 14px);
+  color: var(--loona-lockup-muted);
 }

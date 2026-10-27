@@ -36,6 +36,8 @@
   --loona-ivy: var(--loona-green);
   --loona-ivy-deep: var(--loona-green-deep);
 
-  /* Schrift: --loona-font-space-grotesk wird von next/font gesetzt (src/lib/fonts.ts) */
+  /* Schrift: --loona-font-space-grotesk / --loona-font-manrope setzt next/font (src/lib/fonts.ts) */
   --loona-font-sans: var(--loona-font-space-grotesk), system-ui, sans-serif;
+  /* Wortmarke „loona! designs“ (Brand-System 2026-10) */
+  --loona-font-wordmark: var(--loona-font-manrope), system-ui, sans-serif;
 }

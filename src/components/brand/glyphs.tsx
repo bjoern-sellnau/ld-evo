@@ -1,17 +1,19 @@
 import type { ReactElement } from 'react';
-import type { LoonaProductKey } from './products';
+import { LOONA_BADGE, type LoonaProductKey } from './products';
 
 /**
- * Zeichen-Geometrie im 46er-Koordinatensystem (sichtbar y 3–43), exakt aus
- * README §1 / §9 bzw. assets/ld-mark.svg und assets/family/*. Nicht runden.
+ * Glyphen im 46er-Koordinatensystem (sichtbar y 3–43), exakt aus den Handoffs. Nicht runden.
+ *  - ld: großes LD des Badges (Brand-System 2026-10, assets/loona-badge.svg) — das Primärzeichen ist dessen
+ *    Negativraum und liegt in LOONA_ZEICHEN.
+ *  - Produkte: Logo-Handoff README §1 / §9 bzw. assets/family/*.
  */
 export function LoonaGlyph({ product, color }: { product: LoonaProductKey; color: string }): ReactElement {
   switch (product) {
     case 'ld':
       return (
         <>
-          <path d="M0 3H8V35H19L22 43H0Z" fill={color} />
-          <path d="M11 3H24A20 20 0 0 1 24 43H25L19 27H16V11H11ZM21 11H24A12 12 0 0 1 24 35L21 27Z" fill={color} fillRule="evenodd" />
+          <path d={LOONA_BADGE.l} fill={color} />
+          <path d={LOONA_BADGE.d} fill={color} fillRule="evenodd" />
         </>
       );
     case 'flow':

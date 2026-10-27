@@ -466,7 +466,7 @@ export const CHAPTERS: Chapter[] = [
       { t: 'h', text: 'Story-Seiten (Scroll-Erlebnis)' },
       {
         t: 'p',
-        text: 'Projekte können statt der Case Study eine **Story** sein: Projekt öffnen → „Layout der Detailseite“ auf **Story** → in der Vorschau unter „Story-Inhalt“ mit „+“ Widgets der Gruppe **Story** einfügen. Beispiel: [LD Buddy](/projekte/ldbuddy).',
+        text: 'Projekte können statt der Case Study eine **Story** sein: Projekt öffnen → „Layout der Detailseite“ auf **Story** → in der Vorschau unter „Story-Inhalt“ mit „+“ Widgets der Gruppe **Story** einfügen. Beispiel: [LD Buddy](/labs/ldbuddy).',
       },
       {
         t: 'table',
@@ -822,7 +822,7 @@ export const CHAPTERS: Chapter[] = [
         t: 'files',
         items: [
           ['design/', 'Handoffs: Site-Prototyp, LD Timeline, Shader Wallpapers (Quelle der Wahrheit)'],
-          ['docs/', 'Logo-Handoff, LD-FLOW.md (Betrieb/Sicherheit in Kurzform)'],
+          ['docs/', 'Brand-Handoff (Kernmarke + Animationen), Logo-Handoff (Produktfamilie), LD-FLOW.md (Betrieb/Sicherheit in Kurzform)'],
           ['content/', 'Startinhalte (Seed) — 1:1 aus den Prototypen'],
           ['scripts/', 'Generatoren (Prototyp → Code), Marken-Assets, Widget-Registry'],
           ['src/app/(main)', 'Website-Routen + /brand'],

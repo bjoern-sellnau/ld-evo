@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#EDE9E1;font-family:Manrope,system-ui,sans-serif;color:#15130F}a{color:#C9530A}a:hover{color:#FF7816}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#15130F;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 Manrope,system-ui,sans-serif;color:#15130F}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#15130F;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Manrope,system-ui,sans-serif;color:rgba(0,0,0,.55)}.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}.dv-opt:target .dv-oid{background:#FF7816;color:#15130F}.dv-next{margin:22px 0 0;font:12px/1.5 Manrope,system-ui,sans-serif;color:rgba(0,0,0,.5)}@keyframes loonaSweep{0%{transform:translateX(-22px)}100%{transform:translateX(16px)}}@keyframes loonaSpin{to{transform:rotate(360deg)}}@keyframes loonaBlink{0%,55%{opacity:1}56%,100%{opacity:0}}@keyframes loonaRevealL{0%{transform:translateX(-14px);opacity:0}35%,85%{transform:none;opacity:1}100%{transform:none;opacity:0}}@keyframes loonaRevealD{0%,10%{transform:translateY(12px);opacity:0}45%,85%{transform:none;opacity:1}100%{transform:none;opacity:0}}@keyframes loonaGapFill{0%,30%{transform:scaleY(0)}48%,100%{transform:scaleY(1)}}@keyframes loonaBandIn{0%,60%{opacity:0}62%,100%{opacity:1}}@keyframes loonaMoon{0%,20%{transform:translateX(0)}70%,88%{transform:translateX(-26px)}100%{transform:translateX(0)}}@keyframes loonaWipe{0%,10%{transform:translateX(0)}60%,100%{transform:translateX(75px)}}@keyframes loonaMRingBlue{0%,25%{opacity:1}40%,100%{opacity:0}}@keyframes loonaMRingO{0%,25%{opacity:0}40%,60%{opacity:1}78%,100%{opacity:0}}@keyframes loonaMDiscW{0%,25%{opacity:1}40%,100%{opacity:0}}@keyframes loonaMDiscO{0%,25%{opacity:0}40%,62%{opacity:1}72%,100%{opacity:0}}@keyframes loonaMCover{0%,40%{transform:translate(2.5px,-2px);opacity:1}60%{transform:translate(-7px,0);opacity:1}72%,100%{transform:translate(-7px,0);opacity:0}}@keyframes loonaMGloss{0%,25%{opacity:.35}40%,100%{opacity:0}}@keyframes loonaMD{0%,60%{opacity:0}72%,100%{opacity:1}}@keyframes loonaML{0%,65%{transform:translateX(-16px);opacity:0}85%,100%{transform:none;opacity:1}}</style>
+</helmet>
+<section class="dv-turn" id="t8">
+<div class="dv-thd"><a class="dv-tid" href="#t8">8</a><span class="dv-tname">Transformation als Animation, und das adaptive Zeichen: Standard Orange, auf Orange Creme, auf Fotos Weiß, auf Glas durchsichtig — dazu die Glas-Variante und Liquid Glass</span></div>
+<div class="dv-opts">
+<div class="dv-opt" id="8a" data-screen-label="8a Morph live"><div class="dv-olabel"><a class="dv-oid" href="#8a">8a</a>Alt → Neu als Bewegung (6 s Loop)</div><div class="dv-card" style="width:300px">
+<div style="background:#F6F1E8;padding:20px;display:flex;flex-direction:column;gap:14px;font-family:Manrope,sans-serif">
+<div style="height:260px;border-radius:14px;background:#15130F;display:grid;place-items:center">{{ animMorph }}</div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Glaskugel → Ring und Sichel werden orange → Glanz verschwindet → die Sichel wendet sich und wird zum Mond → das L kommt von links → der Ring geht. Endbild ist das Zeichen.</p>
+</div>
+</div></div>
+<div class="dv-opt" id="8b" data-screen-label="8b Adaptives Zeichen"><div class="dv-olabel"><a class="dv-oid" href="#8b">8b</a>Adaptiv: ein Zeichen, sieben Umfelder — Standardfarbe Orange, sonst passt es sich an</div><div class="dv-card" style="width:960px">
+<div style="background:#EDE9E1;padding:24px;display:flex;flex-direction:column;gap:14px;font-family:Manrope,sans-serif">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:200px;border-radius:14px;background:#F6F1E8;display:grid;place-items:center"><svg viewBox="8 8 32 32" width="120" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Standard · Orange auf Creme</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:200px;border-radius:14px;background:#171310;display:grid;place-items:center"><svg viewBox="8 8 32 32" width="120" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Dunkel · Orange bleibt</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:200px;border-radius:14px;background:#FF7816;display:grid;place-items:center"><svg viewBox="8 8 32 32" width="120" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#F6F1E8"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#F6F1E8"></path></svg></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Orange Fläche · Creme</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:200px;border-radius:14px;background:#2F7FD6;display:grid;place-items:center"><svg viewBox="8 8 32 32" width="120" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FFFFFF"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FFFFFF"></path></svg></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Fremdfarbe · Weiß</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:200px;border-radius:14px;background:repeating-linear-gradient(135deg,#6B6560 0 10px,#7A736C 10px 20px);display:grid;place-items:center;position:relative"><svg viewBox="8 8 32 32" width="120" style="display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FFFFFF"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FFFFFF"></path></svg><div style="position:absolute;left:12px;bottom:10px;font:500 10px/1 'JetBrains Mono',monospace;color:#D9D2C5">[ foto ]</div></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Foto · Weiß mit weichem Schatten</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:200px;border-radius:14px;background:#171310;display:grid;place-items:center"><svg viewBox="8 8 32 32" width="120" style="display:block"><defs><linearGradient id="gv-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB366"></stop><stop offset="0.55" stop-color="#FF7816"></stop><stop offset="1" stop-color="#B4500E"></stop></linearGradient><clipPath id="gv-c"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z"></path></clipPath></defs><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="url(#gv-g)"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="url(#gv-g)"></path><g clip-path="url(#gv-c)"><path d="M6 12A20 7 0 1 0 46 12A20 7 0 1 0 6 12Z" fill="#FFFFFF" opacity="0.32" transform="translate(0 4)"></path></g></svg></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Glas-Variante · Verlauf und Glanz</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="position:relative;height:200px;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 18% 28%,#FF7816 0,transparent 42%),radial-gradient(circle at 82% 18%,#2F7FD6 0,transparent 40%),radial-gradient(circle at 60% 88%,#FFB366 0,transparent 45%),#171310"><div style="position:absolute;left:38px;top:28px;width:144px;height:144px;clip-path:path('M30 39A3 3 0 0 1 33 36L51 36A3 3 0 0 1 54 39L54 84L63 84L72 108L33 108A3 3 0 0 1 30 105ZM69 39A3 3 0 0 1 72 36H78A36 36 0 0 1 78 108L69 84Z');backdrop-filter:blur(10px) saturate(1.6);-webkit-backdrop-filter:blur(10px) saturate(1.6);background:rgba(255,255,255,.3);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.85),inset 0 -10px 18px rgba(255,255,255,.18)"></div></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Liquid Glass · durchsichtig, bricht den Grund</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:200px;border-radius:14px;overflow:hidden"><svg viewBox="0 0 220 200" width="100%" style="display:block;border-radius:14px">
+<defs>
+<radialGradient id="lq-a" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FF7816"></stop><stop offset="1" stop-color="#FF7816" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="lq-b" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#2F7FD6"></stop><stop offset="1" stop-color="#2F7FD6" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="lq-c" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFB366"></stop><stop offset="1" stop-color="#FFB366" stop-opacity="0"></stop></radialGradient>
+<clipPath id="lq-clip"><path d="M30 39A3 3 0 0 1 33 36L51 36A3 3 0 0 1 54 39L54 84L63 84L72 108L33 108A3 3 0 0 1 30 105Z" transform="translate(38 28)"></path><path d="M69 39A3 3 0 0 1 72 36H78A36 36 0 0 1 78 108L69 84Z" transform="translate(38 28)"></path></clipPath>
+<mask id="lq-edge"><g transform="translate(38 28)"><path d="M30 39A3 3 0 0 1 33 36L51 36A3 3 0 0 1 54 39L54 84L63 84L72 108L33 108A3 3 0 0 1 30 105Z" fill="none" stroke="#fff" stroke-width="14"></path><path d="M69 39A3 3 0 0 1 72 36H78A36 36 0 0 1 78 108L69 84Z" fill="none" stroke="#fff" stroke-width="14"></path></g></mask>
+<filter id="lq-refr" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="7" result="n"></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap><feGaussianBlur stdDeviation="0.5"></feGaussianBlur></filter>
+<filter id="lq-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter>
+<linearGradient id="lq-rim" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"></stop><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.2"></stop><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.7"></stop></linearGradient>
+<linearGradient id="lq-shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.42"></stop><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.08"></stop><stop offset="1" stop-color="#000000" stop-opacity="0.28"></stop></linearGradient><linearGradient id="lq-rim2" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#000000" stop-opacity="0"></stop><stop offset="0.5" stop-color="#000000" stop-opacity="0.05"></stop><stop offset="1" stop-color="#000000" stop-opacity="0.4"></stop></linearGradient>
+</defs>
+<g id="lq-scene"><rect width="220" height="200" fill="#2A2420"></rect><circle cx="50" cy="150" r="110" fill="url(#lq-b)"></circle><circle cx="165" cy="40" r="110" fill="url(#lq-a)"></circle><circle cx="120" cy="190" r="90" fill="url(#lq-c)"></circle><rect x="0" y="86" width="220" height="2.5" fill="#F6F1E8" opacity="0.55"></rect><rect x="0" y="126" width="220" height="2.5" fill="#F6F1E8" opacity="0.4"></rect><rect x="0" y="156" width="220" height="1.5" fill="#F6F1E8" opacity="0.3"></rect></g>
+<g clip-path="url(#lq-clip)">
+<g filter="url(#lq-refr)" transform="translate(110 100) scale(1.22) translate(-110 -100)"><use href="#lq-scene"></use></g>
+<g mask="url(#lq-edge)"><g filter="url(#lq-refr)" transform="translate(110 100) scale(1.5) translate(-110 -100)"><use href="#lq-scene"></use></g></g>
+<g transform="translate(38 28)"><path d="M30 39A3 3 0 0 1 33 36L51 36A3 3 0 0 1 54 39L54 84L63 84L72 108L33 108A3 3 0 0 1 30 105Z" fill="url(#lq-shade)"></path><path d="M69 39A3 3 0 0 1 72 36H78A36 36 0 0 1 78 108L69 84Z" fill="url(#lq-shade)"></path></g>
+<g transform="translate(38 31)"><path d="M30 39A3 3 0 0 1 33 36L51 36A3 3 0 0 1 54 39L54 84L63 84L72 108L33 108A3 3 0 0 1 30 105Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="7" filter="url(#lq-blur)"></path><path d="M69 39A3 3 0 0 1 72 36H78A36 36 0 0 1 78 108L69 84Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="7" filter="url(#lq-blur)"></path></g>
+<g transform="translate(38 25)"><path d="M30 39A3 3 0 0 1 33 36L51 36A3 3 0 0 1 54 39L54 84L63 84L72 108L33 108A3 3 0 0 1 30 105Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="5" filter="url(#lq-blur)"></path><path d="M69 39A3 3 0 0 1 72 36H78A36 36 0 0 1 78 108L69 84Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="5" filter="url(#lq-blur)"></path></g>
+</g>
+<g transform="translate(38 28)"><path d="M30 39A3 3 0 0 1 33 36L51 36A3 3 0 0 1 54 39L54 84L63 84L72 108L33 108A3 3 0 0 1 30 105Z" fill="none" stroke="url(#lq-rim2)" stroke-width="2.4"></path><path d="M69 39A3 3 0 0 1 72 36H78A36 36 0 0 1 78 108L69 84Z" fill="none" stroke="url(#lq-rim2)" stroke-width="2.4"></path><path d="M30 39A3 3 0 0 1 33 36L51 36A3 3 0 0 1 54 39L54 84L63 84L72 108L33 108A3 3 0 0 1 30 105Z" fill="none" stroke="url(#lq-rim)" stroke-width="1.8"></path><path d="M69 39A3 3 0 0 1 72 36H78A36 36 0 0 1 78 108L69 84Z" fill="none" stroke="url(#lq-rim)" stroke-width="1.8"></path></g>
+<path d="M66 71A14 4 0 1 0 94 71A14 4 0 1 0 66 71Z" fill="#FFFFFF" opacity="0.7"></path><path d="M106 71A9 3.4 0 1 0 124 71A9 3.4 0 1 0 106 71Z" fill="#FFFFFF" opacity="0.65"></path>
+</svg></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Liquid Glass mit Refraktion · Linse, Kantenbrechung, Lichtkante</div></div>
+</div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Prinzip: Das Zeichen ist kein Fremdkörper. Standard ist Orange; auf Orange wird es Creme, auf Fremdfarben und Fotos Weiß, auf Glasflächen nimmt es Material und Licht der Umgebung an. Geometrie und Fuge bleiben immer gleich — nur Farbe und Material passen sich an.</p>
+</div>
+</div></div>
+<div class="dv-opt" id="8c" data-screen-label="8c App-Icons"><div class="dv-olabel"><a class="dv-oid" href="#8c">8c</a>211 als App-Icon — Glaskugel und Liquid Glass</div><div class="dv-card" style="width:300px">
+<div style="background:#F6F1E8;padding:20px;display:flex;flex-direction:column;gap:14px;font-family:Manrope,sans-serif">
+<svg viewBox="0 0 64 64" width="260" height="260" style="display:block"><defs><radialGradient id="ai-r" cx="0.5" cy="0.42" r="0.6"><stop offset="0" stop-color="#9CC8F2"></stop><stop offset="1" stop-color="#0B2A4A"></stop></radialGradient><linearGradient id="ai-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E1A16"></stop><stop offset="1" stop-color="#0B0A08"></stop></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ai-bg)"></rect><circle cx="32" cy="32" r="26" fill="url(#ai-r)"></circle><circle cx="32" cy="32" r="20" fill="#15130F"></circle><g transform="translate(32 32) scale(0.7) translate(-24 -24)"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></g><path d="M20 22A12 4.5 0 1 0 44 22A12 4.5 0 1 0 20 22Z" fill="#FFFFFF" opacity="0.28"></path></svg>
+<div style="position:relative;height:260px;border-radius:58px;overflow:hidden;background:radial-gradient(circle at 20% 25%,#FF7816 0,transparent 45%),radial-gradient(circle at 80% 20%,#2F7FD6 0,transparent 42%),radial-gradient(circle at 55% 90%,#FFB366 0,transparent 45%),#171310"><div style="position:absolute;left:58px;top:58px;width:144px;height:144px;clip-path:path('M30 39A3 3 0 0 1 33 36L51 36A3 3 0 0 1 54 39L54 84L63 84L72 108L33 108A3 3 0 0 1 30 105ZM69 39A3 3 0 0 1 72 36H78A36 36 0 0 1 78 108L69 84Z');backdrop-filter:blur(10px) saturate(1.6);-webkit-backdrop-filter:blur(10px) saturate(1.6);background:rgba(255,255,255,.3);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.85),inset 0 -10px 18px rgba(255,255,255,.18)"></div></div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Oben die Glaskugel aus 211 im App-Icon-Format, unten dasselbe Icon in Liquid Glass — das Zeichen als Linse über dem Markenlicht.</p>
+</div>
+</div></div>
+<div class="dv-opt" id="8d" data-screen-label="8d Liquid Glass alle Formen"><div class="dv-olabel"><a class="dv-oid" href="#8d">8d</a>Liquid Glass mit Refraktion — Zeichen, Badge, bewegtes Zeichen, Umkehr</div><div class="dv-card" style="width:960px">
+<div style="background:#EDE9E1;padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:14px;font-family:Manrope,sans-serif">
+<div style="display:flex;flex-direction:column;gap:8px"><div style="border-radius:14px;overflow:hidden"><svg viewBox="0 0 220 200" width="100%" style="display:block;border-radius:14px">
+<defs>
+<radialGradient id="lz-a" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FF7816"></stop><stop offset="1" stop-color="#FF7816" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="lz-b" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#2F7FD6"></stop><stop offset="1" stop-color="#2F7FD6" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="lz-c" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFB366"></stop><stop offset="1" stop-color="#FFB366" stop-opacity="0"></stop></radialGradient>
+<clipPath id="lz-hole"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z"></path></clipPath>
+<mask id="lz-lens"><g transform="translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z" fill="#fff"></path><path d="M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#fff"></path></g></mask>
+<mask id="lz-edge"><g transform="translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z" fill="none" stroke="#fff" stroke-width="3.11"></path><path d="M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="none" stroke="#fff" stroke-width="3.11"></path></g></mask>
+<filter id="lz-refr" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="7" result="n"></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap><feGaussianBlur stdDeviation="0.5"></feGaussianBlur></filter>
+<filter id="lz-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter>
+<linearGradient id="lz-rim" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"></stop><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.2"></stop><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.7"></stop></linearGradient>
+<linearGradient id="lz-rim2" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#000000" stop-opacity="0"></stop><stop offset="0.5" stop-color="#000000" stop-opacity="0.05"></stop><stop offset="1" stop-color="#000000" stop-opacity="0.4"></stop></linearGradient>
+<linearGradient id="lz-shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.42"></stop><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.08"></stop><stop offset="1" stop-color="#000000" stop-opacity="0.28"></stop></linearGradient>
+</defs>
+<g id="lz-scene"><rect width="220" height="200" fill="#2A2420"></rect><circle cx="50" cy="150" r="110" fill="url(#lz-b)"></circle><circle cx="165" cy="40" r="110" fill="url(#lz-a)"></circle><circle cx="120" cy="190" r="90" fill="url(#lz-c)"></circle><rect x="0" y="86" width="220" height="2.5" fill="#F6F1E8" opacity="0.55"></rect><rect x="0" y="126" width="220" height="2.5" fill="#F6F1E8" opacity="0.4"></rect><rect x="0" y="156" width="220" height="1.5" fill="#F6F1E8" opacity="0.3"></rect></g>
+
+<g mask="url(#lz-lens)">
+<g filter="url(#lz-refr)" transform="translate(110 100) scale(1.22) translate(-110 -100)"><use href="#lz-scene"></use></g>
+<g mask="url(#lz-edge)"><g filter="url(#lz-refr)" transform="translate(110 100) scale(1.5) translate(-110 -100)"><use href="#lz-scene"></use></g></g>
+<g transform="translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z" fill="url(#lz-shade)" stroke="none"></path><path d="M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="url(#lz-shade)" stroke="none"></path></g>
+<g transform="translate(0 3) translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="1.56" filter="url(#lz-blur)"></path><path d="M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="1.56" filter="url(#lz-blur)"></path></g>
+<g transform="translate(0 -3) translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.11" filter="url(#lz-blur)"></path><path d="M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.11" filter="url(#lz-blur)"></path></g>
+</g>
+<g transform="translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z" fill="none" stroke="url(#lz-rim2)" stroke-width="0.53"></path><path d="M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="none" stroke="url(#lz-rim2)" stroke-width="0.53"></path><path d="M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z" fill="none" stroke="url(#lz-rim)" stroke-width="0.40"></path><path d="M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="none" stroke="url(#lz-rim)" stroke-width="0.40"></path></g>
+<path d="M51 52A14 4 0 1 0 79 52A14 4 0 1 0 51 52Z" fill="#FFFFFF" opacity="0.7"></path><path d="M107 52A9 3.4 0 1 0 125 52A9 3.4 0 1 0 107 52Z" fill="#FFFFFF" opacity="0.65"></path>
+</svg></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Zeichen · Linse</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="border-radius:14px;overflow:hidden"><svg viewBox="0 0 220 200" width="100%" style="display:block;border-radius:14px">
+<defs>
+<radialGradient id="lb-a" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FF7816"></stop><stop offset="1" stop-color="#FF7816" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="lb-b" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#2F7FD6"></stop><stop offset="1" stop-color="#2F7FD6" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="lb-c" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFB366"></stop><stop offset="1" stop-color="#FFB366" stop-opacity="0"></stop></radialGradient>
+<clipPath id="lb-hole"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z"></path></clipPath>
+<mask id="lb-lens"><g transform="translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="#fff"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#fff" fill-rule="evenodd"></path></g></mask>
+<mask id="lb-edge"><g transform="translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="none" stroke="#fff" stroke-width="4.67"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="none" stroke="#fff" stroke-width="4.67"></path></g></mask>
+<filter id="lb-refr" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="7" result="n"></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap><feGaussianBlur stdDeviation="0.5"></feGaussianBlur></filter>
+<filter id="lb-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter>
+<linearGradient id="lb-rim" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"></stop><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.2"></stop><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.7"></stop></linearGradient>
+<linearGradient id="lb-rim2" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#000000" stop-opacity="0"></stop><stop offset="0.5" stop-color="#000000" stop-opacity="0.05"></stop><stop offset="1" stop-color="#000000" stop-opacity="0.4"></stop></linearGradient>
+<linearGradient id="lb-shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.42"></stop><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.08"></stop><stop offset="1" stop-color="#000000" stop-opacity="0.28"></stop></linearGradient>
+</defs>
+<g id="lb-scene"><rect width="220" height="200" fill="#2A2420"></rect><circle cx="50" cy="150" r="110" fill="url(#lb-b)"></circle><circle cx="165" cy="40" r="110" fill="url(#lb-a)"></circle><circle cx="120" cy="190" r="90" fill="url(#lb-c)"></circle><rect x="0" y="86" width="220" height="2.5" fill="#F6F1E8" opacity="0.55"></rect><rect x="0" y="126" width="220" height="2.5" fill="#F6F1E8" opacity="0.4"></rect><rect x="0" y="156" width="220" height="1.5" fill="#F6F1E8" opacity="0.3"></rect></g>
+<rect x="14" y="4" width="192" height="192" rx="42" fill="#171310" opacity="0.62"></rect><rect x="14" y="4" width="192" height="192" rx="42" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.5"></rect>
+<g mask="url(#lb-lens)">
+<g filter="url(#lb-refr)" transform="translate(110 100) scale(1.22) translate(-110 -100)"><use href="#lb-scene"></use></g>
+<g mask="url(#lb-edge)"><g filter="url(#lb-refr)" transform="translate(110 100) scale(1.5) translate(-110 -100)"><use href="#lb-scene"></use></g></g>
+<g transform="translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="url(#lb-shade)" stroke="none"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill-rule="evenodd" fill="url(#lb-shade)" stroke="none"></path></g>
+<g transform="translate(0 3) translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="2.33" filter="url(#lb-blur)"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="2.33" filter="url(#lb-blur)"></path></g>
+<g transform="translate(0 -3) translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.67" filter="url(#lb-blur)"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.67" filter="url(#lb-blur)"></path></g>
+</g>
+<g transform="translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="none" stroke="url(#lb-rim2)" stroke-width="0.80"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="none" stroke="url(#lb-rim2)" stroke-width="0.80"></path><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="none" stroke="url(#lb-rim)" stroke-width="0.60"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="none" stroke="url(#lb-rim)" stroke-width="0.60"></path></g>
+<path d="M44 46A10 3.4 0 1 0 64 46A10 3.4 0 1 0 44 46Z" fill="#FFFFFF" opacity="0.7"></path><path d="M106 46A10 3.4 0 1 0 126 46A10 3.4 0 1 0 106 46Z" fill="#FFFFFF" opacity="0.65"></path>
+</svg></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Badge · dunkle Glasplatte, LD als Linse</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="border-radius:14px;overflow:hidden"><svg viewBox="0 0 220 200" width="100%" style="display:block;border-radius:14px">
+<defs>
+<radialGradient id="lm-a" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FF7816"></stop><stop offset="1" stop-color="#FF7816" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="lm-b" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#2F7FD6"></stop><stop offset="1" stop-color="#2F7FD6" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="lm-c" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFB366"></stop><stop offset="1" stop-color="#FFB366" stop-opacity="0"></stop></radialGradient>
+<clipPath id="lm-hole"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z"></path></clipPath>
+<mask id="lm-lens"><g transform="translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="#fff"></path><path d="M13 11H16.5L28.5 35H25Z" fill="#000"></path></g></mask>
+<mask id="lm-edge"><g transform="translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="none" stroke="#fff" stroke-width="3.11"></path><path d="M13 11H16.5L28.5 35H25Z" fill="none" stroke="#fff" stroke-width="3.11"></path></g></mask>
+<filter id="lm-refr" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="7" result="n"></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap><feGaussianBlur stdDeviation="0.5"></feGaussianBlur></filter>
+<filter id="lm-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter>
+<linearGradient id="lm-rim" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"></stop><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.2"></stop><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.7"></stop></linearGradient>
+<linearGradient id="lm-rim2" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#000000" stop-opacity="0"></stop><stop offset="0.5" stop-color="#000000" stop-opacity="0.05"></stop><stop offset="1" stop-color="#000000" stop-opacity="0.4"></stop></linearGradient>
+<linearGradient id="lm-shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.42"></stop><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.08"></stop><stop offset="1" stop-color="#000000" stop-opacity="0.28"></stop></linearGradient>
+</defs>
+<g id="lm-scene"><rect width="220" height="200" fill="#2A2420"></rect><circle cx="50" cy="150" r="110" fill="url(#lm-b)"></circle><circle cx="165" cy="40" r="110" fill="url(#lm-a)"></circle><circle cx="120" cy="190" r="90" fill="url(#lm-c)"></circle><rect x="0" y="86" width="220" height="2.5" fill="#F6F1E8" opacity="0.55"></rect><rect x="0" y="126" width="220" height="2.5" fill="#F6F1E8" opacity="0.4"></rect><rect x="0" y="156" width="220" height="1.5" fill="#F6F1E8" opacity="0.3"></rect></g>
+
+<g mask="url(#lm-lens)">
+<g filter="url(#lm-refr)" transform="translate(110 100) scale(1.22) translate(-110 -100)"><use href="#lm-scene"></use></g>
+<g mask="url(#lm-edge)"><g filter="url(#lm-refr)" transform="translate(110 100) scale(1.5) translate(-110 -100)"><use href="#lm-scene"></use></g></g>
+<g transform="translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="url(#lm-shade)" stroke="none"></path><path d="M13 11H16.5L28.5 35H25Z" fill="url(#lm-shade)" stroke="none"></path></g>
+<g transform="translate(0 3) translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="1.56" filter="url(#lm-blur)"></path><path d="M13 11H16.5L28.5 35H25Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="1.56" filter="url(#lm-blur)"></path></g>
+<g transform="translate(0 -3) translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.11" filter="url(#lm-blur)"></path><path d="M13 11H16.5L28.5 35H25Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.11" filter="url(#lm-blur)"></path></g>
+</g>
+<g transform="translate(11 -3.5) scale(4.5)"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="none" stroke="url(#lm-rim2)" stroke-width="0.53"></path><path d="M13 11H16.5L28.5 35H25Z" fill="none" stroke="url(#lm-rim2)" stroke-width="0.53"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="none" stroke="url(#lm-rim)" stroke-width="0.40"></path><path d="M13 11H16.5L28.5 35H25Z" fill="none" stroke="url(#lm-rim)" stroke-width="0.40"></path></g>
+<path d="M51 52A14 4 0 1 0 79 52A14 4 0 1 0 51 52Z" fill="#FFFFFF" opacity="0.7"></path><path d="M107 52A9 3.4 0 1 0 125 52A9 3.4 0 1 0 107 52Z" fill="#FFFFFF" opacity="0.65"></path>
+</svg></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Bewegtes Zeichen · Slash als Schnitt durch die Linse</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="border-radius:14px;overflow:hidden"><svg viewBox="0 0 220 200" width="100%" style="display:block;border-radius:14px">
+<defs>
+<radialGradient id="lu-a" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FF7816"></stop><stop offset="1" stop-color="#FF7816" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="lu-b" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#2F7FD6"></stop><stop offset="1" stop-color="#2F7FD6" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="lu-c" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFB366"></stop><stop offset="1" stop-color="#FFB366" stop-opacity="0"></stop></radialGradient>
+<clipPath id="lu-hole"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z"></path></clipPath>
+<mask id="lu-lens"><g transform="translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="#fff"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="#000"></path><path d="M9 3H12.5L32.5 43H29Z" fill="#000"></path><path d="M9 3H12.5L32.5 43H29Z" fill="#fff" clip-path="url(#lu-hole)"></path></g></mask>
+<mask id="lu-edge"><g transform="translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="none" stroke="#fff" stroke-width="4.67"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="none" stroke="#fff" stroke-width="4.67"></path><path d="M9 3H12.5L32.5 43H29Z" fill="none" stroke="#fff" stroke-width="4.67"></path></g></mask>
+<filter id="lu-refr" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="7" result="n"></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap><feGaussianBlur stdDeviation="0.5"></feGaussianBlur></filter>
+<filter id="lu-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter>
+<linearGradient id="lu-rim" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"></stop><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.2"></stop><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.7"></stop></linearGradient>
+<linearGradient id="lu-rim2" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#000000" stop-opacity="0"></stop><stop offset="0.5" stop-color="#000000" stop-opacity="0.05"></stop><stop offset="1" stop-color="#000000" stop-opacity="0.4"></stop></linearGradient>
+<linearGradient id="lu-shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.42"></stop><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.08"></stop><stop offset="1" stop-color="#000000" stop-opacity="0.28"></stop></linearGradient>
+</defs>
+<g id="lu-scene"><rect width="220" height="200" fill="#2A2420"></rect><circle cx="50" cy="150" r="110" fill="url(#lu-b)"></circle><circle cx="165" cy="40" r="110" fill="url(#lu-a)"></circle><circle cx="120" cy="190" r="90" fill="url(#lu-c)"></circle><rect x="0" y="86" width="220" height="2.5" fill="#F6F1E8" opacity="0.55"></rect><rect x="0" y="126" width="220" height="2.5" fill="#F6F1E8" opacity="0.4"></rect><rect x="0" y="156" width="220" height="1.5" fill="#F6F1E8" opacity="0.3"></rect></g>
+<rect x="14" y="4" width="192" height="192" rx="42" fill="#171310" opacity="0.62"></rect><rect x="14" y="4" width="192" height="192" rx="42" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.5"></rect>
+<g mask="url(#lu-lens)">
+<g filter="url(#lu-refr)" transform="translate(110 100) scale(1.22) translate(-110 -100)"><use href="#lu-scene"></use></g>
+<g mask="url(#lu-edge)"><g filter="url(#lu-refr)" transform="translate(110 100) scale(1.5) translate(-110 -100)"><use href="#lu-scene"></use></g></g>
+<g transform="translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="url(#lu-shade)" stroke="none"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="url(#lu-shade)" stroke="none"></path><path d="M9 3H12.5L32.5 43H29Z" fill="url(#lu-shade)" stroke="none"></path></g>
+<g transform="translate(0 3) translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="2.33" filter="url(#lu-blur)"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="2.33" filter="url(#lu-blur)"></path><path d="M9 3H12.5L32.5 43H29Z" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="2.33" filter="url(#lu-blur)"></path></g>
+<g transform="translate(0 -3) translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.67" filter="url(#lu-blur)"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.67" filter="url(#lu-blur)"></path><path d="M9 3H12.5L32.5 43H29Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.67" filter="url(#lu-blur)"></path></g>
+</g>
+<g transform="translate(14 4) scale(3) translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="none" stroke="url(#lu-rim2)" stroke-width="0.80"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="none" stroke="url(#lu-rim2)" stroke-width="0.80"></path><path d="M9 3H12.5L32.5 43H29Z" fill="none" stroke="url(#lu-rim2)" stroke-width="0.80"></path><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="none" stroke="url(#lu-rim)" stroke-width="0.60"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="none" stroke="url(#lu-rim)" stroke-width="0.60"></path><path d="M9 3H12.5L32.5 43H29Z" fill="none" stroke="url(#lu-rim)" stroke-width="0.60"></path></g>
+<path d="M44 46A10 3.4 0 1 0 64 46A10 3.4 0 1 0 44 46Z" fill="#FFFFFF" opacity="0.7"></path><path d="M106 46A10 3.4 0 1 0 126 46A10 3.4 0 1 0 106 46Z" fill="#FFFFFF" opacity="0.65"></path>
+</svg></div><div style="font:600 12px/1.3 Manrope;color:#15130F">Umkehr · Slash läuft durch, innen gespiegelt</div></div>
+<p style="grid-column:span 2;margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Alle vier Formen als Linse: Der Grund wird innen vergrößert, an der Kante stärker gebrochen; Lichtkante oben links, Schatten unten rechts. Beim Badge wird die Platte zu getöntem Glas, nur das LD bricht das Licht — so bleibt der Negativraum lesbar.</p>
+</div>
+</div></div>
+</div>
+<p class="dv-next">Weiter: „Liquid-Glass-Zeichen als App-Icon mit Tiefe (Schichten) bauen“ · „Morph <a class="dv-oid" href="#8a">8a</a> als Intro-Video exportieren“ · „adaptive Regel ins Portfolio <a class="dv-oid" href="#1d">1d</a> einbauen“</p>
+</section>
+<section class="dv-turn" id="t7">
+<div class="dv-thd"><a class="dv-tid" href="#t7">7</a><span class="dv-tname">Live-Animationen zum Anschauen und 50 Transformationen vom alten Logo (Glaskugel mit Sichel) zum neuen Zeichen — Nummern 201–250</span></div>
+<div class="dv-opts">
+<div class="dv-opt" id="7a" data-screen-label="7a Animationen live"><div class="dv-olabel"><a class="dv-oid" href="#7a">7a</a>Die Storyboards aus dem Guide, live</div><div class="dv-card" style="width:640px">
+<div style="background:#F6F1E8;padding:24px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;font-family:Manrope,sans-serif">
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:180px;height:150px;border-radius:14px;background:#F6F1E8;border:1px solid #E3DCCF;display:grid;place-items:center">{{ animSweep }}</div><div style="font:600 12px/1.3 Manrope;color:#15130F">Sweep · 1,5 s</div></div>
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:180px;height:150px;border-radius:14px;background:#F6F1E8;border:1px solid #E3DCCF;display:grid;place-items:center">{{ animReveal }}</div><div style="font:600 12px/1.3 Manrope;color:#15130F">Reveal · L von links, Mond von unten</div></div>
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:180px;height:150px;border-radius:14px;background:#F6F1E8;border:1px solid #E3DCCF;display:grid;place-items:center">{{ animHover }}</div><div style="font:600 12px/1.3 Manrope;color:#15130F">Hover · Fuge füllt sich, Slash schneidet</div></div>
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:180px;height:150px;border-radius:14px;background:#F6F1E8;border:1px solid #E3DCCF;display:grid;place-items:center">{{ animMoon }}</div><div style="font:600 12px/1.3 Manrope;color:#15130F">Mondphase · Badge wird aktiv</div></div>
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:180px;height:150px;border-radius:14px;background:#F6F1E8;border:1px solid #E3DCCF;display:grid;place-items:center">{{ animWipe }}</div><div style="font:600 12px/1.3 Manrope;color:#15130F">Slash-Wipe · Seitenwechsel</div></div>
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:180px;height:150px;border-radius:14px;background:#F6F1E8;border:1px solid #E3DCCF;display:grid;place-items:center">{{ animBlink }}</div><div style="font:600 12px/1.3 Manrope;color:#15130F">Blinken · Favicon</div></div>
+</div>
+</div></div>
+<div class="dv-opt" id="7b" data-screen-label="7b Transformation Alt → Neu"><div class="dv-olabel"><a class="dv-oid" href="#7b">7b</a>Alt → Neu: Morph-Sequenz, Glas und Glanz, Sichel trifft L, Orb-Badges, Blau → Orange</div><div class="dv-card" style="width:1280px">
+<div style="background:#F6F1E8;padding:36px 32px 40px;display:flex;flex-direction:column;gap:22px;font-family:Manrope,sans-serif">
+<sc-for list="{{ families3 }}" as="f" hint-placeholder-count="5">
+<div style="display:grid;grid-template-columns:150px repeat(10,96px);gap:10px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:6px;padding-top:6px"><div style="font:500 11px/1 'JetBrains Mono',monospace;color:#C9530A">{{ f.num }}</div><div style="font:700 15px/1.2 Manrope;color:#15130F;letter-spacing:-0.01em">{{ f.title }}</div></div>
+<sc-for list="{{ f.items }}" as="m" hint-placeholder-count="10">
+<div id="logo-{{ m.id }}" style="display:flex;flex-direction:column;gap:6px">
+<svg viewBox="0 0 48 48" width="96" height="96" style="display:block;border-radius:10px">
+<defs><linearGradient id="lg{{ m.n }}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ m.g1 }}"></stop><stop offset="1" stop-color="{{ m.g2 }}"></stop></linearGradient><radialGradient id="rg{{ m.n }}" cx="0.5" cy="0.42" r="0.6"><stop offset="0" stop-color="{{ m.g1 }}"></stop><stop offset="1" stop-color="{{ m.g2 }}"></stop></radialGradient></defs>
+<rect width="48" height="48" fill="{{ m.bg }}"></rect>
+<sc-for list="{{ m.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.f }}" stroke="{{ s.s }}" stroke-width="{{ s.w }}" stroke-linejoin="{{ s.lj }}" stroke-linecap="round" stroke-dasharray="{{ s.da }}" opacity="{{ s.o }}" transform="{{ s.t }}"></path></sc-for>
+</svg>
+<sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:6px;align-items:baseline;font:500 9.5px/1.2 'JetBrains Mono',monospace;color:#9B948A"><span>{{ m.id }}</span><span style="color:#15130F;font:600 10px/1.2 Manrope,sans-serif">{{ m.name }}</span></div></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div></div>
+</div>
+<p class="dv-next">Weiter: „Morph-Sequenz 201–210 als Video/Intro animieren“ · „Regeln im Guide lockern: Verläufe und Signalorange als Sekundärsystem“ · „Glaskugel-Badge 211 als App-Icon ausarbeiten“</p>
+</section>
+<section class="dv-turn" id="t6">
+<div class="dv-thd"><a class="dv-tid" href="#t6">6</a><span class="dv-tname">Die beiden Originale neu auf Basis <a class="dv-oid" href="#4a">4a</a>: Zeichen (Logo 1) und Badge (Logo 2 — das Zeichen als Negativraum im großen Zeichen), dazu <a class="dv-oid" href="#4c">4c</a> in beiden Formen, Wortmarke „loona! designs“ und der Brand Guide</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="6a" data-screen-label="6a Zeichen"><div class="dv-olabel"><a class="dv-oid" href="#6a">6a</a>Zeichen — Logo 1 neu (4a)</div><div class="dv-card" style="width:300px">
+<div style="background:#F6F1E8;padding:20px;display:flex;flex-direction:column;gap:14px;font-family:Manrope,sans-serif">
+<svg viewBox="8 8 32 32" width="260" height="260" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg>
+<div style="display:flex;align-items:flex-end;gap:14px;padding:12px 14px;background:#171310;border-radius:8px"><svg viewBox="8 8 32 32" width="64" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg><svg viewBox="8 8 32 32" width="48" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg><svg viewBox="8 8 32 32" width="32" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg><svg viewBox="8 8 32 32" width="24" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg><svg viewBox="8 8 32 32" width="16" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg></div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Orange auf jedem Grund, Fuge transparent. Radius 1 an L oben links/rechts, L unten links, D oben links. Datei: <a href="logo/loona-zeichen.svg">logo/loona-zeichen.svg</a></p>
+</div>
+</div></div>
+
+<div class="dv-opt" id="6b" data-screen-label="6b Badge"><div class="dv-olabel"><a class="dv-oid" href="#6b">6b</a>Badge — Logo 2 neu: das Zeichen als Negativraum</div><div class="dv-card" style="width:300px">
+<div style="background:#F6F1E8;padding:20px;display:flex;flex-direction:column;gap:14px;font-family:Manrope,sans-serif">
+<svg viewBox="0 0 64 64" width="260" height="260" style="display:block"><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816" fill-rule="evenodd"></path></g></svg>
+<div style="display:flex;align-items:flex-end;gap:14px;padding:12px 14px;background:#FFFFFF;border-radius:8px"><svg viewBox="0 0 64 64" width="64" style="display:block"><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816" fill-rule="evenodd"></path></g></svg><svg viewBox="0 0 64 64" width="48" style="display:block"><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816" fill-rule="evenodd"></path></g></svg><svg viewBox="0 0 64 64" width="32" style="display:block"><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816" fill-rule="evenodd"></path></g></svg><svg viewBox="0 0 64 64" width="24" style="display:block"><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816" fill-rule="evenodd"></path></g></svg></div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Großes LD in Orange, mittig im Badge; das kleine Zeichen ist der Negativraum — Kanal 3, Radius 1 an denselben Ecken, auch innen (gefüllte Ecke am L-Fuß, am Mond oben). Datei: <a href="logo/loona-badge.svg">logo/loona-badge.svg</a></p>
+</div>
+</div></div>
+
+<div class="dv-opt" id="6c" data-screen-label="6c Bewegtes Zeichen"><div class="dv-olabel"><a class="dv-oid" href="#6c">6c</a>Bewegtes Zeichen — 4c</div><div class="dv-card" style="width:300px">
+<div style="background:#F6F1E8;padding:20px;display:flex;flex-direction:column;gap:14px;font-family:Manrope,sans-serif">
+<svg viewBox="8 8 32 32" width="260" height="260" style="display:block"><path d="M10 13A1 1 0 0 1 11 12H26A12 12 0 0 1 26 36H11A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M15 12H18.5L30.5 36H27Z" fill="#F6F1E8"></path></svg>
+<div style="display:flex;align-items:flex-end;gap:14px;padding:12px 14px;background:#171310;border-radius:8px"><svg viewBox="8 8 32 32" width="64" style="display:block"><path d="M10 13A1 1 0 0 1 11 12H26A12 12 0 0 1 26 36H11A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M15 12H18.5L30.5 36H27Z" fill="#171310"></path></svg><svg viewBox="8 8 32 32" width="48" style="display:block"><path d="M10 13A1 1 0 0 1 11 12H26A12 12 0 0 1 26 36H11A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M15 12H18.5L30.5 36H27Z" fill="#171310"></path></svg><svg viewBox="8 8 32 32" width="32" style="display:block"><path d="M10 13A1 1 0 0 1 11 12H26A12 12 0 0 1 26 36H11A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M15 12H18.5L30.5 36H27Z" fill="#171310"></path></svg><svg viewBox="8 8 32 32" width="24" style="display:block"><path d="M10 13A1 1 0 0 1 11 12H26A12 12 0 0 1 26 36H11A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M15 12H18.5L30.5 36H27Z" fill="#171310"></path></svg></div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Silhouette mit Slash (3,5 breit, Steigung 1 : 2). Nur für Loader, Favicon-Blinken, Sticker. Datei: <a href="logo/loona-bewegt.svg">logo/loona-bewegt.svg</a></p>
+</div>
+</div></div>
+
+<div class="dv-opt" id="6d" data-screen-label="6d Badge 4c"><div class="dv-olabel"><a class="dv-oid" href="#6d">6d</a>Badge 4c — Figur-Grund-Umkehr entlang des Slash</div><div class="dv-card" style="width:300px">
+<div style="background:#F6F1E8;padding:20px;display:flex;flex-direction:column;gap:14px;font-family:Manrope,sans-serif">
+<svg viewBox="0 0 64 64" width="260" height="260" style="display:block"><defs><clipPath id="hole4c"><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z"></path></clipPath></defs><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="#171310"></path><path d="M9 3H12.5L32.5 43H29Z" fill="#171310"></path><path d="M9 3H12.5L32.5 43H29Z" fill="#FF7816" clip-path="url(#hole4c)"></path></g></svg>
+<div style="display:flex;align-items:flex-end;gap:14px;padding:12px 14px;background:#FFFFFF;border-radius:8px"><svg viewBox="0 0 64 64" width="64" style="display:block"><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="#171310"></path><path d="M9 3H12.5L32.5 43H29Z" fill="#171310"></path><path d="M9 3H12.5L32.5 43H29Z" fill="#FF7816" clip-path="url(#hole4c)"></path></g></svg><svg viewBox="0 0 64 64" width="48" style="display:block"><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="#171310"></path><path d="M9 3H12.5L32.5 43H29Z" fill="#171310"></path><path d="M9 3H12.5L32.5 43H29Z" fill="#FF7816" clip-path="url(#hole4c)"></path></g></svg><svg viewBox="0 0 64 64" width="32" style="display:block"><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z" fill="#171310"></path><path d="M9 3H12.5L32.5 43H29Z" fill="#171310"></path><path d="M9 3H12.5L32.5 43H29Z" fill="#FF7816" clip-path="url(#hole4c)"></path></g></svg></div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Der Slash läuft in einer Linie durch das große Zeichen und kehrt im kleinen die Farbe um — die Logik von Logo 2 auf 4c übertragen. Datei: <a href="logo/loona-bewegt-badge.svg">logo/loona-bewegt-badge.svg</a></p>
+</div>
+</div></div>
+
+<div class="dv-opt" id="6e" data-screen-label="6e Original vs Neu"><div class="dv-olabel"><a class="dv-oid" href="#6e">6e</a>Original → Neu</div><div class="dv-card" style="width:640px">
+<div style="background:#EDE9E1;padding:24px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;font-family:Manrope,sans-serif">
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:136px;height:136px;border-radius:12px;background:#F6F1E8;display:grid;place-items:center"><svg viewBox="6 9 32 28" width="108" style="display:block"><path d="M8 11H16V27H19L22 35H8Z" fill="#FF7816"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg></div><div style="font:500 10.5px/1.3 'JetBrains Mono',monospace;color:#7E796F;text-align:center">Logo 1 · Original</div></div>
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:136px;height:136px;border-radius:12px;background:#F6F1E8;display:grid;place-items:center"><svg viewBox="6 9 32 28" width="108" style="display:block"><path d="M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z" fill="#FF7816"></path><path d="M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg></div><div style="font:500 10.5px/1.3 'JetBrains Mono',monospace;color:#15130F;text-align:center">Logo 1 · Neu (r 1)</div></div>
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:136px;height:136px;border-radius:12px;background:#F6F1E8;display:grid;place-items:center"><svg viewBox="0 0 64 64" width="116" style="display:block"><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 3H8V35H19L22 43H0Z" fill="#FF7816"></path><path d="M11 3H24A20 20 0 0 1 24 43H25L19 27H16V11H11ZM21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816" fill-rule="evenodd"></path></g></svg></div><div style="font:500 10.5px/1.3 'JetBrains Mono',monospace;color:#7E796F;text-align:center">Logo 2 · Original</div></div>
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:136px;height:136px;border-radius:12px;background:#F6F1E8;display:grid;place-items:center"><svg viewBox="0 0 64 64" width="116" style="display:block"><rect width="64" height="64" rx="14" fill="#171310"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816" fill-rule="evenodd"></path></g></svg></div><div style="font:500 10.5px/1.3 'JetBrains Mono',monospace;color:#15130F;text-align:center">Logo 2 · Neu (r 1)</div></div>
+<p style="grid-column:span 4;margin:4px 0 0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Geometrie, Proportionen und Farben bleiben exakt — nur die vier festgelegten Ecken bekommen Radius 1 (im Badge zusätzlich die zwei Innenecken, die das kleine Zeichen formen). Fuge, L-Fuß und Mond-Unterkante sind scharf.</p>
+</div>
+</div></div>
+
+<div class="dv-opt" id="6f" data-screen-label="6f Wortmarke"><div class="dv-olabel"><a class="dv-oid" href="#6f">6f</a>Wortmarke „loona! designs“</div><div class="dv-card" style="width:640px">
+<div style="background:#EDE9E1;padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:14px;font-family:Manrope,sans-serif">
+<div style="height:150px;border-radius:12px;background:#F6F1E8;display:flex;align-items:center;justify-content:center;gap:16px;padding:0 24px"><svg viewBox="8 8 32 32" width="52" height="52" style="display:block;flex:none"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg><div style="font:800 26px/1 Manrope;letter-spacing:-0.03em;color:#171310;white-space:nowrap">loona! <span style="font-weight:500">designs</span></div></div>
+<div style="height:150px;border-radius:12px;background:#171310;display:flex;align-items:center;justify-content:center;gap:16px;padding:0 24px"><svg viewBox="0 0 64 64" width="56" height="56" style="display:block;flex:none"><rect width="64" height="64" rx="14" fill="#2A2420"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816" fill-rule="evenodd"></path></g></svg><div style="font:800 26px/1 Manrope;letter-spacing:-0.03em;color:#F6F1E8;white-space:nowrap">loona! <span style="font-weight:500">designs</span></div></div>
+<div style="height:170px;border-radius:12px;background:#F6F1E8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:0 24px"><svg viewBox="8 8 32 32" width="60" height="60" style="display:block"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg><div style="font:800 26px/1 Manrope;letter-spacing:-0.03em;color:#171310;white-space:nowrap">loona! <span style="font-weight:500">designs</span></div></div>
+<div style="height:170px;border-radius:12px;background:#FF7816;display:flex;align-items:center;justify-content:center;gap:16px;padding:0 24px"><svg viewBox="8 8 32 32" width="52" height="52" style="display:block;flex:none"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#F6F1E8"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#F6F1E8"></path></svg><div style="font:800 26px/1 Manrope;letter-spacing:-0.03em;color:#F6F1E8;white-space:nowrap">loona! <span style="font-weight:500">designs</span></div></div>
+<div style="grid-column:span 2;height:120px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;gap:18px;padding:0 24px"><svg viewBox="8 8 32 32" width="44" height="44" style="display:block;flex:none"><path d="M10 13A1 1 0 0 1 11 12L17 12A1 1 0 0 1 18 13L18 28L21 28L24 36L11 36A1 1 0 0 1 10 35Z" fill="#FF7816"></path><path d="M23 13A1 1 0 0 1 24 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg><div style="display:flex;flex-direction:column;gap:6px"><div style="font:800 24px/1 Manrope;letter-spacing:-0.03em;color:#171310;white-space:nowrap">loona! <span style="font-weight:500">designs</span></div><div style="font:500 12px/1.3 'JetBrains Mono',monospace;color:#7E796F">Bjoern Sellnau · Senior Fullstack &amp; Software Engineer · React, Mobile, TypeScript</div></div></div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="6g" data-screen-label="6g Brand Guide"><div class="dv-olabel"><a class="dv-oid" href="#6g">6g</a>Brand Guide mit Blueprint und Animationsideen — eigenes Dokument (A4, druckbar)</div><div class="dv-card" style="width:300px">
+<a href="Loona Brand Guide.dc.html" style="text-decoration:none;color:inherit;display:block"><div style="background:#171310;padding:28px 24px;display:flex;flex-direction:column;gap:18px;font-family:Manrope,sans-serif;color:#F6F1E8;min-height:300px;box-sizing:border-box">
+<svg viewBox="0 0 64 64" width="72" height="72" style="display:block"><rect width="64" height="64" rx="14" fill="#2A2420"></rect><g transform="translate(9.6 8.6) scale(1.018)"><path d="M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z" fill="#FF7816"></path><path d="M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816" fill-rule="evenodd"></path></g></svg>
+<div style="font:800 26px/1.1 Manrope;letter-spacing:-0.03em">Brand Guide<br>loona! designs</div>
+<div style="font:500 12px/1.6 'JetBrains Mono',monospace;color:#A9A49A">11 Seiten · A4<br>System · Blueprints · Bewegtes Zeichen · Farbe · Typografie · Anwendung · Animation · Glas und Liquid Glass</div>
+<div style="margin-top:auto;padding:12px 16px;border-radius:999px;background:#FF7816;color:#171310;font:700 14px/1 Manrope;text-align:center">Guide öffnen →</div>
+</div></a>
+</div></div>
+
+</div>
+<p class="dv-next">Weiter: „Favicon- und App-Icon-Set aus <a class="dv-oid" href="#6b">6b</a> exportieren (16–1024)“ · „Portfolio <a class="dv-oid" href="#1d">1d</a> mit neuem Zeichen und ‚loona! designs‘ aktualisieren“ · „Animation Mondphase im Badge live bauen“</p>
+</section>
+<section class="dv-turn" id="t5">
+<div class="dv-thd"><a class="dv-tid" href="#t5">5</a><span class="dv-tname">So sieht das Paar aus: <a class="dv-oid" href="#4a">4a</a> steht still und trägt die Marke, <a class="dv-oid" href="#4c">4c</a> bewegt sich und zeigt Zustand — Loader, Favicon, Sticker</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="5a" data-screen-label="5a System"><div class="dv-olabel"><a class="dv-oid" href="#5a">5a</a>Primär- und Sekundärzeichen — Rollen</div><div class="dv-card" style="width:820px">
+<div style="background:#F6F1E8;padding:32px;display:grid;grid-template-columns:1fr 1fr;gap:28px;font-family:Manrope,sans-serif;color:#15130F">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="font:600 10.5px/1 'JetBrains Mono',monospace;color:#C9530A;letter-spacing:.08em">PRIMÄRZEICHEN · 4a</div>
+<svg viewBox="8 8 32 32" width="200" height="200" style="display:block"><path d="{{ d4L }}" fill="#FF7816"></path><path d="{{ d4D }}" fill="#FF7816"></path></svg>
+<div style="font:700 18px/1.2 Manrope;letter-spacing:-0.01em">Steht still. Trägt die Marke.</div>
+<ul style="margin:0;padding-left:18px;font:400 13px/1.6 Manrope;color:#5B564D"><li>Logo und Lockups, Signatur, Briefbogen</li><li>App-Icon, Social-Avatar</li><li>Hero-Grafik im Portfolio</li><li>Alles, was gedruckt wird</li></ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="font:600 10.5px/1 'JetBrains Mono',monospace;color:#C9530A;letter-spacing:.08em">SEKUNDÄRZEICHEN · 4c</div>
+<svg viewBox="8 8 32 32" width="200" height="200" style="display:block"><path d="{{ dSil }}" fill="#FF7816"></path><path d="{{ dBand }}" fill="#F6F1E8"></path></svg>
+<div style="font:700 18px/1.2 Manrope;letter-spacing:-0.01em">Bewegt sich. Zeigt Zustand.</div>
+<ul style="margin:0;padding-left:18px;font:400 13px/1.6 Manrope;color:#5B564D"><li>Loader und Fortschritt (<a class="dv-oid" href="#5b">5b</a>)</li><li>Favicon: blinkt, solange die Seite lädt (<a class="dv-oid" href="#5c">5c</a>)</li><li>Sticker und Merch (<a class="dv-oid" href="#5d">5d</a>)</li><li>Hover-Zustand des Logos: 4a wird kurz zu 4c</li></ul>
+</div>
+<div style="grid-column:span 2;border-top:1px solid #E3DCCF;padding-top:16px;font:400 13px/1.55 Manrope;color:#5B564D;text-wrap:pretty"><strong style="color:#15130F">Regel:</strong> 4a wird nie animiert, 4c ist nie das Hauptlogo. Beide teilen Silhouette, Radius 1 und Orange — man erkennt sie sofort als Paar. Der Slash in 4c ist exakt die Fuge, nur durchgezogen: Was in 4a Zwischenraum ist, wird in 4c zur Bewegung.</div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="5b" data-screen-label="5b Loader"><div class="dv-olabel"><a class="dv-oid" href="#5b">5b</a>Loader — drei Bewegungen aus demselben Slash (live)</div><div class="dv-card" style="width:640px">
+<div style="background:#F6F1E8;padding:28px;display:flex;flex-direction:column;gap:18px;font-family:Manrope,sans-serif">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+<div style="display:flex;flex-direction:column;gap:10px;align-items:center"><div style="width:176px;height:160px;border-radius:14px;background:#F6F1E8;border:1px solid #E3DCCF;display:grid;place-items:center">{{ loaderSweep }}</div><div style="font:600 12px/1.3 Manrope;color:#15130F">Sweep</div><div style="font:500 10.5px/1.4 'JetBrains Mono',monospace;color:#7E796F;text-align:center">Seite lädt · 1,5 s Loop</div></div>
+<div style="display:flex;flex-direction:column;gap:10px;align-items:center"><div style="width:176px;height:160px;border-radius:14px;background:#F6F1E8;border:1px solid #E3DCCF;display:grid;place-items:center">{{ loaderFill }}</div><div style="font:600 12px/1.3 Manrope;color:#15130F">Füllstand</div><div style="font:500 10.5px/1.4 'JetBrains Mono',monospace;color:#7E796F;text-align:center">Upload, Build · 0–100 %</div></div>
+<div style="display:flex;flex-direction:column;gap:10px;align-items:center"><div style="width:176px;height:160px;border-radius:14px;background:#F6F1E8;border:1px solid #E3DCCF;display:grid;place-items:center">{{ loaderSpin }}</div><div style="font:600 12px/1.3 Manrope;color:#15130F">Spinner</div><div style="font:500 10.5px/1.4 'JetBrains Mono',monospace;color:#7E796F;text-align:center">Warten ohne Fortschritt</div></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+<div style="width:176px;height:160px;border-radius:14px;background:#15130F;display:grid;place-items:center">{{ loaderSweepD }}</div>
+<div style="width:176px;height:160px;border-radius:14px;background:#15130F;display:grid;place-items:center">{{ loaderFillD }}</div>
+<div style="width:176px;height:160px;border-radius:14px;background:#15130F;display:grid;place-items:center">{{ loaderSpinD }}</div>
+</div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Der Slash wandert durch die Silhouette — die Bewegung erzählt die Fuge. Sweep für kurzes Laden, Füllstand wenn es einen echten Fortschritt gibt, Spinner nur als Fallback.</p>
+</div>
+</div></div>
+
+<div class="dv-opt" id="5c" data-screen-label="5c Favicon"><div class="dv-olabel"><a class="dv-oid" href="#5c">5c</a>Favicon — blinkt im Tab, solange geladen wird (live)</div><div class="dv-card" style="width:460px">
+<div style="background:#EDE9E1;padding:24px;display:flex;flex-direction:column;gap:18px;font-family:Manrope,sans-serif">
+<div style="border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)"><div style="background:#DADADA;padding:8px 8px 0;display:flex;gap:4px;align-items:flex-end"><div style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:#FFFFFF;border-radius:8px 8px 0 0;font:500 12px/1 Manrope;color:#333">{{ favTab16 }}<span>Bjoern Sellnau — loona</span></div><div style="padding:9px 14px;font:500 12px/1 Manrope;color:#777">GitHub</div></div><div style="height:30px;background:#FFFFFF;display:flex;align-items:center;padding:0 12px;font:500 11px/1 'JetBrains Mono',monospace;color:#999">loona-designs.tech</div></div>
+<div style="border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.2)"><div style="background:#1E1E1E;padding:8px 8px 0;display:flex;gap:4px;align-items:flex-end"><div style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:#2B2B2B;border-radius:8px 8px 0 0;font:500 12px/1 Manrope;color:#EEE">{{ favTab16D }}<span>Bjoern Sellnau — loona</span></div><div style="padding:9px 14px;font:500 12px/1 Manrope;color:#888">GitHub</div></div><div style="height:30px;background:#2B2B2B;display:flex;align-items:center;padding:0 12px;font:500 11px/1 'JetBrains Mono',monospace;color:#777">loona-designs.tech</div></div>
+<div style="display:flex;align-items:flex-end;gap:22px;padding:16px 18px;background:#F6F1E8;border-radius:10px">{{ fav64 }}{{ fav32 }}<svg viewBox="8 8 32 32" width="16" height="16" style="display:block"><path d="{{ d4L }}" fill="#FF7816"></path><path d="{{ d4D }}" fill="#FF7816"></path></svg><div style="font:500 10.5px/1.5 'JetBrains Mono',monospace;color:#7E796F;margin-left:auto;text-align:right">64 · 32 blinken<br>16 = 4a, fertig geladen</div></div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Blinken heißt: die Seite baut noch. Sobald alles da ist, steht 4a im Tab — ein stilles Signal, dass der Entwickler aufs Detail achtet.</p>
+</div>
+</div></div>
+
+<div class="dv-opt" id="5d" data-screen-label="5d Sticker"><div class="dv-olabel"><a class="dv-oid" href="#5d">5d</a>Sticker — 4c als Die-Cut, 4a rund und als Lockup</div><div class="dv-card" style="width:640px">
+<div style="background:#EDE9E1;padding:28px;display:flex;flex-direction:column;gap:16px;font-family:Manrope,sans-serif">
+<div style="height:280px;border-radius:14px;background:repeating-linear-gradient(135deg,#3A3A3C 0 10px,#424245 10px 20px);position:relative;overflow:hidden">
+<div style="position:absolute;left:16px;bottom:12px;font:500 10.5px/1 'JetBrains Mono',monospace;color:#9A9A9E">[ laptop lid ]</div>
+<svg viewBox="0 0 48 48" width="190" height="190" style="position:absolute;right:48px;top:40px;transform:rotate(-9deg);filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))"><path d="{{ dSil }}" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round"></path><path d="{{ dSil }}" fill="#FF7816"></path><path d="{{ dBand }}" fill="#FFFFFF"></path></svg>
+<svg viewBox="0 0 48 48" width="120" height="120" style="position:absolute;left:70px;top:80px;transform:rotate(7deg);filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))"><path d="M2 24A22 22 0 1 0 46 24A22 22 0 1 0 2 24Z" fill="#FFFFFF"></path><path d="M4.5 24A19.5 19.5 0 1 0 43.5 24A19.5 19.5 0 1 0 4.5 24Z" fill="#15130F"></path><g transform="translate(24 25) scale(0.6) translate(-24 -24)"><path d="{{ d4L }}" fill="#FF7816"></path><path d="{{ d4D }}" fill="#FF7816"></path></g></svg>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;padding:18px;background:#FFFFFF;border-radius:14px;align-items:center;justify-items:center">
+<svg viewBox="0 0 48 48" width="120" height="120" style="display:block"><path d="{{ dSil }}" fill="none" stroke="#E8E2D6" stroke-width="5" stroke-linejoin="round"></path><path d="{{ dSil }}" fill="#FF7816"></path><path d="{{ dBand }}" fill="#FFFFFF"></path></svg>
+<svg viewBox="0 0 48 48" width="120" height="120" style="display:block"><path d="M2 24A22 22 0 1 0 46 24A22 22 0 1 0 2 24Z" fill="#E8E2D6"></path><path d="M4.5 24A19.5 19.5 0 1 0 43.5 24A19.5 19.5 0 1 0 4.5 24Z" fill="#FF7816"></path><g transform="translate(24 25) scale(0.6) translate(-24 -24)"><path d="{{ d4L }}" fill="#F6F1E8"></path><path d="{{ d4D }}" fill="#F6F1E8"></path></g></svg>
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:#F6F1E8;border:3px solid #E8E2D6;border-radius:12px"><svg viewBox="8 8 32 32" width="30" height="30" style="display:block"><path d="{{ d4L }}" fill="#FF7816"></path><path d="{{ d4D }}" fill="#FF7816"></path></svg><div style="display:flex;flex-direction:column;gap:3px"><span style="font:800 18px/1 Manrope;color:#15130F;letter-spacing:-0.03em">loona</span><span style="font:500 8.5px/1 'JetBrains Mono',monospace;color:#7E796F">bjoern sellnau</span></div></div>
+</div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Auf dem Sticker darf 4c „laut“ sein: der weiße Rand macht den Slash zum Schnitt durch das Material. 4a bleibt der ruhige Gegenpart im Kreis und im Lockup.</p>
+</div>
+</div></div>
+
+</div>
+<p class="dv-next">Weiter: „Hover-Zustand 4a → 4c im Portfolio-Header zeigen“ · „Loader Sweep als Seitenübergang in <a class="dv-oid" href="#1d">1d</a>“ · „Favicon-Set exportieren (16/32/180/512)“</p>
+</section>
+<section class="dv-turn" id="t4">
+<div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Festgelegt: Rundung nur an L oben links/rechts, L unten links, D oben links — Fuge und Unterkanten scharf. Rund (<a class="dv-oid" href="#4a">4a</a>) und kantig (<a class="dv-oid" href="#4b">4b</a>), dazu die Fuge aus 121 (<a class="dv-oid" href="#4c">4c</a>, <a class="dv-oid" href="#4d">4d</a>) und beides in Negativ, Squircle, Rechteck, Kreis × acht Farben</span></div>
+<div class="dv-opts">
+<sc-for list="{{ base4 }}" as="r" hint-placeholder-count="4">
+<div class="dv-opt" id="{{ r.oid }}" data-screen-label="{{ r.oid }} {{ r.name }}"><div class="dv-olabel"><a class="dv-oid" href="#{{ r.oid }}">{{ r.oid }}</a>{{ r.name }}</div><div class="dv-card" style="width:300px">
+<div style="background:#F6F1E8;padding:20px;display:flex;flex-direction:column;gap:14px;font-family:Manrope,sans-serif">
+<svg viewBox="8 8 32 32" width="260" height="260" style="display:block"><sc-for list="{{ r.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.f }}"></path></sc-for></svg>
+<div style="display:flex;align-items:flex-end;gap:14px;padding:12px 14px;background:#FFFFFF;border-radius:8px"><sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="5"><svg viewBox="8 8 32 32" width="{{ sz }}" style="display:block"><sc-for list="{{ r.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.f }}"></path></sc-for></svg></sc-for></div>
+<div style="display:flex;align-items:flex-end;gap:14px;padding:12px 14px;background:#FF7816;border-radius:8px"><sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="5"><svg viewBox="8 8 32 32" width="{{ sz }}" style="display:block"><sc-for list="{{ r.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.fi }}"></path></sc-for></svg></sc-for></div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">{{ r.spec }}</p>
+</div>
+</div></div>
+</sc-for>
+<div class="dv-opt" id="4e" data-screen-label="4e Matrix rund/kantig"><div class="dv-olabel"><a class="dv-oid" href="#4e">4e</a>Matrix — <a class="dv-oid" href="#4a">4a</a> rund und <a class="dv-oid" href="#4b">4b</a> kantig: Positiv, Negativ, Squircle, Rechteck, Kreis × acht Farben</div><div class="dv-card" style="width:1280px">
+<div style="background:#EDE9E1;padding:32px;display:flex;flex-direction:column;gap:12px;font-family:Manrope,sans-serif">
+<div style="display:grid;grid-template-columns:150px repeat(10,96px);gap:10px;font:700 12px/1.2 Manrope;color:#15130F"><div></div><div style="grid-column:span 2">Positiv</div><div style="grid-column:span 2">Negativ</div><div style="grid-column:span 2">Squircle</div><div style="grid-column:span 2">Rechteck</div><div style="grid-column:span 2">Kreis</div></div>
+<div style="display:grid;grid-template-columns:150px repeat(10,96px);gap:10px;font:500 10px/1.2 'JetBrains Mono',monospace;color:#7E796F;margin-bottom:6px"><div></div><div>rund</div><div>kantig</div><div>rund</div><div>kantig</div><div>rund</div><div>kantig</div><div>rund</div><div>kantig</div><div>rund</div><div>kantig</div></div>
+<sc-for list="{{ matrix4 }}" as="row" hint-placeholder-count="8">
+<div style="display:grid;grid-template-columns:150px repeat(10,96px);gap:10px;align-items:center">
+<div style="display:flex;flex-direction:column;gap:4px"><div style="font:700 14px/1.2 Manrope;color:#15130F">{{ row.name }}</div><div style="font:500 10.5px/1.2 'JetBrains Mono',monospace;color:#7E796F">{{ row.hex }}</div></div>
+<sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="10"><svg viewBox="0 0 48 48" width="96" height="96" style="display:block;border-radius:10px"><rect width="48" height="48" fill="{{ cell.bg }}"></rect><sc-for list="{{ cell.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.f }}" transform="{{ s.t }}"></path></sc-for></svg></sc-for>
+</div>
+</sc-for>
+</div>
+</div></div>
+<div class="dv-opt" id="4f" data-screen-label="4f Matrix Slash"><div class="dv-olabel"><a class="dv-oid" href="#4f">4f</a>Matrix — <a class="dv-oid" href="#4c">4c</a> und <a class="dv-oid" href="#4d">4d</a> mit der Fuge aus 121, gleiche Spalten und Farben</div><div class="dv-card" style="width:1280px">
+<div style="background:#EDE9E1;padding:32px;display:flex;flex-direction:column;gap:12px;font-family:Manrope,sans-serif">
+<div style="display:grid;grid-template-columns:150px repeat(10,96px);gap:10px;font:700 12px/1.2 Manrope;color:#15130F"><div></div><div style="grid-column:span 2">Positiv</div><div style="grid-column:span 2">Negativ</div><div style="grid-column:span 2">Squircle</div><div style="grid-column:span 2">Rechteck</div><div style="grid-column:span 2">Kreis</div></div>
+<div style="display:grid;grid-template-columns:150px repeat(10,96px);gap:10px;font:500 10px/1.2 'JetBrains Mono',monospace;color:#7E796F;margin-bottom:6px"><div></div><div>rund</div><div>kantig</div><div>rund</div><div>kantig</div><div>rund</div><div>kantig</div><div>rund</div><div>kantig</div><div>rund</div><div>kantig</div></div>
+<sc-for list="{{ matrix4s }}" as="row" hint-placeholder-count="8">
+<div style="display:grid;grid-template-columns:150px repeat(10,96px);gap:10px;align-items:center">
+<div style="display:flex;flex-direction:column;gap:4px"><div style="font:700 14px/1.2 Manrope;color:#15130F">{{ row.name }}</div><div style="font:500 10.5px/1.2 'JetBrains Mono',monospace;color:#7E796F">{{ row.hex }}</div></div>
+<sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="10"><svg viewBox="0 0 48 48" width="96" height="96" style="display:block;border-radius:10px"><rect width="48" height="48" fill="{{ cell.bg }}"></rect><sc-for list="{{ cell.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.f }}" transform="{{ s.t }}"></path></sc-for></svg></sc-for>
+</div>
+</sc-for>
+</div>
+</div></div>
+</div>
+<p class="dv-next">Weiter: „<a class="dv-oid" href="#4a">4a</a> ist das Basiszeichen — Lockups und Portfolio damit aktualisieren“ · „Squircle-Reihe als App-Icons in 1024 px“ · „Signalorange gegen RAL 2010 tauschen“</p>
+</section>
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Verfeinerung von 101 + 111 — echte Rundungsgeometrie statt Strich-Trick (daher sah der Schnitt in 101 unsauber aus); die Fuge bleibt scharf oder bekommt die Fase aus 111</span></div>
+<div class="dv-opts">
+<sc-for list="{{ refine }}" as="r" hint-placeholder-count="6">
+<div class="dv-opt" id="{{ r.oid }}" data-screen-label="{{ r.oid }} {{ r.name }}"><div class="dv-olabel"><a class="dv-oid" href="#{{ r.oid }}">{{ r.oid }}</a>{{ r.name }}</div><div class="dv-card" style="width:300px">
+<div style="background:#F6F1E8;padding:20px;display:flex;flex-direction:column;gap:14px;font-family:Manrope,sans-serif">
+<svg viewBox="8 8 32 32" width="260" height="260" style="display:block"><sc-for list="{{ r.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.f }}"></path></sc-for></svg>
+<div style="display:flex;align-items:flex-end;gap:14px;padding:12px 14px;background:#FFFFFF;border-radius:8px"><sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="5"><svg viewBox="8 8 32 32" width="{{ sz }}" style="display:block"><sc-for list="{{ r.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.f }}"></path></sc-for></svg></sc-for></div>
+<div style="display:flex;align-items:flex-end;gap:14px;padding:12px 14px;background:#FF7816;border-radius:8px"><sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="5"><svg viewBox="8 8 32 32" width="{{ sz }}" style="display:block"><sc-for list="{{ r.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="#F6F1E8"></path></sc-for></svg></sc-for></div>
+<p style="margin:0;font:400 12px/1.5 Manrope;color:#5B564D;text-wrap:pretty">{{ r.spec }}</p>
+</div>
+</div></div>
+</sc-for>
+</div>
+<p class="dv-next">Weiter: „<a class="dv-oid" href="#3a">3a</a> als neues Basiszeichen übernehmen und Runde 2 damit neu rechnen“ · „<a class="dv-oid" href="#3b">3b</a> mit Fase 2“ · „Favorit als Lockup und App-Icon zeigen“</p>
+</section>
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Riffs auf das Basiszeichen — 100 weitere (101–200): Rundung, Kantig, Fuge durch beide, Negativ, Mondform, L-Form, Proportion, Schnitte, Hybrid, Slash als Element</span></div>
+<div class="dv-opts">
+<div class="dv-opt" id="2a" data-screen-label="2a 100 Zeichen, Runde 2"><div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Basiszeichen bleibt Ausgangspunkt — Form, Rundung, Fuge und Negativ variieren; 101–200</div><div class="dv-card" style="width:1280px">
+<div style="background:#F6F1E8;padding:36px 32px 40px;display:flex;flex-direction:column;gap:22px;font-family:Manrope,sans-serif">
+<sc-for list="{{ families2 }}" as="f" hint-placeholder-count="10">
+<div style="display:grid;grid-template-columns:150px repeat(10,96px);gap:10px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:6px;padding-top:6px"><div style="font:500 11px/1 'JetBrains Mono',monospace;color:#C9530A">{{ f.num }}</div><div style="font:700 15px/1.2 Manrope;color:#15130F;letter-spacing:-0.01em">{{ f.title }}</div></div>
+<sc-for list="{{ f.items }}" as="m" hint-placeholder-count="10">
+<div id="logo-{{ m.id }}" style="display:flex;flex-direction:column;gap:6px">
+<svg viewBox="0 0 48 48" width="96" height="96" style="display:block;border-radius:10px">
+<defs><linearGradient id="lg{{ m.n }}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ m.g1 }}"></stop><stop offset="1" stop-color="{{ m.g2 }}"></stop></linearGradient></defs>
+<rect width="48" height="48" fill="{{ m.bg }}"></rect>
+<sc-for list="{{ m.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.f }}" stroke="{{ s.s }}" stroke-width="{{ s.w }}" stroke-linejoin="{{ s.lj }}" stroke-linecap="round" stroke-dasharray="{{ s.da }}" opacity="{{ s.o }}" transform="{{ s.t }}"></path></sc-for>
+</svg>
+<sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:6px;align-items:baseline;font:500 9.5px/1.2 'JetBrains Mono',monospace;color:#9B948A"><span>{{ m.id }}</span><span style="color:#15130F;font:600 10px/1.2 Manrope,sans-serif">{{ m.name }}</span></div></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div></div>
+</div>
+<p class="dv-next">Weiter: „Radius 2 (102) mit Slash durch beide (121) kombinieren“ · „Negativ-Reihe auch mit Rundung“ · „Favoriten als Lockup in <a class="dv-oid" href="#1c">1c</a>-Stil“ · „Zeichen 1xx groß im Portfolio <a class="dv-oid" href="#1d">1d</a> einsetzen“</p>
+</section>
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Loona Brand-Kit — 100 Zeichen, Wortmarken und sechs Portfolio-Richtungen für Bjoern Sellnau</span></div>
+<div style="max-width:920px;margin:0 0 28px;padding:20px 24px;background:#F6F1E8;border:1px solid rgba(0,0,0,.08);border-radius:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;font:400 12.5px/1.55 Manrope,sans-serif;color:#3F3B34">
+<div><div style="font:600 10.5px/1 'JetBrains Mono',monospace;color:#C9530A;letter-spacing:.08em;margin-bottom:8px">AUSGANGSPUNKT</div>Das Logo: ein L im Halbmond, Orange #FF7816. Loona = Luna — der Mond ist das Leitmotiv. Die Fuge zwischen L und Mond verengt sich von 5 auf 2 Einheiten und wird zum zweiten Motiv: Slash, Blitz, Cursor — die Brücke zum Code.</div>
+<div><div style="font:600 10.5px/1 'JetBrains Mono',monospace;color:#C9530A;letter-spacing:.08em;margin-bottom:8px">ANNAHMEN</div>Portfolio-Texte auf Englisch (internationale Dev-Zielgruppe), Zielgruppe gemischt: Recruiter und Agenturen. Inhalte: Projekte, Stack, Über mich, Notizen, Kontakt. „Plattform“ = Portfolio + Notizen, später Kundenbereich. Projektnamen, Bilder und Handles sind Platzhalter.</div>
+<div><div style="font:600 10.5px/1 'JetBrains Mono',monospace;color:#C9530A;letter-spacing:.08em;margin-bottom:8px">SYSTEM</div>Farben: Orange, Creme, Tinte, Nacht. Schrift: Manrope (UI/Display), Instrument Serif (editorial), JetBrains Mono (Code/Meta); Space Grotesk nur in <a class="dv-oid" href="#1f">1f</a> als Kontrast. Die 100 Zeichen in <a class="dv-oid" href="#1b">1b</a> sind in zehn Familien à zehn geordnet — Nummern zum Referenzieren.</div>
+</div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a" data-screen-label="1a Foundations"><div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Foundations — Konstruktion, Farbe, Schrift, Größen</div><div class="dv-card" style="width:1280px">
+<div style="background:#F6F1E8;padding:44px 48px 48px;display:flex;flex-direction:column;gap:36px;font-family:Manrope,sans-serif;color:#15130F">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font:800 28px/1 Manrope;letter-spacing:-0.03em">Loona — Foundations</div><div style="font:500 12px/1 'JetBrains Mono',monospace;color:#7E796F">v0.1 · Oktober 2026 · Bjoern Sellnau</div></div>
+<div style="display:grid;grid-template-columns:400px 1fr 1fr;gap:44px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="font:600 10.5px/1 'JetBrains Mono',monospace;color:#C9530A;letter-spacing:.08em">KONSTRUKTION</div>
+<svg viewBox="0 0 48 48" width="400" height="400" style="display:block;border-radius:12px;background:#FFFFFF">
+<sc-for list="{{ cgrid }}" as="g" hint-placeholder-count="22"><path d="{{ g.d }}" stroke="#15130F" stroke-width="0.25" opacity="0.18" fill="none"></path></sc-for>
+<path d="M14 24A12 12 0 1 0 38 24A12 12 0 1 0 14 24Z" fill="none" stroke="#FF7816" stroke-width="0.35" stroke-dasharray="1 1"></path>
+<path d="M10 12H18V28H21L24 36H10Z" fill="#FF7816"></path>
+<path d="M23 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path>
+<path d="M26 24L38 24" stroke="#15130F" stroke-width="0.3"></path>
+<path d="M26 23v2" stroke="#15130F" stroke-width="0.3"></path>
+<text x="31" y="22.6" font-family="JetBrains Mono, monospace" font-size="1.9" fill="#15130F" text-anchor="middle">r = 12</text>
+<text x="20.5" y="9.6" font-family="JetBrains Mono, monospace" font-size="1.9" fill="#15130F" text-anchor="middle">5</text>
+<path d="M18 10.5v1M23 10.5v1M18 11h5" stroke="#15130F" stroke-width="0.3"></path>
+<text x="23" y="40.2" font-family="JetBrains Mono, monospace" font-size="1.9" fill="#15130F" text-anchor="middle">2</text>
+<path d="M24 36.5v1M26 36.5v1M24 37h2" stroke="#15130F" stroke-width="0.3"></path>
+<text x="6.4" y="24.6" font-family="JetBrains Mono, monospace" font-size="1.9" fill="#15130F" text-anchor="middle">24</text>
+<path d="M8 12h1M8 36h1M8.5 12v24" stroke="#15130F" stroke-width="0.3"></path>
+<text x="14" y="44.2" font-family="JetBrains Mono, monospace" font-size="1.9" fill="#7E796F" text-anchor="middle">Raster 4 · Box 28 × 24</text>
+</svg>
+<p style="margin:0;font:400 13px/1.55 Manrope;color:#5B564D;text-wrap:pretty">Der Mondradius ist die halbe Zeichenhöhe. Stamm und Fuß des L sind gleich stark (8). Die Fuge verengt sich nach unten von 5 auf 2 — dieser Knick ist der Charakter des Zeichens und bleibt in allen Varianten erhalten.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="font:600 10.5px/1 'JetBrains Mono',monospace;color:#C9530A;letter-spacing:.08em">FARBE</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:center"><div style="height:52px;border-radius:8px;background:#FF7816"></div><div><div style="font:700 14px/1.3 Manrope">Loona Orange</div><div style="font:500 11px/1.5 'JetBrains Mono',monospace;color:#7E796F">#FF7816 · Zeichen, Akzent, Aktion</div></div></div>
+<div style="display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:center"><div style="height:52px;border-radius:8px;background:#FFB366"></div><div><div style="font:700 14px/1.3 Manrope">Aprikose</div><div style="font:500 11px/1.5 'JetBrains Mono',monospace;color:#7E796F">#FFB366 · Tint, Duotone, Hover</div></div></div>
+<div style="display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:center"><div style="height:52px;border-radius:8px;background:#F6F1E8;border:1px solid rgba(0,0,0,.08)"></div><div><div style="font:700 14px/1.3 Manrope">Creme</div><div style="font:500 11px/1.5 'JetBrains Mono',monospace;color:#7E796F">#F6F1E8 · heller Grund, Papier</div></div></div>
+<div style="display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:center"><div style="height:52px;border-radius:8px;background:#15130F"></div><div><div style="font:700 14px/1.3 Manrope">Tinte</div><div style="font:500 11px/1.5 'JetBrains Mono',monospace;color:#7E796F">#15130F · Text, dunkler Grund</div></div></div>
+<div style="display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:center"><div style="height:52px;border-radius:8px;background:#0B1026"></div><div><div style="font:700 14px/1.3 Manrope">Nacht</div><div style="font:500 11px/1.5 'JetBrains Mono',monospace;color:#7E796F">#0B1026 · Mondhimmel, Hero-Flächen</div></div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;margin-top:10px">
+<div style="font:600 10.5px/1 'JetBrains Mono',monospace;color:#C9530A;letter-spacing:.08em">SCHUTZRAUM</div>
+<div style="display:flex;align-items:center;gap:18px"><div style="width:176px;height:160px;border:1px dashed #B5AE9F;border-radius:4px;display:grid;place-items:center"><svg viewBox="8 11 28 24" width="112" height="96" style="display:block"><path d="M8 11H16V27H19L22 35H8Z" fill="#FF7816"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg></div><p style="margin:0;font:400 12.5px/1.5 Manrope;color:#5B564D;max-width:180px">Rundum eine Stammbreite (8 Einheiten) frei halten. Mindestgröße 16 px.</p></div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="font:600 10.5px/1 'JetBrains Mono',monospace;color:#C9530A;letter-spacing:.08em">SCHRIFT</div>
+<div style="display:flex;flex-direction:column;gap:18px">
+<div><div style="font:800 34px/1.05 Manrope;letter-spacing:-0.035em">Bjoern Sellnau</div><div style="font:500 11px/1.6 'JetBrains Mono',monospace;color:#7E796F;margin-top:6px">Manrope 800 · Display, UI, Wortmarke</div></div>
+<div><div style="font:italic 400 36px/1.05 'Instrument Serif',serif;letter-spacing:-0.01em">Software, carefully made.</div><div style="font:500 11px/1.6 'JetBrains Mono',monospace;color:#7E796F;margin-top:6px">Instrument Serif Italic · editoriale Akzente</div></div>
+<div><div style="font:500 15px/1.5 'JetBrains Mono',monospace">react · mobile · typescript</div><div style="font:500 11px/1.6 'JetBrains Mono',monospace;color:#7E796F;margin-top:6px">JetBrains Mono 500 · Meta, Labels, Code</div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;margin-top:10px">
+<div style="font:600 10.5px/1 'JetBrains Mono',monospace;color:#C9530A;letter-spacing:.08em">GRÖSSEN 16 – 64</div>
+<div style="display:flex;align-items:flex-end;gap:22px;padding:18px 20px;background:#FFFFFF;border-radius:10px"><sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="5"><svg viewBox="8 11 28 24" width="{{ sz }}" style="display:block"><path d="M8 11H16V27H19L22 35H8Z" fill="#FF7816"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg></sc-for></div>
+<div style="display:flex;align-items:flex-end;gap:22px;padding:18px 20px;background:#15130F;border-radius:10px"><sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="5"><svg viewBox="8 11 28 24" width="{{ sz }}" style="display:block"><path d="M8 11H16V27H19L22 35H8Z" fill="#FF7816"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg></sc-for></div>
+</div>
+</div>
+</div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1b" data-screen-label="1b 100 Zeichen"><div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>100 Zeichen — zehn Familien à zehn, nummeriert 001–100</div><div class="dv-card" style="width:1280px">
+<div style="background:#F6F1E8;padding:36px 32px 40px;display:flex;flex-direction:column;gap:22px;font-family:Manrope,sans-serif">
+<sc-for list="{{ families }}" as="f" hint-placeholder-count="10">
+<div style="display:grid;grid-template-columns:150px repeat(10,96px);gap:10px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:6px;padding-top:6px"><div style="font:500 11px/1 'JetBrains Mono',monospace;color:#C9530A">{{ f.num }}</div><div style="font:700 15px/1.2 Manrope;color:#15130F;letter-spacing:-0.01em">{{ f.title }}</div></div>
+<sc-for list="{{ f.items }}" as="m" hint-placeholder-count="10">
+<div id="logo-{{ m.id }}" style="display:flex;flex-direction:column;gap:6px">
+<svg viewBox="0 0 48 48" width="96" height="96" style="display:block;border-radius:10px">
+<defs><linearGradient id="lg{{ m.n }}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ m.g1 }}"></stop><stop offset="1" stop-color="{{ m.g2 }}"></stop></linearGradient></defs>
+<rect width="48" height="48" fill="{{ m.bg }}"></rect>
+<sc-for list="{{ m.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.f }}" stroke="{{ s.s }}" stroke-width="{{ s.w }}" stroke-linejoin="{{ s.lj }}" stroke-linecap="round" stroke-dasharray="{{ s.da }}" opacity="{{ s.o }}" transform="{{ s.t }}"></path></sc-for>
+</svg>
+<sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:6px;align-items:baseline;font:500 9.5px/1.2 'JetBrains Mono',monospace;color:#9B948A"><span>{{ m.id }}</span><span style="color:#15130F;font:600 10px/1.2 Manrope,sans-serif">{{ m.name }}</span></div></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1c" data-screen-label="1c Wortmarken"><div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Wortmarken und Lockups — acht Kombinationen</div><div class="dv-card" style="width:1280px">
+<div style="background:#EDE9E1;padding:28px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;font-family:Manrope,sans-serif">
+<sc-for list="{{ lockups }}" as="l" hint-placeholder-count="6">
+<div style="height:150px;border-radius:12px;background:{{ l.bg }};display:flex;align-items:center;justify-content:center;gap:16px;padding:0 24px">
+<svg viewBox="0 0 48 48" width="{{ l.size }}" height="{{ l.size }}" style="display:block;flex:none"><sc-for list="{{ l.shapes }}" as="s" hint-placeholder-count="2"><path d="{{ s.d }}" fill="{{ s.f }}" stroke="{{ s.s }}" stroke-width="{{ s.w }}" stroke-linejoin="{{ s.lj }}" stroke-dasharray="{{ s.da }}" opacity="{{ s.o }}" transform="{{ s.t }}"></path></sc-for></svg>
+<span style="font:{{ l.font }};color:{{ l.color }};letter-spacing:{{ l.ls }};white-space:nowrap">{{ l.text }}</span>
+</div>
+</sc-for>
+<div style="height:150px;border-radius:12px;background:#F6F1E8;display:flex;align-items:center;justify-content:center;gap:16px;padding:0 24px">
+<svg viewBox="8 11 28 24" width="42" height="36" style="display:block;flex:none"><path d="M8 11H16V27H19L22 35H8Z" fill="#FF7816"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg>
+<div style="display:flex;flex-direction:column;gap:5px"><span style="font:700 19px/1.1 Manrope;color:#15130F;letter-spacing:-0.02em">Bjoern Sellnau</span><span style="font:500 11px/1.3 'JetBrains Mono',monospace;color:#7E796F">Senior Fullstack &amp; Software Engineer</span></div>
+</div>
+<div style="height:150px;border-radius:12px;background:#15130F;display:flex;align-items:baseline;justify-content:center;padding:0 24px;font:800 46px/1 Manrope;color:#F6F1E8;letter-spacing:-0.03em">
+<span>l</span><svg viewBox="0 0 48 48" width="27" height="27" style="display:block;margin:0 1px"><path d="M4 24A20 20 0 1 0 44 24A20 20 0 1 0 4 24Z" fill="#FF7816"></path><path d="M-3 24A20 20 0 1 0 37 24A20 20 0 1 0 -3 24Z" fill="#15130F"></path></svg><svg viewBox="0 0 48 48" width="27" height="27" style="display:block;margin:0 1px"><path d="M4 24A20 20 0 1 0 44 24A20 20 0 1 0 4 24Z" fill="#FF7816"></path></svg><span>na</span>
+</div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1d" data-screen-label="1d Midnight"><div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Portfolio „Midnight“ — dunkel, großer Mond, Manrope</div><div class="dv-card" style="width:1280px">
+<div style="width:1280px;height:840px;background:#0E0F13;color:#F6F1E8;font-family:Manrope,sans-serif;position:relative;overflow:hidden">
+<svg viewBox="0 0 48 48" width="760" height="760" style="position:absolute;right:-230px;top:40px;display:block"><path d="M10 12H18V28H21L24 36H10Z" fill="#1C1D24"></path><path d="M23 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg>
+<div style="position:relative;display:flex;align-items:center;justify-content:space-between;padding:28px 48px">
+<div style="display:flex;align-items:center;gap:12px"><svg viewBox="8 11 28 24" width="26" height="22" style="display:block"><path d="M8 11H16V27H19L22 35H8Z" fill="#FF7816"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg><span style="font:800 20px/1 Manrope;letter-spacing:-0.03em">loona</span></div>
+<div style="display:flex;gap:32px;font:500 13px/1 'JetBrains Mono',monospace;color:#A9A49A"><span>Work</span><span>Notes</span><span>About</span><span style="color:#FF7816">Contact</span></div>
+</div>
+<div style="position:absolute;left:48px;top:170px;width:720px;display:flex;flex-direction:column;gap:28px">
+<div style="font:500 13px/1 'JetBrains Mono',monospace;color:#FF7816;letter-spacing:.08em">SENIOR FULLSTACK &amp; SOFTWARE ENGINEER</div>
+<h1 style="margin:0;font:800 88px/0.98 Manrope;letter-spacing:-0.045em;text-wrap:pretty">Bjoern Sellnau builds products end to end.</h1>
+<p style="margin:0;max-width:520px;font:400 19px/1.5 Manrope;color:#A9A49A;text-wrap:pretty">React, TypeScript and mobile — from the first component to the last deploy.</p>
+<div style="display:flex;gap:12px;margin-top:6px"><span style="padding:14px 22px;border-radius:999px;background:#FF7816;color:#15130F;font:700 15px/1 Manrope">Selected work</span><span style="padding:14px 22px;border-radius:999px;border:1px solid #33343C;color:#F6F1E8;font:600 15px/1 Manrope">About me</span></div>
+</div>
+<div style="position:absolute;left:48px;right:48px;bottom:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+<div style="border:1px solid #23242B;border-radius:14px;padding:14px;display:flex;gap:14px;align-items:center;background:#121319"><div style="width:72px;height:56px;border-radius:8px;flex:none;background:repeating-linear-gradient(135deg,#1C1D24 0 6px,#23242B 6px 12px)"></div><div style="display:flex;flex-direction:column;gap:6px"><span style="font:700 15px/1.2 Manrope">Mobile banking app</span><span style="font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F">REACT NATIVE · TYPESCRIPT · 2025</span></div></div>
+<div style="border:1px solid #23242B;border-radius:14px;padding:14px;display:flex;gap:14px;align-items:center;background:#121319"><div style="width:72px;height:56px;border-radius:8px;flex:none;background:repeating-linear-gradient(135deg,#1C1D24 0 6px,#23242B 6px 12px)"></div><div style="display:flex;flex-direction:column;gap:6px"><span style="font:700 15px/1.2 Manrope">Design system</span><span style="font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F">REACT · TYPESCRIPT · 2024</span></div></div>
+<div style="border:1px solid #23242B;border-radius:14px;padding:14px;display:flex;gap:14px;align-items:center;background:#121319"><div style="width:72px;height:56px;border-radius:8px;flex:none;background:repeating-linear-gradient(135deg,#1C1D24 0 6px,#23242B 6px 12px)"></div><div style="display:flex;flex-direction:column;gap:6px"><span style="font:700 15px/1.2 Manrope">Logistics dashboard</span><span style="font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F">FULLSTACK · TYPESCRIPT · 2024</span></div></div>
+</div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1e" data-screen-label="1e Paper"><div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Portfolio „Paper“ — Creme, Instrument Serif, Index-Tabelle</div><div class="dv-card" style="width:1280px">
+<div style="width:1280px;height:840px;background:#F6F1E8;color:#15130F;font-family:Manrope,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:28px 48px 0">
+<div style="display:flex;align-items:center;gap:12px"><svg viewBox="8 11 28 24" width="24" height="20" style="display:block"><path d="M8 11H16V27H19L22 35H8Z" fill="#FF7816"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg><span style="font:600 15px/1 Manrope;letter-spacing:-0.01em">Bjoern Sellnau</span></div>
+<div style="display:flex;gap:28px;font:italic 400 18px/1 'Instrument Serif',serif;color:#5B564D"><span>Work</span><span>Notes</span><span>About</span><span style="color:#C9530A">Contact</span></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 360px;gap:60px;padding:64px 48px 0;align-items:start">
+<div style="display:flex;flex-direction:column;gap:26px">
+<h1 style="margin:0;font:400 104px/0.95 'Instrument Serif',serif;letter-spacing:-0.02em;text-wrap:pretty">Software, <em style="color:#FF7816">carefully</em> made.</h1>
+<p style="margin:0;max-width:560px;font:400 18px/1.5 Manrope;color:#5B564D;text-wrap:pretty">Senior Fullstack &amp; Software Engineer — React, TypeScript and mobile, from the first idea to the App Store.</p>
+<div style="display:flex;gap:10px;font:500 12px/1 'JetBrains Mono',monospace;color:#15130F"><span style="padding:9px 12px;border:1px solid #CFC8BA;border-radius:999px">react</span><span style="padding:9px 12px;border:1px solid #CFC8BA;border-radius:999px">mobile</span><span style="padding:9px 12px;border:1px solid #CFC8BA;border-radius:999px">typescript</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px"><div style="height:300px;border-radius:6px;background:repeating-linear-gradient(135deg,#E8E1D4 0 8px,#EFE9DD 8px 16px);display:grid;place-items:center;font:500 12px/1 'JetBrains Mono',monospace;color:#7E796F">[ portrait ]</div><div style="font:italic 400 15px/1.4 'Instrument Serif',serif;color:#5B564D">Fig. 1 — the engineer, probably holding coffee.</div></div>
+</div>
+<div style="margin:auto 48px 44px;display:flex;flex-direction:column">
+<div style="display:grid;grid-template-columns:60px 1fr 220px 260px 80px;padding:0 0 10px;border-bottom:1px solid #15130F;font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F;letter-spacing:.06em"><span>NO.</span><span>SELECTED WORK</span><span>ROLE</span><span>STACK</span><span style="text-align:right">YEAR</span></div>
+<div style="display:grid;grid-template-columns:60px 1fr 220px 260px 80px;padding:16px 0;border-bottom:1px solid #D9D2C5;font:400 17px/1.3 Manrope;align-items:baseline"><span style="font:500 12px/1 'JetBrains Mono',monospace;color:#7E796F">01</span><span style="font:italic 400 24px/1.1 'Instrument Serif',serif">Mobile banking app</span><span>Lead engineer</span><span style="font:500 12px/1 'JetBrains Mono',monospace;color:#5B564D">react native · typescript</span><span style="text-align:right;font:500 12px/1 'JetBrains Mono',monospace;color:#5B564D">2025</span></div>
+<div style="display:grid;grid-template-columns:60px 1fr 220px 260px 80px;padding:16px 0;border-bottom:1px solid #D9D2C5;font:400 17px/1.3 Manrope;align-items:baseline"><span style="font:500 12px/1 'JetBrains Mono',monospace;color:#7E796F">02</span><span style="font:italic 400 24px/1.1 'Instrument Serif',serif">Design system</span><span>Architecture, components</span><span style="font:500 12px/1 'JetBrains Mono',monospace;color:#5B564D">react · typescript</span><span style="text-align:right;font:500 12px/1 'JetBrains Mono',monospace;color:#5B564D">2024</span></div>
+<div style="display:grid;grid-template-columns:60px 1fr 220px 260px 80px;padding:16px 0;border-bottom:1px solid #D9D2C5;font:400 17px/1.3 Manrope;align-items:baseline"><span style="font:500 12px/1 'JetBrains Mono',monospace;color:#7E796F">03</span><span style="font:italic 400 24px/1.1 'Instrument Serif',serif">Logistics dashboard</span><span>Fullstack</span><span style="font:500 12px/1 'JetBrains Mono',monospace;color:#5B564D">react · api · typescript</span><span style="text-align:right;font:500 12px/1 'JetBrains Mono',monospace;color:#5B564D">2024</span></div>
+</div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1f" data-screen-label="1f Orange Block"><div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>Portfolio „Orange Block“ — Vollfläche, Space Grotesk, Zeichen als Skulptur</div><div class="dv-card" style="width:1280px">
+<div style="width:1280px;height:840px;background:#FF7816;color:#15130F;font-family:'Space Grotesk',sans-serif;display:flex;flex-direction:column;overflow:hidden;position:relative">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:#15130F;color:#F6F1E8;flex:none">
+<div style="display:flex;align-items:center;gap:12px"><svg viewBox="8 11 28 24" width="24" height="20" style="display:block"><path d="M8 11H16V27H19L22 35H8Z" fill="#F6F1E8"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#F6F1E8"></path></svg><span style="font:700 14px/1 'Space Grotesk';letter-spacing:.22em">LOONA</span></div>
+<div style="display:flex;gap:32px;font:500 13px/1 'JetBrains Mono',monospace;color:#A9A49A"><span>WORK</span><span>NOTES</span><span>ABOUT</span><span style="color:#FF7816">CONTACT</span></div>
+</div>
+<svg viewBox="0 0 48 48" width="620" height="620" style="position:absolute;right:20px;bottom:30px;display:block"><path d="M10 12H18V28H21L24 36H10Z" fill="#15130F"></path><path d="M23 12H26A12 12 0 0 1 26 36L23 28Z" fill="#15130F"></path></svg>
+<div style="position:relative;padding:60px 48px 0;display:flex;flex-direction:column;gap:30px;flex:1">
+<h1 style="margin:0;font:700 150px/0.88 'Space Grotesk';letter-spacing:-0.055em">BJOERN<br>SELLNAU</h1>
+<div style="display:flex;flex-direction:column;gap:10px;max-width:520px"><div style="font:500 24px/1.25 'Space Grotesk'">Senior Fullstack &amp; Software Engineer.</div><div style="font:500 14px/1 'JetBrains Mono',monospace;letter-spacing:.06em">REACT / MOBILE / TYPESCRIPT</div></div>
+<div style="display:flex;gap:12px;margin-top:6px"><span style="padding:14px 22px;border-radius:4px;background:#15130F;color:#F6F1E8;font:700 15px/1 'Space Grotesk'">See the work</span><span style="padding:14px 22px;border-radius:4px;border:1.5px solid #15130F;font:700 15px/1 'Space Grotesk'">Get in touch</span></div>
+</div>
+<div style="height:72px;background:#15130F;color:#F6F1E8;display:flex;align-items:center;gap:22px;padding:0 48px;font:500 15px/1 'Space Grotesk';flex:none;position:relative">
+<span>React</span><span style="width:8px;height:8px;border-radius:50%;background:#FF7816"></span><span>React Native</span><span style="width:8px;height:8px;border-radius:50%;background:#FF7816"></span><span>TypeScript</span><span style="width:8px;height:8px;border-radius:50%;background:#FF7816"></span><span>Fullstack</span><span style="width:8px;height:8px;border-radius:50%;background:#FF7816"></span><span>Mobile</span><span style="width:8px;height:8px;border-radius:50%;background:#FF7816"></span><span>Architecture</span><span style="width:8px;height:8px;border-radius:50%;background:#FF7816"></span><span>Design Systems</span><span style="width:8px;height:8px;border-radius:50%;background:#FF7816"></span><span>Testing</span>
+</div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1g" data-screen-label="1g Bento Plattform"><div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>Plattform „Bento“ — Kacheln: Intro, Stack, Projekt, Notizen, Aktivität, Kontakt</div><div class="dv-card" style="width:1280px">
+<div style="width:1280px;height:840px;box-sizing:border-box;background:#EDE9E1;color:#15130F;font-family:Manrope,sans-serif;padding:32px 40px 40px;display:flex;flex-direction:column;gap:22px;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div style="display:flex;align-items:center;gap:12px"><svg viewBox="8 11 28 24" width="26" height="22" style="display:block"><path d="M8 11H16V27H19L22 35H8Z" fill="#FF7816"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg><span style="font:800 20px/1 Manrope;letter-spacing:-0.03em">loona</span><span style="font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F;margin-left:6px">platform · v1</span></div>
+<div style="display:flex;gap:28px;font:600 13px/1 Manrope;color:#5B564D"><span>Work</span><span>Notes</span><span>About</span><span style="color:#C9530A">Contact</span></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:206px;gap:16px;flex:1">
+<div style="grid-column:span 5;grid-row:span 2;background:#FFFFFF;border-radius:20px;padding:30px;display:flex;flex-direction:column;justify-content:space-between">
+<svg viewBox="8 11 28 24" width="56" height="48" style="display:block"><path d="M8 11H16V27H19L22 35H8Z" fill="#FF7816"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg>
+<div style="display:flex;flex-direction:column;gap:14px"><div style="font:800 44px/1 Manrope;letter-spacing:-0.04em;text-wrap:pretty">Bjoern Sellnau</div><div style="font:600 16px/1.3 Manrope;color:#C9530A">Senior Fullstack &amp; Software Engineer</div><p style="margin:0;font:400 15px/1.5 Manrope;color:#5B564D;text-wrap:pretty">I build React and mobile products in TypeScript — and the services behind them. This is my portfolio, notebook and workbench.</p></div>
+<div style="display:flex;gap:10px"><span style="padding:12px 18px;border-radius:999px;background:#15130F;color:#F6F1E8;font:700 14px/1 Manrope">Selected work</span><span style="padding:12px 18px;border-radius:999px;border:1px solid #D9D2C5;font:600 14px/1 Manrope">Read notes</span></div>
+</div>
+<div style="grid-column:span 4;background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px">
+<div style="font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F;letter-spacing:.06em">STACK</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;font:600 13px/1 Manrope"><span style="padding:9px 12px;border-radius:8px;background:#FFEBD9;color:#C9530A">React</span><span style="padding:9px 12px;border-radius:8px;background:#FFEBD9;color:#C9530A">React Native</span><span style="padding:9px 12px;border-radius:8px;background:#FFEBD9;color:#C9530A">TypeScript</span><span style="padding:9px 12px;border-radius:8px;background:#F1EDE5">Node</span><span style="padding:9px 12px;border-radius:8px;background:#F1EDE5">APIs</span><span style="padding:9px 12px;border-radius:8px;background:#F1EDE5">Design systems</span><span style="padding:9px 12px;border-radius:8px;background:#F1EDE5">Testing</span><span style="padding:9px 12px;border-radius:8px;background:#F1EDE5">CI/CD</span></div>
+</div>
+<div style="grid-column:span 3;background:#FF7816;border-radius:20px;padding:24px;display:flex;flex-direction:column;justify-content:space-between;color:#15130F">
+<div style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em">CONTACT</div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="font:800 26px/1.05 Manrope;letter-spacing:-0.03em;text-wrap:pretty">Let's build something.</div><div style="font:500 12.5px/1.4 'JetBrains Mono',monospace">hello@loona-designs.tech</div></div>
+</div>
+<div style="grid-column:span 4;background:#FFFFFF;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div style="flex:1;border-radius:12px;background:repeating-linear-gradient(135deg,#E8E1D4 0 8px,#EFE9DD 8px 16px);display:grid;place-items:center;font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F">[ featured project ]</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 6px 4px"><span style="font:700 15px/1.2 Manrope">Mobile banking app</span><span style="font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F">react native · 2025</span></div>
+</div>
+<div style="grid-column:span 3;background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:12px">
+<div style="font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F;letter-spacing:.06em">NOTES</div>
+<div style="display:flex;flex-direction:column;gap:10px;font:600 14px/1.3 Manrope"><span>Typed navigation in React Native</span><span style="border-top:1px solid #EFE9DD;padding-top:10px">A moon-phase loader in 40 lines</span><span style="border-top:1px solid #EFE9DD;padding-top:10px">Monorepos without the pain</span></div>
+</div>
+<div style="grid-column:span 7;background:#FFFFFF;border-radius:20px;padding:24px;display:flex;flex-direction:column;justify-content:space-between">
+<div style="display:flex;justify-content:space-between;font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F;letter-spacing:.06em"><span>ACTIVITY · LAST 26 WEEKS</span><span>commits, releases, notes</span></div>
+<div style="display:grid;grid-template-columns:repeat(26,1fr);grid-auto-rows:13px;gap:5px"><sc-for list="{{ heat }}" as="h" hint-placeholder-count="182"><span style="border-radius:3px;background:#FF7816;opacity:{{ h.o }}"></span></sc-for></div>
+</div>
+<div style="grid-column:span 5;background:#15130F;color:#F6F1E8;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:14px">
+<div style="font:500 11px/1 'JetBrains Mono',monospace;color:#A9A49A;letter-spacing:.06em">OPEN SOURCE</div>
+<div style="display:flex;flex-direction:column;gap:10px;font:500 13px/1.3 'JetBrains Mono',monospace"><div style="display:flex;justify-content:space-between"><span>loona/<span style="color:#FF7816">moon-ui</span></span><span style="color:#A9A49A">react · components</span></div><div style="display:flex;justify-content:space-between;border-top:1px solid #2A2B33;padding-top:10px"><span>loona/<span style="color:#FF7816">ts-config</span></span><span style="color:#A9A49A">typescript · tooling</span></div><div style="display:flex;justify-content:space-between;border-top:1px solid #2A2B33;padding-top:10px"><span>loona/<span style="color:#FF7816">native-kit</span></span><span style="color:#A9A49A">react native</span></div></div>
+</div>
+</div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1h" data-screen-label="1h Terminal"><div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>Portfolio „Terminal“ — Mono-Interface, Prompt als Navigation</div><div class="dv-card" style="width:1280px">
+<div style="width:1280px;height:840px;background:#0B0C10;color:#E7E2D8;font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column;overflow:hidden">
+<div style="height:44px;background:#15161C;display:flex;align-items:center;padding:0 20px;gap:8px;flex:none;position:relative"><span style="width:12px;height:12px;border-radius:50%;background:#2B2C33"></span><span style="width:12px;height:12px;border-radius:50%;background:#2B2C33"></span><span style="width:12px;height:12px;border-radius:50%;background:#2B2C33"></span><span style="position:absolute;left:0;right:0;text-align:center;font:500 12px/1 'JetBrains Mono',monospace;color:#7E796F">bjoern@loona — zsh — 1280×840</span></div>
+<div style="display:grid;grid-template-columns:1fr 440px;flex:1">
+<div style="padding:40px 48px;display:flex;flex-direction:column;gap:22px;font:400 15px/1.7 'JetBrains Mono',monospace">
+<div><div><span style="color:#FF7816">&gt;</span> loona --whoami</div><div style="font:600 30px/1.2 'JetBrains Mono',monospace;color:#F6F1E8;margin-top:6px">Bjoern Sellnau</div><div style="color:#A9A49A">Senior Fullstack &amp; Software Engineer · React · Mobile · TypeScript</div></div>
+<div><div><span style="color:#FF7816">&gt;</span> loona --work</div>
+<div style="display:grid;grid-template-columns:40px 260px 160px 140px 60px;color:#E7E2D8"><span style="color:#7E796F">01</span><span>mobile-banking-app</span><span style="color:#A9A49A">react-native</span><span style="color:#A9A49A">typescript</span><span style="color:#7E796F">2025</span><span style="color:#7E796F">02</span><span>design-system</span><span style="color:#A9A49A">react</span><span style="color:#A9A49A">typescript</span><span style="color:#7E796F">2024</span><span style="color:#7E796F">03</span><span>logistics-dashboard</span><span style="color:#A9A49A">react</span><span style="color:#A9A49A">node</span><span style="color:#7E796F">2024</span></div></div>
+<div><div><span style="color:#FF7816">&gt;</span> loona --stack</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px"><span style="padding:4px 10px;border:1px solid #2A2B33;border-radius:4px;color:#F6F1E8">react</span><span style="padding:4px 10px;border:1px solid #2A2B33;border-radius:4px;color:#F6F1E8">react-native</span><span style="padding:4px 10px;border:1px solid #2A2B33;border-radius:4px;color:#F6F1E8">typescript</span><span style="padding:4px 10px;border:1px solid #2A2B33;border-radius:4px;color:#F6F1E8">node</span><span style="padding:4px 10px;border:1px solid #2A2B33;border-radius:4px;color:#F6F1E8">testing</span></div></div>
+<div><div><span style="color:#FF7816">&gt;</span> loona --contact</div><div style="display:grid;grid-template-columns:100px 1fr"><span style="color:#7E796F">mail</span><span>hello@loona-designs.tech</span><span style="color:#7E796F">github</span><span style="color:#A9A49A">[ handle ]</span><span style="color:#7E796F">linkedin</span><span style="color:#A9A49A">[ handle ]</span></div></div>
+<div style="display:flex;align-items:center;gap:8px;margin-top:auto"><span style="color:#FF7816">&gt;</span><span style="width:9px;height:18px;background:#FF7816"></span></div>
+</div>
+<div style="position:relative;background-image:radial-gradient(#1E1F27 1px,transparent 1px);background-size:22px 22px;border-left:1px solid #15161C;display:grid;place-items:center"><svg viewBox="0 0 48 48" width="400" height="400" style="display:block"><path d="M10 12H18V28H21L24 36H10Z" fill="#FF7816"></path><path d="M23 12H26A12 12 0 0 1 26 36L23 28Z" fill="#FF7816"></path></svg><div style="position:absolute;left:24px;bottom:22px;font:400 11px/1.6 'JetBrains Mono',monospace;color:#7E796F">logo.svg · 28 × 24 · #FF7816<br>last commit: just now</div></div>
+</div>
+</div>
+</div></div>
+
+<div class="dv-opt" id="1i" data-screen-label="1i Mobile"><div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>Mobile — Start und Projekt-Detail</div><div class="dv-card" style="width:908px;background:#DCD7CD">
+<div style="padding:32px;display:flex;gap:40px;justify-content:center;font-family:Manrope,sans-serif">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+<div style="padding:70px 22px 48px;display:flex;flex-direction:column;gap:22px;color:#F6F1E8;font-family:Manrope,sans-serif;background:#0E0F13;min-height:874px;box-sizing:border-box">
+<div style="display:flex;align-items:center;justify-content:space-between"><svg viewBox="8 11 28 24" width="34" height="29" style="display:block"><path d="M8 11H16V27H19L22 35H8Z" fill="#FF7816"></path><path d="M21 11H24A12 12 0 0 1 24 35L21 27Z" fill="#FF7816"></path></svg><span style="font:500 12px/1 'JetBrains Mono',monospace;color:#A9A49A">menu</span></div>
+<div style="display:flex;flex-direction:column;gap:12px;margin-top:14px"><div style="font:500 11px/1 'JetBrains Mono',monospace;color:#FF7816;letter-spacing:.08em">SENIOR FULLSTACK &amp; SOFTWARE ENGINEER</div><div style="font:800 40px/1 Manrope;letter-spacing:-0.04em;text-wrap:pretty">Bjoern Sellnau builds products end to end.</div><p style="margin:0;font:400 15px/1.5 Manrope;color:#A9A49A">React, TypeScript and mobile — from the first component to the last deploy.</p></div>
+<div style="display:flex;gap:10px"><span style="padding:14px 18px;border-radius:999px;background:#FF7816;color:#15130F;font:700 14px/1 Manrope">Selected work</span><span style="padding:14px 18px;border-radius:999px;border:1px solid #33343C;font:600 14px/1 Manrope">About</span></div>
+<div style="display:flex;flex-direction:column;gap:12px;margin-top:10px">
+<div style="font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F;letter-spacing:.06em">SELECTED WORK</div>
+<div style="border:1px solid #23242B;border-radius:16px;padding:12px;background:#121319;display:flex;flex-direction:column;gap:12px"><div style="height:120px;border-radius:10px;background:repeating-linear-gradient(135deg,#1C1D24 0 6px,#23242B 6px 12px)"></div><div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 4px"><span style="font:700 15px/1.2 Manrope">Mobile banking app</span><span style="font:500 10px/1 'JetBrains Mono',monospace;color:#7E796F">RN · 2025</span></div></div>
+<div style="border:1px solid #23242B;border-radius:16px;padding:12px;background:#121319;display:flex;flex-direction:column;gap:12px"><div style="height:120px;border-radius:10px;background:repeating-linear-gradient(135deg,#1C1D24 0 6px,#23242B 6px 12px)"></div><div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 4px"><span style="font:700 15px/1.2 Manrope">Design system</span><span style="font:500 10px/1 'JetBrains Mono',monospace;color:#7E796F">REACT · 2024</span></div></div>
+</div>
+</div>
+</x-import>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+<div style="padding:70px 22px 48px;display:flex;flex-direction:column;gap:20px;color:#F6F1E8;font-family:Manrope,sans-serif;background:#0E0F13;min-height:874px;box-sizing:border-box">
+<div style="display:flex;align-items:center;justify-content:space-between;font:500 12px/1 'JetBrains Mono',monospace;color:#A9A49A"><span>&larr; work</span><span>01 / 03</span></div>
+<div style="height:230px;border-radius:16px;background:repeating-linear-gradient(135deg,#1C1D24 0 6px,#23242B 6px 12px);display:grid;place-items:center;font:500 11px/1 'JetBrains Mono',monospace;color:#7E796F">[ project hero ]</div>
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:800 30px/1.05 Manrope;letter-spacing:-0.035em">Mobile banking app</div><div style="display:flex;gap:8px;flex-wrap:wrap;font:500 11px/1 'JetBrains Mono',monospace"><span style="padding:7px 10px;border-radius:999px;background:#1C1D24;color:#FFB366">react native</span><span style="padding:7px 10px;border-radius:999px;background:#1C1D24;color:#FFB366">typescript</span><span style="padding:7px 10px;border-radius:999px;background:#1C1D24;color:#FFB366">api</span></div></div>
+<p style="margin:0;font:400 15px/1.55 Manrope;color:#A9A49A;text-wrap:pretty">A cross-platform banking app rebuilt from the ground up — typed end to end, shipped to both stores with a shared design system.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font:400 13px/1.4 Manrope"><div style="border-top:1px solid #23242B;padding-top:10px"><div style="font:500 10px/1 'JetBrains Mono',monospace;color:#7E796F;margin-bottom:6px">ROLE</div>Lead engineer</div><div style="border-top:1px solid #23242B;padding-top:10px"><div style="font:500 10px/1 'JetBrains Mono',monospace;color:#7E796F;margin-bottom:6px">YEAR</div>2025</div><div style="border-top:1px solid #23242B;padding-top:10px"><div style="font:500 10px/1 'JetBrains Mono',monospace;color:#7E796F;margin-bottom:6px">PLATFORM</div>iOS, Android</div><div style="border-top:1px solid #23242B;padding-top:10px"><div style="font:500 10px/1 'JetBrains Mono',monospace;color:#7E796F;margin-bottom:6px">TEAM</div>6 people</div></div>
+<span style="margin-top:auto;padding:16px;border-radius:999px;background:#FF7816;color:#15130F;font:700 14px/1 Manrope;text-align:center">Read the case study</span>
+</div>
+</x-import>
+</div>
+</div></div>
+
+</div>
+<p class="dv-next">Weiter: „Zeichen 027, 064 und 087 in <a class="dv-oid" href="#1c">1c</a> als Lockup“ · „<a class="dv-oid" href="#1d">1d</a> mit der Serif aus <a class="dv-oid" href="#1e">1e</a>“ · „<a class="dv-oid" href="#1g">1g</a> als klickbaren Prototyp ausbauen“ · „10 neue Zeichen in Richtung Pixel“</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#FF7816&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#FF7816&quot;,&quot;#FF4D3D&quot;,&quot;#F5B301&quot;,&quot;#6C8CFF&quot;],&quot;section&quot;:&quot;Zeichen (1b, 1c)&quot;},&quot;tileBg&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Creme&quot;,&quot;options&quot;:[&quot;Creme&quot;,&quot;Dunkel&quot;],&quot;tsType&quot;:&quot;'Creme' | 'Dunkel'&quot;,&quot;section&quot;:&quot;Zeichen (1b, 1c)&quot;},&quot;showLabels&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Zeichen (1b, 1c)&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props || {};
+    const O = p.accent || '#FF7816';
+    const dark = (p.tileBg || 'Creme') === 'Dunkel';
+    const CREAM = '#F6F1E8', INK = '#15130F', NIGHT = '#0B1026', APR = '#FFB366', WHITE = '#FFFFFF', CORAL = '#FF4D3D';
+    const BASE = dark ? INK : CREAM, FG = dark ? CREAM : INK;
+    const FLIPV = 'translate(0 48) scale(1 -1)';
+    const sh = (d, f, ex) => Object.assign({ d, f: f || O, s: 'none', w: 0, lj: 'miter', da: 'none', o: 1, t: '' }, ex || {});
+    const st = (d, s, w, ex) => sh(d, 'none', Object.assign({ s: s || O, w: w == null ? 2 : w }, ex || {}));
+    const L = (o) => { const { x = 10, w = 8, top = 12, bot = 36, ft = 28, fr = 21, fb = 24 } = o || {}; return `M${x} ${top}H${x + w}V${ft}H${fr}L${fb} ${bot}H${x}Z`; };
+    const D = (o) => { const { cx = 26, r = 12, top = 12, bot = 36, nx = 23, ny = 28 } = o || {}; return `M${nx} ${top}H${cx}A${r} ${r} 0 0 1 ${cx} ${bot}L${nx} ${ny}Z`; };
+    const HD = (cx, cy, r) => `M${cx} ${cy - r}A${r} ${r} 0 0 1 ${cx} ${cy + r}Z`;
+    const C = (cx, cy, r) => `M${cx - r} ${cy}A${r} ${r} 0 1 0 ${cx + r} ${cy}A${r} ${r} 0 1 0 ${cx - r} ${cy}Z`;
+    const R = (x, y, w, h) => `M${x} ${y}H${x + w}V${y + h}H${x}Z`;
+    const RR = (x, y, w, h, r) => `M${x + r} ${y}H${x + w - r}A${r} ${r} 0 0 1 ${x + w} ${y + r}V${y + h - r}A${r} ${r} 0 0 1 ${x + w - r} ${y + h}H${x + r}A${r} ${r} 0 0 1 ${x} ${y + h - r}V${y + r}A${r} ${r} 0 0 1 ${x + r} ${y}Z`;
+    const SIL = 'M10 12H26A12 12 0 0 1 26 36H10Z';
+    const GAP = 'M18 12H23V28L26 36H24L21 28H18Z';
+    const LN = (a, b, c, d) => `M${a} ${b}L${c} ${d}`;
+    const PL = (pts) => 'M' + pts.map(q => q.join(' ')).join('L');
+    const rad = a => a * Math.PI / 180;
+    const fx = n => +n.toFixed(2);
+    const ARC = (cx, cy, r, a0, a1) => `M${fx(cx + r * Math.cos(rad(a0)))} ${fx(cy + r * Math.sin(rad(a0)))}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${fx(cx + r * Math.cos(rad(a1)))} ${fx(cy + r * Math.sin(rad(a1)))}`;
+    const sc = (k, cx, cy, dx, dy) => `translate(${(cx == null ? 24 : cx) + (dx || 0)} ${(cy == null ? 24 : cy) + (dy || 0)}) scale(${k}) translate(-24 -24)`;
+    const mark = (fl, fd, ex) => [sh(L(), fl || O, ex), sh(D(), fd || O, ex)];
+    const inL = (x, y) => y >= 12 && y <= 36 && x >= 10 && (y <= 28 ? x <= 18 : x <= 21 + (y - 28) * 3 / 8);
+    const inD = (x, y) => { if (y < 12 || y > 36) return false; const e = y <= 28 ? 23 : 23 + (y - 28) * 3 / 8; if (x < e) return false; if (x <= 26) return true; return (x - 26) ** 2 + (y - 24) ** 2 <= 144; };
+    const pix = g => { const out = []; for (let x = 0; x < 48; x += g) for (let y = 0; y < 48; y += g) { if (inL(x + g / 2, y + g / 2) || inD(x + g / 2, y + g / 2)) out.push(sh(R(x + .3, y + .3, g - .6, g - .6))); } return out; };
+    const bars = (h, step, withL) => { const out = []; for (let y = 12; y + h <= 36.01; y += step) { const yc = y + h / 2; const e = yc <= 28 ? 23 : 23 + (yc - 28) * 3 / 8; const xr = 26 + Math.sqrt(Math.max(0, 144 - (yc - 24) ** 2)); out.push(sh(R(fx(e), fx(y), fx(xr - e), h))); if (withL) { const lr = yc <= 28 ? 18 : 21 + (yc - 28) * 3 / 8; out.push(sh(R(10, fx(y), fx(lr - 10), h))); } } return out; };
+    const dots = (step, r) => { const out = []; for (let x = 23.5; x <= 38; x += step) for (let y = 12.5; y <= 36; y += step) { if (inD(x, y) && inD(x + r, y) && inD(x - r, y) && inD(x, y + r) && inD(x, y - r)) out.push(sh(C(fx(x), fx(y), r))); } return out; };
+    const phases = () => { const out = []; for (let i = 0; i < 5; i++) { const x = 6 + i * 9; if (i === 0) out.push(st(C(x, 24, 3.6), O, 1)); else { out.push(sh(C(x, 24, 3.6))); if (i < 4) out.push(sh(C(fx(x - i * 1.8), 24, 3.6), BASE)); } } return out; };
+    const gridLines = (step, color, ex) => { const out = []; for (let v = step; v < 48; v += step) { out.push(st(LN(v, 0, v, 48), color, 0.3, ex)); out.push(st(LN(0, v, 48, v), color, 0.3, ex)); } return out; };
+    const dotGrid = () => { const out = []; for (let x = 4; x <= 44; x += 8) for (let y = 4; y <= 44; y += 8) out.push(sh(C(x, y, 0.7), FG, { o: 0.3 })); return out; };
+    const V = (name, shapes, o) => Object.assign({ name, shapes, bg: BASE, g1: O, g2: APR }, o || {});
+    const LS = { w: 6, fr: 18, fb: 18 };
+    const fams = [
+      ['Grundform', [
+        V('Original', mark()),
+        V('Enge Fuge', [sh(L({ w: 9, fr: 22, fb: 25 })), sh(D())]),
+        V('Weite Fuge', [sh(L({ w: 6, fr: 19, fb: 22 })), sh(D({ nx: 24 }))]),
+        V('Gerader Fuß', [sh(L({ fr: 21, fb: 21 })), sh(D({ nx: 24, ny: 36 }))]),
+        V('Weich', mark(O, O, { s: O, w: 2.5, lj: 'round' })),
+        V('Gespiegelt', mark(O, O, { t: 'translate(48 0) scale(-1 1)' })),
+        V('Gestürzt', mark(O, O, { t: 'rotate(180 24 24)' })),
+        V('Gedreht 90°', mark(O, O, { t: 'rotate(-90 24 24)' })),
+        V('Fett', mark(O, O, { s: O, w: 3 })),
+        V('Fein', [sh(L({ w: 4, fr: 19, fb: 22 })), st(D({ nx: 22 }), O, 2.2)]),
+      ]],
+      ['Mondphasen', [
+        V('Vollmond „Lo“', [sh(L(LS)), sh(C(29, 27, 9))]),
+        V('Zunehmend', [sh(C(29, 27, 9)), sh(C(23.5, 27, 9), BASE), sh(L(LS))]),
+        V('Halbmond', [sh(L()), sh(HD(26, 24, 12))]),
+        V('Sichel', [sh(C(26, 24, 12)), sh(C(21, 24, 11), BASE), sh(L())]),
+        V('Schmale Sichel', [sh(C(26, 24, 12)), sh(C(23, 24, 12), BASE), sh(L())]),
+        V('Neumond', [sh(L(LS)), st(C(29, 27, 8), O, 2)]),
+        V('Abnehmend', [sh(C(29, 27, 9)), sh(C(34, 27, 9), BASE), sh(L(LS))]),
+        V('Finsternis', [sh(C(29, 27, 9)), sh(C(31, 26, 8.4), FG), sh(L(LS))]),
+        V('Mondaufgang', [sh(L({ ft: 32, fr: 38, fb: 38 })), sh('M22 30A8 8 0 0 1 38 30Z')]),
+        V('Monduntergang', [sh(L({ ft: 32, fr: 38, fb: 38 }), O, { t: FLIPV }), sh('M22 30A8 8 0 0 1 38 30Z', O, { t: FLIPV })]),
+      ]],
+      ['Fläche', [
+        V('Kreis', [sh(C(24, 24, 22)), ...mark(CREAM, CREAM, { t: sc(0.62) })]),
+        V('Quadrat', [sh(RR(2, 2, 44, 44, 10)), ...mark(INK, INK, { t: sc(0.62) })]),
+        V('Dunkles Quadrat', [sh(RR(2, 2, 44, 44, 6), INK), ...mark(O, O, { t: sc(0.62) })]),
+        V('Ring', [st(C(24, 24, 21), O, 2), ...mark(O, O, { t: sc(0.6) })]),
+        V('Pille', [sh(RR(2, 12, 44, 24, 12)), ...mark(CREAM, CREAM, { t: sc(0.42) })]),
+        V('Raute', [sh(R(10, 10, 28, 28), FG, { t: 'rotate(45 24 24)' }), ...mark(O, O, { t: sc(0.5) })]),
+        V('Monolith', [sh(SIL), sh(GAP, BASE)]),
+        V('Monolith, dunkel', [sh(SIL, FG), sh(GAP, O)]),
+        V('Rahmen', [st(R(4, 4, 40, 40), FG, 1.5), ...mark(O, O, { t: sc(0.6) })]),
+        V('Versatz', [...mark(FG, FG, { t: 'translate(2.5 2.5)' }), ...mark()]),
+      ]],
+      ['Letterform', [
+        V('Lo, Ring', [sh(L(LS)), st(C(29, 27, 7), O, 4)]),
+        V('Lo, Punkt', [sh(L(LS)), sh(C(31, 30, 6))]),
+        V('lo', [sh(R(12, 8, 6, 28)), st(C(29, 27, 7), O, 4)]),
+        V('Mond im Winkel', [sh(L({ w: 7, ft: 30, fr: 38, fb: 38 })), sh(HD(21, 20, 8))]),
+        V('b', [sh(R(10, 6, 8, 30)), sh(HD(20, 27, 9))]),
+        V('Kursiv', mark(O, O, { t: 'translate(5 0) skewX(-12)' })),
+        V('Tiefgestellt', [sh(L(), O, { t: 'translate(0 -3)' }), sh(D({ top: 18, bot: 42, ny: 34 }), O, { t: 'translate(0 -3)' })]),
+        V('Hochgestellt', [sh(L(), O, { t: 'translate(0 3)' }), sh(D({ top: 6, bot: 30, ny: 22 }), O, { t: 'translate(0 3)' })]),
+        V('Loona.', [...mark(O, O, { t: sc(0.8, 24, 24, -4, 0) }), sh(R(36, 28.6, 5, 5))]),
+        V('Nur die Fuge', [sh(SIL, O, { o: 0.12 }), sh(GAP)]),
+      ]],
+      ['Farbe', [
+        V('Tinte + Orange', mark(FG, O)),
+        V('Orange + Tinte', mark(O, FG)),
+        V('Ton in Ton', mark(O, APR)),
+        V('Verlauf Mond', [sh(L()), sh(D(), 'GRAD')]),
+        V('Verlauf Glut', [sh(L(), 'GRAD'), sh(D(), 'GRAD')], { g1: CORAL, g2: O }),
+        V('Creme auf Orange', mark(CREAM, CREAM), { bg: O }),
+        V('Orange auf Schwarz', mark(), { bg: INK }),
+        V('Mond bei Nacht', mark(CREAM, O), { bg: NIGHT }),
+        V('Aprikose', mark(APR, APR), { bg: INK }),
+        V('Monochrom', mark(FG, FG)),
+      ]],
+      ['Linie', [
+        V('Kontur', mark('none', 'none', { s: O, w: 2 })),
+        V('Kontur L', [st(L(), O, 2), sh(D())]),
+        V('Kontur D', [sh(L()), st(D(), O, 2)]),
+        V('Haarlinie', mark('none', 'none', { s: FG, w: 0.8 })),
+        V('Gestrichelt', [sh(L()), st(D(), O, 2, { da: '2.5 2.5' })]),
+        V('Radar', [sh(L()), st(ARC(26, 24, 12, -90, 90), O, 2.2), st(ARC(26, 24, 8, -90, 90), O, 2.2), st(ARC(26, 24, 4, -90, 90), O, 2.2)]),
+        V('Orbit', [st(C(24, 24, 22), O, 1.5), ...mark(O, O, { t: sc(0.6) })]),
+        V('Orbit + Trabant', [st(C(24, 24, 22), O, 1.5), sh(C(39.56, 8.44, 2.5)), ...mark(O, O, { t: sc(0.6) })]),
+        V('Echo', [...mark('none', 'none', { s: O, w: 1.5 }), ...mark('none', 'none', { s: O, w: 1.5, o: 0.45, t: sc(1.18) })]),
+        V('Konstruktion', [...gridLines(4, FG, { o: 0.35 }), st(C(26, 24, 12), O, 0.6, { da: '1.5 1.5' }), ...mark('none', 'none', { s: FG, w: 1.2 })]),
+      ]],
+      ['Rhythmus', [
+        V('Lamellen', [sh(L()), ...bars(2.5, 4.3, false)]),
+        V('Lamellen, beide', bars(2.5, 4.3, true)),
+        V('Raster', [sh(L()), ...dots(2.6, 1)]),
+        V('Pixel 4', pix(4)),
+        V('Pixel 6', pix(6)),
+        V('Kachel', [...mark(O, O, { t: sc(0.42, 12, 12) }), ...mark(O, O, { t: sc(0.42, 36, 12) }), ...mark(O, O, { t: sc(0.42, 12, 36) }), ...mark(O, O, { t: sc(0.42, 36, 36) })]),
+        V('Emblem', [sh(C(24, 24, 8.5)), sh(L({ x: 6, w: 5, top: 15, bot: 33, ft: 27, fr: 12, fb: 14 })), sh(L({ x: 6, w: 5, top: 15, bot: 33, ft: 27, fr: 12, fb: 14 }), O, { t: 'translate(48 0) scale(-1 1)' })]),
+        V('Spiegelung', [...mark(O, O, { t: sc(0.6, 24, 24, 0, -8) }), ...mark(O, O, { t: FLIPV + ' ' + sc(0.6, 24, 24, 0, -8), o: 0.3 })]),
+        V('Phasen', phases()),
+        V('Ripple', [...mark(O, O, { t: sc(0.55) }), st(SIL, O, 1.5, { t: sc(0.8), o: 0.6 }), st(SIL, O, 1.5, { t: sc(1.05), o: 0.3 })]),
+      ]],
+      ['Bewegung', [
+        V('Mond steigt', [sh(L()), sh(D(), O, { t: 'translate(0 -6)' })]),
+        V('Mond sinkt', [sh(L()), sh(D(), O, { t: 'translate(0 6)' })]),
+        V('Neigung', mark(O, O, { t: 'rotate(14 24 24)' })),
+        V('Drift', [sh(L()), sh(D(), O, { t: 'translate(5 0)' })]),
+        V('Partielle Finsternis', [sh(L()), sh(D()), sh(C(34, 18, 7), FG)]),
+        V('Halo', [sh(C(26, 24, 19), O, { o: 0.12 }), sh(C(26, 24, 14.5), O, { o: 0.14 }), ...mark()]),
+        V('Schlagschatten', [...mark(FG, FG, { t: 'translate(3 3)', o: 0.18 }), ...mark()]),
+        V('Perspektive', mark(O, O, { t: 'translate(0 3.4) skewY(-8)' })),
+        V('Geist', [...mark(O, O, { t: 'translate(-2.5 -2.5)', o: 0.3 }), ...mark()]),
+        V('Diagonal', mark(O, O, { t: 'rotate(45 24 24)' })),
+      ]],
+      ['Code & Tech', [
+        V('<L>', [st(PL([[12, 14], [4, 24], [12, 34]]), FG, 2, { lj: 'round' }), st(PL([[36, 14], [44, 24], [36, 34]]), FG, 2, { lj: 'round' }), ...mark(O, O, { t: sc(0.6) })]),
+        V('</>', [st(PL([[14, 16], [6, 24], [14, 32]]), FG, 2.2, { lj: 'round' }), st(PL([[34, 16], [42, 24], [34, 32]]), FG, 2.2, { lj: 'round' }), sh(GAP, O, { t: 'translate(2 0)' })]),
+        V('Cursor', [...mark(O, O, { t: sc(0.7, 24, 24, -5, 0) }), sh(R(35, 30, 8, 2.6), FG)]),
+        V('Slash', [sh('M10 12H16L22 36H10Z'), sh('M20 12H26A12 12 0 0 1 26 36Z')]),
+        V('Auswahl', [st(RR(6, 6, 36, 36, 1), FG, 1, { da: '2 2' }), sh(R(4, 4, 4, 4), FG), sh(R(40, 4, 4, 4), FG), sh(R(4, 40, 4, 4), FG), sh(R(40, 40, 4, 4), FG), ...mark(O, O, { t: sc(0.7) })]),
+        V('Canvas', [...dotGrid(), ...mark(O, O, { t: sc(0.75) })]),
+        V('Fullstack', [sh(SIL, O, { o: 0.25, t: sc(0.55, 24, 24, 0, 10) }), sh(SIL, O, { o: 0.55, t: sc(0.55) }), ...mark(O, O, { t: sc(0.55, 24, 24, 0, -10) })]),
+        V('Mobile', [st(RR(13, 3, 22, 42, 4), FG, 1.5), st(LN(20, 7.5, 28, 7.5), FG, 1.2), ...mark(O, O, { t: sc(0.5, 24, 25) })]),
+        V('Browser', [st(RR(4, 8, 40, 32, 3), FG, 1.5), st(LN(4, 15, 44, 15), FG, 1.2), sh(C(8.5, 11.5, 1), FG), sh(C(12, 11.5, 1), FG), sh(C(15.5, 11.5, 1), FG), ...mark(O, O, { t: sc(0.5, 24, 27.5) })]),
+        V('Fortschritt', [st(C(24, 24, 20), FG, 2.5, { o: 0.12 }), st(ARC(24, 24, 20, -90, 180), O, 2.5), ...mark(O, O, { t: sc(0.55) })]),
+      ]],
+      ['Anwendung', [
+        V('App-Icon', [sh(RR(3, 3, 42, 42, 10)), ...mark(CREAM, CREAM, { t: sc(0.6) })]),
+        V('App-Icon, dunkel', [sh(RR(3, 3, 42, 42, 10), INK), ...mark(O, O, { t: sc(0.6) })]),
+        V('Favicon 16', [st(R(16, 16, 16, 16), FG, 0.5, { o: 0.4 }), ...mark(O, O, { t: sc(0.5) })]),
+        V('Avatar', [sh(C(24, 24, 20), INK), ...mark(O, O, { t: sc(0.55) }), sh(C(39, 38, 4.5), BASE), sh(C(39, 38, 3))]),
+        V('Sticker', [sh(C(24, 24, 21), WHITE), sh(C(24, 24, 18.5)), ...mark(CREAM, CREAM, { t: sc(0.52) })], { bg: NIGHT }),
+        V('Wasserzeichen', [...mark(O, O, { o: 0.14, t: sc(1.5, 24, 24, 6, 4) }), ...mark(O, O, { t: sc(0.35, 24, 24, -12, -12) })]),
+        V('Siegel', [st(C(24, 24, 21), O, 1), st(C(24, 24, 17.5), O, 1, { da: '1 2' }), ...mark(O, O, { t: sc(0.5) })]),
+        V('Nacht', [sh(C(9, 9, 0.9), CREAM), sh(C(40, 12, 0.7), CREAM), sh(C(36, 41, 0.8), CREAM), sh(C(7, 38, 0.6), CREAM), ...mark(CREAM, O)], { bg: NIGHT }),
+        V('Sticker-Kontur', [...mark(WHITE, WHITE, { s: WHITE, w: 4, lj: 'round' }), ...mark()], { bg: O }),
+        V('Signet', [st(C(24, 24, 22), O, 1.5), sh(SIL, O, { t: sc(0.62) }), sh(GAP, BASE, { t: sc(0.62) })]),
+      ]],
+    ];
+    // Runde 2: Riffs auf das Basiszeichen
+    const band = (x0, x1, w) => `M${x0} 12H${x0 + w}L${x1 + w} 36H${x1}Z`;
+    const Lr = (d, o) => { const { x = 10, w = 8, top = 12, bot = 36, ft = 28, fr = 21, fb = 24 } = o || {}; const sl = (fb - fr) / (bot - ft); const k = d * Math.sqrt(1 + sl * sl); return `M${fx(x + d)} ${fx(top + d)}H${fx(x + w - d)}V${fx(ft + d)}H${fx(fr - k + sl * d)}L${fx(fb - k - sl * d)} ${fx(bot - d)}H${fx(x + d)}Z`; };
+    const Dr = (d, nx) => { nx = nx == null ? 23 : nx; const sl = (26 - nx) / 8; const k = d * Math.sqrt(1 + sl * sl); return `M${fx(nx + d)} ${fx(12 + d)}H26A${12 - d} ${12 - d} 0 0 1 26 ${fx(36 - d)}L${fx(nx + d)} ${fx(28 - (k - d) / sl)}Z`; };
+    const rs = (d, c, ex) => Object.assign({ s: c || O, w: 2 * d, lj: 'round' }, ex || {});
+    const markR = (d, fl, fd, ex) => [sh(Lr(d), fl || O, rs(d, fl || O, ex)), sh(Dr(d), fd || O, rs(d, fd || O, ex))];
+    const polyD = (n) => { let d = 'M23 12H26'; for (let i = 1; i <= n; i++) { const a = rad(-90 + 180 * i / n); d += `L${fx(26 + 12 * Math.cos(a))} ${fx(24 + 12 * Math.sin(a))}`; } return d + 'L23 28Z'; };
+    const chamL = (c) => `M${10 + c} 12H${18 - c}L18 ${12 + c}V28H21L24 36H${10 + c}L10 ${36 - c}V${12 + c}Z`;
+    const chamD = (c) => `M23 ${12 + c}L${23 + c} 12H26A12 12 0 0 1 26 36L23 28Z`;
+    const BOXD = 'M23 12H38V36H26L23 28Z';
+    const perf = () => { const out = []; for (let x = 12; x <= 36; x += 4) for (let y = 14; y <= 34; y += 4) if (inL(x, y) || inD(x, y)) out.push(sh(C(x, y, 0.9), BASE)); return out; };
+    const gapDots = () => [14, 18, 22, 26, 30, 34].map(y => sh(C(y <= 28 ? 20.5 : fx(22 + (y - 28) * 3 / 8), y, y <= 28 ? 1.2 : 0.8)));
+    const pixR = (g, onlyD) => { const out = []; for (let x = 0; x < 48; x += g) for (let y = 0; y < 48; y += g) { const cx = x + g / 2, cy = y + g / 2; if ((!onlyD && inL(cx, cy)) || inD(cx, cy)) out.push(sh(RR(x + .4, y + .4, g - .8, g - .8, g / 4))); } return out; };
+    const fams2 = [
+      ['Rundung', [
+        V('Radius 1', markR(1)),
+        V('Radius 2', markR(2)),
+        V('Radius 3', markR(3)),
+        V('Kapsel', markR(3.9)),
+        V('Rund, weite Fuge', [sh(Lr(2.5, { w: 6, fr: 19, fb: 22 }), O, rs(2.5)), sh(Dr(2.5, 24), O, rs(2.5))]),
+        V('Rund, Fuß gerade', [sh(Lr(2.5, { fr: 21, fb: 21 }), O, rs(2.5)), sh('M26 14.5A9.5 9.5 0 0 1 26 33.5Z', O, rs(2.5))]),
+        V('Rund, negativ', [sh(RR(2, 2, 44, 44, 12)), ...markR(2.5, CREAM, CREAM, { t: sc(0.64) })]),
+        V('Rund, Kontur', mark('none', 'none', { s: O, w: 2, lj: 'round' })),
+        V('Rund, Vollmond', [sh(Lr(2.5, LS), O, rs(2.5)), sh(C(29, 27, 9))]),
+        V('Rund, Tinte + Orange', markR(2.5, FG, O)),
+      ]],
+      ['Kantig', [
+        V('Fase 1.5', [sh(chamL(1.5)), sh(chamD(1.5))]),
+        V('Fase 3', [sh(chamL(3)), sh(chamD(3))]),
+        V('Polygon-Mond 3', [sh(L()), sh(polyD(3))]),
+        V('Polygon-Mond 4', [sh(L()), sh(polyD(4))]),
+        V('Polygon-Mond 6', [sh(L()), sh(polyD(6))]),
+        V('Spitzer Mond', [sh(L()), sh('M23 12H26L38 24L26 36L23 28Z')]),
+        V('Kasten', [sh(L()), sh(BOXD)]),
+        V('Trapez', [sh(L()), sh('M23 12H30L38 20V28L30 36H26L23 28Z')]),
+        V('Harte 45°', [sh(SIL), sh('M18 12H22V26L32 36H28L18 26Z', BASE)]),
+        V('Block', [sh(L({ w: 10, fr: 22, fb: 25 })), sh('M24 12H38V36H27L24 28Z')]),
+      ]],
+      ['Fuge durch beide', [
+        V('Slash durch beide', [sh(SIL), sh(band(15, 27, 3.5), BASE)]),
+        V('Slash steil', [sh(SIL), sh(band(19, 25, 3), BASE)]),
+        V('Slash flach', [sh(SIL), sh(band(9, 33, 3), BASE)]),
+        V('Backslash', [sh(SIL), sh(band(27, 15, 3.5), BASE)]),
+        V('Doppel-Slash', [sh(SIL), sh(band(12, 24, 2.5), BASE), sh(band(19, 31, 2.5), BASE)]),
+        V('Blitz', [sh('M10 12H17V20H20V28H17L23 36H10Z'), sh('M22 12H26A12 12 0 0 1 26 36L22 28H25V20H22Z')]),
+        V('Kreuzfuge', [sh(SIL), sh(GAP, BASE), sh(R(10, 22.5, 28, 2.5), BASE)]),
+        V('Horizontal geteilt', [sh(SIL), sh(R(10, 22.5, 28, 3), BASE)]),
+        V('Gebogene Fuge', [sh('M10 12H18A20 20 0 0 0 24 36H10Z'), sh('M23 12H26A12 12 0 0 1 26 36A20 20 0 0 1 23 12Z')]),
+        V('Fuge + Slash', [sh(SIL), sh(GAP, BASE), sh(band(27, 33, 2), BASE)]),
+      ]],
+      ['Negativ', [
+        V('Creme auf Orange', mark(CREAM, CREAM), { bg: O }),
+        V('Tinte auf Orange', mark(INK, INK), { bg: O }),
+        V('Creme auf Tinte', mark(CREAM, CREAM), { bg: INK }),
+        V('Kontur auf Orange', mark('none', 'none', { s: CREAM, w: 2 }), { bg: O }),
+        V('Monolith negativ', [sh(SIL, CREAM), sh(GAP, O)], { bg: O }),
+        V('Doppelt negativ', [sh(C(24, 24, 22), CREAM), ...mark(O, O, { t: sc(0.62) })], { bg: O }),
+        V('Halb / Halb', [sh(R(0, 0, 20.5, 48)), ...mark(CREAM, O)], { bg: INK }),
+        V('Aus Quadrat', [sh(RR(4, 4, 40, 40, 8), CREAM), ...mark(O, O, { t: sc(0.6) })], { bg: O }),
+        V('Nacht + Halo', [sh(C(26, 24, 19), O, { o: 0.18 }), ...mark(CREAM, O)], { bg: NIGHT }),
+        V('Creme + Schatten', [...mark(INK, INK, { t: 'translate(2.5 2.5)', o: 0.35 }), ...mark(CREAM, CREAM)], { bg: O }),
+      ]],
+      ['Mondform', [
+        V('Ellipse schmal', [sh(L()), sh('M23 12H26A8 12 0 0 1 26 36L23 28Z')]),
+        V('Ellipse breit', [sh(L()), sh('M23 12H26A16 12 0 0 1 26 36L23 28Z')]),
+        V('Tropfen', [sh(L()), sh('M23 12H26A12 12 0 0 1 38 24L26 36L23 28Z')]),
+        V('Hohl', [sh(L()), sh(D()), sh(HD(26, 24, 6), BASE)]),
+        V('Gekerbt', [sh(L()), sh(D()), sh(C(38, 16, 5), BASE)]),
+        V('Doppelmond', [sh(L()), sh('M23 12H26A6 6 0 0 1 26 24A6 6 0 0 1 26 36L23 28Z')]),
+        V('Geteilt', [sh(L()), sh(D()), sh(R(23, 23, 16, 2), BASE)]),
+        V('Auge', [sh(L()), sh(D()), sh(C(30, 24, 3), BASE)]),
+        V('Viertel', [sh(L()), sh('M23 12H26A12 12 0 0 1 38 24H23Z')]),
+        V('Sichel offen', [sh(D()), sh(C(20, 24, 9), BASE), sh(L())]),
+      ]],
+      ['L-Form', [
+        V('Ohne Fuß', [sh(R(10, 12, 8, 24)), sh(D())]),
+        V('Mond auf Fuß', [sh(L({ ft: 31, fr: 38, fb: 38 })), sh(D({ r: 8.5, bot: 29, ny: 29 }))]),
+        V('Kurzer Fuß', [sh(L({ fr: 19, fb: 21 })), sh(D())]),
+        V('Gamma', [sh(L(), O, { t: FLIPV }), sh(D())]),
+        V('Schmal', [sh(L({ w: 5, fr: 18, fb: 21 })), sh(D({ nx: 22 }))]),
+        V('Breit', [sh(L({ w: 10, fr: 22, fb: 25 })), sh(D({ nx: 24 }))]),
+        V('Serifen', [sh(L()), sh(R(8, 12, 2, 2.5)), sh(R(18, 12, 1.5, 2.5))]),
+        V('Geteilter Stamm', [sh(L()), sh(R(13.7, 12, 0.6, 22), BASE)]),
+        V('Kursives L', [sh(L(), O, { t: 'translate(3 0) skewX(-10)' }), sh(D())]),
+        V('Fuß gerundet', [sh('M10 12H18V28H21A8 8 0 0 1 24 36H10Z'), sh(D())]),
+      ]],
+      ['Proportion', [
+        V('Kompakt', mark(O, O, { t: 'translate(3.6 0) scale(0.85 1)' })),
+        V('Gestreckt', mark(O, O, { t: 'translate(-3.6 0) scale(1.15 1)' })),
+        V('Hoch', mark(O, O, { t: 'translate(0 -7.2) scale(1 1.3)' })),
+        V('Flach', mark(O, O, { t: 'translate(0 6) scale(1 0.75)' })),
+        V('Mini-Mond', [sh(L()), sh(D({ r: 7, top: 17, bot: 31 }))]),
+        V('Riesen-Mond', [sh(L()), sh(D({ r: 16, top: 8, bot: 40 }))]),
+        V('L dominant', [sh(L({ w: 12, fr: 23, fb: 25 })), sh(HD(26, 24, 12))]),
+        V('Haarlinie + Mond', [sh(L({ w: 2.5, fr: 19, fb: 22 })), sh(D())]),
+        V('Fett + Haarmond', [sh(L({ w: 10, fr: 22, fb: 25 })), st(D({ nx: 24 }), O, 1)]),
+        V('Versetzt', [sh(L(), O, { t: 'translate(0 4)' }), sh(D(), O, { t: 'translate(0 -4)' })]),
+      ]],
+      ['Schnitte', [
+        V('Stencil', [...mark(), sh(R(10, 19.4, 28, 1.2), BASE), sh(R(10, 28.4, 28, 1.2), BASE)]),
+        V('Halbiert', [...mark(), sh(R(9, 23.4, 30, 1.2), BASE)]),
+        V('Diagonal gestreift', [sh(SIL), ...[-4, 1.5, 7, 12.5, 18, 23.5, 29].map(x0 => sh(band(x0, x0 + 9, 1.8), BASE))]),
+        V('Vertikal gestreift', [sh(SIL), sh(GAP, BASE), sh(R(13.5, 12, 1, 24), BASE), sh(R(29.5, 12, 1, 24), BASE), sh(R(33.5, 12, 1, 24), BASE)]),
+        V('Gelocht', [...mark(), sh(C(14, 18, 1.6), BASE), sh(C(14, 30, 1.6), BASE), sh(C(31, 24, 1.8), BASE), sh(C(30, 16.5, 1.2), BASE), sh(C(30, 31.5, 1.2), BASE)]),
+        V('Gesprengt', [sh(L(), O, { t: 'translate(-2 -1.5)' }), sh(D(), O, { t: 'translate(2 1.5)' })]),
+        V('Scheiben', [...mark(), sh(R(9, 17.5, 30, 0.9), BASE), sh(R(9, 23.5, 30, 0.9), BASE), sh(R(9, 29.5, 30, 0.9), BASE)]),
+        V('Kerbe', [...mark(), sh(PL([[12, 12], [16, 12], [14, 15]]) + 'Z', BASE), sh(PL([[23.5, 12], [27.5, 12.1], [25.5, 15]]) + 'Z', BASE)]),
+        V('Perforiert', [sh(SIL), sh(GAP, BASE), ...perf()]),
+        V('Abgeschnitten', [sh(SIL), sh(GAP, BASE), sh(PL([[10, 29], [10, 36], [17, 36]]) + 'Z', BASE)]),
+      ]],
+      ['Hybrid', [
+        V('L rund, Mond eckig', [sh(Lr(3), O, rs(3)), sh(BOXD)]),
+        V('L eckig, Mond weich', [sh(L()), sh(Dr(3), O, rs(3))]),
+        V('Kapsel + Kreis', [sh(Lr(3, LS), O, rs(3)), sh(C(29, 27, 9))]),
+        V('Alles Kasten', [sh(L()), sh(BOXD)]),
+        V('Soft Box', [sh(L()), sh('M23 12H32A6 6 0 0 1 38 18V30A6 6 0 0 1 32 36H26L23 28Z')]),
+        V('Squircle', [sh(L()), sh('M23 12H30A8 8 0 0 1 38 20V28A8 8 0 0 1 30 36H26L23 28Z')]),
+        V('Fase + Rund', [sh(chamL(2.5)), sh(Dr(2), O, rs(2))]),
+        V('Weich + Slash', [...markR(2.5), sh(band(15, 27, 3.2), BASE)]),
+        V('Pixel, rund', pixR(4)),
+        V('Rund + Pixel-Mond', [sh(Lr(2.5), O, rs(2.5)), ...pixR(3, true)]),
+      ]],
+      ['Slash als Element', [
+        V('Slash als Linie', [...mark(), sh(band(13, 29, 1.2), BASE)]),
+        V('Slash in Tinte', [...mark(), st(LN(16, 42, 30, 6), FG, 2.2)]),
+        V('Fuge in Aprikose', [...mark(), sh(GAP, APR)]),
+        V('Fuge im Verlauf', [...mark(), sh(GAP, 'GRAD')], { g1: APR, g2: CORAL }),
+        V('Zwei Fugen', [sh(SIL), sh(GAP, BASE), sh(band(28, 34, 2), BASE)]),
+        V('Punkte in der Fuge', [...mark(), ...gapDots()]),
+        V('Fuge umgedreht', [sh('M10 12H18V28H24L21 36H10Z'), sh('M23 12H26A12 12 0 0 1 26 36V28H23Z')]),
+        V('Breite Fuge', [sh(L({ w: 7, fr: 18, fb: 21 })), sh(D({ nx: 25 }))]),
+        V('Haarfuge', [sh(L({ w: 11, fr: 22, fb: 25 })), sh(D())]),
+        V('Fuge + Punkt', [...mark(), sh(C(20.5, 8.5, 1.6))]),
+      ]],
+    ];
+    // Runde 5: 4a Primär, 4c bewegt (Loader, Favicon, Sticker)
+    const h = React.createElement;
+    const anim = (name, dur, ease) => ({ animation: `${name} ${dur} ${ease || 'ease-in-out'} infinite` });
+    const loader = (id, size, kind, bg) => {
+      const clip = 'clip-' + id, ghost = bg === INK ? '#3B2B1F' : '#FFE3CC';
+      const kids = [h('defs', { key: 'd' }, h('clipPath', { id: clip }, h('path', { d: SILr })))];
+      if (kind === 'sweep') { kids.push(h('path', { key: 'a', d: SILr, fill: O })); kids.push(h('g', { key: 'b', clipPath: `url(#${clip})` }, h('path', { d: BAND4, fill: bg, style: anim('loonaSweep', '1.5s', 'cubic-bezier(.65,0,.35,1)') }))); }
+      else if (kind === 'fill') { kids.push(h('path', { key: 'a', d: SILr, fill: ghost })); kids.push(h('g', { key: 'b', clipPath: `url(#${clip})` }, h('g', { style: anim('loonaSweep', '2.4s', 'cubic-bezier(.65,0,.35,1)') }, h('path', { d: 'M-40 12H15L27 36H-40Z', fill: O }), h('path', { d: BAND4, fill: bg })))); }
+      else if (kind === 'spin') { kids.push(h('g', { key: 'a', style: Object.assign({ transformOrigin: '24px 24px' }, anim('loonaSpin', '1.4s', 'cubic-bezier(.5,.1,.5,.9)')) }, h('path', { d: SILr, fill: O }), h('path', { d: BAND4, fill: bg }))); }
+      else { kids.push(h('path', { key: 'a', d: SILr, fill: O })); kids.push(h('path', { key: 'b', d: BAND4, fill: bg, style: anim('loonaBlink', '1.1s', 'steps(1)') })); }
+      return h('svg', { viewBox: '0 0 48 48', width: size, height: size, style: { display: 'block' } }, kids);
+    };
+    const build = (list, start, fstart) => { let n = start; return list.map(([title, items], fi) => ({ title, num: String(fstart + fi).padStart(2, '0'), items: items.map(v => { n++; const k = n; const mp = x => x === 'GRAD' ? `url(#lg${k})` : x === 'RGRAD' ? `url(#rg${k})` : x; return { n: k, id: String(k).padStart(3, '0'), name: v.name, bg: v.bg, g1: v.g1, g2: v.g2, shapes: v.shapes.map(s => Object.assign({}, s, { f: mp(s.f), s: mp(s.s) })) }; }) })); };
+    // Runde 3: echte Rundungen (Geometrie statt Strich-Trick)
+    const norm = v => { const l = Math.hypot(v[0], v[1]); return [v[0] / l, v[1] / l]; };
+    const roundPoly = (pts, spec) => { const n = pts.length; let d = ''; for (let i = 0; i < n; i++) { const P = pts[i], A = pts[(i - 1 + n) % n], B = pts[(i + 1) % n]; const s = spec[i]; if (!s) { d += (i ? 'L' : 'M') + `${fx(P[0])} ${fx(P[1])}`; continue; } const u1 = norm([A[0] - P[0], A[1] - P[1]]), u2 = norm([B[0] - P[0], B[1] - P[1]]); let t; if (s.c) t = s.c; else { const th = Math.acos(Math.max(-1, Math.min(1, u1[0] * u2[0] + u1[1] * u2[1]))); t = s.r / Math.tan(th / 2); } const P1 = [P[0] + u1[0] * t, P[1] + u1[1] * t], P2 = [P[0] + u2[0] * t, P[1] + u2[1] * t]; d += (i ? 'L' : 'M') + `${fx(P1[0])} ${fx(P1[1])}`; if (s.c) d += `L${fx(P2[0])} ${fx(P2[1])}`; else { const cross = u1[0] * u2[1] - u1[1] * u2[0]; d += `A${s.r} ${s.r} 0 0 ${cross < 0 ? 1 : 0} ${fx(P2[0])} ${fx(P2[1])}`; } } return d + 'Z'; };
+    const LPTS = [[10, 12], [18, 12], [18, 28], [21, 28], [24, 36], [10, 36]];
+    const Dround = (o) => { const { rTop = 0, cTop = 0, rBot = 0 } = o || {}; let d; if (cTop) d = `M23 ${fx(12 + cTop)}L${fx(23 + cTop)} 12`; else if (rTop) d = `M23 ${fx(12 + rTop)}A${rTop} ${rTop} 0 0 1 ${fx(23 + rTop)} 12`; else d = 'M23 12'; d += 'H26'; if (rBot) { const u2 = norm([-3, -8]); const th = Math.acos(u2[0]); const t = rBot / Math.tan(th / 2); const a = t / 12; const E = [26 + 12 * Math.sin(a), 24 + 12 * Math.cos(a)]; const P2 = [26 + u2[0] * t, 36 + u2[1] * t]; d += `A12 12 0 0 1 ${fx(E[0])} ${fx(E[1])}A${rBot} ${rBot} 0 0 1 ${fx(P2[0])} ${fx(P2[1])}`; } else d += 'A12 12 0 0 1 26 36'; return d + 'L23 28Z'; };
+    const RF = (oid, name, spec, lspec, dspec) => ({ oid, name, spec, shapes: [{ d: roundPoly(LPTS, lspec), f: O }, { d: Dround(dspec), f: O }] });
+    const r1 = { r: 1 }, r15 = { r: 1.5 }, r2 = { r: 2 }, c15 = { c: 1.5 }, c1 = { c: 1 };
+    const refine = [
+      RF('3a', 'Radius 1 außen, Fuge scharf', 'Nur die Silhouetten-Ecken gerundet (r 1). Fuge wie im Original: gerade Kanten, scharfe Ecken.', [r1, null, null, null, r1, r1], { rBot: 1 }),
+      RF('3b', 'Radius 1 außen, Fuge oben gefast (aus 111)', 'Außen r 1; die beiden Ecken an der Fugenöffnung tragen die 45°-Fase (1,5) aus 111.', [r1, c15, null, null, r1, r1], { cTop: 1.5, rBot: 1 }),
+      RF('3c', 'Radius 1 an allen konvexen Ecken', 'Auch Fugenöffnung und Fußkante gerundet; nur die zwei Innenecken bleiben scharf.', [r1, r1, null, r1, r1, r1], { rTop: 1, rBot: 1 }),
+      RF('3d', 'Radius 1,5 außen, Fuge scharf', 'Wie 3a, etwas weicher.', [r15, null, null, null, r15, r15], { rBot: 1.5 }),
+      RF('3e', 'Radius 2 außen, Fuge scharf', 'Wie 3a, deutlich weicher — Grenze, bevor es „bubbly“ wird.', [r2, null, null, null, r2, r2], { rBot: 2 }),
+      RF('3f', 'Radius 1 außen, Fase 1 an Fuge und Fußkante', 'Kleinere Fase (1) an der Fugenöffnung und an der Fußecke — ruhiger als 3b.', [r1, c1, null, c1, r1, r1], { cTop: 1, rBot: 1 }),
+    ];
+    // Runde 4: festgelegte Rundungen, Fuge scharf; Negativ / Squircle / Rechteck / Kreis × Farben
+    const L4r = roundPoly(LPTS, [r1, r1, null, null, null, r1]);
+    const D4r = Dround({ rTop: 1 });
+    const L4c = roundPoly(LPTS, [c15, c15, null, null, null, c15]);
+    const D4c = Dround({ cTop: 1.5 });
+    const SILr = 'M10 13A1 1 0 0 1 11 12H26A12 12 0 0 1 26 36H11A1 1 0 0 1 10 35Z';
+    const SILc = 'M10 13.5L11.5 12H26A12 12 0 0 1 26 36H11.5L10 34.5Z';
+    const BAND4 = band(15, 27, 3.5);
+    const squircle = (cx, cy, a) => { let d = ''; for (let i = 0; i < 72; i++) { const t = 2 * Math.PI * i / 72; const c = Math.cos(t), s = Math.sin(t); d += (i ? 'L' : 'M') + `${fx(cx + a * Math.sign(c) * Math.pow(Math.abs(c), 0.5))} ${fx(cy + a * Math.sign(s) * Math.pow(Math.abs(s), 0.5))}`; } return d + 'Z'; };
+    const form4 = (kind, fill, cut, t) => { t = t || ''; const m = kind === 'rund' ? [L4r, D4r] : kind === 'kantig' ? [L4c, D4c] : kind === 'slash-rund' ? [SILr] : [SILc]; const out = m.map(d => ({ d, f: fill, t })); if (kind.indexOf('slash') === 0) out.push({ d: BAND4, f: cut, t }); return out; };
+    const withInv = (kind) => form4(kind, O, CREAM).map((s, i, arr) => Object.assign({}, s, { fi: (kind.indexOf('slash') === 0 && i === arr.length - 1) ? O : CREAM }));
+    const base4 = [
+      { oid: '4a', name: 'Rund', spec: 'Radius 1 an L oben links, L oben rechts, L unten links und D oben links. Fuge, L-Fuß und D-Unterkante scharf.', shapes: withInv('rund') },
+      { oid: '4b', name: 'Kantig', spec: 'Dieselben vier Ecken mit 45°-Fase (1,5) statt Radius. Rest identisch zu 4a.', shapes: withInv('kantig') },
+      { oid: '4c', name: 'Rund + Fuge aus 121', spec: 'Silhouette mit Radius 1 an den Außenecken, Fuge als Slash durch beide Formen (121).', shapes: withInv('slash-rund') },
+      { oid: '4d', name: 'Kantig + Fuge aus 121', spec: 'Wie 4c, Außenecken gefast statt gerundet.', shapes: withInv('slash-kantig') },
+    ];
+    const cols4 = [
+      { name: 'Orange', hex: '#FF7816', kn: CREAM, tb: CREAM },
+      { name: 'Signalorange', hex: '#FF4D1C', kn: CREAM, tb: CREAM },
+      { name: 'Aprikose', hex: '#FFB366', kn: INK, tb: INK },
+      { name: 'Schwarz', hex: '#111111', kn: CREAM, tb: CREAM },
+      { name: 'Graphit', hex: '#3A3A3A', kn: CREAM, tb: CREAM },
+      { name: 'Weiß', hex: '#FFFFFF', kn: INK, tb: INK },
+      { name: 'Creme', hex: '#F6F1E8', kn: INK, tb: INK },
+      { name: 'Nacht', hex: '#0B1026', kn: CREAM, tb: CREAM },
+    ];
+    const treat4 = (kind, c) => { const T = sc(0.62); return [
+      { bg: c.tb, shapes: form4(kind, c.hex, c.tb) },
+      { bg: c.hex, shapes: form4(kind, c.kn, c.hex) },
+      { bg: c.tb, shapes: [{ d: squircle(24, 24, 21), f: c.hex, t: '' }, ...form4(kind, c.kn, c.hex, T)] },
+      { bg: c.tb, shapes: [{ d: R(3, 3, 42, 42), f: c.hex, t: '' }, ...form4(kind, c.kn, c.hex, T)] },
+      { bg: c.tb, shapes: [{ d: C(24, 24, 22), f: c.hex, t: '' }, ...form4(kind, c.kn, c.hex, T)] },
+    ]; };
+    const mkMatrix = (k1, k2) => cols4.map(c => { const a = treat4(k1, c), b = treat4(k2, c); const cells = []; for (let i = 0; i < 5; i++) cells.push(a[i], b[i]); return { name: c.name, hex: c.hex, cells }; });
+    const matrix4 = mkMatrix('rund', 'kantig');
+    const matrix4s = mkMatrix('slash-rund', 'slash-kantig');
+    const round5 = {
+      d4L: L4r, d4D: D4r, dSil: SILr, dBand: BAND4,
+      loaderSweep: loader('sw', 104, 'sweep', CREAM), loaderFill: loader('fi', 104, 'fill', CREAM), loaderSpin: loader('sp', 104, 'spin', CREAM),
+      loaderSweepD: loader('swd', 104, 'sweep', INK), loaderFillD: loader('fid', 104, 'fill', INK), loaderSpinD: loader('spd', 104, 'spin', INK),
+      favTab16: loader('fv16', 16, 'blink', '#FFFFFF'), favTab16D: loader('fv16d', 16, 'blink', '#2B2B2B'), fav32: loader('fv32', 32, 'blink', CREAM), fav64: loader('fv64', 64, 'blink', CREAM),
+    };
+    // Runde 7: Transformation Alt (Glaskugel) → Neu, 201–250 + Live-Animationen
+    const BLUE = '#2F7FD6', NAVY = '#0B2A4A', SKY = '#9CC8F2', BLACK = '#050505', EMBER = '#7A2E00';
+    const E = (cx, cy, rx, ry) => `M${cx - rx} ${cy}A${rx} ${ry} 0 1 0 ${cx + rx} ${cy}A${rx} ${ry} 0 1 0 ${cx - rx} ${cy}Z`;
+    const gloss = (cx, cy, rx, ry, o) => sh(E(cx, cy, rx, ry), WHITE, { o: o || 0.3 });
+    const orb = (ringF, discF, sphereF, g) => { const a = [sh(C(24, 24, 21), ringF), sh(C(24, 24, 15), discF), sh(C(26.5, 22, 12.5), sphereF)]; if (g) a.push(gloss(26.5, 17, 7, 3.2, 0.35)); return a; };
+    const V3 = (name, shapes, o) => Object.assign({ name, shapes, bg: INK, g1: O, g2: APR }, o || {});
+    const fams3 = [
+      ['Vom Orb zum Zeichen', [
+        V3('Alt: Glaskugel', orb('RGRAD', WHITE, BLACK, true), { bg: BLACK, g1: SKY, g2: NAVY }),
+        V3('Ring wird orange', orb('RGRAD', WHITE, BLACK, true), { bg: BLACK, g1: APR, g2: EMBER }),
+        V3('Sichel wird orange', orb('RGRAD', O, BLACK, true), { bg: BLACK, g1: APR, g2: EMBER }),
+        V3('Glanz verschwindet', orb('RGRAD', O, INK, false), { g1: APR, g2: EMBER }),
+        V3('Ring wird Linie', [st(C(24, 24, 21), O, 1.2), sh(C(24, 24, 15)), sh(C(26.5, 22, 12.5), INK)]),
+        V3('Sichel wendet sich', [st(C(24, 24, 21), O, 1.2), sh(C(24, 24, 15)), sh(C(20, 24, 13), INK)]),
+        V3('Halbmond', [sh(C(26, 24, 12)), sh(R(0, 0, 26, 48), INK), st(C(24, 24, 21), O, 1.2)]),
+        V3('L erscheint', [st(C(24, 24, 21), O, 1.2, { o: 0.5 }), sh(HD(26, 24, 12)), sh(R(14, 12, 3, 24))]),
+        V3('L wächst, Fuge entsteht', [st(C(24, 24, 21), O, 1.2, { o: 0.2 }), ...mark(O, O, { t: sc(0.92) })]),
+        V3('Neu: Zeichen', mark()),
+      ]],
+      ['Glas & Glanz am Zeichen', [
+        V3('Glaskugel blau', [sh(C(24, 24, 21), 'RGRAD'), sh(C(24, 24, 16), INK), ...mark(O, O, { t: sc(0.55) }), gloss(24, 17.5, 9, 3.5, 0.3)], { g1: SKY, g2: NAVY }),
+        V3('Glaskugel orange', [sh(C(24, 24, 21), 'RGRAD'), sh(C(24, 24, 16), INK), ...mark(CREAM, CREAM, { t: sc(0.55) }), gloss(24, 17.5, 9, 3.5, 0.3)], { g1: APR, g2: EMBER }),
+        V3('Schwarze Kugel', [sh(C(24, 24, 21), BLACK), ...mark(O, O, { t: sc(0.6) }), gloss(24, 15, 12, 4.5, 0.28)], { bg: '#1E1E1E' }),
+        V3('Orange Kugel', [sh(C(24, 24, 21)), ...mark(CREAM, CREAM, { t: sc(0.6) }), gloss(24, 15, 12, 4.5, 0.3)]),
+        V3('Glasring', [st(C(24, 24, 20), 'RGRAD', 3), ...mark(O, O, { t: sc(0.6) })], { g1: SKY, g2: BLUE }),
+        V3('Reflexion', [...mark(O, O, { t: sc(0.6, 24, 24, 0, -7) }), ...mark(O, O, { t: FLIPV + ' ' + sc(0.6, 24, 24, 0, -7), o: 0.22 })]),
+        V3('Verlauf im Zeichen', [sh(L(), 'GRAD'), sh(D(), 'GRAD')], { g1: O, g2: CORAL }),
+        V3('Mond blau → orange', [sh(L()), sh(D(), 'GRAD')], { g1: BLUE, g2: O }),
+        V3('Glow', [sh(C(24, 24, 22), 'RGRAD'), ...mark()], { g1: '#B4500E', g2: INK }),
+        V3('Kugel, Ring, Glow', [sh(C(24, 24, 23), 'RGRAD'), sh(C(24, 24, 17), BLACK), st(C(24, 24, 17), O, 1), ...mark(O, O, { t: sc(0.5) }), gloss(24, 12.5, 9, 3, 0.25)], { g1: '#B4500E', g2: INK }),
+      ]],
+      ['Sichel trifft L', [
+        V3('L + Sichel (alt)', [sh(L(LS)), sh(C(29, 27, 9)), sh(C(32, 25, 8), INK)]),
+        V3('Sichel gewendet', [sh(L(LS)), sh(C(29, 27, 9)), sh(C(26, 29, 8), INK)]),
+        V3('Sichel dünn', [sh(L(LS)), sh(C(29, 27, 9)), sh(C(31, 26, 8.6), INK)]),
+        V3('Sichel + Glanz', [sh(L(LS)), sh(C(29, 27, 9)), sh(C(32, 25, 8), BLACK), gloss(32.5, 21, 4, 1.6, 0.35)]),
+        V3('Weiße Sichel', [sh(L(LS)), sh(C(29, 27, 9), WHITE), sh(C(32, 25, 8), INK)]),
+        V3('Sichel in D-Kontur', [sh(L()), st(D(), O, 1.5), sh(C(28, 24, 6)), sh(C(30, 22.5, 5.2), INK)]),
+        V3('Mondphase im D', [sh(L()), sh(D()), sh(C(30, 20, 7), INK)]),
+        V3('Doppelsichel', [sh(L(LS)), sh(C(29, 27, 9)), sh(C(32, 25, 8), INK), sh(C(32, 25, 5)), sh(C(34, 24, 4.4), INK)]),
+        V3('Sichel umschließt', [sh(C(24, 24, 20)), sh(C(28, 23, 17), INK), ...mark(O, O, { t: sc(0.55, 24, 24, 3, 0) })]),
+        V3('Sichel statt D', [sh(L()), sh(C(29, 24, 10)), sh(C(25, 24, 9), INK)]),
+      ]],
+      ['Orb-Badges', [
+        V3('Blauer Ring', [st(C(24, 24, 21.5), BLUE, 2), sh(C(24, 24, 19), INK), ...mark(O, O, { t: sc(0.55) })]),
+        V3('Oranger Ring', [st(C(24, 24, 21.5), O, 2), sh(C(24, 24, 19), INK), ...mark(O, O, { t: sc(0.55) })]),
+        V3('Glow außen', [sh(C(24, 24, 24), 'RGRAD'), sh(C(24, 24, 17), INK), ...mark(O, O, { t: sc(0.5) })], { g1: INK, g2: O }),
+        V3('Reflexion unten', [sh(C(24, 24, 19), BLACK), ...mark(O, O, { t: sc(0.55) }), sh(E(24, 45.5, 13, 1.4), WHITE, { o: 0.14 })]),
+        V3('Nacht + Sterne', [sh(C(24, 24, 21), NIGHT), sh(C(12, 14, 0.7), CREAM), sh(C(36, 10, 0.5), CREAM), sh(C(38, 36, 0.6), CREAM), ...mark(O, O, { t: sc(0.55) })]),
+        V3('Orange + Glanz', [sh(C(24, 24, 21)), ...mark(CREAM, CREAM, { t: sc(0.55) }), gloss(24, 15, 12, 4.5, 0.3)]),
+        V3('Glas + Weiß', [sh(C(24, 24, 21), 'RGRAD'), sh(C(24, 24, 16), INK), ...mark(WHITE, WHITE, { t: sc(0.5) })], { g1: SKY, g2: NAVY }),
+        V3('Creme + Ring', [sh(C(24, 24, 21), CREAM), st(C(24, 24, 18.5), O, 1.2), ...mark(O, O, { t: sc(0.5) })]),
+        V3('Doppelring', [st(C(24, 24, 22), BLUE, 1.2), st(C(24, 24, 19), O, 1.2), ...mark(O, O, { t: sc(0.5) })]),
+        V3('Monolith im Kreis', [sh(C(24, 24, 21), BLACK), sh(SIL, O, { t: sc(0.6) }), sh(GAP, BLACK, { t: sc(0.6) })]),
+      ]],
+      ['Blau → Orange', [
+        V3('Zeichen in Alt-Blau', mark(BLUE, BLUE)),
+        V3('L blau, Mond orange', mark(BLUE, O)),
+        V3('L orange, Mond blau', mark(O, BLUE)),
+        V3('Verlauf blau → orange', [sh(L(), 'GRAD'), sh(D(), 'GRAD')], { g1: BLUE, g2: O }),
+        V3('Navy + Sky-Ring', [st(C(24, 24, 21), SKY, 1.2), ...mark(O, O, { t: sc(0.6) })], { bg: NAVY }),
+        V3('Blau auf Creme', mark(BLUE, BLUE), { bg: CREAM }),
+        V3('Orange auf Blau', mark(), { bg: BLUE }),
+        V3('Creme auf Navy', mark(CREAM, CREAM), { bg: NAVY }),
+        V3('Zwei Flächen', [sh(R(0, 0, 20.5, 48), BLUE), sh(R(20.5, 0, 27.5, 48), O), ...mark(CREAM, CREAM)]),
+        V3('Blauer Glow', [sh(C(24, 24, 22), 'RGRAD'), ...mark()], { g1: BLUE, g2: INK }),
+      ]],
+    ];
+    const ZL = 'M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z', ZD = 'M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z', ZB = 'M13 11H16.5L28.5 35H25Z', ZG = 'M16 11H21V27L24 35H22L19 27H16Z';
+    const vb = (kids) => h('svg', { viewBox: '6 9 32 28', width: 128, height: 112, style: { display: 'block' } }, kids);
+    const anims = {
+      animReveal: vb([h('path', { key: 'l', d: ZL, fill: O, style: anim('loonaRevealL', '2.6s', 'cubic-bezier(.2,.8,.2,1)') }), h('path', { key: 'd', d: ZD, fill: O, style: anim('loonaRevealD', '2.6s', 'cubic-bezier(.2,.8,.2,1)') })]),
+      animHover: vb([h('path', { key: 'l', d: ZL, fill: O }), h('path', { key: 'd', d: ZD, fill: O }), h('path', { key: 'g', d: ZG, fill: O, style: Object.assign({ transformOrigin: '16px 11px' }, anim('loonaGapFill', '3s', 'cubic-bezier(.65,0,.35,1)')) }), h('path', { key: 'b', d: ZB, fill: CREAM, style: anim('loonaBandIn', '3s', 'steps(1)') })]),
+      animMoon: h('svg', { viewBox: '0 0 64 64', width: 112, height: 112, style: { display: 'block' } }, [h('defs', { key: 'd' }, h('clipPath', { id: 'anim-hole' }, h('path', { d: ZD }))), h('rect', { key: 'r', width: 64, height: 64, rx: 14, fill: '#171310' }), h('g', { key: 'g', transform: 'translate(9.6 8.6) scale(1.018)' }, [h('path', { key: 'a', d: 'M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z', fill: O }), h('path', { key: 'b', d: 'M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z', fill: O, fillRule: 'evenodd' }), h('g', { key: 'c', clipPath: 'url(#anim-hole)' }, [h('path', { key: 'o', d: ZD, fill: O }), h('path', { key: 'k', d: C(24, 23, 12), fill: '#171310', style: anim('loonaMoon', '2.8s', 'cubic-bezier(.2,.8,.2,1)') })])])]),
+      animWipe: h('svg', { viewBox: '0 0 48 30', width: 168, height: 105, style: { display: 'block', borderRadius: 8, background: CREAM } }, [h('rect', { key: '1', x: 6, y: 8, width: 20, height: 3, rx: 1.5, fill: '#D9D2C5' }), h('rect', { key: '2', x: 6, y: 14, width: 30, height: 2, rx: 1, fill: '#E3DCCF' }), h('rect', { key: '3', x: 6, y: 19, width: 26, height: 2, rx: 1, fill: '#E3DCCF' }), h('path', { key: 'w', d: 'M-60 0H-10L5 30H-60Z', fill: O, style: anim('loonaWipe', '2.2s', 'cubic-bezier(.7,0,.3,1)') })]),
+      animSweep: loader('sw7', 112, 'sweep', CREAM), animBlink: loader('bl7', 64, 'blink', CREAM),
+    };
+    const families3 = build(fams3, 200, 21);
+    const M = (name) => anim(name, '6s', 'cubic-bezier(.65,0,.35,1)');
+    const animMorph = h('svg', { viewBox: '0 0 48 48', width: 168, height: 168, style: { display: 'block' } }, [
+      h('defs', { key: 'd' }, h('radialGradient', { id: 'mg-ring', cx: '0.5', cy: '0.42', r: '0.6' }, [h('stop', { key: 1, offset: '0', stopColor: SKY }), h('stop', { key: 2, offset: '1', stopColor: NAVY })])),
+      h('circle', { key: 'rb', cx: 24, cy: 24, r: 21, fill: 'url(#mg-ring)', style: M('loonaMRingBlue') }),
+      h('circle', { key: 'ro', cx: 24, cy: 24, r: 21, fill: 'none', stroke: O, strokeWidth: 1.2, style: M('loonaMRingO') }),
+      h('circle', { key: 'dw', cx: 26, cy: 24, r: 12, fill: WHITE, style: M('loonaMDiscW') }),
+      h('circle', { key: 'do', cx: 26, cy: 24, r: 12, fill: O, style: M('loonaMDiscO') }),
+      h('circle', { key: 'cv', cx: 26, cy: 24, r: 10.5, fill: INK, style: M('loonaMCover') }),
+      h('path', { key: 'gl', d: E(28, 19.5, 5.5, 2.4), fill: WHITE, style: M('loonaMGloss') }),
+      h('path', { key: 'D', d: D4r, fill: O, style: M('loonaMD') }),
+      h('path', { key: 'L', d: L4r, fill: O, style: M('loonaML') }),
+    ]);
+    anims.animMorph = animMorph;
+    const families = build(fams, 0, 1);
+    const families2 = build(fams2, 100, 11);
+    const lockups = [
+      { bg: CREAM, color: INK, font: "800 40px/1 Manrope, sans-serif", ls: '-0.03em', text: 'loona', size: 44, shapes: mark() },
+      { bg: INK, color: CREAM, font: "700 28px/1 'Space Grotesk', sans-serif", ls: '0.22em', text: 'LOONA', size: 40, shapes: mark() },
+      { bg: CREAM, color: INK, font: "italic 400 46px/1 'Instrument Serif', serif", ls: '-0.01em', text: 'Loona', size: 44, shapes: mark() },
+      { bg: O, color: CREAM, font: "800 40px/1 Manrope, sans-serif", ls: '-0.03em', text: 'loona', size: 44, shapes: mark(CREAM, CREAM) },
+      { bg: CREAM, color: INK, font: "500 15px/1 'JetBrains Mono', monospace", ls: '0', text: 'loona-designs.tech', size: 32, shapes: mark() },
+      { bg: NIGHT, color: CREAM, font: "600 34px/1 Manrope, sans-serif", ls: '-0.02em', text: 'loona', size: 40, shapes: mark(CREAM, O) },
+    ];
+    const cgrid = []; for (let v = 4; v < 48; v += 4) { cgrid.push({ d: LN(v, 0, v, 48) }); cgrid.push({ d: LN(0, v, 48, v) }); }
+    const heat = Array.from({ length: 182 }, (_, i) => { const v = Math.abs(Math.sin(i * 12.9898 + 7) * 43758.5453) % 1; return { o: v < 0.38 ? 0.1 : v < 0.62 ? 0.32 : v < 0.86 ? 0.62 : 1 }; });
+    return { ...round5, ...anims, families3, families, families2, refine, base4, matrix4, matrix4s, lockups, cgrid, heat, sizes: [16, 24, 32, 48, 64], showLabels: p.showLabels !== false };
+  }
+}
+</script>
+</body>
+</html>

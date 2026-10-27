@@ -7,6 +7,7 @@ import { heroMode } from '../hero/heroInk';
 import { useSite } from '../settings/SiteProvider';
 import { SKETCH_HTML } from './sketchMarkup';
 import { LogoTile } from '../settings/LogoTile';
+import { IntroTransform, LoonaMark, LoonaZeichen } from '@/components/brand';
 import { FULL_BOX, PHONE_BOX } from '../chrome/phoneBox';
 import { TerminalSplash, terminalSplashMs } from './TerminalSplash';
 import { EXTRA_MODES } from '../hero/extra/meta';
@@ -15,7 +16,11 @@ import { EXTRA_MODES } from '../hero/extra/meta';
 export const SPLASH_REPLAY_EVENT = 'ld-splash-replay';
 
 const mono = 'var(--ld-font-mono),monospace';
-const SPLASH_KINDS = ['logo', 'lines', 'sketch', 'terminal', 'terminal2'];
+const SPLASH_KINDS = ['logo', 'lines', 'sketch', 'terminal', 'terminal2', 'reveal', 'sweep', 'wandel'];
+/** Logo-Splashs des Brand-Systems 2026-10 (docs/design_handoff_loona_brand README „Animationen“) — auf Tinte. */
+const BRAND_KINDS = ['reveal', 'sweep', 'wandel'];
+const INK = '#171310';
+const CREAM = '#F6F1E8';
 /** Testen ohne Einstellungen: ?splash=terminal (bzw. logo/lines/sketch) spielt diesen Splash beim Laden immer ab. */
 const urlSplash = () => {
   if (typeof window === 'undefined') return null;
@@ -34,6 +39,8 @@ export function Splash() {
   // 2 = sichtbar, 1 = blendet aus, 0 = entfernt. Vor der Hydration nur der dunkle Grund (Boot-Script blendet bei „aus“ aus).
   const [phase, setPhase] = useState<0 | 1 | 2>(2);
   const [run, setRun] = useState(0);
+  // Sweep-Splash: Loader endet im Zeichen (Crossfade), kurz bevor der Splash ausblendet
+  const [loaded, setLoaded] = useState(false);
   // Landing Page /welcome hat ihren eigenen Auftritt (alte Website → neue) — dort kein Splash
   const path = canonicalPath(usePathname());
   const welcome = path === '/welcome';
@@ -51,7 +58,17 @@ export function Splash() {
     // Terminal-Splash dauert so lange, wie getippt wird (bei „Animationen aus“ kurz); Klick/Taste überspringt
     document.body.classList.remove('ldnosplash');
     const term = /^terminal/.test(kindOf(urlSplash() ?? s.splashAnim));
-    const show = term ? (s.anim ? terminalSplashMs(heroMode(s), EXTRA_MODES[heroMode(s)]?.label) : 1200) : 2500;
+    // „Alt → Neu“ dauert 6 s (Brand-README) + kurz stehen lassen
+    const kind = kindOf(urlSplash() ?? s.splashAnim);
+    const show = term
+      ? s.anim
+        ? terminalSplashMs(heroMode(s), EXTRA_MODES[heroMode(s)]?.label)
+        : 1200
+      : kind === 'wandel' && s.anim
+        ? 6500
+        : 2500;
+    setLoaded(false);
+    const t0 = setTimeout(() => setLoaded(true), show - 400);
     let t1 = setTimeout(() => setPhase(1), show);
     let t2 = setTimeout(() => setPhase(0), show + 600);
     const skip = () => {
@@ -70,6 +87,7 @@ export function Splash() {
       window.addEventListener('keydown', skip);
     }
     return () => {
+      clearTimeout(t0);
       clearTimeout(t1);
       clearTimeout(t2);
       off();
@@ -119,12 +137,20 @@ export function Splash() {
         alignItems: 'center',
         justifyContent: 'center',
         // Terminal 2: durchsichtig — darunter entsteht die (schwarze) Seite
-        background: anim === 'terminal2' ? 'transparent' : 'radial-gradient(90% 70% at 50% 38%,#101A2E,#0A1220 70%)',
+        background:
+          anim === 'terminal2'
+            ? 'transparent'
+            : anim && BRAND_KINDS.includes(anim)
+              ? INK
+              : 'radial-gradient(90% 70% at 50% 38%,#101A2E,#0A1220 70%)',
         opacity: phase === 2 ? 1 : 0,
         transition: 'opacity 0.5s ease',
         pointerEvents: phase === 2 ? 'auto' : 'none',
       }}
     >
+      {anim === 'reveal' && <RevealSplash m={mob ? 36 : 64} />}
+      {anim === 'sweep' && <LoonaZeichen variant="motion" motion="sweep" done={loaded} size={mob ? 56 : 72} decorative />}
+      {anim === 'wandel' && <IntroTransform size={mob ? 168 : 220} aria-hidden />}
       {anim === 'terminal' && <TerminalSplash mode={hm} anim={s.anim} />}
       {anim === 'terminal2' && <TerminalSplash mode={hm} anim={s.anim} variant={2} />}
       {anim === 'sketch' && (
@@ -189,7 +215,7 @@ export function Splash() {
                 animation: 'ldSpBox 0.65s 0.85s cubic-bezier(0.2,1.35,0.3,1) both',
               }}
             >
-              <LogoTile variant="color" size={76} style={{ display: 'block' }} />
+              <LogoTile variant="color" size={76} style={{ display: 'block' }} moonDelay="1.5s" />
             </span>
             <span
               style={{
@@ -241,7 +267,7 @@ export function Splash() {
               animation: 'ldSplashLogo 0.7s cubic-bezier(0.2,0.9,0.3,1) both,ldSplashBreath 2.2s ease-in-out 0.7s infinite',
             }}
           >
-            <LogoTile variant="color" size={84} style={{ display: 'block' }} />
+            <LogoTile variant="color" size={84} style={{ display: 'block' }} moonDelay="0.7s" />
           </span>
           <span
             style={{
@@ -283,6 +309,48 @@ export function Splash() {
           </span>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Splash „Reveal“ (Brand-README „Reveal“, 1,2 s): L von links, Mond von unten; „dann als Lockup verkleinern
+ * (scale .72), Textzeilen erscheinen“. Das Zeichen steht zuerst groß (1/0,72) in der Mitte; danach wächst die
+ * Wortmarke rechts daneben auf (max-width), das Zeichen rückt dadurch nach links. Maße wie LoonaLockup
+ * (Brand Guide S. 07: Schrift 0,9275 · m, Abstand 0,46 · m).
+ */
+function RevealSplash({ m }: { m: number }) {
+  const ease = 'cubic-bezier(0.2,0.8,0.2,1)';
+  return (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <span style={{ display: 'block', transformOrigin: 'center', animation: `ldSpRevMark 0.6s 1.25s ${ease} both` }}>
+        <LoonaMark size={m} motion="reveal" decorative style={{ display: 'block' }} />
+      </span>
+      <span
+        style={
+          {
+            display: 'block',
+            // nur waagerecht beschneiden — sonst fehlen die Unterlängen („g“)
+            overflowX: 'clip',
+            '--ld-rev-w': `${m * 10}px`,
+            animation: `ldSpRevText 0.7s 1.3s ${ease} both`,
+          } as CSSProperties
+        }
+      >
+        <span
+          style={{
+            display: 'block',
+            paddingLeft: Math.round(m * 0.46),
+            font: `800 ${Math.round(m * 0.9275)}px/1 var(--loona-font-wordmark)`,
+            letterSpacing: '-0.035em',
+            color: CREAM,
+            whiteSpace: 'nowrap',
+            animation: `ldSplashText 0.5s 1.5s ${ease} both`,
+          }}
+        >
+          loona! <span style={{ fontWeight: 500 }}>designs</span>
+        </span>
+      </span>
     </div>
   );
 }

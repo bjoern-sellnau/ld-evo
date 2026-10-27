@@ -52,6 +52,10 @@ export const EXTRA_MODES: Record<string, ExtraModeMeta> = {
   sky: { label: 'Tageszeit-Himmel (Berlin)', renderer: 'canvas2d', bg: '#0A1230', sample: '0.12,0.12', lum: 0.14 },
   weather: { label: 'Wetter Berlin', renderer: 'canvas2d', bg: '#1A2433', sample: '0.14,0.14', lum: 0.15 },
   inkwater: { label: 'Tinte im Wasser', renderer: 'webgl', bg: '#04070C', sample: '0.06,0.06', lum: 0.07 },
+  // Zwei Horizonte (horizons.ts): Schwarze Löcher über Feldern — im Wechsel oder je eine Szene
+  horizons: { label: 'Zwei Horizonte', renderer: 'webgl', bg: '#0A0710', sample: '0.12,0.12', lum: 0.14 },
+  aurum: { label: 'Zwei Horizonte: Aurum', renderer: 'webgl', bg: '#120804', sample: '0.12,0.12', lum: 0.14 },
+  viola: { label: 'Zwei Horizonte: Viola', renderer: 'webgl', bg: '#16141F', sample: '0.16,0.16', lum: 0.18 },
   // Live-Build (build.ts): schwarze Seite, Terminal baut die Startseite, Elemente erscheinen nach und nach
   buildcode: { label: 'Live-Build: Code', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },
   buildcodets: { label: 'Live-Build: Code (Timeshift)', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },

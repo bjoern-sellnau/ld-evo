@@ -111,6 +111,14 @@
   font-weight: 500;
 }
 
+.chip {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 80px;
+  border-radius: 12px;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;

@@ -6,16 +6,30 @@ import { useSite } from './SiteProvider';
 import { useLogo } from './useLogo';
 
 /**
- * LD-Kachel der Site mit den Logo-Einstellungen:
+ * LD-Kachel der Site (Badge-Format, Brand-System 2026-10) mit den Logo-Einstellungen:
  *  - „Logo negativ“ (ld-logoneg): Farb- ↔ Ink-Kachel bzw. Zeichen in der Gegenfarbe (useLogo)
- *  - „Logo only negative“ (ld-logobare): nur der Negativraum des Monogramms (L + D, ohne Spalt und Fuge) in der
- *    gewählten Farbe (ld-lognegcolor, auch „auto“), mittig in derselben Fläche — das Layout verschiebt sich nicht.
+ *  - „Logo only negative“ (ld-logobare): nur der Negativraum des Badges — das Zeichen — in der gewählten Farbe
+ *    (ld-lognegcolor, auch „auto“), mittig in derselben Fläche — das Layout verschiebt sich nicht.
  *  - „Logo-Farbe: Auto“ (ld-logoauto): beide Kacheln liegen im DOM, die Kontrastmessung (src/site/glass/logoContrast.ts)
  *    blendet per data-tone die sichtbarere ein; bis zur ersten Messung gilt die gewünschte Variante (data-want).
  */
-export function LogoTile({ variant, size, style }: { variant: 'ink' | 'color'; size: number; style?: CSSProperties }) {
+export function LogoTile({
+  variant,
+  size,
+  style,
+  moonDelay,
+}: {
+  variant: 'ink' | 'color';
+  size: number;
+  style?: CSSProperties;
+  /** Logo-Animation „Mondphase“ (Badge wird aktiv, App-Start) nach dieser Verzögerung, z. B. '0.7s'. */
+  moonDelay?: string;
+}) {
   const { settings } = useSite();
   const logo = useLogo();
+  const moon = moonDelay
+    ? { motion: 'moonphase' as const, style: { '--loona-moon-delay': moonDelay } as CSSProperties }
+    : { motion: 'none' as const };
   if (!settings.logoBare && settings.logoAuto)
     return (
       <span
@@ -23,13 +37,14 @@ export function LogoTile({ variant, size, style }: { variant: 'ink' | 'color'; s
         className="ld-autotile"
         data-ldlogoauto="tile"
         data-want={logo.tile(variant)}
-        style={{ width: size, height: size, ...style }}
+        style={{ width: size, height: size, ...moon.style, ...style }}
       >
-        <LoonaTile product="ld" variant="color" size={size} decorative data-v="color" />
-        <LoonaTile product="ld" variant="ink" size={size} decorative data-v="ink" />
+        <LoonaTile product="ld" variant="color" size={size} decorative data-v="color" {...moon} />
+        <LoonaTile product="ld" variant="ink" size={size} decorative data-v="ink" {...moon} />
       </span>
     );
-  if (!settings.logoBare) return <LoonaTile product="ld" variant={logo.tile(variant)} size={size} decorative style={style} />;
+  if (!settings.logoBare)
+    return <LoonaTile product="ld" variant={logo.tile(variant)} size={size} decorative {...moon} style={{ ...moon.style, ...style }} />;
   return (
     <span
       aria-hidden

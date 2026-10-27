@@ -205,6 +205,8 @@ function migrate(db: DatabaseSync) {
     backfillSingletons(db);
     seedAdditions(db);
     seedWelcome(db);
+    seedPortfolio(db);
+    seedLabsMove(db);
     seedTranslations(db);
     db.exec('COMMIT');
   } catch (e) {
@@ -319,6 +321,81 @@ function seedWelcome(db: DatabaseSync) {
     );
   }
   db.prepare("INSERT INTO meta (key, value) VALUES ('seed_welcome', ?)").run(String(Date.now()));
+}
+
+/**
+ * Abgleich mit dem Portfolio der alten Website (loona-designs.de/portfolio.htm, Stand 10/2026): Originalbilder der
+ * Archiv-Projekte als Galerie, „in Arbeit“ bei Corefall/Covert Operations, genaue Online-Daten der DesignUpdates.
+ * Einmalig (meta seed_portfolio) für bestehende Installationen — Galerie nur, wo noch kein Bild gesetzt ist, Status nur,
+ * wo noch der alte Startwert steht. Eigene Änderungen in LD Flow bleiben also erhalten.
+ */
+const PORTFOLIO_OLD_STATUS: Record<string, Record<string, string | undefined>> = {
+  de: { corefall: undefined, covert: undefined, du2016: 'online seit 03/2016', du2015: 'abgelöst 2016', du2011: 'abgelöst 2015' },
+  en: { corefall: undefined, covert: undefined, du2016: 'online since 03/2016', du2015: 'replaced 2016', du2011: 'replaced 2015' },
+};
+const PORTFOLIO_GALLERY = ['cattshop', 'ld2006', 'fahrschule', 'catt2005', 'hannoback', 'yayci'];
+
+function seedPortfolio(db: DatabaseSync) {
+  if (db.prepare("SELECT 1 FROM meta WHERE key = 'seed_portfolio'").get()) return;
+  const rows = db.prepare("SELECT id, locale, published, draft FROM docs WHERE collection = 'projects'").all() as {
+    id: string;
+    locale: string;
+    published: string | null;
+    draft: string | null;
+  }[];
+  for (const r of rows) {
+    const lang = r.locale === 'en' ? 'en' : 'de';
+    const seed = seedDocs(lang).find((d) => d.collection === 'projects' && d.id === r.id)?.data;
+    if (!seed) continue;
+    const old = PORTFOLIO_OLD_STATUS[lang];
+    const fix = (json: string | null) => {
+      if (!json) return null;
+      const cur = JSON.parse(json) as Record<string, unknown>;
+      let changed = false;
+      if (r.id in old && cur.status === old[r.id] && seed.status !== undefined) {
+        cur.status = seed.status;
+        changed = true;
+      }
+      const gal = cur.gallery as ({ src?: string } | null)[] | undefined;
+      if (PORTFOLIO_GALLERY.includes(r.id) && !gal?.some((g) => g?.src) && seed.gallery) {
+        cur.gallery = seed.gallery;
+        changed = true;
+      }
+      return changed ? JSON.stringify(cur) : null;
+    };
+    const pub = fix(r.published);
+    const dr = fix(r.draft);
+    if (pub) db.prepare("UPDATE docs SET published = ? WHERE collection = 'projects' AND id = ? AND locale = ?").run(pub, r.id, r.locale);
+    if (dr) db.prepare("UPDATE docs SET draft = ? WHERE collection = 'projects' AND id = ? AND locale = ?").run(dr, r.id, r.locale);
+  }
+  db.prepare("INSERT INTO meta (key, value) VALUES ('seed_portfolio', ?)").run(String(Date.now()));
+}
+
+/**
+ * KI-Projekte gehören zu Labs (Wunsch vom 23.10.2026): Neue Webseite, LD Buddy, LD NotchBuddy und LD Beyond wechseln
+ * einmalig (meta seed_labs_move) von „projekte“ nach „labs“ — nur, wo die Art noch auf dem alten Startwert steht.
+ */
+const LABS_MOVE = ['neuewebsite', 'ldbuddy', 'notchbuddy', 'ldbeyond'];
+
+function seedLabsMove(db: DatabaseSync) {
+  if (db.prepare("SELECT 1 FROM meta WHERE key = 'seed_labs_move'").get()) return;
+  const sel = db.prepare("SELECT locale, published, draft FROM docs WHERE collection = 'projects' AND id = ?");
+  for (const id of LABS_MOVE) {
+    for (const r of sel.all(id) as { locale: string; published: string | null; draft: string | null }[]) {
+      const fix = (json: string | null) => {
+        if (!json) return null;
+        const cur = JSON.parse(json) as Record<string, unknown>;
+        if (cur.kind !== 'projekte') return null;
+        cur.kind = 'labs';
+        return JSON.stringify(cur);
+      };
+      const pub = fix(r.published);
+      const dr = fix(r.draft);
+      if (pub) db.prepare("UPDATE docs SET published = ? WHERE collection = 'projects' AND id = ? AND locale = ?").run(pub, id, r.locale);
+      if (dr) db.prepare("UPDATE docs SET draft = ? WHERE collection = 'projects' AND id = ? AND locale = ?").run(dr, id, r.locale);
+    }
+  }
+  db.prepare("INSERT INTO meta (key, value) VALUES ('seed_labs_move', ?)").run(String(Date.now()));
 }
 
 /**

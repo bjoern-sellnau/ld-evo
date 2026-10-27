@@ -6,7 +6,7 @@ import { mono } from '../cards/ProjectCard';
 import { Lightbox } from '../overlays/Lightbox';
 import overlayStyles from '../overlays/overlays.module.css';
 import styles from './detail.module.css';
-import { mediaSrcSet } from '@/cms/media';
+import { mediaSrcSet, withBase } from '@/cms/media';
 import { readableAlpha } from '../lib/color';
 import { useHref, useT } from '../i18n/LocaleProvider';
 
@@ -84,12 +84,13 @@ function Slot({
     return (
       <div style={box}>
         <img
-          src={image.src}
+          src={withBase(image.src)}
           srcSet={mediaSrcSet(image.src)}
           sizes="(max-width: 900px) 100vw, 900px"
           alt={image.alt}
           loading="lazy"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          // oben ausrichten: Galerien zeigen meist Website-Screenshots — Kopf und Logo bleiben sichtbar
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
         />
         <button
           type="button"
