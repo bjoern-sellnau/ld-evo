@@ -57,9 +57,15 @@ export function SiteFooter() {
           (() => {
             const f = faviconChoice(settings.footLogo);
             return !f || f.key === 'color' ? (
-              <LoonaTile product="ld" variant="color" size={26} title="Loona! Designs" style={{ display: 'block' }} />
+              <LoonaTile product="ld" variant="color" size={settings.footLogoSize} title="Loona! Designs" style={{ display: 'block' }} />
             ) : (
-              <img src={faviconUri(f.svg)} alt="Loona! Designs" width={26} height={26} style={{ display: 'block' }} />
+              <img
+                src={faviconUri(f.svg)}
+                alt="Loona! Designs"
+                width={settings.footLogoSize}
+                height={settings.footLogoSize}
+                style={{ display: 'block' }}
+              />
             );
           })()
         ) : (

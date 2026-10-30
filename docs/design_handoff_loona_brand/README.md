@@ -195,11 +195,14 @@ gerendert; Schriften und Farben der übrigen Site bleiben.
 - Tests: `tests/unit/geometry.test.tsx` (Formen 1:1 gegen `assets/`), `tests/visual/mark-pixels.test.tsx` (Pixel).
 
 **Einsatz der Animationen auf der Site** (alle stehen bei „Animationen aus“ und `prefers-reduced-motion`)
-- Hover: Zeichen im Menü (Lockup) und in der Icon-Leiste.
+- Hover: Zeichen im Menü (Lockup) und in der Icon-Leiste — abschaltbar („Logo-Hover-Animation“, 30.10.2026).
 - Mondphase: LD-Kachel der Splashs „LD Logo“ und „Lines“ (App-Start).
 - Reveal, Sweep, Transformation Alt → Neu: neue Splash-Varianten „Reveal“, „Sweep“, „Alt → Neu“ (auf Tinte).
 - Slash-Wipe: neue Page-Transition „Slash-Wipe“ (`src/site/vt/slashWipe.ts`).
-- Blinken: Favicon, solange sich die Seite aufbaut (`body[data-ldbuild]` — Hero „Live-Build“, Splash „Terminal 2“).
+- Blinken: Favicon, solange sich die Seite aufbaut (`body[data-ldbuild]` — Hero „Live-Build“, Splash „Terminal 2“);
+  seit 30.10.2026 nur mit Einstellung „Favicon blinkt beim Aufbau“ (Standard aus) und mit den Bildern Zeichen ↔
+  Bewegtes Zeichen — die Silhouette ohne Fuge wirkte im Tab wie ein kaputtes Icon.
+- Größen im Menü (Zeichen, Schriftzug) und im Footer per Regler (30.10.2026; Standard Menü 24 px / 18 px statt 28 / 26).
 - Füllstand: Komponente bereit (`motion="progress"`, `--progress`), auf der Site noch ohne festen Einsatz (im README nur
   als Idee); Vorführung auf `/brand`.
 

@@ -25,5 +25,6 @@ export const HOME: HomeContent = {
     src: '/welcome/alte-startseite.webp',
     alt: 'The previous home page of loona-designs.de: blue header with logo and “What the web can be”, menu, qualifications and a portrait with the Loona logo',
   },
-  welcomeEffect: 'kacheln',
+  // Migration (Terminal) seit 30.10.2026 — vorher Kacheln
+  welcomeEffect: 'migrate',
 };

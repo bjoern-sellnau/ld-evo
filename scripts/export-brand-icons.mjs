@@ -84,14 +84,17 @@ try {
 }
 
 writeFileSync(path.join(pub, 'favicon.svg'), `${zeichen}\n`);
+// Icon-Pfade relativ: sie gelten zur Adresse des Manifests — so stimmen sie auch unter einem Basispfad (GitHub Pages
+// /ld-evo/site.webmanifest → /ld-evo/android-icon-192.png); absolute Pfade („/android-…“) zeigten dort ins Leere.
 const manifest = {
   name: 'Loona! Designs',
   short_name: 'Loona!',
+  start_url: './',
   icons: [
-    { src: '/android-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-    { src: '/android-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-    { src: '/android-icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-    { src: '/android-icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    { src: 'android-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+    { src: 'android-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: 'android-icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+    { src: 'android-icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
   ],
   theme_color: '#171310',
   background_color: '#171310',

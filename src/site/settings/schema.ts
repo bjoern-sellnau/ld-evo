@@ -120,6 +120,16 @@ export interface Settings {
   logoAuto: boolean;
   /** Simulierter Mobil-Modus: Rahmen in echter iPhone-Höhe (430 × 932) statt Fensterhöhe. */
   phoneExact: boolean;
+  /** Logo-Animation „Hover“ am Zeichen im Menü (Brand-System 2026-10, Wunsch 30.10.2026: abschaltbar). */
+  logoHover: boolean;
+  /** Favicon blinkt, solange sich die Seite aufbaut (Live-Build, Splash „Terminal 2“) — Standard aus. */
+  favBlink: boolean;
+  /** Höhe des Zeichens im Menü in px (Wunsch 30.10.2026; vorher fest 28). */
+  navLogoSize: number;
+  /** Schriftgröße des Schriftzugs „loona! designs“ im Menü in px (vorher 0,9275 × Zeichenhöhe = 26). */
+  navWordSize: number;
+  /** Kantenlänge des Footer-Logos in px (Footer-Marke „Logo“; vorher fest 26). */
+  footLogoSize: number;
 }
 
 /** SSR-Defaults (dark, Animationen an) — entsprechen dem initialen State des Prototyps. */
@@ -192,6 +202,11 @@ export const DEFAULT_SETTINGS: Settings = {
   logoNegColor: '#FF7816',
   logoAuto: false,
   phoneExact: false,
+  logoHover: true,
+  favBlink: false,
+  navLogoSize: 24,
+  navWordSize: 18,
+  footLogoSize: 26,
 };
 
 interface Codec<T> {
@@ -210,6 +225,15 @@ const int = (key: string, fallback: number): Codec<number> => ({
   key,
   read: (r) => (r ? parseInt(r, 10) || fallback : fallback),
   write: (v) => String(v),
+});
+/** Zahl in [min, max] (Eingabe aus localStorage); der Standardwert wird nicht gespeichert. */
+const range = (key: string, fallback: number, min: number, max: number): Codec<number> => ({
+  key,
+  read: (r) => {
+    const n = r ? parseInt(r, 10) : NaN;
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+  },
+  write: (v) => (v === fallback ? null : String(v)),
 });
 const json = <T>(key: string): Codec<T> => ({
   key,
@@ -326,6 +350,11 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   },
   logoAuto: offUnlessOn('ld-logoauto'),
   phoneExact: offUnlessOn('ld-phoneexact'),
+  logoHover: onUnlessOff('ld-logohover'),
+  favBlink: offUnlessOn('ld-favblink'),
+  navLogoSize: range('ld-navlogo', 24, 16, 40),
+  navWordSize: range('ld-navword', 18, 10, 32),
+  footLogoSize: range('ld-footlogosize', 26, 16, 64),
 };
 
 export function readSettings(storage: Pick<Storage, 'getItem'>): Settings {

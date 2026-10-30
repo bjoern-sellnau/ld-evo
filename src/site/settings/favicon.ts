@@ -54,13 +54,15 @@ export function applyFavicon(choice: string) {
 }
 
 /**
- * Logo-Animation „Blinken“ (Brand-README: „Seite baut“ — Favicon, 1,1 s, steps(1)): zwei Bilder im Wechsel,
- * Bewegtes Zeichen (Silhouette mit Slash-Ausschnitt, assets/loona-bewegt.svg) 0–55 %, Silhouette ohne Slash 55–100 %.
+ * Logo-Animation „Blinken“ (Brand-README: „Seite baut“ — Favicon, 1,1 s, steps(1)), Einstellung „Favicon blinkt beim
+ * Aufbau“ (ld-favblink, Standard aus). Abweichung vom README (Wunsch 30.10.2026, „Favicons defekt“): dort wechseln
+ * Silhouette mit und ohne Slash — die Silhouette ohne Fuge wirkt im 16-px-Tab wie ein kaputtes Icon. Hier wechseln
+ * deshalb Zeichen (0–55 %) und Bewegtes Zeichen (55–100 %, assets/loona-bewegt.svg): beide Bilder sind das Logo.
  * Endet im gewählten Favicon (applyFavicon). Bei prefers-reduced-motion blinkt nichts.
  */
 const blinkFrames = () => [
+  zeichenSvg(ORANGE),
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${Z.viewBox}"><mask id="s"><rect width="48" height="48" fill="#fff"/><path d="${Z.slash}" fill="#000"/></mask><path d="${Z.silhouette}" fill="${ORANGE}" mask="url(#s)"/></svg>`,
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${Z.viewBox}"><path d="${Z.silhouette}" fill="${ORANGE}"/></svg>`,
 ];
 
 export function blinkFavicon(choice: string): () => void {

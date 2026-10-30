@@ -38,5 +38,6 @@ export const HOME: HomeContent = {
     src: '/welcome/alte-startseite.webp',
     alt: 'Die bisherige Startseite von loona-designs.de: blaues Kopfband mit Logo und „What the web can be“, Menü, Qualifikationen und Porträt mit Loona-Logo',
   },
-  welcomeEffect: 'kacheln',
+  // Migration (Terminal) seit 30.10.2026 — vorher Kacheln
+  welcomeEffect: 'migrate',
 };

@@ -6,7 +6,7 @@ import { settingInfo } from './settingsInfo';
 import { mono } from '../cards/ProjectCard';
 import { heroMode } from '../hero/heroInk';
 import { EXTRA_MODES } from '../hero/extra/meta';
-import { FAVICONS, faviconUri } from '../settings/favicon';
+import { FAVICONS, faviconChoice, faviconUri } from '../settings/favicon';
 import { PALETTES, heroCfgOf, resolvePal, type HeroModeCfg, type PaletteName } from '../hero/palettes';
 import { SPLASH_REPLAY_EVENT } from '../splash/Splash';
 import { useSite } from '../settings/SiteProvider';
@@ -63,6 +63,7 @@ const WELCOME_SEGS = [
   ['risse', 'Risse'],
   ['brand', 'Brennen'],
   ['tuer', 'Countdown-Tür'],
+  ['migrate', 'Migration'],
   ['zufall', 'Zufall'],
 ] as const;
 
@@ -313,6 +314,9 @@ const EN_LABELS: Record<string, string> = {
   'Page-Transition': 'Page transition',
   'Welcome-Effekt': 'Welcome effect',
   'Wetter-Vorschau': 'Weather preview',
+  'Partikel-Logo': 'Particle logo',
+  'Badge-LD': 'Badge LD',
+  'Bewegtes Zeichen': 'Moving mark',
   'Schluss: Röhren-Monitor aus': 'Ending: CRT switch-off',
   'Terminal: Links / Rechts': 'Terminal: left / right',
   'Terminal: Oben / Unten': 'Terminal: top / bottom',
@@ -344,6 +348,11 @@ const EN_LABELS: Record<string, string> = {
   Cream: 'Cream',
   'Logo only negative (nur LD)': 'Logo only negative (L + D only)',
   'Logo-Farbe: Auto (Kontrast)': 'Logo color: auto (contrast)',
+  'Logo-Hover-Animation': 'Logo hover animation',
+  'Favicon blinkt beim Aufbau': 'Favicon blinks while building',
+  'Logo-Größe (Menü)': 'Logo size (menu)',
+  'Schriftzug-Größe (Menü)': 'Wordmark size (menu)',
+  'Footer-Logo-Größe': 'Footer logo size',
   'Auto (Kontrast)': 'Auto (contrast)',
   Prototyp: 'Prototype',
   Pille: 'Pill',
@@ -435,6 +444,8 @@ export function SettingsPanel() {
     { label: 'Logo negativ', key: 'logoNeg', on: s.logoNeg },
     { label: 'Logo only negative (nur LD)', key: 'logoBare', on: s.logoBare },
     { label: 'Logo-Farbe: Auto (Kontrast)', key: 'logoAuto', on: s.logoAuto },
+    { label: 'Logo-Hover-Animation', key: 'logoHover', on: s.logoHover },
+    { label: 'Favicon blinkt beim Aufbau', key: 'favBlink', on: s.favBlink },
     { label: 'Kontakt-Button: Auto (Kontrast)', key: 'ctaAuto', on: s.ctaAuto },
     { label: 'Performance-Modus', key: 'perfMode', on: s.perfMode },
     { label: '30 fps Hero', key: 'fpsHalf', on: s.fpsHalf },
@@ -722,6 +733,13 @@ export function SettingsPanel() {
               </span>
             </Row>
           )}
+          {/* Größen des Logos im Menü (Wunsch 30.10.2026) */}
+          <Row label="Logo-Größe (Menü)">
+            <SizeRange min={16} max={40} value={s.navLogoSize} onChange={(v) => set('navLogoSize', v)} label="Logo-Größe (Menü)" />
+          </Row>
+          <Row label="Schriftzug-Größe (Menü)">
+            <SizeRange min={10} max={32} value={s.navWordSize} onChange={(v) => set('navWordSize', v)} label="Schriftzug-Größe (Menü)" />
+          </Row>
           <Row label="Favicon">
             {/* Favicon-Auswahl (neu): Vorschau der Varianten, Auswahl wirkt sofort im Browser-Tab */}
             <span role="radiogroup" aria-label={sl('Favicon')} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -730,7 +748,7 @@ export function SettingsPanel() {
                   key={f.key}
                   type="button"
                   role="radio"
-                  aria-checked={s.favicon === f.key}
+                  aria-checked={faviconChoice(s.favicon)?.key === f.key}
                   aria-label={sl(f.label)}
                   title={sl(f.label)}
                   onClick={() => set('favicon', f.key)}
@@ -740,7 +758,7 @@ export function SettingsPanel() {
                     padding: 4,
                     borderRadius: 9,
                     cursor: 'pointer',
-                    border: `1.5px solid ${s.favicon === f.key ? 'var(--accent)' : 'var(--border)'}`,
+                    border: `1.5px solid ${faviconChoice(s.favicon)?.key === f.key ? 'var(--accent)' : 'var(--border)'}`,
                     background: f.key.startsWith('neg') ? '#3A3F4A' : 'transparent',
                   }}
                 >
@@ -803,7 +821,7 @@ export function SettingsPanel() {
                     key={f.key}
                     type="button"
                     role="radio"
-                    aria-checked={s.footLogo === f.key}
+                    aria-checked={faviconChoice(s.footLogo)?.key === f.key}
                     aria-label={sl(f.label)}
                     title={sl(f.label)}
                     onClick={() => set('footLogo', f.key)}
@@ -813,7 +831,7 @@ export function SettingsPanel() {
                       padding: 4,
                       borderRadius: 9,
                       cursor: 'pointer',
-                      border: `1.5px solid ${s.footLogo === f.key ? 'var(--accent)' : 'var(--border)'}`,
+                      border: `1.5px solid ${faviconChoice(s.footLogo)?.key === f.key ? 'var(--accent)' : 'var(--border)'}`,
                       background: f.key.startsWith('neg') ? '#3A3F4A' : 'transparent',
                     }}
                   >
@@ -821,6 +839,11 @@ export function SettingsPanel() {
                   </button>
                 ))}
               </span>
+            </Row>
+          )}
+          {s.footBrand === 'logo' && (
+            <Row label="Footer-Logo-Größe">
+              <SizeRange min={16} max={64} value={s.footLogoSize} onChange={(v) => set('footLogoSize', v)} label="Footer-Logo-Größe" />
             </Row>
           )}
           <Row label="Footer-Zusatz" column>
@@ -1241,6 +1264,24 @@ export function SettingsPanel() {
                 </button>
               </div>
             </>
+          )}
+          {hm === 'ldswarm' && (
+            // Welches Logo die Partikel formen (Wunsch 30.10.2026)
+            <Row label="Partikel-Logo" column>
+              <Seg
+                options={[
+                  ['zeichen', 'Zeichen'],
+                  ['badge', 'Badge-LD'],
+                  ['bewegt', 'Bewegtes Zeichen'],
+                  ['wort', 'Wortmarke'],
+                  ['lockup', 'Lockup'],
+                ]}
+                value={(cfg.logo as string) || 'zeichen'}
+                onChange={(v) => setCfg(hm, 'logo', v)}
+                label="Partikel-Logo"
+                wrap
+              />
+            </Row>
           )}
           {hm === 'weather' && (
             <>
@@ -1682,6 +1723,30 @@ function Knob({ on, small }: { on: boolean; small?: boolean }) {
           boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
         }}
       />
+    </span>
+  );
+}
+
+/** Schieberegler für eine Größe in px mit Anzeige des Werts (Logo-Größen, Wunsch 30.10.2026). */
+function SizeRange({
+  min,
+  max,
+  value,
+  onChange,
+  label,
+}: {
+  min: number;
+  max: number;
+  value: number;
+  onChange: (v: number) => void;
+  label: string;
+}) {
+  return (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end' }}>
+      <Range min={min} max={max} step={1} value={value} onChange={onChange} label={label} max2={130} />
+      <span style={{ fontSize: 11, color: 'var(--soft)', minWidth: 34, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+        {value} px
+      </span>
     </span>
   );
 }

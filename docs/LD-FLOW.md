@@ -184,7 +184,7 @@ Scroll-Erzählung aus Widgets im Feld `story` (Typ `blocks`), gebaut in der Vors
 - Zeigt zuerst die **alte Website** als Screenshot und verwandelt sie dann in die neue Startseite, die darunter schon
   gerendert liegt (`src/site/welcome/Welcome.tsx`, Route `welcomeRoute` in `src/site/routes.tsx`, nicht indexiert).
 - Pflege in LD Flow → Startseite: „Welcome: Screenshot der alten Website“ (Bild), „Welcome: Effekt“ (Kacheln, Glitch,
-  Pixel, Welle, Risse, Brennen, Countdown-Tür, Zufall), „Welcome: Hinweis“. Ohne Screenshot direkt die Startseite.
+  Pixel, Welle, Risse, Brennen, Countdown-Tür, Migration, Zufall), „Welcome: Hinweis“. Ohne Screenshot direkt die Startseite.
 - Besucher können den Effekt selbst wählen: Einstellungen → „Welcome-Effekt“ (Standard „Wie in LD Flow“).
   Reihenfolge: `?effekt=…` > Einstellung > LD Flow. Risse/Brennen/Tür: `src/site/welcome/effects.tsx` (Canvas).
 - Startwert: Bildschirmfoto der bisherigen Startseite (`public/welcome/alte-startseite.webp`, aufgenommen von
@@ -192,7 +192,11 @@ Scroll-Erzählung aus Widgets im Feld `story` (Typ `blocks`), gebaut in der Vors
   bestehende Installationen bekommen es einmalig über `seedWelcome` in `src/cms/db.ts` (meta `seed_welcome`).
 - Ablauf: alte Seite ~3 s (oder Klick auf „Zur neuen Website“), Effekt, danach steht die Adresse auf `/` (Neu-Laden
   spielt nicht erneut). „Überspringen“ bzw. Esc beendet sofort; ohne Bewegung nur kurzes Überblenden; kein Splash.
-- Ausprobieren: `/welcome?effekt=kacheln|glitch|pixel|welle|risse|brand|tuer`.
+- **Migration** (Standard der Startinhalte seit 30.10.2026, `src/site/welcome/Migrate.tsx`, ca. 25 s): Über der alten
+  Seite öffnet sich das Terminal (Renderer `welcomemigrate` in `src/site/hero/extra/build.ts`, Optik wie Live-Build):
+  `cd ../ld-beyond`, `npm run migrate` mit Sicherung, Rückfrage, Import und Serverstart; dann schließt das Fenster, die
+  alte Seite schaltet ab wie ein Röhrenfernseher, Boot-Code, „ld beyond.“ — und die neue Startseite steht.
+- Ausprobieren: `/welcome?effekt=kacheln|glitch|pixel|welle|risse|brand|tuer|migrate`.
 
 ## Tests
 

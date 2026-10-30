@@ -7,21 +7,33 @@ import { useHref, useT } from '../i18n/LocaleProvider';
 import { useSite } from '../settings/SiteProvider';
 import { useMotionOk } from '../story/motion';
 import { Burn, Cracks, Door } from './effects';
+import { Migrate } from './Migrate';
+import { MIGRATE_TERMINAL_MS } from '../hero/extra/build';
 import styles from './welcome.module.css';
 
 /**
  * Landing Page /welcome (neu, nicht im Prototyp): zeigt zuerst die ALTE Website (Screenshot aus LD Flow, Startseite →
  * „Welcome: Screenshot der alten Website“) und verwandelt sie dann per Effekt in die neue Startseite, die darunter
- * schon fertig gerendert liegt (HalloPage). Effekte: Kacheln, Glitch, Pixel, Welle, Risse, Brennen, Countdown-Tür —
- * oder Zufall. Welcher: ?effekt=… > Einstellungen („Welcome-Effekt“) > LD Flow. Ohne Bewegung (prefers-reduced-motion
+ * schon fertig gerendert liegt (HalloPage). Effekte: Kacheln, Glitch, Pixel, Welle, Risse, Brennen, Countdown-Tür,
+ * Migration (Terminal migriert die alte Seite, Migrate.tsx) — oder Zufall. Welcher: ?effekt=… > Einstellungen („Welcome-Effekt“) > LD Flow. Ohne Bewegung (prefers-reduced-motion
  * / „Animationen aus“) nur ein kurzes Überblenden. Ohne Screenshot gibt es kein Overlay.
  * Danach steht die Adresse auf der Startseite (replaceState), damit Neu-Laden nicht noch einmal abspielt.
  */
 /** Unterpfad (GitHub Pages): eigene Pfade wie /welcome/… bzw. /media/… brauchen ihn — wie BrandSwap. */
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
-export const WELCOME_EFFECTS = ['kacheln', 'glitch', 'pixel', 'welle', 'risse', 'brand', 'tuer'] as const;
+export const WELCOME_EFFECTS = ['kacheln', 'glitch', 'pixel', 'welle', 'risse', 'brand', 'tuer', 'migrate'] as const;
 type Effect = (typeof WELCOME_EFFECTS)[number];
-const DURATION: Record<Effect, number> = { kacheln: 1500, glitch: 1500, pixel: 1500, welle: 1800, risse: 2700, brand: 2800, tuer: 1500 };
+// Migration meldet ihr Ende selbst (Migrate.tsx); hier nur ein Sicherheitsnetz (Terminal + Röhre + Boot + Puffer).
+const DURATION: Record<Effect, number> = {
+  kacheln: 1500,
+  glitch: 1500,
+  pixel: 1500,
+  welle: 1800,
+  risse: 2700,
+  brand: 2800,
+  tuer: 1500,
+  migrate: MIGRATE_TERMINAL_MS + 9000,
+};
 /** Wie lange die alte Seite steht, bevor sie sich von selbst verwandelt (Tür: Countdown 20 s). */
 const HOLD_MS = 3200;
 const DOOR_S = 20;
@@ -77,7 +89,8 @@ export function Welcome() {
     if (phase !== 'old' || !effect) return;
     goRef.current?.focus({ preventScroll: true });
     const door = effect === 'tuer';
-    const id = setTimeout(start, door ? DOOR_S * 1000 : HOLD_MS);
+    // Migration: das Terminal öffnet sich ohnehin erst nach einer Pause über der alten Seite
+    const id = setTimeout(start, door ? DOOR_S * 1000 : effect === 'migrate' ? 1500 : HOLD_MS);
     // Countdown der Tür (sekündlich)
     const t0 = Date.now();
     const tick = door ? setInterval(() => setLeft(Math.max(0, DOOR_S - Math.floor((Date.now() - t0) / 1000))), 250) : undefined;
@@ -124,6 +137,8 @@ export function Welcome() {
             </div>
           )}
         </div>
+      ) : effect === 'migrate' ? (
+        <Migrate shot={shot} onDone={finish} />
       ) : effect === 'kacheln' && nat ? (
         <Tiles src={img.src} nat={nat} />
       ) : effect === 'glitch' ? (

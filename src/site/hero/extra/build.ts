@@ -202,12 +202,16 @@ const windowChrome = (c: Ctx2D, f: ReturnType<typeof frameOf>, title: string, al
 
 /* ----------------------------------------------------------------------------------- Variante 1: Code ------- */
 
-type Kind = 'cmd' | 'code' | 'ok' | 'info' | 'gap' | 'tab';
+type Kind = 'cmd' | 'code' | 'ok' | 'info' | 'gap' | 'tab' | 'task' | 'ask' | 'brand';
 interface Line {
   k: Kind;
   s: string;
   /** Diese Teile erscheinen auf der Seite, sobald die Zeile fertig getippt ist. */
   show?: Part[];
+  /** Prompt vor einem Befehl (sofort da, wird nicht getippt) — Welcome „Migration“. */
+  pre?: string;
+  /** Antwort auf eine Frage (k: 'ask'), wird nach kurzer Pause getippt. */
+  a?: string;
 }
 /** Zeile mit Zeitplan; tab = Terminal-Tab, in dem sie steht (k: 'tab' wechselt den Tab, s = '1' | '2'). */
 type Row = Line & { at: number; end: number; tab: string };
@@ -262,14 +266,17 @@ const SCRIPT: Line[] = [
   { k: 'ok', s: '✓ Ready in 1.2s' },
 ];
 const CPS = { cmd: 16, code: 40 }; // Zeichen je Sekunde (normal) — bewusst Tipp-Tempo
-const PAUSE: Record<Kind, number> = { cmd: 0.8, code: 0.12, ok: 0.9, info: 0.5, gap: 0.5, tab: 0.9 };
+const PAUSE: Record<Kind, number> = { cmd: 0.8, code: 0.12, ok: 0.9, info: 0.5, gap: 0.5, tab: 0.9, task: 0.12, ask: 0.7, brand: 1 };
+/** Dauer eines Arbeitsschritts (Spinner, dann ✓) bzw. der Bedenkzeit vor der Antwort auf eine Frage. */
+const TASK_S = 0.7;
+const ASK_S = 1.1;
 
 const timeline = (script: Line[]): Row[] => {
   let at = TYPE_AT; // erst öffnet sich das Terminal
   let tab = '1';
   return script.map((l) => {
     const typed = l.k === 'cmd' || l.k === 'code';
-    const dur = typed ? l.s.length / CPS[l.k as 'cmd' | 'code'] : 0;
+    const dur = typed ? l.s.length / CPS[l.k as 'cmd' | 'code'] : l.k === 'task' ? TASK_S : l.k === 'ask' ? ASK_S : 0;
     if (l.k === 'tab') tab = l.s;
     const row = { ...l, at, end: at + dur, tab };
     at = row.end + PAUSE[l.k];
@@ -687,6 +694,139 @@ export const SPLASH_2D: Record<string, Mode2D> = {
   splashterm: codeMode(false, splashOf),
   splashterm2: codeMode(false, splashOf),
 };
+
+/* ------------------------------------------------------------------------- Welcome „Migration“ ---------- */
+
+/**
+ * Welcome-Effekt „Migration“ (Wunsch vom 30.10.2026, src/site/welcome/Migrate.tsx): über der alten Website öffnet sich
+ * dasselbe Terminal wie bei Live-Build/Splash, wechselt von loona-designs nach ld-beyond und führt `npm run migrate` aus —
+ * Sicherung der alten Inhalte, Rückfrage, Import der neuen Seiten, Start des Servers (Ausgabe wie `next start`).
+ * Zum Schluss schließt sich das Fenster (schrumpft und blendet aus) und meldet das über cfg.onClosed; Röhren-Aus,
+ * Boot-Code und die neue Seite übernimmt Migrate.tsx.
+ */
+const SCRIPT_MIGRATE: Line[] = [
+  { k: 'cmd', pre: '~/loona-designs $ ', s: 'cd ../ld-beyond' },
+  { k: 'cmd', pre: '~/ld-beyond $ ', s: 'npm run migrate' },
+  { k: 'gap', s: '' },
+  { k: 'info', s: '> ld-beyond@1.0.0 migrate' },
+  { k: 'info', s: '> node scripts/migrate.mjs' },
+  { k: 'gap', s: '' },
+  { k: 'task', s: 'backup projekte' },
+  { k: 'task', s: 'backup about' },
+  { k: 'task', s: 'backup home' },
+  { k: 'task', s: 'backup imprint' },
+  { k: 'ask', s: 'all data is backed up, do you want to import the new ones? (y/N) ', a: 'y' },
+  { k: 'info', s: 'starting import, please wait …' },
+  { k: 'task', s: 'about' },
+  { k: 'task', s: 'projects' },
+  { k: 'task', s: 'labs' },
+  { k: 'task', s: 'home' },
+  { k: 'task', s: 'imprint' },
+  { k: 'info', s: 'preparing server, please wait …' },
+  { k: 'gap', s: '' },
+  { k: 'info', s: '   ▲ Next.js 16 (Turbopack)' },
+  { k: 'info', s: '   - Local:        http://localhost:3000' },
+  { k: 'gap', s: '' },
+  { k: 'ok', s: ' ✓ Starting...' },
+  { k: 'ok', s: ' ✓ Ready in 1.2s' },
+  { k: 'gap', s: '' },
+  { k: 'brand', s: 'ld beyond. is up and running' },
+  { k: 'info', s: 'reloading site, please wait …' },
+];
+const MIGRATE_ROWS = timeline(SCRIPT_MIGRATE);
+/** Ende des Skripts und Dauer des Schließens (Skript-Sekunden); das Ganze läuft 1,4-mal so schnell wie Live-Build. */
+const MIGRATE_END = MIGRATE_ROWS[MIGRATE_ROWS.length - 1].end + 1.1;
+const CLOSE_S = 0.55;
+const MIGRATE_SPEED = 1.4;
+/** Dauer des Terminal-Teils in ms (Öffnen, Skript, Schließen). */
+export const MIGRATE_TERMINAL_MS = Math.round(((MIGRATE_END + CLOSE_S) / MIGRATE_SPEED) * 1000);
+
+const migrateMode: Mode2D = (c) => {
+  const rows = MIGRATE_ROWS;
+  let closed = false;
+  return {
+    still: 1,
+    frame(t) {
+      const still = document.body.classList.contains('still');
+      const tau = still ? MIGRATE_END + CLOSE_S : t * MIGRATE_SPEED;
+      const g = c.g;
+      g.globalCompositeOperation = 'source-over';
+      // durchsichtig: darunter liegt das Bild der alten Website
+      g.clearRect(0, 0, c.W(), c.H());
+      const close = clamp01((tau - MIGRATE_END) / CLOSE_S);
+      if (close >= 1) {
+        if (!closed) {
+          closed = true;
+          (c.cfg.onClosed as (() => void) | undefined)?.();
+        }
+        return;
+      }
+      const f = frameOf(c);
+      // Fenster schließt: schrumpft zur Mitte und blendet aus
+      const alpha = openWindow(c, f, tau) * (1 - close);
+      if (close > 0) {
+        const k = 1 - 0.82 * easeIn(close);
+        const cx = f.x + f.w / 2;
+        const cy = f.y + f.h / 2;
+        g.translate(cx, cy);
+        g.scale(k, k);
+        g.translate(-cx, -cy);
+      }
+      // Titel folgt dem Ordner: nach „cd ../ld-beyond“ ld-beyond
+      windowChrome(c, f, rows[0].end <= tau ? 'zsh — ld-beyond' : 'zsh — loona-designs', alpha);
+      const fs = f.wide ? 13 : 11.5;
+      const mono = monoFont();
+      g.font = `${fs}px ${mono}`;
+      const lh = fs * 1.62;
+      const maxCols = Math.floor((f.w - 28) / (fs * 0.6));
+      const vis = rows.filter((r) => r.at <= tau);
+      // Prompt mit Cursor, solange noch nichts getippt wird
+      const fit = Math.floor((f.h - 30 - 16) / lh);
+      const from = Math.max(0, vis.length - fit);
+      let y = f.y + 30 + lh;
+      const spin = SPIN[Math.floor(t * 12) % SPIN.length];
+      const shown = vis.length ? vis.slice(from) : [{ k: 'cmd', pre: '~/loona-designs $ ', s: '', at: 0, end: 0, tab: '1' } as Row];
+      shown.forEach((r, i, arr) => {
+        let x = f.x + 14;
+        const put = (txt: string, color: string, bold = false) => {
+          g.font = `${bold ? '700 ' : ''}${fs}px ${mono}`;
+          g.fillStyle = color;
+          const clip = txt.slice(0, Math.max(0, maxCols - Math.round((x - f.x - 14) / (fs * 0.6))));
+          g.fillText(clip, x, y);
+          x += g.measureText(clip).width;
+        };
+        if (r.k === 'cmd') {
+          const n = tau < r.end ? Math.floor(((tau - r.at) / Math.max(0.001, r.end - r.at)) * r.s.length) : r.s.length;
+          put(r.pre ?? '$ ', c.col(1, 0.95));
+          put(r.s.slice(0, n), 'rgba(240,244,250,0.96)');
+        } else if (r.k === 'task') {
+          const done = tau >= r.end;
+          put(done ? '✓ ' : `${spin} `, done ? c.col(4, 0.95) : c.col(1, 0.95));
+          put(r.s, done ? 'rgba(228,233,242,0.92)' : 'rgba(170,180,196,0.85)');
+        } else if (r.k === 'ask') {
+          put(r.s, 'rgba(240,244,250,0.96)');
+          if (tau >= r.end - 0.15) put(r.a ?? '', c.col(1, 0.95), true);
+        } else if (r.k === 'brand') {
+          put(r.s, c.col(1, 0.98), true);
+        } else if (r.k === 'ok') {
+          put(r.s, c.col(4, 0.95));
+        } else if (r.k !== 'gap') {
+          put(r.s, 'rgba(170,180,196,0.85)');
+        }
+        // Cursor am Ende der letzten Zeile
+        if (i === arr.length - 1 && Math.floor(t * 2.2) % 2 === 0) {
+          g.fillStyle = c.col(1, 0.95);
+          g.fillRect(x + 1, y - fs + 2, fs * 0.55, fs + 1);
+        }
+        y += lh;
+      });
+      g.globalAlpha = 1;
+      g.restore();
+    },
+  } satisfies ExtraRenderer;
+};
+
+export const WELCOME_2D: Record<string, Mode2D> = { welcomemigrate: migrateMode };
 
 export const BUILD_2D: Record<string, Mode2D> = {
   buildcode: codeMode(false),

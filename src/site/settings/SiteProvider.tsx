@@ -119,7 +119,8 @@ export function SiteProvider({ children }: { children: ReactNode }) {
 
   // Logo-Animation „Blinken“ (Brand-System 2026-10: „Seite baut“): Favicon blinkt, solange sich die Seite aufbaut
   // (body[data-ldbuild] — Hero „Live-Build“, Splash „Terminal 2“); danach wieder die gewählte Variante.
-  const anim = settings.anim;
+  // Nur mit Einstellung „Favicon blinkt beim Aufbau“ (Standard aus).
+  const anim = settings.anim && settings.favBlink;
   useEffect(() => {
     if (!hydrated || !anim) return;
     let stop: (() => void) | undefined;
