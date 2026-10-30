@@ -11,6 +11,7 @@ import { BUILD_2D, SPLASH_2D, WELCOME_2D } from './build';
 import { HORIZON_SHADERS } from './horizons';
 import { MORE_2D, MORE_SHADERS } from './renderers2';
 import { LOONA_BADGE, LOONA_ZEICHEN } from '@/components/brand/products';
+import { swarmEvery, swarmLoop } from './meta';
 
 export type Rgb = [number, number, number];
 
@@ -837,20 +838,34 @@ const MODES_2D: Record<string, Mode2D> = {
   // LD-Partikel: Tausende Teilchen formen das Logo, zerstieben und finden wieder zusammen.
   // Welches Logo (Einstellung „Partikel-Logo“, heroCfg.ldswarm.logo, Wunsch 30.10.2026): Zeichen (Standard), großes LD
   // des Badges, Bewegtes Zeichen, Wortmarke „loona! designs“ oder Lockup (Zeichen + Wortmarke) — Formen aus LOONA_*.
+  // „Loop“ (Wunsch 31.10.2026): die gewählten Logos nacheinander (Reihenfolge/Auswahl cfg.order/cfg.off, meta.ts);
+  // gewechselt wird im Moment des Zerstiebens, alle cfg.every Sekunden.
   ldswarm: (c) => {
-    let ps: { x: number; y: number; tx: number; ty: number; vx: number; vy: number; i: number }[] = [];
-    const logo = String(c.cfg.logo ?? 'zeichen');
-    const text = logo === 'wort' || logo === 'lockup';
+    type P = { x: number; y: number; tx: number; ty: number; vx: number; vy: number; i: number; a: number };
+    const ps: P[] = [];
+    const loop = c.cfg.logo === 'loop';
+    const list: string[] = loop ? swarmLoop(c.cfg) : [String(c.cfg.logo ?? 'zeichen')];
+    // Takt: einzeln wie bisher fest 9 s (zerstieben bei 6,2 s); im Loop zerstieben die Teilchen alle cfg.every s
+    // (erstmals nach einer vollen Wartezeit) und formen dabei das nächste Logo.
+    const period = loop ? swarmEvery(c.cfg) : 9;
+    let idx = 0;
+    let lastBurst = -1;
+    let w = 1;
+    let h = 1;
+    const shapes = new Map<string, [number, number][]>();
+    const isText = (logo: string) => logo === 'wort' || logo === 'lockup';
     // Manrope kommt von next/font (Familienname in --loona-font-manrope); erst nach dem Laden stimmt die Form.
     const fam = () => getComputedStyle(document.documentElement).getPropertyValue('--loona-font-manrope').trim() || 'system-ui, sans-serif';
-    const build = () => {
+    /** Zielpunkte eines Logos bei der aktuellen Größe (gemerkt bis zur nächsten Größenänderung). */
+    const shape = (logo: string) => {
+      const known = shapes.get(logo);
+      if (known) return known;
       const off = document.createElement('canvas');
-      const w = Math.max(1, Math.round(c.W()));
-      const h = Math.max(1, Math.round(c.H()));
       off.width = w;
       off.height = h;
       const og = off.getContext('2d')!;
       const mn = Math.min(w, h);
+      const text = isText(logo);
       if (text) drawWordmark(og, w, h, logo === 'lockup', fam());
       else {
         // Zeichen-Höhe wie bisher (24/46 der kürzeren Seite), Mitte bei 68 % / 56 %; das Badge-LD gleich hoch
@@ -875,30 +890,72 @@ const MODES_2D: Record<string, Mode2D> = {
       // Schrift hat dünnere Striche → dichteres Raster
       const step = text ? Math.max(2, Math.round(mn / 200)) : Math.max(3, Math.round(mn / 120));
       for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step) if (d[(y * w + x) * 4 + 3] > 128) pts.push([x, y]);
-      ps = pts.map(([tx, ty]) => ({ x: rand(0, w), y: rand(0, h), tx, ty, vx: 0, vy: 0, i: (tx / w) * 4 }));
+      shapes.set(logo, pts);
+      return pts;
+    };
+    /**
+     * Teilchen auf das aktuelle Logo ausrichten. Der Vorrat wächst bis zum größten Logo; braucht ein Logo weniger
+     * Punkte, teilen sich die übrigen Teilchen dessen Punkte und leuchten nur schwach mit.
+     */
+    const retarget = () => {
+      const pts = shape(list[idx]);
+      if (!pts.length) return;
+      while (ps.length < pts.length) {
+        const src = ps.length ? ps[Math.floor(rand(0, ps.length))] : null;
+        ps.push({ x: src ? src.x : rand(0, w), y: src ? src.y : rand(0, h), tx: 0, ty: 0, vx: 0, vy: 0, i: 0, a: 0.95 });
+      }
+      ps.forEach((p, k) => {
+        const q = pts[k % pts.length];
+        p.tx = q[0];
+        p.ty = q[1];
+        p.i = (q[0] / w) * 4;
+        p.a = k < pts.length ? 0.95 : 0.12;
+      });
+    };
+    const build = () => {
+      w = Math.max(1, Math.round(c.W()));
+      h = Math.max(1, Math.round(c.H()));
+      shapes.clear();
+      retarget();
     };
     build();
-    if (text) void document.fonts?.load(`800 100px ${fam()}`).then(build, () => {});
+    if (list.some(isText))
+      void document.fonts?.load(`800 100px ${fam()}`).then(
+        () => {
+          shapes.clear();
+          retarget();
+        },
+        () => {},
+      );
     return {
       resize: build,
       still: 200,
       frame(t) {
         fade(c, 0.3);
         c.g.globalCompositeOperation = 'lighter';
-        const ph = t % 9;
-        const burst = ph > 6.2 && ph < 6.35;
+        // k = Zeit seit dem letzten Zerstieben (−1: noch keins)
+        const q = loop ? t - period : (t % 9) - 6.2;
+        const k = q >= 0 ? q % (loop ? period : 9) : -1;
+        const burst = k >= 0 && k < 0.15;
+        // Loop: beim Zerstieben (einmal je Takt) das nächste Logo als Ziel
+        const cycle = Math.floor(q / period);
+        if (burst && loop && list.length > 1 && lastBurst !== cycle) {
+          lastBurst = cycle;
+          idx = (idx + 1) % list.length;
+          retarget();
+        }
         for (const p of ps) {
           if (burst) {
             const a = rand(0, Math.PI * 2);
             p.vx += Math.cos(a) * rand(4, 12);
             p.vy += Math.sin(a) * rand(4, 12);
           }
-          const pull = ph > 6.2 && ph < 7.6 ? 0.002 : 0.02;
+          const pull = k >= 0 && k < 1.4 ? 0.002 : 0.02;
           p.vx = (p.vx + (p.tx - p.x) * pull) * 0.9;
           p.vy = (p.vy + (p.ty - p.y) * pull) * 0.9;
           p.x += p.vx + Math.sin(t * 2 + p.ty * 0.05) * 0.2;
           p.y += p.vy;
-          c.g.fillStyle = c.col(p.i, 0.95);
+          c.g.fillStyle = c.col(p.i, p.a);
           c.g.fillRect(p.x - 1, p.y - 1, 2.4, 2.4);
         }
       },

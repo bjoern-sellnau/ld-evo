@@ -72,3 +72,36 @@ export const EXTRA_MODES: Record<string, ExtraModeMeta> = {
 };
 
 export const isExtraMode = (mode: string): boolean => mode in EXTRA_MODES;
+
+/**
+ * Hero „LD-Partikel“: Logos, die die Teilchen formen können (Einstellung „Partikel-Logo“), und der Loop
+ * (Wunsch 31.10.2026): Reihenfolge (cfg.order) und abgeschaltete Logos (cfg.off) frei wählbar, Wechsel alle cfg.every s.
+ */
+export const SWARM_LOGOS = [
+  ['zeichen', 'Zeichen'],
+  ['badge', 'Badge-LD'],
+  ['bewegt', 'Bewegtes Zeichen'],
+  ['wort', 'Wortmarke'],
+  ['lockup', 'Lockup'],
+] as const;
+export type SwarmLogo = (typeof SWARM_LOGOS)[number][0];
+const SWARM_KEYS: readonly string[] = SWARM_LOGOS.map(([k]) => k);
+/** Wechsel im Loop: Standard wie der bisherige Takt (9 s), Regler 4–30 s. */
+export const SWARM_EVERY = { def: 9, min: 4, max: 30 } as const;
+
+/** Alle Logos in der gewählten Reihenfolge (unbekannte Einträge raus, fehlende hinten an). */
+export function swarmOrder(cfg: Record<string, unknown>): SwarmLogo[] {
+  const order = Array.isArray(cfg.order) ? cfg.order.filter((k): k is SwarmLogo => SWARM_KEYS.includes(k as string)) : [];
+  const uniq = [...new Set(order)];
+  return [...uniq, ...SWARM_KEYS.filter((k) => !uniq.includes(k as SwarmLogo))] as SwarmLogo[];
+}
+/** Logos, die im Loop gezeigt werden (mindestens eins). */
+export function swarmLoop(cfg: Record<string, unknown>): SwarmLogo[] {
+  const off = Array.isArray(cfg.off) ? cfg.off : [];
+  const on = swarmOrder(cfg).filter((k) => !off.includes(k));
+  return on.length ? on : ['zeichen'];
+}
+export function swarmEvery(cfg: Record<string, unknown>): number {
+  const n = Number(cfg.every);
+  return Number.isFinite(n) && n > 0 ? Math.min(SWARM_EVERY.max, Math.max(SWARM_EVERY.min, Math.round(n))) : SWARM_EVERY.def;
+}

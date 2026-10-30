@@ -130,8 +130,16 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     en: 'Live build: where the terminal window appears vertically (top … bottom). When moved it gets a little smaller so it fits.',
   },
   'Partikel-Logo': {
-    de: 'Nur für den Hero „LD-Partikel“: welches Logo die Teilchen formen — das Zeichen, das große LD des Badges, das Bewegte Zeichen (mit Slash), die Wortmarke „loona! designs“ oder Zeichen + Wortmarke.',
-    en: 'LD particles hero only: which logo the particles form — the mark, the big LD of the badge, the moving mark (with slash), the wordmark “loona! designs” or mark + wordmark.',
+    de: 'Nur für den Hero „LD-Partikel“: welches Logo die Teilchen formen — das Zeichen, das große LD des Badges, das Bewegte Zeichen (mit Slash), die Wortmarke „loona! designs“, Zeichen + Wortmarke — oder „Loop“: mehrere Logos nacheinander.',
+    en: 'LD particles hero only: which logo the particles form — the mark, the big LD of the badge, the moving mark (with slash), the wordmark “loona! designs”, mark + wordmark — or “Loop”: several logos one after another.',
+  },
+  'Loop-Logos': {
+    de: 'Nur bei Partikel-Logo „Loop“: welche Logos die Teilchen nacheinander formen (Schalter) und in welcher Reihenfolge (Pfeile). Mindestens eins bleibt an.',
+    en: 'Particle logo “Loop” only: which logos the particles form one after another (switches) and in which order (arrows). At least one stays on.',
+  },
+  'Loop: Wechsel nach': {
+    de: 'Nur bei Partikel-Logo „Loop“: nach wie vielen Sekunden die Teilchen zerstieben und das nächste Logo formen.',
+    en: 'Particle logo “Loop” only: after how many seconds the particles scatter and form the next logo.',
   },
   'Wetter-Vorschau': {
     de: 'Nur für den Wetter-Hero: zeigt eine feste Wetterlage statt des echten Berliner Wetters — zum Testen aller Darstellungen, ohne auf Regen zu warten. „Live“ = echtes Wetter.',
