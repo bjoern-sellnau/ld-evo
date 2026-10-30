@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { swarmEvery, swarmLoop, swarmOrder } from '@/site/hero/extra/meta';
 import { EXTRA_MODES } from '@/site/hero/extra/meta';
 import { MORE_KEYS } from '@/site/hero/extra/renderers2';
 import { BUILD_KEYS } from '@/site/hero/extra/build';
@@ -33,5 +34,22 @@ describe('Zusätzliche Hero-Animationen', () => {
       expect(EXTRA_MODES[k]?.renderer, k).toBe('webgl');
       expect(HORIZON_SHADERS[k]).toContain('void main()');
     }
+  });
+});
+
+describe('LD-Partikel: Loop', () => {
+  it('Reihenfolge aus cfg.order, unbekannte raus, fehlende hinten an', () => {
+    expect(swarmOrder({ order: ['lockup', 'gibtsnicht', 'zeichen', 'lockup'] })).toEqual(['lockup', 'zeichen', 'badge', 'bewegt', 'wort']);
+    expect(swarmOrder({})).toEqual(['zeichen', 'badge', 'bewegt', 'wort', 'lockup']);
+  });
+  it('abgeschaltete Logos fehlen, mindestens eins bleibt', () => {
+    expect(swarmLoop({ order: ['wort', 'zeichen'], off: ['badge', 'bewegt'] })).toEqual(['wort', 'zeichen', 'lockup']);
+    expect(swarmLoop({ off: ['zeichen', 'badge', 'bewegt', 'wort', 'lockup'] })).toEqual(['zeichen']);
+  });
+  it('Wechselzeit begrenzt auf 4–30 s, Standard 9 s', () => {
+    expect(swarmEvery({})).toBe(9);
+    expect(swarmEvery({ every: 2 })).toBe(4);
+    expect(swarmEvery({ every: 99 })).toBe(30);
+    expect(swarmEvery({ every: 12 })).toBe(12);
   });
 });

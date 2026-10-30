@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { settingInfo } from './settingsInfo';
 import { mono } from '../cards/ProjectCard';
 import { heroMode } from '../hero/heroInk';
-import { EXTRA_MODES } from '../hero/extra/meta';
+import { EXTRA_MODES, SWARM_EVERY, SWARM_LOGOS, swarmEvery, swarmOrder } from '../hero/extra/meta';
 import { FAVICONS, faviconChoice, faviconUri } from '../settings/favicon';
 import { PALETTES, heroCfgOf, resolvePal, type HeroModeCfg, type PaletteName } from '../hero/palettes';
 import { SPLASH_REPLAY_EVENT } from '../splash/Splash';
@@ -317,6 +317,11 @@ const EN_LABELS: Record<string, string> = {
   'Partikel-Logo': 'Particle logo',
   'Badge-LD': 'Badge LD',
   'Bewegtes Zeichen': 'Moving mark',
+  'Loop-Logos': 'Loop logos',
+  'Loop: Wechsel nach': 'Loop: switch after',
+  'Nach oben': 'Move up',
+  'Nach unten': 'Move down',
+  'Mindestens ein Logo': 'At least one logo',
   'Schluss: Röhren-Monitor aus': 'Ending: CRT switch-off',
   'Terminal: Links / Rechts': 'Terminal: left / right',
   'Terminal: Oben / Unten': 'Terminal: top / bottom',
@@ -1275,6 +1280,8 @@ export function SettingsPanel() {
                   ['bewegt', 'Bewegtes Zeichen'],
                   ['wort', 'Wortmarke'],
                   ['lockup', 'Lockup'],
+                  // Loop (Wunsch 31.10.2026): mehrere Logos nacheinander
+                  ['loop', 'Loop'],
                 ]}
                 value={(cfg.logo as string) || 'zeichen'}
                 onChange={(v) => setCfg(hm, 'logo', v)}
@@ -1282,6 +1289,23 @@ export function SettingsPanel() {
                 wrap
               />
             </Row>
+          )}
+          {hm === 'ldswarm' && cfg.logo === 'loop' && (
+            <>
+              <Row label="Loop-Logos" column>
+                <SwarmLoopList cfg={cfg} onChange={(order, off) => set('heroCfg', { ...s.heroCfg, [hm]: { ...cfg, order, off } })} />
+              </Row>
+              <Row label="Loop: Wechsel nach">
+                <SizeRange
+                  min={SWARM_EVERY.min}
+                  max={SWARM_EVERY.max}
+                  value={swarmEvery(cfg)}
+                  onChange={(v) => setCfg(hm, 'every', v)}
+                  label="Loop: Wechsel nach"
+                  unit="s"
+                />
+              </Row>
+            </>
           )}
           {hm === 'weather' && (
             <>
@@ -1734,20 +1758,95 @@ function SizeRange({
   value,
   onChange,
   label,
+  unit = 'px',
 }: {
   min: number;
   max: number;
   value: number;
   onChange: (v: number) => void;
   label: string;
+  unit?: string;
 }) {
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end' }}>
       <Range min={min} max={max} step={1} value={value} onChange={onChange} label={label} max2={130} />
       <span style={{ fontSize: 11, color: 'var(--soft)', minWidth: 34, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-        {value} px
+        {value} {unit}
       </span>
     </span>
+  );
+}
+
+/**
+ * Loop des Hero „LD-Partikel“ (Wunsch 31.10.2026): je Logo ein Schalter (an/aus) und Pfeile für die Reihenfolge.
+ * Mindestens ein Logo bleibt an. Gespeichert in heroCfg.ldswarm.order / .off (meta.ts: swarmOrder, swarmLoop).
+ */
+function SwarmLoopList({ cfg, onChange }: { cfg: Record<string, unknown>; onChange: (order: string[], off: string[]) => void }) {
+  const sl = useSl();
+  const order = swarmOrder(cfg);
+  const off = (Array.isArray(cfg.off) ? cfg.off : []).filter((k): k is string => typeof k === 'string');
+  const onCount = order.filter((k) => !off.includes(k)).length;
+  const name = (k: string) => sl(SWARM_LOGOS.find(([key]) => key === k)?.[1] ?? k);
+  const move = (i: number, d: -1 | 1) => {
+    const o: string[] = [...order];
+    [o[i], o[i + d]] = [o[i + d], o[i]];
+    onChange(o, off);
+  };
+  const arrow = {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    border: '1px solid var(--border)',
+    background: 'transparent',
+    color: 'var(--ink)',
+    cursor: 'pointer',
+    fontSize: 12,
+    lineHeight: 1,
+  } as const;
+  return (
+    <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {order.map((k, i) => {
+        const on = !off.includes(k);
+        const last = on && onCount <= 1;
+        return (
+          <li key={k} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={on}
+              aria-disabled={last || undefined}
+              title={last ? sl('Mindestens ein Logo') : undefined}
+              onClick={() => !last && onChange(order, on ? [...off, k] : off.filter((x) => x !== k))}
+              className={styles.toggleSmall}
+              style={{ flex: 1, opacity: on ? 1 : 0.6 }}
+            >
+              <span style={{ fontSize: 11.5, color: 'var(--soft)' }}>
+                {i + 1}. {name(k)}
+              </span>
+              <Knob on={on} small />
+            </button>
+            <button
+              type="button"
+              aria-label={`${name(k)}: ${sl('Nach oben')}`}
+              disabled={i === 0}
+              onClick={() => move(i, -1)}
+              style={{ ...arrow, opacity: i === 0 ? 0.35 : 1 }}
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              aria-label={`${name(k)}: ${sl('Nach unten')}`}
+              disabled={i === order.length - 1}
+              onClick={() => move(i, 1)}
+              style={{ ...arrow, opacity: i === order.length - 1 ? 0.35 : 1 }}
+            >
+              ↓
+            </button>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
