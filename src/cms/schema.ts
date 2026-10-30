@@ -302,6 +302,7 @@ const HOME_FIELDS: FieldDef[] = [
       ['risse', 'Risse'],
       ['brand', 'Brennen'],
       ['tuer', 'Countdown-Tür (20 s)'],
+      ['migrate', 'Migration (Terminal, ca. 25 s)'],
       ['zufall', 'Zufall'],
     ],
   },

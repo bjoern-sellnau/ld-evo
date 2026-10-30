@@ -214,12 +214,14 @@ export function SiteNav() {
                 transition: 'transform 0.25s,color 0.25s',
               }}
             >
-              {/* LD-Lockup (Logo-Handoff Prompt 2): Zeichenhöhe 28 px, unter 480 px nur das Zeichen.
+              {/* LD-Lockup (Logo-Handoff Prompt 2): Zeichenhöhe per Einstellung, unter 480 px nur das Zeichen.
                   Textfarben folgen den Site-Tokens, damit Auto-Kontrast greift (Site-Nachtrag v23). */}
               <LoonaLockup
-                markSize={28}
-                // Logo-Animation „Hover“ (Brand-System 2026-10): Fuge füllt sich, der Slash erscheint
-                motion="hover"
+                // Größen per Einstellung (Wunsch 30.10.2026: „Logo-Größe“ / „Schriftzug-Größe“ im Menü, vorher 28 / 26 px)
+                markSize={settings.navLogoSize}
+                textSize={settings.navWordSize}
+                // Logo-Animation „Hover“ (Brand-System 2026-10): Fuge füllt sich, der Slash erscheint — abschaltbar
+                motion={settings.logoHover ? 'hover' : 'none'}
                 theme={settings.theme}
                 tone={logo.markTone(settings.theme)}
                 negativeColor={logo.negativeColor}

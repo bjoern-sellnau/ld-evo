@@ -7,10 +7,10 @@
  */
 
 // Zweite Welle (Wunsch vom 17.10.2026) in eigener Datei, nutzt die Helfer von hier (Zyklus nur zur Laufzeit)
-import { BUILD_2D, SPLASH_2D } from './build';
+import { BUILD_2D, SPLASH_2D, WELCOME_2D } from './build';
 import { HORIZON_SHADERS } from './horizons';
 import { MORE_2D, MORE_SHADERS } from './renderers2';
-import { LOONA_ZEICHEN } from '@/components/brand/products';
+import { LOONA_BADGE, LOONA_ZEICHEN } from '@/components/brand/products';
 
 export type Rgb = [number, number, number];
 
@@ -156,6 +156,42 @@ export function glMode(body: string) {
       },
     };
   };
+}
+
+/**
+ * Wortmarke „loona! designs“ (Manrope 800/500, −0,035 em) bzw. Lockup (Zeichen + Wortmarke, Maße wie LoonaLockup:
+ * Schrift 0,9275 · m, Abstand 0,46 · m) als Vorlage für die LD-Partikel. Quer: rechts neben dem Hero-Titel (ab 50 %
+ * der Breite, Mitte 72 %, höchstens 44 % breit); hochkant mittig, 90 % breit.
+ */
+function drawWordmark(og: CanvasRenderingContext2D, w: number, h: number, lockup: boolean, fam: string) {
+  const F = 100;
+  const font = (wt: number) => `${wt} ${F}px ${fam}`;
+  og.letterSpacing = `${-0.035 * F}px`;
+  og.font = font(800);
+  const w1 = og.measureText('loona! ').width;
+  og.font = font(500);
+  const w2 = og.measureText('designs').width;
+  const m0 = F / 0.9275;
+  const markW = lockup ? (m0 * 28) / 24 + 0.46 * m0 : 0;
+  const total = markW + w1 + w2;
+  const wide = w > h;
+  const k = Math.min(((wide ? 0.44 : 0.9) * w) / total, (0.3 * h) / m0);
+  const cx = wide ? w * 0.72 : w * 0.5;
+  const cy = h * 0.56;
+  og.setTransform(k, 0, 0, k, cx - (total * k) / 2, cy);
+  if (lockup) {
+    const s = m0 / 24;
+    og.save();
+    og.transform(s, 0, 0, s, -LOONA_ZEICHEN.box.x * s, -m0 / 2 - LOONA_ZEICHEN.box.y * s);
+    og.fill(new Path2D(LOONA_ZEICHEN.l));
+    og.fill(new Path2D(LOONA_ZEICHEN.moon));
+    og.restore();
+  }
+  og.textBaseline = 'middle';
+  og.font = font(800);
+  og.fillText('loona! ', markW, 0);
+  og.font = font(500);
+  og.fillText('designs', markW + w1, 0);
 }
 
 /* --------------------------------------------------------------------------------------------- Canvas 2D ---------- */
@@ -798,9 +834,15 @@ const MODES_2D: Record<string, Mode2D> = {
     };
   },
 
-  // LD-Partikel: Tausende Teilchen formen das LD-Monogramm, zerstieben und finden wieder zusammen
+  // LD-Partikel: Tausende Teilchen formen das Logo, zerstieben und finden wieder zusammen.
+  // Welches Logo (Einstellung „Partikel-Logo“, heroCfg.ldswarm.logo, Wunsch 30.10.2026): Zeichen (Standard), großes LD
+  // des Badges, Bewegtes Zeichen, Wortmarke „loona! designs“ oder Lockup (Zeichen + Wortmarke) — Formen aus LOONA_*.
   ldswarm: (c) => {
     let ps: { x: number; y: number; tx: number; ty: number; vx: number; vy: number; i: number }[] = [];
+    const logo = String(c.cfg.logo ?? 'zeichen');
+    const text = logo === 'wort' || logo === 'lockup';
+    // Manrope kommt von next/font (Familienname in --loona-font-manrope); erst nach dem Laden stimmt die Form.
+    const fam = () => getComputedStyle(document.documentElement).getPropertyValue('--loona-font-manrope').trim() || 'system-ui, sans-serif';
     const build = () => {
       const off = document.createElement('canvas');
       const w = Math.max(1, Math.round(c.W()));
@@ -808,18 +850,35 @@ const MODES_2D: Record<string, Mode2D> = {
       off.width = w;
       off.height = h;
       const og = off.getContext('2d')!;
-      // Zeichen (Brand-System 2026-10, LOONA_ZEICHEN — der Negativraum des Badge-Monogramms)
-      const s = Math.min(w, h) / 46;
-      og.setTransform(s, 0, 0, s, w * 0.68 - 22 * s, h * 0.56 - 23 * s);
-      og.fill(new Path2D(LOONA_ZEICHEN.l));
-      og.fill(new Path2D(LOONA_ZEICHEN.moon));
+      const mn = Math.min(w, h);
+      if (text) drawWordmark(og, w, h, logo === 'lockup', fam());
+      else {
+        // Zeichen-Höhe wie bisher (24/46 der kürzeren Seite), Mitte bei 68 % / 56 %; das Badge-LD gleich hoch
+        const box = logo === 'badge' ? { x: 0, y: 3, w: 44, h: 40 } : LOONA_ZEICHEN.box;
+        const s = (mn * 24) / 46 / box.h;
+        og.setTransform(s, 0, 0, s, w * 0.68 - (box.x + box.w / 2) * s, h * 0.56 - (box.y + box.h / 2) * s);
+        if (logo === 'badge') {
+          og.fill(new Path2D(LOONA_BADGE.l));
+          og.fill(new Path2D(LOONA_BADGE.d), 'evenodd');
+        } else if (logo === 'bewegt') {
+          og.fill(new Path2D(LOONA_ZEICHEN.silhouette));
+          og.globalCompositeOperation = 'destination-out';
+          og.fill(new Path2D(LOONA_ZEICHEN.slash));
+          og.globalCompositeOperation = 'source-over';
+        } else {
+          og.fill(new Path2D(LOONA_ZEICHEN.l));
+          og.fill(new Path2D(LOONA_ZEICHEN.moon));
+        }
+      }
       const d = og.getImageData(0, 0, w, h).data;
       const pts: [number, number][] = [];
-      const step = Math.max(3, Math.round(Math.min(w, h) / 120));
+      // Schrift hat dünnere Striche → dichteres Raster
+      const step = text ? Math.max(2, Math.round(mn / 200)) : Math.max(3, Math.round(mn / 120));
       for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step) if (d[(y * w + x) * 4 + 3] > 128) pts.push([x, y]);
       ps = pts.map(([tx, ty]) => ({ x: rand(0, w), y: rand(0, h), tx, ty, vx: 0, vy: 0, i: (tx / w) * 4 }));
     };
     build();
+    if (text) void document.fonts?.load(`800 100px ${fam()}`).then(build, () => {});
     return {
       resize: build,
       still: 200,
@@ -859,7 +918,7 @@ const factory = (
 ): ExtraRenderer | null => {
   const shader = SHADERS[mode] ?? MORE_SHADERS[mode] ?? HORIZON_SHADERS[mode];
   if (shader) return glMode(shader)(cv, pal, ptr);
-  const m = MODES_2D[mode] ?? MORE_2D[mode] ?? BUILD_2D[mode] ?? SPLASH_2D[mode];
+  const m = MODES_2D[mode] ?? MORE_2D[mode] ?? BUILD_2D[mode] ?? SPLASH_2D[mode] ?? WELCOME_2D[mode];
   if (!m) return null;
   const g = cv.getContext('2d');
   if (!g) return null;

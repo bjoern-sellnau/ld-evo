@@ -97,7 +97,8 @@
 
 .wordName {
   font-weight: 800;
-  font-size: calc(0.9275 * var(--loona-m));
+  /* --loona-word: eigene Größe (Einstellung „Schriftzug-Größe“ im Menü), sonst Proportion aus dem Guide */
+  font-size: var(--loona-word, calc(0.9275 * var(--loona-m)));
   letter-spacing: -0.035em;
 }
 

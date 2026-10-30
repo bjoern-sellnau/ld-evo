@@ -129,6 +129,10 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Live-Build: wo das Terminal-Fenster senkrecht erscheint (oben … unten). Verschoben wird es etwas kleiner, damit es Platz hat.',
     en: 'Live build: where the terminal window appears vertically (top … bottom). When moved it gets a little smaller so it fits.',
   },
+  'Partikel-Logo': {
+    de: 'Nur für den Hero „LD-Partikel“: welches Logo die Teilchen formen — das Zeichen, das große LD des Badges, das Bewegte Zeichen (mit Slash), die Wortmarke „loona! designs“ oder Zeichen + Wortmarke.',
+    en: 'LD particles hero only: which logo the particles form — the mark, the big LD of the badge, the moving mark (with slash), the wordmark “loona! designs” or mark + wordmark.',
+  },
   'Wetter-Vorschau': {
     de: 'Nur für den Wetter-Hero: zeigt eine feste Wetterlage statt des echten Berliner Wetters — zum Testen aller Darstellungen, ohne auf Regen zu warten. „Live“ = echtes Wetter.',
     en: 'Weather hero only: shows a fixed condition instead of the real Berlin weather — to test every look without waiting for rain. “Live” = real weather.',
@@ -146,8 +150,8 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     en: 'Which logo variant the footer shows (with footer brand “Logo”) — the same choice as for the favicon.',
   },
   'Welcome-Effekt': {
-    de: 'Wie sich auf /welcome die alte Website in die neue verwandelt: Kacheln, Glitch, Pixel, Welle, Risse, Brennen, Countdown-Tür (20 s) oder Zufall. „Wie in LD Flow“ nimmt die Einstellung der Startseite.',
-    en: 'How the old website turns into the new one on /welcome: tiles, glitch, pixel, wave, cracks, burn, countdown door (20 s) or random. “As set in LD Flow” uses the home page setting.',
+    de: 'Wie sich auf /welcome die alte Website in die neue verwandelt: Kacheln, Glitch, Pixel, Welle, Risse, Brennen, Countdown-Tür (20 s), Migration (ein Terminal migriert die alte Seite, dann schaltet sie ab wie ein Röhrenfernseher und die neue bootet — ca. 25 s) oder Zufall. „Wie in LD Flow“ nimmt die Einstellung der Startseite.',
+    en: 'How the old website turns into the new one on /welcome: tiles, glitch, pixel, wave, cracks, burn, countdown door (20 s), migration (a terminal migrates the old site, which then switches off like a CRT TV while the new one boots — about 25 s) or random. “As set in LD Flow” uses the home page setting.',
   },
   'Page-Transition': {
     de: 'Animation beim Wechsel zwischen Seiten. „Slash-Wipe“: Die orange Fläche mit der Schräge aus dem Logo fegt über die Seite.',
@@ -270,6 +274,26 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
   'Logo only negative (nur LD)': {
     de: 'Statt der Kachel nur das Zeichen (L und Mond — der Negativraum der Kachel) in frei wählbarer Farbe.',
     en: 'Instead of the tile only the mark (L and moon — the negative space of the tile) in a color of your choice.',
+  },
+  'Logo-Hover-Animation': {
+    de: 'Fährt man mit der Maus über das Logo im Menü, füllt sich die Fuge und der Slash erscheint (Logo-Animation „Hover“). Aus = das Logo bleibt stehen.',
+    en: 'When hovering the logo in the menu, the joint fills and the slash appears (logo animation “Hover”). Off = the logo stays still.',
+  },
+  'Favicon blinkt beim Aufbau': {
+    de: 'Solange sich die Seite aufbaut (Hero „Live-Build“, Splash „Terminal 2“), wechselt das Favicon im Takt zwischen Zeichen und Bewegtem Zeichen.',
+    en: 'While the page is building itself (hero “Live build”, splash “Terminal 2”), the favicon alternates between the mark and the moving mark.',
+  },
+  'Logo-Größe (Menü)': {
+    de: 'Höhe des Zeichens im Menü in Pixeln.',
+    en: 'Height of the mark in the menu, in pixels.',
+  },
+  'Schriftzug-Größe (Menü)': {
+    de: 'Schriftgröße von „loona! designs“ neben dem Zeichen im Menü, in Pixeln.',
+    en: 'Font size of “loona! designs” next to the mark in the menu, in pixels.',
+  },
+  'Footer-Logo-Größe': {
+    de: 'Größe des Logos im Footer (bei Footer-Marke „Logo“), in Pixeln.',
+    en: 'Size of the logo in the footer (with footer brand “Logo”), in pixels.',
   },
   'Logo-Farbe: Auto (Kontrast)': {
     de: 'Das Logo wechselt je nach Hintergrund zwischen farbiger und dunkler Kachel — animiert.',

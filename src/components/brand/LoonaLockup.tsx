@@ -23,6 +23,8 @@ export interface LoonaLockupProps extends HTMLAttributes<HTMLSpanElement> {
   tagline?: boolean | string;
   /** Nur ld: Animation des Zeichens — 'hover' (Zeichen → Bewegtes Zeichen bei Hover/Fokus des Links) oder 'reveal'. */
   motion?: 'none' | 'hover' | 'reveal';
+  /** Nur ld: Schriftgröße der Wortmarke in px statt 0,9275 × Zeichenhöhe (Einstellung „Schriftzug-Größe“). */
+  textSize?: number;
 }
 
 /**
@@ -43,6 +45,7 @@ export function LoonaLockup({
   negativeColor,
   tagline,
   motion = 'none',
+  textSize,
   className,
   style,
   ...rest
@@ -67,7 +70,7 @@ export function LoonaLockup({
         {...rest}
         className={[styles.word, className].filter(Boolean).join(' ')}
         data-theme={theme}
-        style={{ '--loona-m': `${markSize}px`, ...style } as CSSProperties}
+        style={{ '--loona-m': `${markSize}px`, ...(textSize ? { '--loona-word': `${textSize}px` } : null), ...style } as CSSProperties}
       >
         {mark(true)}
         <span className={styles.wordText}>
