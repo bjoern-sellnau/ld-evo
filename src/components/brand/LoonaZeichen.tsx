@@ -38,6 +38,8 @@ const INK = LOONA_TONES.ink;
 const Z = LOONA_ZEICHEN;
 const B = LOONA_BADGE;
 const BADGE_T = `translate(${B.transform.x} ${B.transform.y}) scale(${B.transform.scale})`;
+/** Badge-Umkehr: Lage aus assets/loona-bewegt-badge.svg (im Paket vom 31.10.2026 unverändert). */
+const MOTION_T = `translate(${B.motion.x} ${B.motion.y}) scale(${B.motion.scale})`;
 /** Kleiner Punkt für die Ruhe-Fassung der Loader; Lage im Handoff nicht festgelegt — rechts unten wie ein Schlusspunkt. */
 const DOT = { cx: 36.6, cy: 34, r: 1.4 };
 
@@ -200,9 +202,12 @@ export function LoonaZeichen({
           <path d={B.l} fill={fill} />
           <path d={B.d} fill={fill} fillRule="evenodd" />
           {motion === 'moonphase' && (
-            <g clipPath={`url(#${id('mc')})`}>
-              <path d={Z.moon} fill={fill} />
-              <circle cx="24" cy="23" r="12" fill={INK} className={styles.moon} />
+            // Der innere Mond liegt im Badge um den Kanal (3) versetzt: Untergruppe translate(3 0) (README „Mondphase“)
+            <g transform={`translate(${B.moonShift} 0)`}>
+              <g clipPath={`url(#${id('mc')})`}>
+                <path d={Z.moon} fill={fill} />
+                <circle cx="24" cy="23" r="12" fill={INK} className={styles.moon} />
+              </g>
             </g>
           )}
         </g>
@@ -218,7 +223,7 @@ export function LoonaZeichen({
     body = (
       <>
         <rect width={B.size} height={B.size} rx={B.rx} fill={INK} />
-        <g transform={BADGE_T}>
+        <g transform={MOTION_T}>
           <path d={B.silhouette} fill={fill} />
           <path d={Z.silhouette} fill={INK} />
           <path d={B.slash} fill={INK} />

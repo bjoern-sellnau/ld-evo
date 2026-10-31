@@ -43,7 +43,7 @@ export function LoonaTile({
   const fg = variant === 'ink' ? color : LOONA_NEUTRALS.ink;
   const t = badgeTransform(product);
   const a11y = decorative ? { 'aria-hidden': true as const, focusable: 'false' as const } : { role: 'img' as const };
-  // ld wörtlich wie im Asset („translate(9.6 8.6) scale(1.018)“), Produkte wie ihre Favicons (2 bzw. 4 Stellen).
+  // ld wörtlich wie im Asset („translate(9.44 9.92) scale(0.96)“), Produkte wie ihre Favicons (2 bzw. 4 Stellen).
   const transform =
     product === 'ld' ? `translate(${t.x} ${t.y}) scale(${t.scale})` : `translate(${fmt(t.x, 2)} ${fmt(t.y, 2)}) scale(${fmt(t.scale, 4)})`;
 
@@ -69,11 +69,14 @@ export function LoonaTile({
       <g transform={transform}>
         <LoonaGlyph product={product} color={fg} />
         {moon && (
-          // Brand-README „Mondphase“: im Clip auf den kleinen Mond eine Scheibe in Grundfarbe (cx 24, cy 23, r 12),
-          // translateX 0 → −26. Auf der Farb-Kachel ist der Grund Orange, der Mond füllt sich dann in Tinte.
-          <g clipPath={`url(#${clip})`}>
-            <path d={LOONA_ZEICHEN.moon} fill={fg} />
-            <circle cx="24" cy="23" r="12" fill={bg} className={styles.moon} />
+          // Brand-README „Mondphase“: in der Untergruppe translate(3 0) (innerer Mond um den Kanal versetzt) im Clip auf
+          // den kleinen Mond eine Scheibe in Grundfarbe (cx 24, cy 23, r 12), translateX 0 → −26. Auf der Farb-Kachel ist
+          // der Grund Orange, der Mond füllt sich dann in Tinte.
+          <g transform={`translate(${LOONA_BADGE.moonShift} 0)`}>
+            <g clipPath={`url(#${clip})`}>
+              <path d={LOONA_ZEICHEN.moon} fill={fg} />
+              <circle cx="24" cy="23" r="12" fill={bg} className={styles.moon} />
+            </g>
           </g>
         )}
       </g>

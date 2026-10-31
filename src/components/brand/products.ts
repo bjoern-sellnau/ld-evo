@@ -32,8 +32,8 @@ export interface LoonaProduct {
 }
 
 export const LOONA_PRODUCTS: Record<LoonaProductKey, LoonaProduct> = {
-  // width 44 = großes LD im Badge (46er-System); das Zeichen selbst ist 28 × 24 (LOONA_ZEICHEN).
-  ld: { key: 'ld', name: 'Loona! Designs', width: 44, color: '#FF7816', deep: '#C2410C', tagline: 'designs' },
+  // width 47 = großes LD im Badge (46er-System, Stand 31.10.2026); das Zeichen selbst ist 28 × 24 (LOONA_ZEICHEN).
+  ld: { key: 'ld', name: 'Loona! Designs', width: 47, color: '#FF7816', deep: '#C2410C', tagline: 'designs' },
   flow: { key: 'flow', name: 'LD Flow.', width: 49, color: '#A78BFA', deep: '#6D28D9', tagline: 'cms · loona! designs' },
   nova: { key: 'nova', name: 'LD Nova.', width: 40, color: '#38BDF8', deep: '#0369A1', tagline: 'design system · loona! designs' },
   buddy: { key: 'buddy', name: 'LD Buddy.', width: 24, color: '#F472B6', deep: '#BE185D', tagline: 'app · loona! designs' },
@@ -69,17 +69,28 @@ export const LOONA_ZEICHEN = {
 } as const;
 
 /**
- * Badge (Brand-README „2. Badge“): großes LD auf Tinte, der Negativraum ist das Zeichen. viewBox 0 0 64 64, rx 14.
- * Dazu die Ebenen der Badge-Umkehr („4.“). Pfade im 46er-System (sichtbar y 3–43) wie die Familien-Glyphen.
+ * Badge (Brand-README „2. Badge“, Stand 31.10.2026 — neu konstruiert): großes L (Stamm 8, Höhe 40, oben 9 breit) und
+ * großes D (Ring 8: r 20 außen, r 12 innen) auf Tinte, viewBox 0 0 64 64, rx 14. Zusammengeschoben (D um −3) ist der
+ * Negativraum exakt das Zeichen (1 : 1); auseinandergezogen um den Kanal 3 wird das innere L 11 statt 8 breit, der
+ * innere Mond liegt deshalb um 3 versetzt (moonShift). Pfade im 46er-System (sichtbar y 3–43) wie die Familien-Glyphen.
  */
 export const LOONA_BADGE = {
   size: 64,
   rx: 14,
   /** Zentriert das LD im Quadrat. */
-  transform: { x: 9.6, y: 8.6, scale: 1.018 },
-  l: 'M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z',
-  /** fill-rule evenodd (Mond mit Negativraum). */
-  d: 'M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z',
+  transform: { x: 9.44, y: 9.92, scale: 0.96 },
+  /** Kontur des großen LD (x 0–47, y 3–43). */
+  box: { x: 0, y: 3, w: 47, h: 40 },
+  l: 'M0 4A1 1 0 0 1 1 3L8 3A1 1 0 0 1 9 4L9 11A1 1 0 0 0 8 12L8 34A1 1 0 0 0 9 35L22 35L25 43L1 43A1 1 0 0 1 0 42Z',
+  /** fill-rule evenodd (D mit Negativ-Mond). */
+  d: 'M12 4A1 1 0 0 1 13 3H27A20 20 0 0 1 27.99 42.975L22 27H19V12A1 1 0 0 0 18 11H12ZM24 12A1 1 0 0 1 25 11H27A12 12 0 0 1 27 35L24 27Z',
+  /** Lage des inneren Monds gegenüber dem Zeichen (Mondphase: Untergruppe translate(3 0)). */
+  moonShift: 3,
+  /**
+   * Badge-Umkehr (README „4.“, assets/loona-bewegt-badge.svg) — im Paket vom 31.10.2026 unverändert, daher weiter mit
+   * den Silhouetten und der Lage des bisherigen Badges.
+   */
+  motion: { x: 9.6, y: 8.6, scale: 1.018 },
   silhouette: 'M0 4A1 1 0 0 1 1 3H24A20 20 0 0 1 24 43H1A1 1 0 0 1 0 42Z',
   slash: 'M9 3H12.5L32.5 43H29Z',
 } as const;

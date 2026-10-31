@@ -1,5 +1,8 @@
 # Handoff: loona! designs — Brand System (Zeichen, Badge, Bewegtes Zeichen, Animationen)
 
+## Stand
+31.10.2026 — Badge neu konstruiert: zusammengeschoben ist der Negativraum exakt das Zeichen (1 : 1), auseinandergezogen um den Kanal 3. Alle Badge-Pfade in diesem README, in `assets/` und in den HTML-Referenzen sind auf diesem Stand.
+
 ## Overview
 Markensystem für **loona! designs**, Plattform und Online-Portfolio von Bjoern Sellnau (Senior Fullstack & Software Engineer — React, Mobile, TypeScript). Das System besteht aus vier Logo-Formen (Zeichen, Badge, Bewegtes Zeichen, Bewegtes Zeichen als Badge-Umkehr), einer Wortmarke, einer Farb- und Typo-Palette, dem adaptiven Prinzip (das Zeichen passt Farbe/Material dem Umfeld an) und sechs Logo-Animationen plus einer Intro-Transformation.
 
@@ -28,10 +31,12 @@ Alle Pfade teilen dasselbe Koordinatensystem; Einheiten sind frei skalierbar. Ke
 
 ### 2. Badge — `assets/loona-badge.svg`
 - viewBox `0 0 64 64`, Grund `rect rx=14 fill=#171310` (Tinte; der Grund ist **immer** Tinte)
-- Gruppe `transform="translate(9.6 8.6) scale(1.018)"` (zentriert das LD im Quadrat), darin:
-  - Großes L: `M0 4A1 1 0 0 1 1 3L7 3A1 1 0 0 1 8 4L8 34A1 1 0 0 0 9 35L19 35L22 43L1 43A1 1 0 0 1 0 42Z`
-  - Großer Mond mit Negativraum (fill-rule evenodd): `M11 4A1 1 0 0 1 12 3H24A20 20 0 0 1 24 43H25L19 27H16V12A1 1 0 0 0 15 11H11ZM21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z`
-- Idee: ein großes LD (L 8 × 40, Mond r 20), getrennt durch einen Kanal von 3, der sich zum kleinen Zeichen weitet — der Negativraum **ist** das Primärzeichen. Radius 1 auch an den Innenecken (8/35, 16/11, 21/11).
+- Gruppe `transform="translate(9.44 9.92) scale(0.96)"` (zentriert das LD im Quadrat), darin:
+  - Großes L: `M0 4A1 1 0 0 1 1 3L8 3A1 1 0 0 1 9 4L9 11A1 1 0 0 0 8 12L8 34A1 1 0 0 0 9 35L22 35L25 43L1 43A1 1 0 0 1 0 42Z`
+  - Großes D mit Negativ-Mond (fill-rule evenodd): `M12 4A1 1 0 0 1 13 3H27A20 20 0 0 1 27.99 42.975L22 27H19V12A1 1 0 0 0 18 11H12ZM24 12A1 1 0 0 1 25 11H27A12 12 0 0 1 27 35L24 27Z`
+- Konstruktion: großes L (Stamm 8, Höhe 40) und großes D (Ring 8: r 20 außen, r 12 innen). **Zusammengeschoben** (D um −3 in x, keine Lücke) ist der Negativraum exakt das Primärzeichen im Maßstab 1 : 1 — gleiche Ecken, gleiche Radien, Fuge 5 → 2. **Auseinandergezogen** um den Kanal 3 wird das innere L 11 statt 8 breit; der innere Mond bleibt unverändert.
+- Trennkante: oben senkrecht bei x = 9 (1 rechts vom Stamm, damit die r-1-Ecke L oben links im Negativ erhalten bleibt — das große L ist oben deshalb 9 breit), unten entlang der Fußschräge 3 : 8.
+- Radius 1 außen an L oben links/rechts, L unten links, D oben links; innen an den Ecken des Zeichens (8/11, 19/11, 8/35, 24/11).
 - Mindestgröße 24 px, Druck 8 mm. Einsatz: App-Icon, Favicon ab 24 px, Social-Profil, Sticker.
 
 ### 3. Bewegtes Zeichen — `assets/loona-bewegt.svg`
@@ -103,7 +108,7 @@ Konkrete Umsetzung (Koordinaten im Zeichen-System, viewBox 6 9 32 28):
 - **Blinken**: zwei Frames im Wechsel, 1,1 s, steps(1): Silhouette mit Slash → Silhouette ohne Slash. Endet im Zeichen, sobald geladen. Unter 16 px nie animieren.
 - **Reveal**: L von `translateX(-14)` + opacity 0 nach 0; Mond ab 10 % von `translateY(12)` + opacity 0 nach 0; dann als Lockup verkleinern (scale .72), Textzeilen erscheinen.
 - **Hover Zeichen → Bewegtes Zeichen**: Fuge-Pfad `M16 11H21V27L24 35H22L19 27H16Z` füllt sich von oben (`scaleY` 0 → 1, transform-origin 16 11), dann erscheint der Slash (steps(1)). Rückweg beim Verlassen umgekehrt.
-- **Mondphase** (Badge, viewBox 0 0 64 64, in der Gruppe `translate(9.6 8.6) scale(1.018)`): Innerhalb eines Clips auf den kleinen Mond `M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z` liegt eine Tinte-Scheibe (Kreis cx 24 cy 23 r 12), die per `translateX` von 0 bis −26 wandert — der Mond füllt sich.
+- **Mondphase** (Badge, viewBox 0 0 64 64, in der Gruppe `translate(9.44 9.92) scale(0.96)`): In einer Untergruppe mit `transform="translate(3 0)"` liegt ein Clip auf den kleinen Mond `M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z`, darin eine Tinte-Scheibe (Kreis cx 24 cy 23 r 12), die per `translateX` von 0 bis −26 wandert — der Mond füllt sich.
 - **Slash-Wipe** (viewBox 0 0 48 30): Orange Fläche `M-60 0H-10L5 30H-60Z` (rechte Kante Steigung 1 : 2) wandert `translateX` 0 → 75 über den Inhalt, dahinter kommt die neue Seite.
 - **Transformation Alt → Neu** (6 s, Brand Kit 8a), Ebenen in viewBox 0 0 48 48 auf Tinte:
   1. 0–25 %: Glaskugel — Ring r 21 Radialverlauf #9CC8F2 → #0B2A4A, weiße Scheibe r 12 bei (26, 24), Tinte-Scheibe r 10,5 um (2,5, −2) versetzt (= Sichel), Glanz-Ellipse weiß 35 %.
@@ -170,7 +175,7 @@ Zu exportieren (aus den SVGs, nicht Teil des Pakets): PNG-Icons 16/32/48/180/192
 `screenshots/guide-*.jpg` — die Guide-Seiten 02–11 (System, Blueprints, Farbe, Typo, Anwendung, Animation, Glas). Die Live-Animationen (Kit 7a/8a) und die 250 Varianten sind nur in der HTML-Referenz sinnvoll anzusehen — `Loona Brand Kit.dc.html` im Browser öffnen, Anker `#7a`, `#8a`, `#8b`.
 
 ## Files
-- `Loona Brand Kit.dc.html` — alle Runden (Varianten 001–250, Live-Animationen 5b/5c/7a/8a, adaptive Kacheln 8b, App-Icons 8c). Relevante Anker: `#6a`–`#6f` (finale Formen), `#7a` (Animationen), `#8a` (Transformation), `#8b` (adaptiv/Glas/Liquid).
+- `Loona Brand Kit.dc.html` — alle Runden (Varianten 001–250, Live-Animationen 5b/5c/7a/8a, adaptive Kacheln 8b, App-Icons 8c). Relevante Anker: `#6a`–`#6f` (finale Formen), `#9a`/`#9b` (Badge-Konstruktion: Negativ = Zeichen), `#7a` (Animationen), `#8a` (Transformation), `#8b` (adaptiv/Glas/Liquid).
 - `Loona Brand Guide.dc.html` — 11-seitiger Guide (A4): System, Blueprints mit Maßen, Farbe, Typo, Anwendung, Animation, Glas.
 - `doc-page.js`, `support.js` — Laufzeit für die HTML-Referenzen (nur zum Öffnen nötig).
 
@@ -183,6 +188,11 @@ Platzhalterbilder). Absprache mit dem Auftraggeber: Logo **und** Logo-Animatione
 Site bleiben** (auch Varianten, die der Guide als Don't führt, z. B. die Farb-Kachel auf Orange); die Kacheln der
 Produktfamilie (LD Flow, Nova, Buddy, Ivy) bekommen das Badge-Format, ihre Zeichen bleiben; Reels werden nicht neu
 gerendert; Schriften und Farben der übrigen Site bleiben.
+
+**Badge-Stand 31.10.2026** (Paket „Concepts 3“): neue Badge-Pfade, Lage `translate(9.44 9.92) scale(0.96)`, Mondphase in
+der Untergruppe `translate(3 0)` — übernommen in `LOONA_BADGE`, Kacheln, Favicon-/Footer-Kacheln, App-Icons, Einzelbuchstaben
+und das Partikel-Logo „Badge-LD“. Die Badge-Umkehr (`loona-bewegt-badge.svg`) ist im Paket unverändert und behält ihre
+Lage (`LOONA_BADGE.motion`).
 
 **Wo**
 - `src/components/brand/products.ts` — Pfade 1:1 (`LOONA_ZEICHEN`, `LOONA_BADGE`, `LOONA_TONES`, `LOONA_GLASS`).
@@ -214,7 +224,7 @@ gerendert; Schriften und Farben der übrigen Site bleiben.
   schaltet hell auf Ink, dunkel auf Cream.
 - Favicon-Auswahl: Standard ist jetzt das Zeichen (`assets/favicon.svg`); die bisherige Standard-Kachel heißt „Ink-Kachel“.
   Der alte Schlüssel „neg“ (Negativraum Orange) ist identisch mit dem Zeichen und wird darauf abgebildet.
-- Maskable-Icon: LD auf 86 % verkleinert — im Badge reicht es bis 46,6 % an die Ecken, Masken garantieren nur 40 %.
+- Maskable-Icon: LD auf 86 % verkleinert — im Badge reicht es bis 45,7 % an die Ecken, Masken garantieren nur 40 %.
   Apple-Touch-Icon ohne rx (iOS rundet selbst).
 - Hover-Dauer wie im Kit (Füllung 0,54 s, danach der Slash). Ruhe-Fassung der Loader: Punkt rechts unten am Zeichen
   (Lage im Paket nicht festgelegt).
