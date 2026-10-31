@@ -6,7 +6,7 @@
  *   npm run brand:icons
  * Gerendert mit Chromium (Playwright), danach favicon.ico (scripts/make-favicon-ico.mjs).
  *
- * Abweichung (Maskable): Im Badge reicht das LD bis 46,6 % des Radius an die Ecken — Android-Masken garantieren nur
+ * Abweichung (Maskable): Im Badge reicht das LD bis 45,7 % des Radius an die Ecken — Android-Masken garantieren nur
  * einen Kreis mit 40 % Radius (W3C „Safe Zone“). Das LD wird deshalb im Maskable-Icon auf 86 % verkleinert.
  * Das Vorschaubild og-image-1200x630.png: Zeichen + Wortmarke (Manrope, @fontsource) wie Brand Guide S. 07 auf Tinte,
  * Unterzeile wie im bisherigen Bild (Instrument Sans, @fontsource).
@@ -23,13 +23,14 @@ const read = (f) => readFileSync(path.join(assets, f), 'utf8').trim();
 
 const zeichen = read('favicon.svg');
 const badge = read('loona-badge.svg');
-const T = 'translate(9.6 8.6) scale(1.018)';
+// Badge Stand 31.10.2026 (README „2. Badge“)
+const T = 'translate(9.44 9.92) scale(0.96)';
 if (!badge.includes(T) || !badge.includes(' rx="14"')) throw new Error('loona-badge.svg: Transform/rx nicht wie im README');
-// Maskable: ohne rx, LD um die Mitte des LD (x 0–44, y 3–43 → 22/23) auf 86 % verkleinert
-const s = +(1.018 * 0.86).toFixed(4);
+// Maskable: ohne rx, LD um die Mitte des LD (x 0–47, y 3–43 → 23,5/23) auf 86 % verkleinert
+const s = +(0.96 * 0.86).toFixed(4);
 const maskable = badge
   .replace(' rx="14"', '')
-  .replace(T, `translate(${+(32 - 22 * s).toFixed(3)} ${+(32 - 23 * s).toFixed(3)}) scale(${s})`);
+  .replace(T, `translate(${+(32 - 23.5 * s).toFixed(3)} ${+(32 - 23 * s).toFixed(3)}) scale(${s})`);
 const appleTouch = badge.replace(' rx="14"', ''); // iOS rundet selbst; transparente Ecken würden schwarz
 
 const font = (pkg, file) =>

@@ -86,12 +86,13 @@ describe('LoonaZeichen — Varianten und Animationen', () => {
     expect(renderToStaticMarkup(<LoonaZeichen variant="motion" motion="progress" value={3} />)).toContain('--progress:1');
   });
 
-  it('Mondphase: Scheibe cx 24 cy 23 r 12 im Clip auf den kleinen Mond (Badge und Kachel)', () => {
+  it('Mondphase: Scheibe cx 24 cy 23 r 12 im Clip auf den kleinen Mond, um den Kanal (3) versetzt (Badge und Kachel)', () => {
     for (const html of [
       renderToStaticMarkup(<LoonaZeichen variant="badge" motion="moonphase" />),
       renderToStaticMarkup(<LoonaTile motion="moonphase" />),
     ]) {
       expect(html).toContain('<clipPath');
+      expect(html).toMatch(/<g transform="translate\(3 0\)"><g clip-path="url\(#[^"]+\)"><path d="M21 12A1/);
       expect(html).toMatch(/<circle cx="24" cy="23" r="12" fill="#171310" class="[^"]*moon/);
     }
     // ohne Animation keine zusätzliche Ebene

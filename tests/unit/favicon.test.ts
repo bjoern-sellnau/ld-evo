@@ -33,7 +33,7 @@ describe('Favicon-Auswahl', () => {
   });
   it('Standard = Zeichen (wie public/favicon.svg), Kacheln mit Badge-Geometrie; alter Schlüssel „neg“ → Standard', () => {
     expect(faviconChoice('default')?.svg).toContain('viewBox="6 9 32 28"');
-    expect(faviconChoice('ink')?.svg).toContain('translate(9.6 8.6) scale(1.018)');
+    expect(faviconChoice('ink')?.svg).toContain('translate(9.44 9.92) scale(0.96)');
     expect(faviconChoice('neg')?.key).toBe('default');
     expect(faviconChoice('gibtsnicht')).toBeUndefined();
   });

@@ -869,7 +869,7 @@ const MODES_2D: Record<string, Mode2D> = {
       if (text) drawWordmark(og, w, h, logo === 'lockup', fam());
       else {
         // Zeichen-Höhe wie bisher (24/46 der kürzeren Seite), Mitte bei 68 % / 56 %; das Badge-LD gleich hoch
-        const box = logo === 'badge' ? { x: 0, y: 3, w: 44, h: 40 } : LOONA_ZEICHEN.box;
+        const box = logo === 'badge' ? LOONA_BADGE.box : LOONA_ZEICHEN.box;
         const s = (mn * 24) / 46 / box.h;
         og.setTransform(s, 0, 0, s, w * 0.68 - (box.x + box.w / 2) * s, h * 0.56 - (box.y + box.h / 2) * s);
         if (logo === 'badge') {
