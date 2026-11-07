@@ -1,5 +1,5 @@
 import { inkOn } from '../lib/color';
-import { ACCENTS, type Settings } from './schema';
+import { ACCENTS, beyondParts, type Settings } from './schema';
 
 export function isSafari(): boolean {
   const ua = navigator.userAgent;
@@ -22,6 +22,12 @@ export function applyBody(s: Settings, body: HTMLElement = document.body) {
   cl.toggle('glassm', s.styleMode === 'glassm');
   cl.toggle('fluent', s.styleMode === 'fluent');
   for (const n of [1, 2, 4, 5]) cl.toggle(`gl${n}`, s.glassLvl === n);
+
+  // Design-Richtung „Beyond“ (Entwurf Path to Beyond): Farbwelt, Schrift und Raster wirken rein per CSS (site.css)
+  const bx = beyondParts(s);
+  cl.toggle('bx-farben', bx.farben);
+  cl.toggle('bx-schrift', bx.schrift);
+  cl.toggle('bx-raster', bx.raster);
 
   const a = s.accentSel;
   if (a && a !== '#FFB224') {
@@ -50,4 +56,4 @@ export function applyThemeColor(mode: Settings['themeColor'], body: HTMLElement 
  * Der Rest synchronisiert sich nach der Hydration über den SettingsProvider.
  */
 // Live-Build-Hero (hero/extra/build.ts): Startseite schon vor dem ersten Bild verstecken, sonst blitzt sie kurz auf.
-export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem('ld-theme');if(t==='light')document.body.classList.add('light');if(localStorage.getItem('ld-anim')==='off')document.body.classList.add('still');if(localStorage.getItem('ld-splash')==='off')document.body.classList.add('ldnosplash');var h=/^([/]en)?[/]?$/.test(location.pathname.slice(${JSON.stringify(process.env.NEXT_PUBLIC_BASE_PATH ?? '')}.length)),s2=h&&(localStorage.getItem('ld-splash')!=='off'&&localStorage.getItem('ld-splashanim')==='terminal2'||/[?&]splash=terminal2/.test(location.search));if(h&&localStorage.getItem('ld-anim')!=='off'&&(s2||/^build/.test(localStorage.getItem('ld-heroanim')||''))){var b=document.body;b.setAttribute('data-ldbuild','');if(s2)b.setAttribute('data-ldsplash2','');setTimeout(function(){b.removeAttribute('data-ldbuild');b.removeAttribute('data-ldsplash2')},120000)}}catch(e){}`;
+export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem('ld-theme');if(t==='light')document.body.classList.add('light');if(localStorage.getItem('ld-anim')==='off')document.body.classList.add('still');if(localStorage.getItem('ld-splash')==='off')document.body.classList.add('ldnosplash');var d=localStorage.getItem('ld-design');if(d==='beyond'||d==='mix'){var m={};if(d==='mix')try{m=JSON.parse(localStorage.getItem('ld-designmix')||'{}')||{}}catch(e){}['farben','schrift','raster'].forEach(function(k){if(m[k]!==false)document.body.classList.add('bx-'+k)})}var h=/^([/]en)?[/]?$/.test(location.pathname.slice(${JSON.stringify(process.env.NEXT_PUBLIC_BASE_PATH ?? '')}.length)),s2=h&&(localStorage.getItem('ld-splash')!=='off'&&localStorage.getItem('ld-splashanim')==='terminal2'||/[?&]splash=terminal2/.test(location.search));if(h&&localStorage.getItem('ld-anim')!=='off'&&(s2||/^build/.test(localStorage.getItem('ld-heroanim')||''))){var b=document.body;b.setAttribute('data-ldbuild','');if(s2)b.setAttribute('data-ldsplash2','');setTimeout(function(){b.removeAttribute('data-ldbuild');b.removeAttribute('data-ldsplash2')},120000)}}catch(e){}`;

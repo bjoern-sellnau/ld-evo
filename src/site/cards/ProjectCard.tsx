@@ -8,6 +8,9 @@ import { projectHref } from '../lib/routes';
 import { useSite } from '../settings/SiteProvider';
 import styles from './cards.module.css';
 import { useHref } from '../i18n/LocaleProvider';
+import { StatusBadge, useBeyond } from '../beyond/Beyond';
+import { LabCover, coverKind } from '../beyond/LabCover';
+import bxStyles from '../beyond/beyond.module.css';
 
 export const mono = 'var(--ld-font-mono),monospace';
 
@@ -62,6 +65,8 @@ export function ProjectCard({ p, prefix, variant = 'featured' }: { p: Project; p
   const onClick = useOpenItem(href, p.id);
   const ink = inkOn(p.color);
   const lh = useHref();
+  // Design-Richtung „Beyond“ → Lab-Look: generatives Cover + Status-Badge statt Farbfläche mit Kürzel
+  const lab = useBeyond().lab;
   return (
     <Link
       href={lh(href)}
@@ -86,34 +91,52 @@ export function ProjectCard({ p, prefix, variant = 'featured' }: { p: Project; p
           display: 'flex',
           alignItems: 'flex-end',
           padding: z.pad,
+          overflow: lab ? 'hidden' : undefined,
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'repeating-linear-gradient(-45deg,rgba(255,255,255,0.05) 0 2px,transparent 2px 14px)',
-          }}
-        />
-        <span aria-hidden style={{ position: 'relative', fontSize: z.mono, fontWeight: 800, letterSpacing: '-0.03em', opacity: 0.9 }}>
-          {p.mono}
-        </span>
-        <span
-          style={{
-            position: 'absolute',
-            top: z.katTop,
-            right: z.katRight,
-            fontFamily: mono,
-            fontSize: z.katFs,
-            letterSpacing: '0.12em',
-            border: `1px solid ${ink}`,
-            borderRadius: 999,
-            padding: z.katPad,
-            opacity: readableAlpha(p.color, ink, 0.8),
-          }}
-        >
-          {p.kat}
-        </span>
+        {lab ? (
+          <>
+            <LabCover id={p.id} color={p.color} kind={coverKind(`${p.kat} ${p.tag}`)} />
+            <span style={{ position: 'absolute', top: z.katTop, left: z.katRight }}>
+              <StatusBadge p={p} />
+            </span>
+            <span
+              style={{ position: 'absolute', top: z.katTop, right: z.katRight, fontFamily: mono, fontSize: z.katFs + 1.5 }}
+              className={bxStyles.badge}
+            >
+              {p.kat}
+            </span>
+          </>
+        ) : (
+          <>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'repeating-linear-gradient(-45deg,rgba(255,255,255,0.05) 0 2px,transparent 2px 14px)',
+              }}
+            />
+            <span aria-hidden style={{ position: 'relative', fontSize: z.mono, fontWeight: 800, letterSpacing: '-0.03em', opacity: 0.9 }}>
+              {p.mono}
+            </span>
+            <span
+              style={{
+                position: 'absolute',
+                top: z.katTop,
+                right: z.katRight,
+                fontFamily: mono,
+                fontSize: z.katFs,
+                letterSpacing: '0.12em',
+                border: `1px solid ${ink}`,
+                borderRadius: 999,
+                padding: z.katPad,
+                opacity: readableAlpha(p.color, ink, 0.8),
+              }}
+            >
+              {p.kat}
+            </span>
+          </>
+        )}
       </div>
       <div style={{ padding: z.body }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: mono, fontSize: 9.5, color: 'var(--soft)' }}>

@@ -1907,3 +1907,102 @@ body[data-ldbuild]:not(.still):not([data-ldsplash2]) #ld-hero > [data-ldpara] {
 body[data-ldsplash2]:not(.still) #ld-hero > [data-ldpara] {
   opacity: 0 !important;
 }
+
+/* ===================================================================================================================
+ * Design-Richtung „Beyond“ (neu, Wunsch 07.11.2026) — Werte aus dem Entwurf „Path to Beyond“
+ * (github.com/bjoern-sellnau/ld-path-to-beyond, src/app/globals.css: Design-Tokens dark/light), auf die Tokens dieser
+ * Site abgebildet. Aktiv nur mit den Body-Klassen bx-* (Einstellungen → Design-Richtung); ohne sie bleibt alles beim
+ * Prototyp. Kontraste nachgerechnet: Text-Tokens ≥ 4,5:1 auf --bg, --card und --cardsolid.
+ * =================================================================================================================== */
+body.bx-farben {
+  --bg: #05070c;
+  --bg2: #0a0e16;
+  --card: rgba(148, 178, 220, 0.06);
+  --cardsolid: #0e1420;
+  --border: rgba(148, 178, 220, 0.12);
+  --ink: #e8eef8;
+  --muted: #93a1b8;
+  --soft: #7d8aa0;
+  --accent: #19a7ff;
+  --on-accent: #021018;
+  --btn: #19a7ff;
+  --btn-ink: #021018;
+  --glassTint: #0a0e16;
+  --hair: rgba(148, 178, 220, 0.1);
+  --pill: rgba(148, 178, 220, 0.1);
+  --codebg: #0a0e16;
+  --shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+  --bx-glow: rgba(25, 167, 255, 0.35);
+  --bx-grid: rgba(148, 178, 220, 0.06);
+}
+body.light.bx-farben {
+  --bg: #f5f7fb;
+  --bg2: #ffffff;
+  --card: #ffffff;
+  --cardsolid: #ffffff;
+  --border: rgba(15, 30, 60, 0.1);
+  --ink: #0a1222;
+  --muted: #4a586e;
+  --soft: #5f6b7f;
+  --accent: #0072c6;
+  --on-accent: #ffffff;
+  --btn: #0072c6;
+  --btn-ink: #ffffff;
+  --glassTint: #ffffff;
+  --hair: rgba(15, 30, 60, 0.08);
+  --pill: rgba(15, 30, 60, 0.06);
+  --codebg: #0a1222;
+  --shadow: 0 14px 40px rgba(15, 30, 60, 0.12);
+  --bx-glow: rgba(0, 114, 198, 0.22);
+  --bx-grid: rgba(15, 30, 60, 0.05);
+}
+/* Lichtschein hinter dem Hero-Titel: blau statt orange */
+body.bx-farben div[aria-hidden][data-ldb='title'] {
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 22%, transparent), transparent 65%) !important;
+}
+body.bx-farben ::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Schrift: Geist für Text, Geist Mono für Kicker/Code, Unbounded für Überschriften (Entwurf: font-display) */
+body.bx-schrift {
+  --ld-font-sans: var(--bx-font-sans);
+  --ld-font-mono: var(--bx-font-mono);
+}
+body.bx-schrift :is(h1, h2, h3, .bx-display) {
+  font-family: var(--bx-font-display), var(--bx-font-sans), sans-serif;
+  letter-spacing: -0.02em;
+}
+/* Kapitel-/Abschnitts-Kicker (h2 mit Mono-Zeile) bleiben Mono — sie setzen die Schrift an den Spans selbst */
+
+/* Raster + Glow oben auf der Seite (Entwurf: .bg-grid mit radialer Maske, PageHeader-Glow) — hinter allem */
+body.bx-raster::before,
+body.bx-raster::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+body.bx-raster::before {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 980px;
+  background-image:
+    linear-gradient(var(--bx-grid, rgba(148, 178, 220, 0.06)) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bx-grid, rgba(148, 178, 220, 0.06)) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 30%, transparent 75%);
+}
+body.bx-raster::after {
+  top: -160px;
+  left: 50%;
+  width: min(48rem, 90vw);
+  height: 320px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  filter: blur(120px);
+}

@@ -16,8 +16,8 @@ import { useSite } from '../settings/SiteProvider';
 import { useLocale, useT } from '../i18n/LocaleProvider';
 import { intlLocale, type Locale } from '../i18n/locale';
 import { mobBottomZone, SIM_VH } from '../chrome/phoneBox';
-
-const CAREER_START = new Date('2007-09-01T09:00:00').getTime();
+import { CAREER_START } from '../lib/career';
+import { BeyondHero, ContactBox, FocusAreas, NewPill, NowBar, TechMarquee, useBeyond } from '../beyond/Beyond';
 
 const careerSeconds = (l: Locale) => Math.floor((Date.now() - CAREER_START) / 1000).toLocaleString(intlLocale(l));
 
@@ -78,14 +78,16 @@ export function HalloPage() {
   const seconds = useCareerSeconds();
   const scrolled = useScrolled();
   const cineDone = useHeroShader(s);
+  // Design-Richtung „Beyond“ (Einstellungen): Orb-Hero statt Hero-Animation, dazu Bausteine — „Klassisch“ = alles aus
+  const bx = useBeyond();
   // 20 zusätzliche Modi (neu, nicht im Prototyp): eigenes Canvas, die Prototyp-Engine ignoriert sie
   useExtraHero(hm, s);
   // Live-Build: das Boot-Script versteckt die Seite schon vor dem ersten Bild, wenn der Modus gespeichert ist —
   // ist er hier doch nicht aktiv (z. B. Performance-Modus), sofort wieder freigeben.
   useEffect(() => {
     // (nicht während Splash „Terminal 2“ — der baut die Seite gerade auf)
-    if (!hm.startsWith('build') && !('ldsplash2' in document.body.dataset)) delete document.body.dataset.ldbuild;
-  }, [hm]);
+    if ((bx.orb || !hm.startsWith('build')) && !('ldsplash2' in document.body.dataset)) delete document.body.dataset.ldbuild;
+  }, [hm, bx.orb]);
 
   const padX = mob ? 18 : 32;
   // Cinematic (Matrix/Matrix v2) blendet den Hero-Text aus; mit „Hero-Text danach“ kommt er nach dem Cinematic zurück.
@@ -113,243 +115,255 @@ export function HalloPage() {
 
   return (
     <div data-screen-label="Hallo">
-      <div
-        id="ld-hero"
-        style={{
-          position: 'relative',
-          margin: `0 -${padX}px`,
-          padding: `0 ${padX}px`,
-          boxSizing: 'border-box',
-          minHeight: heroMinH,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: s.fullHero && !mob ? 'center' : 'flex-start',
-        }}
-      >
-        {def.renderer !== 'css' && (
-          <div
-            data-ldsample={heroFxSampleOf(hm, s.heroCfg)}
-            data-ldpara="1"
-            aria-hidden
-            style={{
-              position: 'absolute',
-              top: -140,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: mob && !isMobile ? 430 : '100vw',
-              height: heroFxH,
-              overflow: 'hidden',
-              pointerEvents: 'none',
-              WebkitMask: 'linear-gradient(180deg,#000 68%,transparent)',
-              mask: 'linear-gradient(180deg,#000 68%,transparent)',
-              background: heroFxBgOf(hm, s.heroCfg),
-            }}
-          >
-            <canvas
-              id="ld-lava-canvas"
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                display: def.renderer === 'webgl' ? 'block' : 'none',
-              }}
-            />
-            {def.renderer === 'extra' && (
-              <canvas
-                key={hm}
-                id="ld-extra-canvas"
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
-              />
-            )}
-            <canvas
-              id="ld-orbit-canvas"
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                display: def.renderer === 'canvas2d' ? 'block' : 'none',
-              }}
-            />
-          </div>
-        )}
-        {def.renderer === 'css' && <FlowHero />}
+      {bx.orb ? (
+        <div id="ld-hero" style={{ position: 'relative' }}>
+          <BeyondHero pill={bx.neu} mob={mob} />
+        </div>
+      ) : (
         <div
-          aria-hidden
-          data-ldb="title"
+          id="ld-hero"
           style={{
-            position: 'absolute',
-            top: 330,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '74vw',
-            height: 160,
-            background: 'radial-gradient(ellipse,rgba(255,140,60,0.18),transparent 65%)',
-            filter: 'blur(42px)',
-            pointerEvents: 'none',
+            position: 'relative',
+            margin: `0 -${padX}px`,
+            padding: `0 ${padX}px`,
+            boxSizing: 'border-box',
+            minHeight: heroMinH,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: s.fullHero && !mob ? 'center' : 'flex-start',
           }}
-        />
-        {s.fullHero && !mob && <ScrollIndicator hidden={scrolled} />}
-
-        <div style={{ position: 'relative', padding: heroPad, maxWidth: 640 }}>
-          <div
-            data-ldb="kicker"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              background: ink.barBox.bg,
-              border: ink.barBox.border,
-              backdropFilter: ink.barBox.blur,
-              WebkitBackdropFilter: ink.barBox.blur,
-              borderRadius: 999,
-              padding: '7px 14px',
-              fontFamily: mono,
-              fontSize: 10.5,
-              letterSpacing: '0.08em',
-              color: ink.barBox.color,
-              mixBlendMode: ink.barBox.blend,
-              textShadow: ink.barBox.textShadow,
-              boxShadow: ink.barBox.shadow,
-            }}
-          >
-            <span
+        >
+          {def.renderer !== 'css' && (
+            <div
+              data-ldsample={heroFxSampleOf(hm, s.heroCfg)}
+              data-ldpara="1"
               aria-hidden
-              style={{ width: 7, height: 7, borderRadius: '50%', background: '#28C840', animation: 'ldPulse 2s infinite' }}
-            />
-            <EText path="kicker" value={home.kicker} />
-          </div>
-          <h1
+              style={{
+                position: 'absolute',
+                top: -140,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: mob && !isMobile ? 430 : '100vw',
+                height: heroFxH,
+                overflow: 'hidden',
+                pointerEvents: 'none',
+                WebkitMask: 'linear-gradient(180deg,#000 68%,transparent)',
+                mask: 'linear-gradient(180deg,#000 68%,transparent)',
+                background: heroFxBgOf(hm, s.heroCfg),
+              }}
+            >
+              <canvas
+                id="ld-lava-canvas"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  display: def.renderer === 'webgl' ? 'block' : 'none',
+                }}
+              />
+              {def.renderer === 'extra' && (
+                <canvas
+                  key={hm}
+                  id="ld-extra-canvas"
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
+                />
+              )}
+              <canvas
+                id="ld-orbit-canvas"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  display: def.renderer === 'canvas2d' ? 'block' : 'none',
+                }}
+              />
+            </div>
+          )}
+          {def.renderer === 'css' && <FlowHero />}
+          <div
+            aria-hidden
             data-ldb="title"
             style={{
-              fontSize: mob ? 40 : 62,
-              fontWeight: 700,
-              letterSpacing: '-0.035em',
-              lineHeight: 1.03,
-              margin: '20px 0 0',
-              ...txt,
+              position: 'absolute',
+              top: 330,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '74vw',
+              height: 160,
+              background: 'radial-gradient(ellipse,rgba(255,140,60,0.18),transparent 65%)',
+              filter: 'blur(42px)',
+              pointerEvents: 'none',
             }}
-          >
-            <span style={{ color: ink.t1.col, mixBlendMode: ink.t1.blend }}>
-              <EText path="titleLine1" value={home.titleLine1} />
-            </span>
-            <br />
-            <span style={{ color: ink.t2.col, mixBlendMode: ink.t2.blend }}>
-              <EText path="titleLine2" value={home.titleLine2} />
-            </span>
-          </h1>
-          <div
-            data-ldb="role"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              gap: 3,
-              marginTop: 16,
-              fontSize: 19,
-              fontWeight: 600,
-              ...txt,
-            }}
-          >
-            <span style={{ color: ink.sub.col, mixBlendMode: ink.sub.blend, fontWeight: 400, whiteSpace: 'nowrap', fontSize: 15 }}>
-              <EText path="name" value={home.name} />
-            </span>
-            <span
-              aria-live="polite"
+          />
+          {s.fullHero && !mob && <ScrollIndicator hidden={scrolled} />}
+
+          <div style={{ position: 'relative', padding: heroPad, maxWidth: 640 }}>
+            {bx.neu && (
+              <div style={{ marginBottom: 12 }}>
+                <NewPill solid />
+              </div>
+            )}
+            <div
+              data-ldb="kicker"
               style={{
-                color: ink.job.col,
-                mixBlendMode: ink.job.blend,
-                textShadow: ink.jobDeco.textShadow,
-                // eigener Hintergrund (neu): Jobtitel als Glas-Pille
-                ...(ink.jobDeco.bg && {
-                  background: ink.jobDeco.bg,
-                  backdropFilter: 'blur(14px) saturate(1.5)',
-                  WebkitBackdropFilter: 'blur(14px) saturate(1.5)',
-                  padding: '4px 12px',
-                  margin: '2px 0 0 -12px',
-                  borderRadius: 999,
-                }),
-                whiteSpace: mob ? 'normal' : 'nowrap',
-                minHeight: mob ? 50 : 0,
-                lineHeight: 1.3,
-                opacity: roleOp,
-                transform: `translateY(${roleY})`,
-                transition: 'opacity 0.3s ease,transform 0.3s ease',
-                display: 'inline-block',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: ink.barBox.bg,
+                border: ink.barBox.border,
+                backdropFilter: ink.barBox.blur,
+                WebkitBackdropFilter: ink.barBox.blur,
+                borderRadius: 999,
+                padding: '7px 14px',
+                fontFamily: mono,
+                fontSize: 10.5,
+                letterSpacing: '0.08em',
+                color: ink.barBox.color,
+                mixBlendMode: ink.barBox.blend,
+                textShadow: ink.barBox.textShadow,
+                boxShadow: ink.barBox.shadow,
               }}
             >
-              {role}
-            </span>
-          </div>
-          <p
-            data-ldb="intro"
-            style={{
-              margin: '18px 0 0',
-              fontSize: 16,
-              lineHeight: 1.65,
-              maxWidth: 470,
-              color: ink.intro.col,
-              mixBlendMode: ink.intro.blend,
-              ...txt,
-            }}
-          >
-            <EText path="intro" value={home.intro} multiline />
-          </p>
-          <div data-ldb="cta" style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 30 }}>
-            <button
-              type="button"
-              onClick={() => navigate('/projekte')}
-              className={styles.heroBtn1}
+              <span
+                aria-hidden
+                style={{ width: 7, height: 7, borderRadius: '50%', background: '#28C840', animation: 'ldPulse 2s infinite' }}
+              />
+              <EText path="kicker" value={home.kicker} />
+            </div>
+            <h1
+              data-ldb="title"
               style={{
-                font: 'inherit',
-                borderRadius: 999,
-                padding: ink.btn1.pad,
-                fontSize: 14,
+                fontSize: mob ? 40 : 62,
                 fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 7,
-                transition: 'transform 0.25s',
-                background: ink.btn1.bg,
-                color: ink.btn1.fg,
-                border: ink.btn1.border,
-                backdropFilter: ink.btn1.blur,
-                boxShadow: ink.btn1.shadow,
-                textShadow: ink.btn1.textShadow,
+                letterSpacing: '-0.035em',
+                lineHeight: 1.03,
+                margin: '20px 0 0',
+                ...txt,
               }}
             >
-              {t('home.ctaProjects')} <span aria-hidden>›</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setOverlay('kontakt')}
-              className={styles.heroBtn2}
+              <span style={{ color: ink.t1.col, mixBlendMode: ink.t1.blend }}>
+                <EText path="titleLine1" value={home.titleLine1} />
+              </span>
+              <br />
+              <span style={{ color: ink.t2.col, mixBlendMode: ink.t2.blend }}>
+                <EText path="titleLine2" value={home.titleLine2} />
+              </span>
+            </h1>
+            <div
+              data-ldb="role"
               style={{
-                font: 'inherit',
-                borderRadius: 999,
-                padding: ink.btn2.pad,
-                fontSize: 14,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 3,
+                marginTop: 16,
+                fontSize: 19,
                 fontWeight: 600,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                transition: 'transform 0.25s,gap 0.25s',
-                background: ink.btn2.bg,
-                color: ink.btn2.fg,
-                border: ink.btn2.border,
-                backdropFilter: ink.btn2.blur,
-                boxShadow: ink.btn2.shadow,
-                textShadow: ink.btn2.textShadow,
+                ...txt,
               }}
             >
-              {t('home.ctaHello')} <span aria-hidden>›</span>
-            </button>
+              <span style={{ color: ink.sub.col, mixBlendMode: ink.sub.blend, fontWeight: 400, whiteSpace: 'nowrap', fontSize: 15 }}>
+                <EText path="name" value={home.name} />
+              </span>
+              <span
+                aria-live="polite"
+                style={{
+                  color: ink.job.col,
+                  mixBlendMode: ink.job.blend,
+                  textShadow: ink.jobDeco.textShadow,
+                  // eigener Hintergrund (neu): Jobtitel als Glas-Pille
+                  ...(ink.jobDeco.bg && {
+                    background: ink.jobDeco.bg,
+                    backdropFilter: 'blur(14px) saturate(1.5)',
+                    WebkitBackdropFilter: 'blur(14px) saturate(1.5)',
+                    padding: '4px 12px',
+                    margin: '2px 0 0 -12px',
+                    borderRadius: 999,
+                  }),
+                  whiteSpace: mob ? 'normal' : 'nowrap',
+                  minHeight: mob ? 50 : 0,
+                  lineHeight: 1.3,
+                  opacity: roleOp,
+                  transform: `translateY(${roleY})`,
+                  transition: 'opacity 0.3s ease,transform 0.3s ease',
+                  display: 'inline-block',
+                }}
+              >
+                {role}
+              </span>
+            </div>
+            <p
+              data-ldb="intro"
+              style={{
+                margin: '18px 0 0',
+                fontSize: 16,
+                lineHeight: 1.65,
+                maxWidth: 470,
+                color: ink.intro.col,
+                mixBlendMode: ink.intro.blend,
+                ...txt,
+              }}
+            >
+              <EText path="intro" value={home.intro} multiline />
+            </p>
+            <div data-ldb="cta" style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 30 }}>
+              <button
+                type="button"
+                onClick={() => navigate('/projekte')}
+                className={styles.heroBtn1}
+                style={{
+                  font: 'inherit',
+                  borderRadius: 999,
+                  padding: ink.btn1.pad,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  transition: 'transform 0.25s',
+                  background: ink.btn1.bg,
+                  color: ink.btn1.fg,
+                  border: ink.btn1.border,
+                  backdropFilter: ink.btn1.blur,
+                  boxShadow: ink.btn1.shadow,
+                  textShadow: ink.btn1.textShadow,
+                }}
+              >
+                {t('home.ctaProjects')} <span aria-hidden>›</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setOverlay('kontakt')}
+                className={styles.heroBtn2}
+                style={{
+                  font: 'inherit',
+                  borderRadius: 999,
+                  padding: ink.btn2.pad,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  transition: 'transform 0.25s,gap 0.25s',
+                  background: ink.btn2.bg,
+                  color: ink.btn2.fg,
+                  border: ink.btn2.border,
+                  backdropFilter: ink.btn2.blur,
+                  boxShadow: ink.btn2.shadow,
+                  textShadow: ink.btn2.textShadow,
+                }}
+              >
+                {t('home.ctaHello')} <span aria-hidden>›</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+      {bx.aktuell && <NowBar />}
 
       <div
         data-ldb="stats"
@@ -403,6 +417,9 @@ export function HalloPage() {
         </div>
       </section>
 
+      {bx.schwerpunkte && <FocusAreas />}
+      {bx.laufband && <TechMarquee />}
+
       <section data-ldb="news" style={{ padding: '64px 0 80px' }} aria-labelledby="news-title">
         <SectionHead
           kicker={t('home.newsKicker')}
@@ -417,6 +434,7 @@ export function HalloPage() {
           ))}
         </div>
       </section>
+      {bx.kontakt && <ContactBox />}
     </div>
   );
 }

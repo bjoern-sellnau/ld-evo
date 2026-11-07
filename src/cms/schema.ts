@@ -314,6 +314,39 @@ const HOME_FIELDS: FieldDef[] = [
     ],
   },
   { key: 'welcomeNote', label: 'Welcome: Hinweis', type: 'text', max: 80, help: 'z. B. „So sah loona-designs.de bisher aus.“' },
+  // Design-Richtung „Beyond“ (Einstellungen → Design-Richtung): Texte der Beyond-Bausteine
+  { key: 'bxLine1', label: 'Beyond: Titel oben (Verlauf)', type: 'text', max: 40, inline: true },
+  { key: 'bxLine2', label: 'Beyond: Titel unten', type: 'text', max: 40, inline: true },
+  {
+    key: 'bxNow',
+    label: 'Beyond: Aktuell-Leiste',
+    type: 'text',
+    max: 120,
+    inline: true,
+    help: 'Leer = erste Station aus „Über mich“ (Rolle @ Firma)',
+  },
+  {
+    key: 'bxNowNote',
+    label: 'Beyond: Aktuell-Leiste, Zusatz rechts',
+    type: 'text',
+    max: 120,
+    inline: true,
+    help: 'Leer = Zeitraum der Station',
+  },
+  { key: 'bxMarquee', label: 'Beyond: Tech-Laufband', type: 'strings', max: 24 },
+  {
+    key: 'bxFocus',
+    label: 'Beyond: Schwerpunkte',
+    type: 'list',
+    itemLabel: 'Schwerpunkt',
+    fields: [
+      { key: 'icon', label: 'Symbol', type: 'text', max: 4 },
+      { key: 'title', label: 'Titel', type: 'text', max: 60, inline: true },
+      { key: 'text', label: 'Text', type: 'textarea', max: 400, inline: true },
+    ],
+  },
+  { key: 'bxCtaTitle', label: 'Beyond: Kontakt-Box Titel', type: 'text', max: 80, inline: true },
+  { key: 'bxCtaText', label: 'Beyond: Kontakt-Box Text', type: 'textarea', max: 300, inline: true },
 ];
 
 const STATION_PROJECT_FIELDS: FieldDef[] = [

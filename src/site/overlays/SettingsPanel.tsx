@@ -13,7 +13,7 @@ import { useSite } from '../settings/SiteProvider';
 import { useContent } from '../content/ContentProvider';
 import { canonicalPath } from '../i18n/locale';
 import { NAV_PAD_MAX, NAV_PAD_MIN, NAV_PAD_SIDES, SITE_PAGES, navPadFor, pageForPath, type NavPad } from '../nav/pages';
-import { ACCENTS, FOOT_COPY_PRESETS, FOOT_TAG_DEFAULT, type Settings } from '../settings/schema';
+import { ACCENTS, FOOT_COPY_PRESETS, FOOT_TAG_DEFAULT, beyondParts, type BeyondPart, type Settings } from '../settings/schema';
 import { GlassLayers, panelGlass } from './GlassPanel';
 import styles from './settings.module.css';
 import { useRouter, usePathname } from 'next/navigation';
@@ -150,6 +150,19 @@ const STYLE_OPTS = [
  * ihre Texte selbst; unbekannte (Eigennamen wie „Flow“, „Liquid“) bleiben unverändert.
  */
 const EN_LABELS: Record<string, string> = {
+  'Design-Richtung': 'Design direction',
+  Klassisch: 'Classic',
+  'Beyond-Elemente': 'Beyond elements',
+  'Farbwelt (Nachtblau)': 'Colors (night blue)',
+  'Schrift & Verlauf': 'Type & gradient',
+  'Raster & Glow': 'Grid & glow',
+  'Orb-Hero': 'Orb hero',
+  'NEU-Pille': 'NEW pill',
+  'Aktuell-Leiste': 'Now bar',
+  'Tech-Laufband': 'Tech marquee',
+  Schwerpunkte: 'Focus areas',
+  'Kontakt-Box': 'Contact box',
+  'Lab-Look': 'Lab look',
   'Menü-Elemente': 'Menu elements',
   'Tech-Layout': 'Tech layout',
   'Footer-Marke': 'Footer brand',
@@ -377,6 +390,20 @@ const EN_LABELS: Record<string, string> = {
   Walze: 'Rolling',
   Fallblatt: 'Split-flap',
 };
+
+/** Design-Richtung „Mix“: Elemente aus dem Entwurf „Path to Beyond“ einzeln (Reihenfolge = BEYOND_PARTS). */
+const BEYOND_MIX: readonly { label: string; key: BeyondPart }[] = [
+  { label: 'Farbwelt (Nachtblau)', key: 'farben' },
+  { label: 'Schrift & Verlauf', key: 'schrift' },
+  { label: 'Raster & Glow', key: 'raster' },
+  { label: 'Orb-Hero', key: 'orb' },
+  { label: 'NEU-Pille', key: 'neu' },
+  { label: 'Aktuell-Leiste', key: 'aktuell' },
+  { label: 'Tech-Laufband', key: 'laufband' },
+  { label: 'Schwerpunkte', key: 'schwerpunkte' },
+  { label: 'Kontakt-Box', key: 'kontakt' },
+  { label: 'Lab-Look', key: 'lab' },
+];
 
 function useSl() {
   const locale = useLocale();
@@ -621,6 +648,20 @@ export function SettingsPanel() {
               bold
             />
           </Row>
+          <Row label="Design-Richtung">
+            <Seg
+              options={[
+                ['klassisch', 'Klassisch'],
+                ['beyond', 'Beyond'],
+                ['mix', 'Mix'],
+              ]}
+              value={s.design}
+              onChange={(v) => set('design', v as Settings['design'])}
+              label="Design-Richtung"
+              bold
+            />
+          </Row>
+          {s.design === 'mix' && <BeyondMix />}
           <Row label="Hero-Animation" column>
             <Seg options={HERO_SEGS} value={hm} onChange={(v) => set('heroAnim', v)} label="Hero-Animation" wrap />
           </Row>
@@ -1515,6 +1556,26 @@ function FrameRow() {
         </span>
       )}
     </Row>
+  );
+}
+
+/** Einzelwahl der Beyond-Elemente (nur bei Design-Richtung „Mix“); fehlende Einträge gelten als an. */
+function BeyondMix() {
+  const { settings: s, set } = useSite();
+  const sl = useSl();
+  const bx = beyondParts(s);
+  return (
+    <div role="group" aria-label={sl('Beyond-Elemente')} style={{ display: 'grid', gap: 2, margin: '-2px 0 8px' }}>
+      {BEYOND_MIX.map((m) => (
+        <Toggle
+          key={m.key}
+          label={m.label}
+          on={bx[m.key]}
+          onToggle={() => set('designMix', { ...s.designMix, [m.key]: !bx[m.key] })}
+          small
+        />
+      ))}
+    </div>
   );
 }
 

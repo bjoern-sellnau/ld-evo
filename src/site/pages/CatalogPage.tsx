@@ -10,6 +10,7 @@ import { projectHref } from '../lib/routes';
 import { useSite } from '../settings/SiteProvider';
 import { useHref, useT } from '../i18n/LocaleProvider';
 import { filterVt } from '../vt/filterVt';
+import { LabStatTiles, useBeyond } from '../beyond/Beyond';
 
 const TRANS = 'transform 0.6s cubic-bezier(0.3,0.8,0.3,1)';
 
@@ -72,6 +73,7 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
   const { settings, mob, overlay } = useSite();
   const { projects } = useContent();
   const cat = projects.filter((p) => p.kind === kind);
+  const bx = useBeyond();
   const slides = cat.filter((p) => p.featured);
   const t = useT();
   const kats = [ALL, ...cat.map((p) => p.kat).filter((v, i, a) => a.indexOf(v) === i)];
@@ -106,6 +108,8 @@ export function CatalogPage({ kind }: { kind: 'projekte' | 'labs' }) {
         {t(COPY[kind].kicker)}
       </h1>
       <p style={{ fontSize: 15, color: 'var(--muted)', margin: '8px 0 0', maxWidth: 560, lineHeight: 1.6 }}>{t(COPY[kind].title)}</p>
+      {/* Design-Richtung „Beyond“ → Lab-Look: Kennzahl-Kacheln über den Labs */}
+      {kind === 'labs' && bx.lab && <LabStatTiles />}
 
       {slides.length > 0 && (
         <section

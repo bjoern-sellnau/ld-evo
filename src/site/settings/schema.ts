@@ -32,6 +32,15 @@ export type MobLogo = 'pill' | 'wordmark' | 'tile' | 'scroll';
  * Tab-Leiste mit großem Home-Logo in der Mitte, Zurück/Nach oben/Suche darüber, Menü als kontraststarkes Bottom-Sheet).
  */
 export type MobDesign = 'proto' | 'app' | 'appv2' | 'editorial' | 'lab';
+/**
+ * Design-Richtung (neu, Wunsch 07.11.2026): 'klassisch' = Site wie bisher (Prototyp), 'beyond' = alle Elemente aus
+ * dem Entwurf „Path to Beyond“ (github.com/bjoern-sellnau/ld-path-to-beyond), 'mix' = jedes Element einzeln (designMix).
+ * Nichts wird ersetzt — „Klassisch“ zeigt immer die unveränderte Site.
+ */
+export type DesignDir = 'klassisch' | 'beyond' | 'mix';
+/** Elemente des Beyond-Entwurfs, die sich bei „Mix“ einzeln schalten lassen (Reihenfolge = Panel). */
+export const BEYOND_PARTS = ['farben', 'schrift', 'raster', 'orb', 'neu', 'aktuell', 'laufband', 'schwerpunkte', 'kontakt', 'lab'] as const;
+export type BeyondPart = (typeof BEYOND_PARTS)[number];
 
 export interface Settings {
   theme: Theme;
@@ -130,6 +139,9 @@ export interface Settings {
   navWordSize: number;
   /** Kantenlänge des Footer-Logos in px (Footer-Marke „Logo“; vorher fest 26). */
   footLogoSize: number;
+  /** Design-Richtung (Klassisch / Beyond / Mix) und die Einzelwahl bei „Mix“ (fehlend = an). */
+  design: DesignDir;
+  designMix: Partial<Record<BeyondPart, boolean>>;
 }
 
 /** SSR-Defaults (dark, Animationen an) — entsprechen dem initialen State des Prototyps. */
@@ -207,6 +219,8 @@ export const DEFAULT_SETTINGS: Settings = {
   navLogoSize: 24,
   navWordSize: 18,
   footLogoSize: 26,
+  design: 'klassisch',
+  designMix: {},
 };
 
 interface Codec<T> {
@@ -355,7 +369,22 @@ export const SETTINGS_CODECS: { [K in keyof Settings]: Codec<Settings[K]> } = {
   navLogoSize: range('ld-navlogo', 24, 16, 40),
   navWordSize: range('ld-navword', 18, 10, 32),
   footLogoSize: range('ld-footlogosize', 26, 16, 64),
+  design: {
+    key: 'ld-design',
+    read: (r) => (r === 'beyond' || r === 'mix' ? r : 'klassisch'),
+    write: (v) => (v === 'klassisch' ? null : v),
+  },
+  designMix: json('ld-designmix'),
 };
+
+/** Welche Beyond-Elemente gerade aktiv sind: Klassisch keines, Beyond alle, Mix laut Einzelwahl (Standard an). */
+export function beyondParts(s: Pick<Settings, 'design' | 'designMix'>): Record<BeyondPart, boolean> {
+  const mix = s.designMix && typeof s.designMix === 'object' ? s.designMix : {};
+  return Object.fromEntries(BEYOND_PARTS.map((p) => [p, s.design === 'beyond' || (s.design === 'mix' && mix[p] !== false)])) as Record<
+    BeyondPart,
+    boolean
+  >;
+}
 
 export function readSettings(storage: Pick<Storage, 'getItem'>): Settings {
   const out = { ...DEFAULT_SETTINGS };

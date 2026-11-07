@@ -35,6 +35,50 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Wie durchsichtig die Glasflächen (Menü, Panels, Karten) sind — von sehr klar bis deckend.',
     en: 'How see-through the glass surfaces (menu, panels, cards) are — from very clear to opaque.',
   },
+  'Design-Richtung': {
+    de: 'Klassisch zeigt die Site wie bisher. Beyond übernimmt alle Elemente aus dem Entwurf „Path to Beyond“ (Nachtblau, Orb-Hero, Lab-Look …). Mix: jedes Element einzeln an- oder abschalten. Es geht nichts verloren — zurück auf Klassisch genügt.',
+    en: 'Classic shows the site as before. Beyond applies every element from the “Path to Beyond” draft (night blue, orb hero, lab look …). Mix: switch each element on or off. Nothing is lost — switching back to Classic is enough.',
+  },
+  'Farbwelt (Nachtblau)': {
+    de: 'Farben aus dem Beyond-Entwurf: tiefes Nachtblau mit blauem Akzent und Glow, hell ein kühles Blaugrau. Eine selbst gewählte Akzentfarbe hat Vorrang.',
+    en: 'Colors from the Beyond draft: deep night blue with a blue accent and glow; light mode a cool blue-grey. An accent color you picked takes precedence.',
+  },
+  'Schrift & Verlauf': {
+    de: 'Überschriften in Unbounded, Fließtext in Geist (wie im Entwurf); der Titel im Orb-Hero mit Farbverlauf.',
+    en: 'Headings in Unbounded, body text in Geist (as in the draft); the orb hero title with a color gradient.',
+  },
+  'Raster & Glow': {
+    de: 'Feines Blueprint-Raster und ein weicher Lichtschein oben auf jeder Seite.',
+    en: 'Fine blueprint grid and a soft glow at the top of every page.',
+  },
+  'Orb-Hero': {
+    de: 'Startseite zweispaltig mit dem leuchtenden Loona-Mond in Orbits statt der Hero-Animation (die gewählte Animation bleibt gespeichert).',
+    en: 'Two-column home page with the glowing Loona moon in orbit instead of the hero animation (your chosen animation stays saved).',
+  },
+  'NEU-Pille': {
+    de: 'Kleine Pille über dem Hero-Titel mit Hinweis auf die Labs und deren Anzahl.',
+    en: 'Small pill above the hero title pointing to the Labs and how many there are.',
+  },
+  'Aktuell-Leiste': {
+    de: 'Schmale Leiste unter dem Hero: aktuelle Position mit pulsierendem Punkt. Text in LD Flow unter Startseite → Beyond.',
+    en: 'Slim bar below the hero: current position with a pulsing dot. Text in LD Flow under Home → Beyond.',
+  },
+  'Tech-Laufband': {
+    de: 'Endlos laufende Zeile mit Technologien; pausiert bei Hover und steht bei „Animationen aus“ still.',
+    en: 'Endlessly scrolling row of technologies; pauses on hover and stops when animations are off.',
+  },
+  Schwerpunkte: {
+    de: 'Drei Karten „Woran ich arbeite“ auf der Startseite. Texte in LD Flow unter Startseite → Beyond.',
+    en: 'Three “What I work on” cards on the home page. Texts in LD Flow under Home → Beyond.',
+  },
+  'Kontakt-Box': {
+    de: 'Große Box mit Glow am Ende der Startseite, öffnet das Kontaktformular.',
+    en: 'Large glowing box at the end of the home page that opens the contact form.',
+  },
+  'Lab-Look': {
+    de: 'Labs und Projekte im Look des Entwurfs: generative Cover (wenn kein Bild da ist), Status mit Puls und Kennzahl-Kacheln über den Labs.',
+    en: 'Labs and projects in the draft’s look: generative covers (when there is no image), pulsing status and stat tiles above the Labs.',
+  },
   Material: {
     de: 'Stil der Glasflächen: Liquid (Lichtkanten und Lichtbrechung), Glas (klassisches Milchglas) oder Fluent (ruhiger, eckiger, mit feinem Rauschen).',
     en: 'Style of the glass surfaces: Liquid (light edges and refraction), Glass (classic frosted glass) or Fluent (calmer, squarer, with fine noise).',
