@@ -1,0 +1,13 @@
+/*
+ * Ultra-Widescreen (Wunsch 07.11.2026, Zielgröße 3840×1600): Ab 2400 px Fensterbreite dürfen Seiten, die sich per
+ * data-ultra anmelden (Case Study, Artikel — nur in der Desktop-Darstellung), breiter werden; die Schrift wächst
+ * maßvoll (--ld-fs). Story-Seiten bleiben bewusst unverändert (eigene Inszenierung, „breit“ höchstens ±160 px).
+ * Unter 2400 px greift nichts davon — dort gelten die Fallbacks in SitePage.tsx (= die bisherigen Werte).
+ */
+@media (min-width: 2400px) {
+  .page:has([data-ultra]) {
+    /* 1760 px bei 2400 px Fensterbreite, wächst bis 2024 px (= 1960 px Inhalt + 2 × 32 px Rand) */
+    --ld-pw: clamp(1760px, calc(100vw - 640px), 2024px);
+    --ld-fs: 1.1;
+  }
+}

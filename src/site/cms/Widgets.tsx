@@ -207,6 +207,7 @@ export function WidgetList({
         ) : (
           <section
             key={b._id}
+            data-w={b.type}
             style={{
               marginTop: i === 0 ? 0 : gap,
               // content-visibility schneidet alles ab, was über die Box hinausragt (Paint-Containment) — daher reicht die

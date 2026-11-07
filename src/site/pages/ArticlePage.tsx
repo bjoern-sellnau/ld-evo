@@ -10,7 +10,7 @@ import { inkOn, lum, readableAlpha } from '../lib/color';
 import { articleHref } from '../lib/routes';
 import { useCoverColor } from '../lib/useCoverColor';
 import { useSite } from '../settings/SiteProvider';
-import { GallerySlots, RelatedCard, related } from './detail';
+import { GallerySlots, RelatedCard, fs, related } from './detail';
 import styles from './detail.module.css';
 import { useHref, useT } from '../i18n/LocaleProvider';
 
@@ -33,7 +33,14 @@ export function ArticlePage({ a }: { a: Article }) {
   };
 
   return (
-    <article data-screen-label="Artikel" data-ldsample={coverFull ? lum(a.color).toFixed(2) : '0.03,0.98'}>
+    <article
+      data-screen-label="Artikel"
+      data-ldsample={coverFull ? lum(a.color).toFixed(2) : '0.03,0.98'}
+      // Ultra-Widescreen (ab 2400 px, nur Desktop-Darstellung): Schrift + Lesebreite wachsen maßvoll, Galerie und
+      // Verwandte greifen über die Textspalte hinaus (--ar-out, detail.module.css)
+      data-ultra={mob ? undefined : 'article'}
+      className={styles.article}
+    >
       <header
         data-ldsample={lum(a.color).toFixed(2)}
         style={{
@@ -46,7 +53,7 @@ export function ArticlePage({ a }: { a: Article }) {
           borderRadius: coverFull ? 0 : '0 0 44px 44px',
         }}
       >
-        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <div style={{ maxWidth: fs(760), margin: '0 auto' }}>
           <div
             style={{
               display: 'flex',
@@ -69,32 +76,34 @@ export function ArticlePage({ a }: { a: Article }) {
               </>
             )}
           </div>
-          <h1 style={{ fontSize: mob ? 29 : 46, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.12, margin: '14px 0 0' }}>
+          <h1 style={{ fontSize: mob ? 29 : fs(46), fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.12, margin: '14px 0 0' }}>
             <EText path="titel" value={a.titel} />
           </h1>
-          <div style={{ fontSize: 16, lineHeight: 1.6, marginTop: 14, opacity: readableAlpha(a.color, ink, 0.85), fontStyle: 'italic' }}>
+          <div
+            style={{ fontSize: fs(16), lineHeight: 1.6, marginTop: 14, opacity: readableAlpha(a.color, ink, 0.85), fontStyle: 'italic' }}
+          >
             <EText path="teaser" value={a.teaser} multiline />
           </div>
         </div>
       </header>
 
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 0 60px' }}>
+      <div style={{ maxWidth: fs(680), margin: '0 auto', padding: '48px 0 60px' }}>
         {a.body.map((p, i) => (
-          <p key={i} style={{ margin: '0 0 22px', fontSize: 16.5, lineHeight: 1.8, color: 'var(--muted)' }}>
+          <p key={i} style={{ margin: '0 0 22px', fontSize: fs(16.5), lineHeight: 1.8, color: 'var(--muted)' }}>
             <EText path={`body.${i}`} value={p} multiline />
           </p>
         ))}
-        <div style={{ marginTop: 40 }}>
+        <div style={{ marginTop: 40, marginInline: 'var(--ar-out, 0px)' }}>
           <GallerySlots
-            wide={300}
-            small={180}
+            wide="var(--ar-gw, 300px)"
+            small="var(--ar-gs, 180px)"
             cols2={mob ? '1fr' : '1fr 1fr'}
             images={a.gallery}
             labels={[t('article.slot1'), t('article.slot2'), t('article.slot3')]}
           />
         </div>
 
-        <section style={{ marginTop: 44 }} aria-labelledby="rel-title">
+        <section style={{ marginTop: 44, marginInline: 'var(--ar-out, 0px)' }} aria-labelledby="rel-title">
           <h2 id="rel-title" style={{ fontFamily: mono, fontSize: 10.5, fontWeight: 400, letterSpacing: '0.18em', color: acc, margin: 0 }}>
             {t('article.related')}
           </h2>

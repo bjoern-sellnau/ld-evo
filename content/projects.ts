@@ -44,6 +44,8 @@ export interface Project {
   learnings: string;
   /** Galerie (bis zu 3 Slots: breit, klein, klein); leere Slots zeigen einen Platzhalter. Bilder kommen aus dem CMS. */
   gallery?: (GalleryImage | null)[];
+  /** Case Study: weitere Inhalte nach Kapitel 06 (Widgets, neu 07.11.2026). */
+  blocks?: StoryBlock[];
   /** Detailseite: 'case' = Case Study mit Kapiteln (Prototyp, Standard), 'story' = Scroll-Story aus Widgets (neu). */
   layout?: 'case' | 'story';
   /** Inhalt der Story-Seite: Widgets (src/widgets, Gruppe „Story“ und alle übrigen). */

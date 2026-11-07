@@ -53,3 +53,131 @@
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+/*
+ * Case Study — Ultra-Widescreen (Wunsch 07.11.2026, ab 2400 px Fensterbreite, Seite meldet sich per data-ultra an):
+ * drei Spalten — links Steckbrief + Kapitel-Navigation (sticky), Mitte Lesetext, rechts Zitat und Werkzeuge als
+ * Marginalien (float in die rechte Spalte, DOM-Reihenfolge = Lesereihenfolge bleibt). Galerie und Widgets nutzen
+ * Mitte + rechts. Unter 2400 px gelten nur die Grundwerte unten (= bisherige Inline-Werte, pixelgleich).
+ */
+.caseBody {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 0 40px;
+}
+
+.caseToc {
+  display: none;
+}
+
+/* Steckbrief + Kapitel-Navigation: unter 2400 px ohne eigene Box (dl steht wie bisher direkt im Fluss) */
+.caseSide {
+  display: contents;
+}
+
+@media (min-width: 2400px) {
+  [data-ultra].case {
+    --cs-side: clamp(260px, 12vw, 340px);
+    --cs-main: 840px;
+    --cs-aside: clamp(280px, 11vw, 380px);
+    --cs-gap: clamp(56px, 3vw, 104px);
+    --cs-w: calc(var(--cs-side) + var(--cs-main) + var(--cs-aside) + 2 * var(--cs-gap));
+    --cs-facts: 1fr;
+    --cs-gw: 560px;
+    --cs-gs: 340px;
+  }
+
+  [data-ultra] .caseBody {
+    max-width: var(--cs-w);
+    display: grid;
+    grid-template-columns: var(--cs-side) var(--cs-main) var(--cs-aside);
+    column-gap: var(--cs-gap);
+    align-items: start;
+    padding-top: 72px;
+  }
+
+  [data-ultra] .caseLead {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  [data-ultra] .caseSide {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    position: sticky;
+    top: 104px;
+  }
+
+  [data-ultra] .caseMain {
+    grid-column: 2 / span 2;
+    grid-row: 2;
+    display: flow-root;
+  }
+
+  [data-ultra] .caseMain > * {
+    max-width: var(--cs-main);
+  }
+
+  [data-ultra] .caseMain > .caseMargin {
+    float: right;
+    clear: right;
+    width: var(--cs-aside);
+    max-width: none;
+  }
+
+  [data-ultra] .caseMain > .caseWide {
+    max-width: none;
+    clear: both;
+  }
+
+  /* Text-Widgets bleiben in Lesebreite, alles andere (Medien, Daten, Karten) nutzt Mitte + rechts */
+  [data-ultra]
+    .caseWide
+    > section:is([data-w='text'], [data-w='chapter'], [data-w='quote'], [data-w='faq'], [data-w='callout'], [data-w='timeline']) {
+    max-width: var(--cs-main);
+  }
+
+  [data-ultra] .caseOutro {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  [data-ultra] .caseToc {
+    display: block;
+  }
+}
+
+.tocLink {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 7px 0 7px 14px;
+  border-left: 2px solid var(--hair);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13.5px;
+  line-height: 1.35;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.tocLink:hover,
+.tocLink[aria-current] {
+  color: var(--ink);
+}
+
+.tocLink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Artikel — Ultra-Widescreen (ab 2400 px): Galerie und Verwandte 1200 px breit, Text bleibt Lesebreite × --ld-fs. */
+@media (min-width: 2400px) {
+  [data-ultra].article {
+    --ar-out: calc((680px * var(--ld-fs, 1) - 1200px) / 2);
+    --ar-gw: 520px;
+    --ar-gs: 320px;
+  }
+}
