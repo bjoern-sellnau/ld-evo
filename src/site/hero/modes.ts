@@ -7,8 +7,11 @@ import { lum } from '../lib/color';
 import { heroCfgOf, resolvePal } from './palettes';
 import { EXTRA_MODES } from './extra/meta';
 
-/** 'extra' = zusätzliche Modi außerhalb der Prototyp-Engine (src/site/hero/extra). */
-export type HeroRenderer = 'css' | 'webgl' | 'canvas2d' | 'extra';
+/**
+ * 'extra' = zusätzliche Modi außerhalb der Prototyp-Engine (src/site/hero/extra); 'orb' = „LD retro“, der leuchtende
+ * Loona-Mond aus dem Entwurf „Path to Beyond“ (CSS/SVG, src/site/beyond/Beyond.tsx → Orb) — ohne Canvas.
+ */
+export type HeroRenderer = 'css' | 'webgl' | 'canvas2d' | 'extra' | 'orb';
 
 export interface HeroModeDef {
   renderer: HeroRenderer;
@@ -18,6 +21,7 @@ export interface HeroModeDef {
 
 export const HERO_MODES: Record<string, HeroModeDef> = {
   flow: { renderer: 'css', bg: 'transparent', sample: '0.52' },
+  retro: { renderer: 'orb', bg: 'transparent', sample: '0.52' },
   lava: { renderer: 'webgl', bg: 'linear-gradient(180deg,#180A20,#0B0710)', sample: '0.14,0.14' },
   aurora: { renderer: 'webgl', bg: 'linear-gradient(180deg,#03101E,#01060D)', sample: '0.10,0.10' },
   ribbon: { renderer: 'webgl', bg: null, sample: null }, // BG/Sample aus Palette + cfg.t (heroFxBgOf)

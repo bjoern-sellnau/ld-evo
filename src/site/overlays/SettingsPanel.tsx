@@ -24,6 +24,8 @@ import { LANGUAGE_NAME } from '../i18n/LanguageSwitch';
 // Segment-Reihenfolge der Hero-Modi wie im Prototyp (heroSegs).
 const HERO_SEGS = [
   ['flow', 'Flow'],
+  // Der Mond aus dem Entwurf „Path to Beyond“ (Design-Richtung Beyond), auch im klassischen Hero nutzbar
+  ['retro', 'LD retro'],
   ['lava', 'Lava'],
   ['aurora', 'Aurora'],
   ['ribbon', 'Ribbon'],
@@ -156,7 +158,7 @@ const EN_LABELS: Record<string, string> = {
   'Farbwelt (Nachtblau)': 'Colors (night blue)',
   'Schrift & Verlauf': 'Type & gradient',
   'Raster & Glow': 'Grid & glow',
-  'Orb-Hero': 'Orb hero',
+  'Beyond-Hero': 'Beyond hero',
   'NEU-Pille': 'NEW pill',
   'Aktuell-Leiste': 'Now bar',
   'Tech-Laufband': 'Tech marquee',
@@ -396,7 +398,7 @@ const BEYOND_MIX: readonly { label: string; key: BeyondPart }[] = [
   { label: 'Farbwelt (Nachtblau)', key: 'farben' },
   { label: 'Schrift & Verlauf', key: 'schrift' },
   { label: 'Raster & Glow', key: 'raster' },
-  { label: 'Orb-Hero', key: 'orb' },
+  { label: 'Beyond-Hero', key: 'orb' },
   { label: 'NEU-Pille', key: 'neu' },
   { label: 'Aktuell-Leiste', key: 'aktuell' },
   { label: 'Tech-Laufband', key: 'laufband' },
@@ -411,7 +413,7 @@ function useSl() {
 }
 
 // Welche Modi welche Konfig-Zeilen zeigen (Prototyp: showFxPal / showFxCfg / showFxAng / showFxReset).
-const NO_PAL = ['orbit'];
+const NO_PAL = ['orbit', 'retro'];
 const SIZE_POS = ['flow', 'blackhole', 'nova', 'orbit', 'ribbon'];
 
 /** Einstellungs-Panel (Prototyp Zeile 973–1211). Alle Werte persistieren über den SiteProvider (ld-*-Keys). */

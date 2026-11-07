@@ -9,6 +9,8 @@ import { BEYOND_PARTS, DEFAULT_SETTINGS, SETTINGS_CODECS, beyondParts, readSetti
 import { THEME_BOOT_SCRIPT } from '@/site/settings/applyBody';
 import { labStats } from '@/site/beyond/Beyond';
 import { LabCover, coverKind, hueOf, seededRandom } from '@/site/beyond/LabCover';
+import { HERO_MODES } from '@/site/hero/modes';
+import { readFileSync } from 'node:fs';
 
 /** Design-Richtung „Beyond“ (Entwurf „Path to Beyond“): Einstellungen, Boot-Script, Kennzahlen, generatives Cover. */
 describe('Design-Richtung Beyond', () => {
@@ -84,5 +86,12 @@ describe('Design-Richtung Beyond', () => {
     expect(html).toMatch(/^<svg[^>]*aria-hidden="true"/);
     expect(html).toContain('id="bxc-covert-bg"');
     expect(html).not.toContain('NaN');
+  });
+
+  it('„LD retro“ ist eine Hero-Animation (ohne Canvas) und in der Auswahl', () => {
+    expect(HERO_MODES.retro.renderer).toBe('orb');
+    const panel = readFileSync('src/site/overlays/SettingsPanel.tsx', 'utf8');
+    expect(panel).toContain("['retro', 'LD retro']");
+    expect(panel).toMatch(/const NO_PAL = \[[^\]]*'retro'/);
   });
 });

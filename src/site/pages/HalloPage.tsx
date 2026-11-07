@@ -8,7 +8,7 @@ import styles from '../cards/cards.module.css';
 import { useContent } from '../content/ContentProvider';
 import { EText } from '../cms/editing';
 import { FlowHero } from '../hero/FlowHero';
-import { heroInk, heroMode } from '../hero/heroInk';
+import { contrastColor, heroInk, heroMode } from '../hero/heroInk';
 import { HERO_MODES, heroFxBgOf, heroFxSampleOf } from '../hero/modes';
 import { useHeroShader } from '../hero/useHeroShader';
 import { useExtraHero } from '../hero/extra/useExtraHero';
@@ -17,7 +17,7 @@ import { useLocale, useT } from '../i18n/LocaleProvider';
 import { intlLocale, type Locale } from '../i18n/locale';
 import { mobBottomZone, SIM_VH } from '../chrome/phoneBox';
 import { CAREER_START } from '../lib/career';
-import { BeyondHero, ContactBox, FocusAreas, NewPill, NowBar, TechMarquee, useBeyond } from '../beyond/Beyond';
+import { BeyondHero, ContactBox, FocusAreas, NewPill, NowBar, Orb, TechMarquee, useBeyond } from '../beyond/Beyond';
 
 const careerSeconds = (l: Locale) => Math.floor((Date.now() - CAREER_START) / 1000).toLocaleString(intlLocale(l));
 
@@ -112,12 +112,74 @@ export function HalloPage() {
     transition: 'opacity 0.7s ease',
   };
   const cols3 = mob ? '1fr' : 'repeat(3,1fr)';
+  // Animations-Fläche der Startseite (Canvas bzw. Flow-CSS) — im klassischen Hero und im Beyond-Hero (Mix) dieselbe.
+  // „LD retro“ (renderer 'orb') braucht keine: der Mond ist ein eigenes Element.
+  const fxLayer =
+    def.renderer === 'css' ? (
+      <FlowHero />
+    ) : def.renderer === 'orb' ? null : (
+      <div
+        data-ldsample={heroFxSampleOf(hm, s.heroCfg)}
+        data-ldpara="1"
+        aria-hidden
+        style={{
+          position: 'absolute',
+          top: -140,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: mob && !isMobile ? 430 : '100vw',
+          height: heroFxH,
+          overflow: 'hidden',
+          pointerEvents: 'none',
+          WebkitMask: 'linear-gradient(180deg,#000 68%,transparent)',
+          mask: 'linear-gradient(180deg,#000 68%,transparent)',
+          background: heroFxBgOf(hm, s.heroCfg),
+        }}
+      >
+        <canvas
+          id="ld-lava-canvas"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            display: def.renderer === 'webgl' ? 'block' : 'none',
+          }}
+        />
+        {def.renderer === 'extra' && (
+          <canvas
+            key={hm}
+            id="ld-extra-canvas"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
+          />
+        )}
+        <canvas
+          id="ld-orbit-canvas"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            display: def.renderer === 'canvas2d' ? 'block' : 'none',
+          }}
+        />
+      </div>
+    );
+  // Beyond-Hero: bei „Beyond“ immer LD retro (Entwurf 1:1); bei „Mix“ die gewählte Animation. Live-Build-Modi bauen den
+  // klassischen Hero auf und passen nicht ins Beyond-Layout → dort ebenfalls LD retro.
+  const bxRetro = s.design === 'beyond' || def.renderer === 'orb' || hm.startsWith('build');
 
   return (
     <div data-screen-label="Hallo">
       {bx.orb ? (
         <div id="ld-hero" style={{ position: 'relative' }}>
-          <BeyondHero pill={bx.neu} mob={mob} />
+          <BeyondHero
+            pill={bx.neu}
+            mob={mob}
+            fx={bxRetro ? undefined : fxLayer}
+            fxText={contrastColor(hm, s.theme === 'light')}
+            txt={txt}
+          />
         </div>
       ) : (
         <div
@@ -133,55 +195,8 @@ export function HalloPage() {
             justifyContent: s.fullHero && !mob ? 'center' : 'flex-start',
           }}
         >
-          {def.renderer !== 'css' && (
-            <div
-              data-ldsample={heroFxSampleOf(hm, s.heroCfg)}
-              data-ldpara="1"
-              aria-hidden
-              style={{
-                position: 'absolute',
-                top: -140,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: mob && !isMobile ? 430 : '100vw',
-                height: heroFxH,
-                overflow: 'hidden',
-                pointerEvents: 'none',
-                WebkitMask: 'linear-gradient(180deg,#000 68%,transparent)',
-                mask: 'linear-gradient(180deg,#000 68%,transparent)',
-                background: heroFxBgOf(hm, s.heroCfg),
-              }}
-            >
-              <canvas
-                id="ld-lava-canvas"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  display: def.renderer === 'webgl' ? 'block' : 'none',
-                }}
-              />
-              {def.renderer === 'extra' && (
-                <canvas
-                  key={hm}
-                  id="ld-extra-canvas"
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
-                />
-              )}
-              <canvas
-                id="ld-orbit-canvas"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  display: def.renderer === 'canvas2d' ? 'block' : 'none',
-                }}
-              />
-            </div>
-          )}
-          {def.renderer === 'css' && <FlowHero />}
+          {fxLayer}
+          {def.renderer === 'orb' && !mob && <RetroOrb mob={false} />}
           <div
             aria-hidden
             data-ldb="title"
@@ -361,6 +376,7 @@ export function HalloPage() {
               </button>
             </div>
           </div>
+          {def.renderer === 'orb' && mob && <RetroOrb mob />}
         </div>
       )}
       {bx.aktuell && <NowBar />}
@@ -510,6 +526,22 @@ function ScrollIndicator({ hidden }: { hidden: boolean }) {
         </div>
         <span style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.22em', color: 'rgba(255,255,255,0.7)' }}>SCROLL</span>
       </div>
+    </div>
+  );
+}
+
+/**
+ * „LD retro“ im klassischen Hero: der Mond aus dem Beyond-Entwurf rechts neben dem Text (Desktop) bzw. klein unter
+ * dem Text (mobil). Dekorativ — der Hero-Text bleibt unverändert.
+ */
+function RetroOrb({ mob }: { mob: boolean }) {
+  return mob ? (
+    <div style={{ position: 'relative', width: 240, margin: '-28px auto 36px' }}>
+      <Orb small />
+    </div>
+  ) : (
+    <div style={{ position: 'absolute', top: 96, right: 0, width: 'min(440px, 38vw)', pointerEvents: 'none' }}>
+      <Orb />
     </div>
   );
 }
