@@ -53,14 +53,60 @@ const careerYear = new Date(CAREER_START).getFullYear();
 // Hero mit Orb
 // ---------------------------------------------------------------------------------------------------------------
 
-export function BeyondHero({ pill, mob }: { pill: boolean; mob: boolean }) {
+/**
+ * Text über einer Hero-Animation: Textfarben passend zur Helligkeit der Animation (contrastColor aus heroInk —
+ * dieselbe Quelle wie der klassische Hero), Flächen halbtransparent statt der Seiten-Tokens.
+ */
+const FX_TOKENS: Record<'light' | 'dark', CSSProperties> = {
+  // helle Schrift auf dunkler Animation
+  dark: {
+    '--ink': '#ffffff',
+    '--muted': '#e6ebf2',
+    '--soft': '#d5dce6',
+    '--card': 'rgba(8, 12, 20, 0.55)',
+    '--border': 'rgba(255, 255, 255, 0.22)',
+    '--hair': 'rgba(255, 255, 255, 0.2)',
+  } as CSSProperties,
+  // dunkle Schrift auf heller Animation
+  light: {
+    '--ink': '#10151d',
+    '--muted': '#26303d',
+    '--soft': '#333d4b',
+    '--card': 'rgba(255, 255, 255, 0.7)',
+    '--border': 'rgba(16, 21, 29, 0.2)',
+    '--hair': 'rgba(16, 21, 29, 0.16)',
+  } as CSSProperties,
+};
+
+/**
+ * Beyond-Hero (zweispaltig). Rechts „LD retro“ (der Mond aus dem Entwurf) — oder bei jeder anderen Hero-Animation
+ * läuft diese als Hintergrund (fx, dieselbe Fläche wie im klassischen Hero) und die rechte Spalte bleibt frei.
+ */
+export function BeyondHero({
+  pill,
+  mob,
+  fx,
+  fxText,
+  txt,
+}: {
+  pill: boolean;
+  mob: boolean;
+  /** Animations-Hintergrund; ohne = LD retro (Mond). */
+  fx?: ReactNode;
+  /** Textfarbe, die die Animation verlangt (#FFFFFF = hell). */
+  fxText?: string;
+  /** Sichtbarkeit des Textes (Matrix-Cinematic blendet ihn aus). */
+  txt?: CSSProperties;
+}) {
   const { home, projects, about } = useContent();
   const { setOverlay } = useSite();
   const t = useT();
   const labs = labStats(projects);
+  const tokens = fx ? FX_TOKENS[fxText === '#FFFFFF' ? 'dark' : 'light'] : undefined;
   return (
-    <div className={`${styles.hero} ${mob ? styles.heroMob : ''}`}>
-      <div>
+    <div className={`${styles.hero} ${mob ? styles.heroMob : ''}`} style={tokens}>
+      {fx}
+      <div style={{ position: 'relative', ...txt }}>
         {pill ? <NewPill /> : <KickerPill text={home.kicker} />}
         <h1 className={styles.title}>
           <span className={styles.grad}>
@@ -95,7 +141,7 @@ export function BeyondHero({ pill, mob }: { pill: boolean; mob: boolean }) {
           </div>
         </dl>
       </div>
-      <Orb small={mob} />
+      {fx ? <div aria-hidden /> : <Orb small={mob} />}
     </div>
   );
 }
