@@ -1,0 +1,528 @@
+/*
+ * Design-Richtung „Beyond“ — Bausteine der Startseite und der Labs (neu, Wunsch 07.11.2026).
+ * Vorlage: Entwurf „Path to Beyond“ (github.com/bjoern-sellnau/ld-path-to-beyond): src/components/orb.tsx,
+ * src/app/page.tsx, src/components/ui.tsx, src/components/lab/*. Werte (Radien, Abstände, Glow, Animationsdauer)
+ * von dort übernommen; Farben über die Site-Tokens (--accent, --ink, …), damit Klassisch/Beyond/Mix zusammenpassen.
+ */
+
+/* ---- Hero ---- */
+.hero {
+  position: relative;
+  display: grid;
+  gap: 48px;
+  align-items: center;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  padding: 150px 0 88px;
+}
+.heroMob {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  padding: 118px 0 48px;
+}
+.title {
+  margin: 22px 0 0;
+  font-family: var(--bx-font-display), var(--ld-font-sans), sans-serif;
+  font-size: clamp(40px, 5.2vw, 64px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  color: var(--ink);
+}
+/* Verlauf wie im Entwurf (.text-gradient): Text → helles Akzent → Akzent. Fallback ohne background-clip: Textfarbe. */
+.grad {
+  background: linear-gradient(100deg, var(--ink) 20%, color-mix(in srgb, var(--accent) 70%, #fff) 60%, var(--accent) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.intro {
+  margin: 22px 0 0;
+  max-width: 34rem;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+.btn {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 11px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.btnPrimary {
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 8px 30px -8px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.btnPrimary:hover {
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 10px 36px -6px color-mix(in srgb, var(--accent) 75%, transparent);
+}
+.btnSecondary {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+}
+.btnSecondary:hover {
+  border-color: color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.btn:focus-visible,
+.pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.arrow {
+  transition: transform 0.2s;
+}
+.btn:hover .arrow {
+  transform: translateX(2px);
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  max-width: 32rem;
+  margin: 44px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--hair);
+}
+.stats dt {
+  font-family: var(--ld-font-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.stats dd {
+  margin: 6px 0 0;
+  font-family: var(--bx-font-display), var(--ld-font-sans), sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---- Pille (NEU / Kicker) ---- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
+}
+.pill:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--ink) 25%, transparent);
+}
+.pillTag {
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--ld-font-mono), monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.pillKicker {
+  padding-left: 12px;
+}
+
+/* ---- Orb (Entwurf: orb.tsx) ---- */
+.orb {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+.orbGlow {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+  filter: blur(80px);
+}
+.orbRings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: bxSpin 60s linear infinite;
+}
+.orbMoon {
+  position: absolute;
+  inset: 18%;
+  animation: bxFloat 9s ease-in-out infinite;
+}
+.orbBody {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #9fe0ff 0%, #19a7ff 38%, #0a4f8c 70%, #04203a 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+    0 30px 80px -20px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 0 120px -10px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.orbRing {
+  position: absolute;
+  inset: 11%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #eaf3ff 55%, #b9cde6 100%);
+}
+.orbCore {
+  position: absolute;
+  inset: 22% 14% 14% 22%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #121a28 0%, #05070c 70%);
+  box-shadow: inset 8px 8px 30px rgba(255, 255, 255, 0.06);
+}
+.orbShine {
+  position: absolute;
+  top: 6%;
+  left: 18%;
+  width: 50%;
+  height: 26%;
+  border-radius: 50%;
+  opacity: 0.6;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7), transparent);
+}
+.orbLabel {
+  position: absolute;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--ld-font-mono), monospace;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+@keyframes bxSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes bxFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+/* ---- Aktuell-Leiste ---- */
+.now {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding: 16px 0;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  font-size: 14px;
+}
+.nowMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+.nowNote {
+  margin: 0;
+  font-family: var(--ld-font-mono), monospace;
+  font-size: 12px;
+  color: var(--soft);
+}
+.ping {
+  position: relative;
+  display: inline-flex;
+  width: 8px;
+  height: 8px;
+  flex: none;
+}
+.ping::before,
+.ping::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--bx-ping, #22a06b);
+}
+.ping::before {
+  animation: bxPing 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+  opacity: 0.6;
+}
+@keyframes bxPing {
+  75%,
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* ---- Abschnitte ---- */
+.section {
+  padding: 72px 0 8px;
+}
+.kicker {
+  margin: 0;
+  font-family: var(--ld-font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.h2 {
+  margin: 10px 0 0;
+  font-family: var(--bx-font-display), var(--ld-font-sans), sans-serif;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.focusGrid {
+  display: grid;
+  gap: 16px;
+  margin-top: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+.focusCard {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  padding: 24px;
+}
+.focusIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  font-family: var(--ld-font-mono), monospace;
+  font-size: 15px;
+}
+.focusCard h3 {
+  margin: 18px 0 0;
+  font-family: var(--bx-font-display), var(--ld-font-sans), sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.focusCard p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* ---- Tech-Laufband (Entwurf: animate-marquee 40 s, Hover pausiert) ---- */
+.marquee {
+  overflow: hidden;
+  margin: 64px calc(-1 * var(--bl, 32px)) 0 calc(-1 * var(--bl, 32px));
+  padding: 22px 0;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+}
+.marqueeTrack {
+  display: flex;
+  width: max-content;
+  gap: 40px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: bxMarquee 40s linear infinite;
+}
+.marquee:hover .marqueeTrack,
+.marquee:focus-within .marqueeTrack {
+  animation-play-state: paused;
+}
+.marqueeTrack li {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  white-space: nowrap;
+  font-family: var(--bx-font-display), var(--ld-font-sans), sans-serif;
+  font-size: 20px;
+  color: var(--soft);
+}
+.marqueeStar {
+  color: var(--accent);
+}
+@keyframes bxMarquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---- Kontakt-Box ---- */
+.cta {
+  position: relative;
+  overflow: hidden;
+  margin: 72px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: var(--card);
+  padding: 64px 24px;
+  text-align: center;
+}
+.ctaGlow {
+  position: absolute;
+  bottom: -128px;
+  left: 50%;
+  width: min(40rem, 100%);
+  height: 256px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  filter: blur(100px);
+  pointer-events: none;
+}
+.cta h2 {
+  position: relative;
+  margin: 14px 0 0;
+  font-family: var(--bx-font-display), var(--ld-font-sans), sans-serif;
+  font-size: clamp(24px, 3.4vw, 38px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.cta p {
+  position: relative;
+  max-width: 34rem;
+  margin: 14px auto 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.ctaIcon {
+  position: relative;
+  color: var(--accent);
+  font-size: 28px;
+}
+
+/* ---- Lab-Look: Status-Badge, Kennzahl-Kacheln ---- */
+.dot {
+  display: inline-flex;
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--bx-ping, #f59e0b);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--ld-font-mono), monospace;
+  font-size: 11px;
+  color: var(--ink);
+}
+.labStats {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 28px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+}
+.labStat {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  padding: 18px 20px;
+}
+.labStat dt {
+  font-family: var(--ld-font-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.labStat dd {
+  margin: 8px 0 0;
+  font-family: var(--bx-font-display), var(--ld-font-sans), sans-serif;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---- Bewegung: „Animationen aus“ und prefers-reduced-motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .orbRings,
+  .orbMoon,
+  .ping::before,
+  .marqueeTrack {
+    animation: none;
+  }
+}
+:global(body.still) :is(.orbRings, .orbMoon, .marqueeTrack),
+:global(body.still) .ping::before {
+  animation: none;
+}
+/* Ohne Bewegung: Laufband als ruhige, umbrechende Zeile (die Kopie für die Endlosschleife entfällt) */
+@media (prefers-reduced-motion: reduce) {
+  .marqueeTrack {
+    flex-wrap: wrap;
+    width: auto;
+    padding: 0 var(--bl, 32px);
+    row-gap: 10px;
+  }
+  .marqueeTrack [data-dup] {
+    display: none;
+  }
+}
+:global(body.still) .marqueeTrack {
+  flex-wrap: wrap;
+  width: auto;
+  padding: 0 var(--bl, 32px);
+  row-gap: 10px;
+}
+:global(body.still) .marqueeTrack [data-dup] {
+  display: none;
+}

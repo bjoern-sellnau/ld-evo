@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { manrope, spaceGrotesk } from '@/lib/fonts';
 import { siteIcons } from '@/lib/site-icons';
-import { instrumentSans, jetbrainsMono } from '@/site/fonts';
+import { bxDisplay, bxMono, bxSans, instrumentSans, jetbrainsMono } from '@/site/fonts';
 import { translate } from '@/site/i18n/dict';
 import { htmlLang, ogLocale, type Locale } from '@/site/i18n/locale';
 import { feedAlternate, metadataBase } from '@/site/seo/seo';
@@ -49,7 +49,7 @@ export function RootDocument({ locale, children }: { locale: Locale; children: R
   return (
     <html
       lang={htmlLang(locale)}
-      className={`${spaceGrotesk.variable} ${manrope.variable} ${instrumentSans.variable} ${jetbrainsMono.variable}`}
+      className={`${spaceGrotesk.variable} ${manrope.variable} ${instrumentSans.variable} ${jetbrainsMono.variable} ${bxDisplay.variable} ${bxSans.variable} ${bxMono.variable}`}
     >
       {/* Body-Klassen (light, still, …) setzen Boot-Script und SiteProvider — daher suppressHydrationWarning. */}
       <body suppressHydrationWarning>

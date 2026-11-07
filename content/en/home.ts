@@ -27,4 +27,26 @@ export const HOME: HomeContent = {
   },
   // Migration (Terminal) seit 30.10.2026 — vorher Kacheln
   welcomeEffect: 'migrate',
+  bxLine1: 'What the web',
+  bxLine2: 'can be.',
+  bxMarquee: ['React', 'Next.js', 'TypeScript', 'Node.js', 'React Native', 'Claude Code', 'GraphQL', 'MongoDB'],
+  bxFocus: [
+    {
+      icon: '</>',
+      title: 'Frontend engineering',
+      text: 'Interfaces with React, Next.js, TypeScript and React Native — accessible and maintainable. Before that: ColdFusion and Flash.',
+    },
+    {
+      icon: '✦',
+      title: 'AI-assisted development',
+      text: 'Claude Code, Agent Skills and co.: what works, where are the limits? The answers end up in the Labs.',
+    },
+    {
+      icon: '↗',
+      title: 'Passing on knowledge',
+      text: 'Since March 2019 a certified trainer (AEVO) for IT specialists in application development.',
+    },
+  ],
+  bxCtaTitle: 'Fancy a chat?',
+  bxCtaText: 'React, Next.js, AI-assisted development or the good old Flash days: I’m happy to hear from you.',
 };
