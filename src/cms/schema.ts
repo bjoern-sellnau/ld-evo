@@ -172,6 +172,13 @@ const PROJECT_FIELDS: FieldDef[] = [
   { key: 'learnings', label: '05 Gelernt', type: 'textarea', max: 4000, inline: true },
   { key: 'gallery', label: '06 Eindrücke', type: 'gallery' },
   {
+    key: 'blocks',
+    label: 'Case Study: weitere Inhalte (Widgets)',
+    type: 'blocks',
+    allowed: '*',
+    help: 'Nur bei Layout „Case Study“: erscheint nach 06 Eindrücke — z. B. Vorher/Nachher, Diagramm, KPI-Vergleich, Code, Link-Karten.',
+  },
+  {
     key: 'layout',
     label: 'Layout der Detailseite',
     type: 'select',

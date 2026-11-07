@@ -10,10 +10,17 @@ import { mediaSrcSet, withBase } from '@/cms/media';
 import { readableAlpha } from '../lib/color';
 import { useHref, useT } from '../i18n/LocaleProvider';
 
+/** Schriftgröße, die auf Ultra-Widescreen maßvoll mitwächst (--ld-fs aus page.module.css; sonst exakt `px`). */
+export const fs = (px: number) => `calc(${px}px * var(--ld-fs, 1))`;
+
 /** Kapitel-Kopf „01 DIE AUSGANGSLAGE“ (Prototyp: Detail, Zeile 556 ff.). */
-export function Chapter({ n, label, color, first }: { n: string; label: string; color: string; first?: boolean }) {
+export function Chapter({ n, label, color, first, id }: { n: string; label: string; color: string; first?: boolean; id?: string }) {
   return (
-    <h2 style={{ display: 'flex', gap: 14, alignItems: 'baseline', margin: first ? 0 : '48px 0 0', fontWeight: 400 }}>
+    // id + scrollMarginTop: Sprungziel der Kapitel-Navigation (Ultra-Widescreen), Abstand für die feste Navigation
+    <h2
+      id={id}
+      style={{ display: 'flex', gap: 14, alignItems: 'baseline', margin: first ? 0 : '48px 0 0', fontWeight: 400, scrollMarginTop: 110 }}
+    >
       <span style={{ fontFamily: mono, fontSize: 11, color: 'var(--soft)' }}>{n}</span>
       <span style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: '0.18em', color }}>{label}</span>
     </h2>
@@ -32,8 +39,9 @@ export function GallerySlots({
   labels,
   images = [],
 }: {
-  wide: number;
-  small: number;
+  /** Höhen in px — oder als CSS-Wert (Case Study: wächst auf Ultra-Widescreen per Variable). */
+  wide: number | string;
+  small: number | string;
   cols2: string;
   labels: [string, string, string];
   images?: (GalleryImage | null)[];
@@ -64,7 +72,7 @@ function Slot({
   onZoom,
   style,
 }: {
-  height: number;
+  height: number | string;
   label: string;
   image?: GalleryImage | null;
   onZoom: () => void;
@@ -86,7 +94,7 @@ function Slot({
         <img
           src={withBase(image.src)}
           srcSet={mediaSrcSet(image.src)}
-          sizes="(max-width: 900px) 100vw, 900px"
+          sizes="(min-width: 2400px) 1400px, (max-width: 900px) 100vw, 900px"
           alt={image.alt}
           loading="lazy"
           // oben ausrichten: Galerien zeigen meist Website-Screenshots — Kopf und Logo bleiben sichtbar
