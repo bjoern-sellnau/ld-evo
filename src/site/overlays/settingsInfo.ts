@@ -51,9 +51,9 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Feines Blueprint-Raster und ein weicher Lichtschein oben auf jeder Seite.',
     en: 'Fine blueprint grid and a soft glow at the top of every page.',
   },
-  'Orb-Hero': {
-    de: 'Startseite zweispaltig mit dem leuchtenden Loona-Mond in Orbits statt der Hero-Animation (die gewählte Animation bleibt gespeichert).',
-    en: 'Two-column home page with the glowing Loona moon in orbit instead of the hero animation (your chosen animation stays saved).',
+  'Beyond-Hero': {
+    de: 'Startseite im Hero-Layout des Entwurfs (zweispaltig, NEU-Pille, Kennzahlen). Bei „Beyond“ immer mit dem Mond „LD retro“; bei „Mix“ läuft rechts bzw. dahinter die gewählte Hero-Animation — „LD retro“ ist eine davon.',
+    en: 'Home page in the draft’s hero layout (two columns, NEW pill, key figures). With “Beyond” always with the “LD retro” moon; with “Mix” the chosen hero animation runs beside or behind it — “LD retro” is one of them.',
   },
   'NEU-Pille': {
     de: 'Kleine Pille über dem Hero-Titel mit Hinweis auf die Labs und deren Anzahl.',
@@ -84,8 +84,8 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     en: 'Style of the glass surfaces: Liquid (light edges and refraction), Glass (classic frosted glass) or Fluent (calmer, squarer, with fine noise).',
   },
   'Hero-Animation': {
-    de: 'Animierter Hintergrund im großen Bereich oben auf der Startseite.',
-    en: 'Animated background of the large area at the top of the home page.',
+    de: 'Animierter Hintergrund im großen Bereich oben auf der Startseite. „LD retro“ zeigt den leuchtenden Loona-Mond aus dem Beyond-Entwurf.',
+    en: 'Animated background of the large area at the top of the home page. “LD retro” shows the glowing Loona moon from the Beyond draft.',
   },
   'Splash-Animation': {
     de: 'Welche Intro-Animation beim Laden der Website läuft (wenn „Splash-Screen“ an ist). „Terminal“: Ein Terminal startet den Dev-Server und schreibt den sichtbaren Teil der Startseite samt Hero-Animation — danach lädt die Seite mit dieser Hero-Animation; Klick oder Taste überspringt. „Terminal 2“: Auf der Startseite erscheinen die Elemente (Menü, Hero, Zähler, Scroll-Hinweis) schon während des Tippens, sobald ihr Code fertig ist. „Reveal“, „Sweep“ und „Alt → Neu“ sind die Logo-Animationen des Brand-Systems: Das Zeichen baut sich auf und wird zum Schriftzug; der Lade-Sweep; das alte Logo verwandelt sich ins neue (6 s).',
