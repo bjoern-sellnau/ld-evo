@@ -408,7 +408,10 @@ function scFocus(lt, D) {
     if (a <= 0) return;
     g.save(); g.globalAlpha = a; g.translate(0, (1 - eOut5(p)) * 50);
     card(cx, y, cw, ch, 24);
-    g.fillStyle = TH.accent; g.fillRect(cx + 40, y + 40, 56, 4);
+    /* nach dem Einblenden wandert der Akzent von Karte zu Karte */
+    const tA = MOOD === 'drive' ? 2 * BAR : 4.5, on = lt > tA && Math.floor(((lt - tA) / Math.max(1, D - tA - 0.5)) * 3) === i;
+    if (on) { g.strokeStyle = TH.accent; g.lineWidth = 2.5; rr(cx, y, cw, ch, 24); g.stroke(); }
+    g.fillStyle = TH.accent; g.fillRect(cx + 40, y + 40, on ? 96 : 56, 4);
     text(f.icon, cx + 40, y + 108, { size: 40, weight: 700, fam: MONO, color: TH.accent });
     const tsz = fit(f[LANG][0], cw - 80, 44, 800, MAN, -0.02);
     text(f[LANG][0], cx + 40, y + 182, { size: tsz, weight: 800, color: TH.ink, ls: -0.02 * tsz });

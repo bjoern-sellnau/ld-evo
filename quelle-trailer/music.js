@@ -19,16 +19,14 @@ const SECT = { logo: 'intro', claim: 'intro2', person: 'build', origin: 'soft', 
 const LONG = ['main', 'main', 'soft', 'main', 'drop', 'main', 'build', 'drop'];
 const barSect = (s, k) => (s.bars > 12 && SECT[s.id] === 'main' ? LONG[Math.floor(k / 4) % LONG.length] : SECT[s.id]);
 
-async function makeMusic() {
-  const SR = 48000, len = Math.ceil(DUR * SR), ac = new OfflineAudioContext(2, len, SR);
-  const master = ac.createGain(); master.gain.value = 0.5;
-  const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 8; comp.ratio.value = 3.5; comp.attack.value = 0.006; comp.release.value = 0.22;
-  /* Tiefensperre (unter 30 Hz ist nur Hub, kein Ton) und eine leichte Höhenanhebung vor dem Kompressor */
-  const hpf = ac.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 30; hpf.Q.value = 0.7;
-  const shelf = ac.createBiquadFilter(); shelf.type = 'highshelf'; shelf.frequency.value = 3200; shelf.gain.value = MOOD === 'drive' ? 2.5 : MOOD === 'cine' ? 4 : 4.5;
-  const out = ac.createGain(); master.connect(hpf); hpf.connect(shelf); shelf.connect(comp); comp.connect(out); out.connect(ac.destination);
-  out.gain.setValueAtTime(0.0001, 0); out.gain.exponentialRampToValueAtTime(1, MOOD === 'drive' ? 0.05 : 0.4);
-  out.gain.setValueAtTime(1, DUR - (MOOD === 'drive' ? 0.6 : 1.5)); out.gain.linearRampToValueAtTime(0, DUR - 0.03);
+/* Die Musik entsteht abschnittsweise (je rund 15 s plus Ausklang) und wird überlagert; der Master (Tiefensperre, Höhen,
+   Kompressor, Blenden) läuft danach einmal über das Ganze. Ein einziger Durchlauf über die volle Länge wäre bei langen
+   Stücken unbrauchbar langsam: Jeder geplante Klang kostet in jedem Block Rechenzeit — der Aufwand wächst quadratisch.
+   Hall und Echo sind linear, die Überlagerung der Abschnitte ergibt deshalb dasselbe wie ein Durchlauf. */
+const M_SR = 48000, M_TAIL = 9;
+async function musicWindow(W0, W1) {
+  const SR = M_SR, ac = new OfflineAudioContext(2, Math.ceil((W1 - W0 + M_TAIL) * SR), SR);
+  const master = ac.createGain(); master.connect(ac.destination);
   /* Hall: erzeugte Impulsantwort (Rauschen mit Abklingen, zum Ende dunkler) */
   const vLen = MOOD === 'drive' ? 1.9 : MOOD === 'cine' ? 3.4 : 3.8, ir = ac.createBuffer(2, Math.floor(SR * vLen), SR);
   for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let lp = 0; for (let i = 0; i < d.length; i++) { const x = i / d.length, n = (hash(i * 1.37 + c * 9.1) * 2 - 1) * Math.pow(1 - x, 2.6) * (i < SR * 0.012 ? i / (SR * 0.012) : 1); const k = 0.5 - 0.42 * x; lp += k * (n - lp); d[i] = lp; } }
@@ -46,13 +44,13 @@ async function makeMusic() {
   const route = (node, o) => { let n = node; if (o.pan) { const p = ac.createStereoPanner(); p.pan.value = clamp(o.pan, -1, 1); n.connect(p); n = p; } n.connect(o.bus ?? master); if (o.wet) { const w = ac.createGain(); w.gain.value = o.wet; n.connect(w); w.connect(verb); } if (o.dly) { const w = ac.createGain(); w.gain.value = o.dly; n.connect(w); w.connect(dIn); } };
   const A = {};
   A.tone = (t, dur, freq, type, gain, o = {}) => {
-    if (t < 0 || t >= DUR || gain <= 0) return; const os = ac.createOscillator(); os.type = type; os.frequency.value = freq; os.detune.value = o.det ?? 0;
+    if (t < W0 || t >= W1 || gain <= 0) return; t -= W0; const os = ac.createOscillator(); os.type = type; os.frequency.value = freq; os.detune.value = o.det ?? 0;
     const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = o.q ?? 0.7; const c0 = o.cut ?? 3000; f.frequency.setValueAtTime(c0, t); if (o.cut1) f.frequency.exponentialRampToValueAtTime(o.cut1, t + (o.cutT ?? dur));
     const gn = ac.createGain(); if (o.decay) { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + (o.att ?? 0.005)); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); } else env(gn, t, o.att ?? 0.01, gain, dur, o.rel ?? 0.08);
     os.connect(f); f.connect(gn); route(gn, o); os.start(t); os.stop(t + dur + 0.05);
   };
   A.noise = (t, dur, f0, f1, gain, o = {}) => {
-    if (t < 0 || t >= DUR || gain <= 0) return; const s = ac.createBufferSource(); s.buffer = nb; s.loop = true; const off = hash(t * 13.7) * 1.5;
+    if (t < W0 || t >= W1 || gain <= 0) return; const off = hash(t * 13.7) * 1.5; t -= W0; const s = ac.createBufferSource(); s.buffer = nb; s.loop = true;
     const f = ac.createBiquadFilter(); f.type = o.type ?? 'highpass'; f.Q.value = o.q ?? 0.7; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
     const gn = ac.createGain(); if (o.swell) { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(gain, t + dur * 0.92); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); } else { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(gain, t + (o.att ?? 0.002)); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
     s.connect(f); f.connect(gn); route(gn, o); s.start(t, off); s.stop(t + dur + 0.05);
@@ -69,22 +67,22 @@ async function makeMusic() {
   A.bass = (t, dur, note, gain, o = {}) => { A.tone(t, dur, midi(note), 'sawtooth', gain, { att: 0.006, rel: 0.05, cut: o.cut ?? 700, cut1: o.cut1 ?? 220, cutT: dur, q: 3, bus: o.bus }); A.tone(t, dur, midi(note), 'sine', gain * 1.1, { att: 0.006, rel: 0.05, cut: 400, bus: o.bus }); };
   A.sub = (t, dur, note, gain, o = {}) => { A.tone(t, dur, midi(note), 'sine', gain, { att: o.att ?? 0.06, rel: o.rel ?? 0.3, cut: 300, bus: o.bus }); A.tone(t, dur, midi(note + 12), 'triangle', gain * 0.3, { att: o.att ?? 0.06, rel: o.rel ?? 0.3, cut: 600, bus: o.bus }); };
   A.kick = (t, g0 = 1, o = {}) => {
-    if (t < 0 || t >= DUR) return; const os = ac.createOscillator(); os.frequency.setValueAtTime(o.f0 ?? 165, t); os.frequency.exponentialRampToValueAtTime(o.f1 ?? 46, t + 0.11);
+    if (t < W0 || t >= W1) return; if (!o.soft) A.noise(t, 0.018, 5000, 3000, 0.22 * g0); t -= W0; const os = ac.createOscillator(); os.frequency.setValueAtTime(o.f0 ?? 165, t); os.frequency.exponentialRampToValueAtTime(o.f1 ?? 46, t + 0.11);
     const gn = ac.createGain(); gn.gain.setValueAtTime(g0, t); gn.gain.exponentialRampToValueAtTime(0.001, t + (o.dec ?? 0.36)); let n = gn;
     if (o.lp) { const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; gn.connect(f); n = f; }
-    os.connect(gn); n.connect(master); os.start(t); os.stop(t + (o.dec ?? 0.36) + 0.02); if (!o.soft) A.noise(t, 0.018, 5000, 3000, 0.22 * g0);
+    os.connect(gn); n.connect(master); os.start(t); os.stop(t + (o.dec ?? 0.36) + 0.02);
     if (o.duck) { duck.gain.setValueAtTime(o.duck, t); duck.gain.linearRampToValueAtTime(1, t + B * 0.46); }
   };
   A.clap = (t, g0 = 0.3) => { [0, 0.011, 0.023].forEach((d) => A.noise(t + d, 0.03, 1500, 1100, g0 * 0.8, { type: 'bandpass', q: 1.2 })); A.noise(t + 0.03, 0.2, 1700, 700, g0, { type: 'bandpass', q: 0.9, wet: 0.5 }); };
   A.snare = (t, g0 = 0.3) => { A.noise(t, 0.2, 3200, 1200, g0, { type: 'bandpass', q: 0.8, wet: 0.4 }); A.tone(t, 0.12, 196, 'triangle', g0 * 0.6, { decay: true, cut: 1800 }); };
   A.hat = (t, g0 = 0.08, d = 0.035, pan = 0) => A.noise(t, d, 8500, 10500, g0, { pan });
   A.shaker = (t, g0 = 0.03, pan = 0) => A.noise(t, 0.07, 5200, 6800, g0, { type: 'bandpass', q: 1.4, att: 0.02, pan });
-  A.taiko = (t, note = 38, g0 = 0.6) => { if (t < 0 || t >= DUR) return; const os = ac.createOscillator(); os.frequency.setValueAtTime(midi(note) * 1.7, t); os.frequency.exponentialRampToValueAtTime(midi(note), t + 0.14); const gn = ac.createGain(); gn.gain.setValueAtTime(g0, t); gn.gain.exponentialRampToValueAtTime(0.001, t + 0.8); os.connect(gn); route(gn, { wet: 0.6 }); os.start(t); os.stop(t + 0.85); A.noise(t, 0.09, 900, 200, g0 * 0.35, { type: 'lowpass', wet: 0.5 }); };
+  A.taiko = (t, note = 38, g0 = 0.6) => { if (t < W0 || t >= W1) return; A.noise(t, 0.09, 900, 200, g0 * 0.35, { type: 'lowpass', wet: 0.5 }); t -= W0; const os = ac.createOscillator(); os.frequency.setValueAtTime(midi(note) * 1.7, t); os.frequency.exponentialRampToValueAtTime(midi(note), t + 0.14); const gn = ac.createGain(); gn.gain.setValueAtTime(g0, t); gn.gain.exponentialRampToValueAtTime(0.001, t + 0.8); os.connect(gn); route(gn, { wet: 0.6 }); os.start(t); os.stop(t + 0.85); };
   A.impact = (t, g0 = 1) => { A.kick(t, 1.0 * g0, { f0: 120, f1: 42, dec: 1.1, soft: true }); A.noise(t, 2.4, 1400, 70, 0.4 * g0, { type: 'lowpass', wet: 0.8 }); A.noise(t, 0.6, 6000, 2000, 0.12 * g0, { wet: 0.6 }); };
   A.riser = (t, dur, g0 = 0.22) => A.noise(t, dur, 300, 8000, g0, { type: 'bandpass', q: 2.2, swell: true, wet: 0.6 });
   A.whoosh = (t, g0 = 0.18, dur = 0.5) => A.noise(t - dur * 0.7, dur, 400, 5000, g0, { type: 'bandpass', q: 1.2, swell: true, wet: 0.5 });
-  A.swell = (t1, dur, notes, g0 = 0.05) => notes.forEach((n) => { const t = Math.max(0, t1 - dur); if (t1 - t < 0.2 || t1 >= DUR) return; const os = ac.createOscillator(); os.type = 'sawtooth'; os.frequency.value = midi(n); const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(3200, t1); const gn = ac.createGain(); gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(g0, t1 - 0.02); gn.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.06); os.connect(f); f.connect(gn); route(gn, { wet: 0.7 }); os.start(t); os.stop(t1 + 0.1); });
-  A.braam = (t, dur, note, g0 = 0.2) => { if (t >= DUR) return; [-14, -5, 0, 6, 13].forEach((d) => { const os = ac.createOscillator(); os.type = 'sawtooth'; os.frequency.value = midi(note); os.detune.value = d; const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 1.2; f.frequency.setValueAtTime(260, t); f.frequency.exponentialRampToValueAtTime(1300, t + 0.25); f.frequency.exponentialRampToValueAtTime(380, t + dur); const gn = ac.createGain(); env(gn, t, 0.06, g0, dur, dur * 0.5); os.connect(f); f.connect(gn); gn.connect(shaper); os.start(t); os.stop(t + dur + 0.05); }); A.sub(t, dur, note, g0 * 0.9, { att: 0.04, rel: dur * 0.5 }); };
+  A.swell = (t1, dur, notes, g0 = 0.05) => notes.forEach((n) => { const ta = Math.max(0, t1 - dur); if (t1 - ta < 0.2 || t1 >= DUR || ta < W0 || ta >= W1) return; const t = ta - W0, te = t1 - W0; const os = ac.createOscillator(); os.type = 'sawtooth'; os.frequency.value = midi(n); const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(3200, te); const gn = ac.createGain(); gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(g0, te - 0.02); gn.gain.exponentialRampToValueAtTime(0.0001, te + 0.06); os.connect(f); f.connect(gn); route(gn, { wet: 0.7 }); os.start(t); os.stop(te + 0.1); });
+  A.braam = (t, dur, note, g0 = 0.2) => { if (t < W0 || t >= W1) return; A.sub(t, dur, note, g0 * 0.9, { att: 0.04, rel: dur * 0.5 }); t -= W0; [-14, -5, 0, 6, 13].forEach((d) => { const os = ac.createOscillator(); os.type = 'sawtooth'; os.frequency.value = midi(note); os.detune.value = d; const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 1.2; f.frequency.setValueAtTime(260, t); f.frequency.exponentialRampToValueAtTime(1300, t + 0.25); f.frequency.exponentialRampToValueAtTime(380, t + dur); const gn = ac.createGain(); env(gn, t, 0.06, g0, dur, dur * 0.5); os.connect(f); f.connect(gn); gn.connect(shaper); os.start(t); os.stop(t + dur + 0.05); }); };
   A.chime = (t, notes = [74, 77, 81, 86], g0 = 0.07, gap = 0.09) => notes.forEach((n, i) => A.bell(t + i * gap, n, g0, { pan: i % 2 ? 0.4 : -0.4, dur: 2.6 }));
   A.mel = (t0, ch, fn, o = {}) => CH[ch].mel.forEach(([b, n, l]) => { if (o.skip && o.skip(b)) return; fn(t0 + b * B, n + (o.oct ?? 0), l * B); });
 
@@ -153,7 +151,29 @@ async function makeMusic() {
     if (s.id === 'outro') { const tb = s.t0 + (MOOD === 'drive' ? 2 * B : Math.min(2.6, s.D * 0.3)); A.chime(tb, [74, 77, 81, 86], 0.06); const te = s.t0 + s.D - BAR; A.pad(te, BAR, [38, 50, 57, 62, 64], 0.02, { cut: 1600, att: 0.3, rel: BAR * 0.6, wet: 0.8 }); A.piano(te, 62, 0.3, 3, { wet: 0.9 }); A.piano(te, 74, 0.25, 3, { wet: 0.9 }); if (MOOD === 'drive') A.impact(te, 0.5); }
   });
   const buf = await ac.startRendering();
-  const L = buf.getChannelData(0), R = buf.getChannelData(1), n = L.length;
+  return [buf.getChannelData(0), buf.getChannelData(1)];
+}
+
+async function makeMusic() {
+  const SR = M_SR, n = Math.ceil(DUR * SR), sumL = new Float32Array(n), sumR = new Float32Array(n);
+  /* Abschnitte auf Taktgrenzen, je rund 15 Sekunden */
+  const WIN = Math.max(4, Math.round(15 / BAR)) * BAR;
+  for (let w0 = 0; w0 < DUR - 0.001; w0 += WIN) {
+    const [l, r] = await musicWindow(w0, Math.min(DUR, w0 + WIN)), o = Math.round(w0 * SR), m = Math.min(l.length, n - o);
+    for (let i = 0; i < m; i++) { sumL[o + i] += l[i]; sumR[o + i] += r[i]; }
+  }
+  /* Master über das Ganze: Pegel, Tiefensperre (unter 30 Hz ist nur Hub, kein Ton), leichte Höhenanhebung, Kompressor, Blenden */
+  const mc = new OfflineAudioContext(2, n, SR), mb = mc.createBuffer(2, n, SR); mb.copyToChannel(sumL, 0); mb.copyToChannel(sumR, 1);
+  const src = mc.createBufferSource(); src.buffer = mb;
+  const pre = mc.createGain(); pre.gain.value = 0.5;
+  const hpf = mc.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 30; hpf.Q.value = 0.7;
+  const shelf = mc.createBiquadFilter(); shelf.type = 'highshelf'; shelf.frequency.value = 3200; shelf.gain.value = MOOD === 'drive' ? 2.5 : MOOD === 'cine' ? 4 : 4.5;
+  const comp = mc.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 8; comp.ratio.value = 3.5; comp.attack.value = 0.006; comp.release.value = 0.22;
+  const out = mc.createGain(); src.connect(pre); pre.connect(hpf); hpf.connect(shelf); shelf.connect(comp); comp.connect(out); out.connect(mc.destination);
+  out.gain.setValueAtTime(0.0001, 0); out.gain.exponentialRampToValueAtTime(1, MOOD === 'drive' ? 0.05 : 0.4);
+  out.gain.setValueAtTime(1, DUR - (MOOD === 'drive' ? 0.6 : 1.5)); out.gain.linearRampToValueAtTime(0, DUR - 0.03);
+  src.start(0);
+  const done = await mc.startRendering(), L = done.getChannelData(0), R = done.getChannelData(1);
   /* Spitzenpegel auf −1 dBFS begrenzen (die Lautheit stellt ffmpeg beim Rendern ein) */
   let pk = 0; for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(L[i]), Math.abs(R[i])); const nrm = pk > 0 ? 0.89 / pk : 1;
   const wv = new DataView(new ArrayBuffer(44 + n * 4));
