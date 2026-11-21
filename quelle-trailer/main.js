@@ -1,0 +1,110 @@
+/* Trailer — Zeitachse je Länge und Stimmung, Übergänge, Rahmen (Chrome) und die Schnittstelle REEL zum Rendern. */
+'use strict';
+
+/* Ablauf in Takten (Summe: Cinematic 24/36/48 bei 96 BPM, Treibend 32/48/64 bei 128 BPM, Ruhig 20/30/40 bei 80 BPM = 60/90/120 s).
+   Die Reise läuft je Station einen ganzen Takt (oder ein Vielfaches), damit die Wechsel auf der Eins liegen. */
+const PLANS = {
+  cine: {
+    60: [['logo', 3], ['claim', 2], ['person', 3], ['stack', 2], ['journey', 4], ['award', 2], ['labs', 3], ['site', 2], ['outro', 3]],
+    90: [['logo', 3], ['claim', 2], ['person', 4], ['stack', 3], ['journey', 8], ['award', 2], ['labs', 5], ['site', 3], ['certs', 3], ['outro', 3]],
+    120: [['logo', 3], ['claim', 3], ['person', 4], ['origin', 4], ['stack', 3], ['journey', 12], ['award', 2], ['labs', 6], ['site', 4], ['family', 2], ['certs', 2], ['outro', 3]],
+  },
+  drive: {
+    60: [['logo', 3], ['claim', 3], ['person', 4], ['stack', 3], ['journey', 6], ['award', 2], ['labs', 5], ['site', 3], ['outro', 3]],
+    90: [['logo', 4], ['claim', 3], ['person', 5], ['stack', 4], ['journey', 8], ['award', 3], ['labs', 8], ['site', 5], ['certs', 4], ['outro', 4]],
+    120: [['logo', 4], ['claim', 4], ['person', 5], ['origin', 4], ['stack', 4], ['journey', 16], ['award', 3], ['labs', 8], ['site', 5], ['family', 2], ['certs', 4], ['outro', 5]],
+  },
+  calm: {
+    60: [['logo', 2], ['claim', 2], ['person', 3], ['journey', 4], ['award', 2], ['labs', 2], ['site', 2], ['outro', 3]],
+    90: [['logo', 3], ['claim', 2], ['person', 4], ['stack', 3], ['journey', 6], ['award', 2], ['labs', 4], ['site', 3], ['outro', 3]],
+    120: [['logo', 2], ['claim', 3], ['person', 4], ['origin', 4], ['stack', 3], ['journey', 8], ['award', 2], ['labs', 4], ['site', 4], ['certs', 3], ['outro', 3]],
+  },
+};
+const PLAN = PLANS[MOOD][LEN];
+const NB = PLAN.reduce((s, [, b]) => s + b, 0);
+const DUR = NB * BAR; // exakt 60 / 90 / 120 s
+const FN = { logo: scLogo, claim: scClaim, person: scPerson, origin: scOrigin, stack: scStack, journey: scJourney, award: scAward, labs: scLabs, site: scSite, family: scFamily, certs: scCerts, outro: scOutro };
+/* Stationen der Reise: so viele, wie Takte da sind (höchstens 8); bei doppelt so vielen Takten je Station zwei Takte */
+const SCENES = (() => { let b = 0; return PLAN.map(([id, bars], i) => { const s = { id, i, bars, t0: b * BAR, D: bars * BAR, b0: b }; b += bars; return s; }); })();
+const jBars = (PLAN.find(([id]) => id === 'journey') || [0, 4])[1];
+const OPT = {
+  journey: { n: jBars > 8 ? 8 : Math.min(8, jBars), blurb: LEN >= 120 || (LEN >= 90 && MOOD !== 'drive') },
+  labs: { more: LEN >= 90, desc: LEN >= 90 },
+  site: { desc: LEN >= 90, views: LEN >= 120 ? 4 : LEN >= 90 ? 3 : 2 },
+};
+const sceneAt = (t) => { let s = SCENES[0]; for (const x of SCENES) if (t >= x.t0) s = x; return s; };
+function drawScene(s, t) { const lt = clamp(t - s.t0, 0, s.D); FN[s.id](lt, s.D, OPT[s.id] ?? {}); }
+
+/* ---------- Rahmen je Stimmung ---------- */
+function chrome(t, s) {
+  const idx = `${String(s.i + 1).padStart(2, '0')} / ${String(SCENES.length).padStart(2, '0')}`, chap = T.chapters[s.id];
+  if (MOOD === 'cine') {
+    /* Kinoformat 2,39 : 1 — Balken oben und unten, darin leise Kapitelangabe */
+    const bh = (H - W / 2.39) / 2; g.fillStyle = '#000'; g.fillRect(0, 0, W, bh); g.fillRect(0, H - bh, W, bh);
+    if (s.id !== 'logo' && s.id !== 'outro') { label(chap, 190, H - bh / 2 + 7, { size: 16, color: 'rgba(246,241,232,0.5)', track: 0.24 }); label(idx, W - 190, H - bh / 2 + 7, { size: 16, color: 'rgba(246,241,232,0.5)', align: 'right', track: 0.2 }); }
+  } else if (MOOD === 'drive') {
+    /* Füllstand der Marke als Fortschritt: Kante in Slash-Steigung */
+    const y = H - 14, w = W * (t / DUR); g.fillStyle = 'rgba(246,241,232,0.12)'; g.fillRect(0, y, W, 14);
+    g.fillStyle = BR.orange; g.beginPath(); g.moveTo(0, y); g.lineTo(w - 7, y); g.lineTo(w, H); g.lineTo(0, H); g.closePath(); g.fill();
+    if (s.id !== 'logo' && s.id !== 'outro') { label(chap, 150, 62, { size: 17, color: rgba(BR.cream, 0.55), track: 0.22 }); label(idx, W - 150, 62, { size: 17, color: rgba(BR.cream, 0.55), align: 'right', track: 0.18 }); }
+  } else {
+    /* Editorial: Haarlinien-Rahmen und Ecken-Beschriftung */
+    g.save(); g.strokeStyle = BR.line; g.lineWidth = 1.5; g.strokeRect(48.75, 48.75, W - 97.5, H - 97.5); g.restore();
+    if (s.id !== 'logo' && s.id !== 'outro') {
+      label('loona! designs', 84, 90, { size: 15, color: BR.meta, track: 0.16 }); label(chap, W - 84, 90, { size: 15, color: BR.meta, align: 'right', track: 0.16 });
+      label(NAME, 84, H - 76, { size: 15, color: BR.meta, track: 0.16 }); label(idx, W - 84, H - 76, { size: 15, color: BR.meta, align: 'right', track: 0.16 });
+    }
+  }
+}
+const GRAIN = (() => { const c = mkLayer(256, 256), d = c.createImageData(256, 256); for (let i = 0; i < d.data.length; i += 4) { const v = Math.floor(hash(i * 0.37 + 1) * 255); d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } c.putImageData(d, 0, 0); return c.canvas; })();
+function finish(t) {
+  if (MOOD === 'cine') {
+    const v = g.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 1.05); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.55)'); g.fillStyle = v; g.fillRect(0, 0, W, H);
+    g.save(); g.globalAlpha = 0.035; g.globalCompositeOperation = 'overlay'; const f = Math.floor(t * 30), ox = Math.floor(hash(f) * 256), oy = Math.floor(hash(f + 4) * 256); for (let y = -oy; y < H; y += 256) for (let x = -ox; x < W; x += 256) g.drawImage(GRAIN, x, y); g.restore();
+  }
+  /* Auf- und Abblende */
+  const a = 1 - eOut(seg(t, 0, MOOD === 'drive' ? 0.25 : 0.9)), b = eIn(seg(t, DUR - (MOOD === 'drive' ? 0.5 : 1.4), DUR - 0.05)), k = Math.max(a, b);
+  if (k > 0) { g.fillStyle = MOOD === 'calm' ? rgba(BR.cream, k) : `rgba(0,0,0,${k})`; g.fillRect(0, 0, W, H); }
+}
+
+/* ---------- Übergänge ---------- */
+function transition(p, A, Bc) {
+  if (MOOD === 'drive') { slashWipe(A, Bc, p, BR.orange); return; }
+  if (MOOD === 'cine') {
+    /* Überblendung mit leichtem Schub in die Tiefe und einem warmen Lichtschein in der Mitte */
+    const e = eIO(p), sp = Math.sin(Math.PI * p);
+    g.save(); g.translate(W / 2, H / 2); g.scale(1 + 0.05 * e, 1 + 0.05 * e); g.translate(-W / 2, -H / 2); g.drawImage(A, 0, 0); g.restore();
+    g.save(); g.globalAlpha = e; g.translate(W / 2, H / 2); g.scale(1.05 - 0.05 * e, 1.05 - 0.05 * e); g.translate(-W / 2, -H / 2); g.drawImage(Bc, 0, 0); g.restore();
+    glow(W / 2, H / 2, 900, BR.apricot, 0.1 * sp);
+    return;
+  }
+  const e = eIO(p); g.drawImage(A, 0, 0); g.save(); g.globalAlpha = e; g.drawImage(Bc, 0, (1 - e) * 26); g.restore();
+}
+function render(t) {
+  const s = sceneAt(t), TD = TH.td;
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
+  /* Übergang liegt mittig auf der Taktgrenze; Treibend: der Slash-Wipe endet auf der Eins */
+  let tr = null;
+  for (const x of SCENES) if (x.i > 0) { const a = MOOD === 'drive' ? x.t0 - TD * 0.55 : x.t0 - TD / 2; if (t >= a && t < a + TD) tr = [x, (t - a) / TD]; }
+  if (tr) {
+    const [nx, p] = tr, pv = SCENES[nx.i - 1];
+    drawInto(LA, () => drawScene(pv, t)); drawInto(LB, () => drawScene(nx, t));
+    transition(p, LA.canvas, LB.canvas);
+    chrome(t, p < 0.5 ? pv : nx);
+  } else { drawScene(s, t); chrome(t, s); }
+  finish(t);
+  g.restore();
+}
+
+window.REEL = {
+  DUR, BAR, B, NB, len: LEN, mood: MOOD, lang: LANG, bpm: TH.bpm,
+  scenes: SCENES.map((s) => ({ id: s.id, t0: s.t0, D: s.D, bars: s.bars, b0: s.b0 })),
+  ready: (async () => {
+    await loadAll();
+    await Promise.all([[500, MAN], [600, MAN], [700, MAN], [800, MAN], [500, MONO], [700, MONO]].map(([w, f]) => document.fonts.load(`${w} 100px ${f}`)).concat([document.fonts.load(`italic 400 100px ${SER}`)]));
+    return `${Object.keys(IMG).length}/${Object.keys(SRC).length} Bilder`;
+  })(),
+  frame: async (t) => { render(t); return cv.toDataURL('image/jpeg', 0.93).slice(23); },
+  still: (t) => { render(t); },
+  music: () => (typeof makeMusic === 'function' ? makeMusic() : Promise.resolve(null)),
+};
