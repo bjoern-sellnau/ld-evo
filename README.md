@@ -1,11 +1,85 @@
-# Reels „Björn Sellnau“
+# Reels und Trailer „Björn Sellnau“
 
 Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Code, keine CI).
 
+- [Trailer — „What the web can be.“ (16:9, 60 / 90 / 120 s, drei Stimmungen, DE + EN)](#trailer--what-the-web-can-be)
 - [20 Varianten — Terminal bis Pinnwand (33–56 s)](#20-varianten)
 - [Reel 3 — „Director's Cut“ (2:12 min, Negativ-Logo, SPREE|FALL)](#reel-3--directors-cut)
 - [Reel 2 — „BJOERN.EXE“ (80 s, mehr Action)](#reel-2--bjoernexe)
 - [Reel 1 — Intro (36 s)](#reel-1--intro)
+
+## Trailer — „What the web can be.“
+
+Trailer für **loona! designs** und Bjoern Sellnau im Querformat (1920×1080, 30 fps, H.264 + AAC, −14 LUFS,
+Spitzenpegel ≤ −1 dBFS): drei Stimmungen × drei Längen × zwei Sprachen = **18 Fassungen**, jede mit eigener,
+passend zur Szenenfolge arrangierter Musik. Gestaltung nach dem Brand-System 2026-10 (Farben, Schriften, Zeichen,
+Badge, Wortmarke und die Marken-Animationen aus dem Handoff). Übersicht: [`trailer/uebersicht.jpg`](trailer/uebersicht.jpg).
+
+| Stimmung | 60 s | 90 s | 120 s |
+| --- | --- | --- | --- |
+| **Cinematic** | [DE](trailer/loona-trailer-60s-cinematic-de.mp4) (11 MB) · [EN](trailer/loona-trailer-60s-cinematic-en.mp4) (11 MB) | [DE](trailer/loona-trailer-90s-cinematic-de.mp4) (17 MB) · [EN](trailer/loona-trailer-90s-cinematic-en.mp4) (17 MB) | [DE](trailer/loona-trailer-120s-cinematic-de.mp4) (23 MB) · [EN](trailer/loona-trailer-120s-cinematic-en.mp4) (23 MB) |
+| **Treibend** | [DE](trailer/loona-trailer-60s-treibend-de.mp4) (12 MB) · [EN](trailer/loona-trailer-60s-treibend-en.mp4) (12 MB) | [DE](trailer/loona-trailer-90s-treibend-de.mp4) (19 MB) · [EN](trailer/loona-trailer-90s-treibend-en.mp4) (19 MB) | [DE](trailer/loona-trailer-120s-treibend-de.mp4) (26 MB) · [EN](trailer/loona-trailer-120s-treibend-en.mp4) (26 MB) |
+| **Ruhig** | [DE](trailer/loona-trailer-60s-ruhig-de.mp4) (11 MB) · [EN](trailer/loona-trailer-60s-ruhig-en.mp4) (11 MB) | [DE](trailer/loona-trailer-90s-ruhig-de.mp4) (17 MB) · [EN](trailer/loona-trailer-90s-ruhig-en.mp4) (17 MB) | [DE](trailer/loona-trailer-120s-ruhig-de.mp4) (25 MB) · [EN](trailer/loona-trailer-120s-ruhig-en.mp4) (25 MB) |
+
+Zu jeder Fassung liegt ein Titelbild daneben (`…-cover.jpg`).
+
+### Drei Stimmungen
+
+| | Grund | Bild | Musik |
+| --- | --- | --- | --- |
+| **Cinematic** | Nacht `#0B1026` | Kinoformat 2,39 : 1, Sternenhimmel, Mond (Mondphase), Überblendungen mit Lichtschein; Auftakt: Transformation Alt-Logo → neues Zeichen | 96 BPM · 24 / 36 / 48 Takte — Flächen, Klavier-Motiv, Zupf-Ostinato, Taiko, Braams und Riser vor den Höhepunkten |
+| **Treibend** | Tinte `#171310` | Slash-Streifen, harte Schnitte per Slash-Wipe auf die Eins, Fortschrittsbalken mit Slash-Kante; Auftakt: Sweep (Füllstand) | 128 BPM · 32 / 48 / 64 Takte — Four-on-the-Floor, rollender Sechzehntel-Bass, Sidechain, Säge-Lead |
+| **Ruhig** | Creme `#F6F1E8` | Editorial mit Haarlinien-Rahmen, weiche Blenden; Auftakt: Reveal (1,2 s) | 80 BPM · 20 / 30 / 40 Takte — Filzklavier, Dreiecks-Flächen, Glocken, leiser Shaker |
+
+Alle drei Stücke teilen sich ein Leitmotiv in d-Moll (Dm · B♭ · F · C). Jede Szene beginnt auf der Eins; Akzente
+(Whoosh, Impact, Glockenspiel) liegen auf den Bildwechseln, auf dem Einrasten des Logos, auf „Gold“ und auf den
+Stationen der Reise.
+
+### Ablauf
+
+1. **Auftakt** — das Zeichen, dann Lockup „loona! designs“ mit Unterzeile (Bjoern Sellnau · Senior Fullstack & Software Engineer · React, Mobile, TypeScript)
+2. **Anspruch** — „What the web can be.“ · „Das Web. Meine Leidenschaft.“ · Plattform & Online-Portfolio seit 2001
+3. **Person** — 18+ Jahre, 10 Zertifikate, Berlin & Remote; Sekundenzähler „im Dienst des Webs“ (seit September 2007)
+4. **Anfänge** (nur 120 s) — sechs frühe Projekte 2004–2006
+5. **Stack** (nicht in „Ruhig“ 60 s) — Fokus React, Next.js, TypeScript, React Native; Laufbänder mit dem Stack der Website
+6. **Reise** — 4 bis 8 Stationen von 2004 bis 2026 (je nach Länge), Zeitstrahl
+7. **Gold** — Best of Swiss Web 2017, Kategorie Mobile (Relaunch Mobile MySwitzerland.com)
+8. **Labs** — „Experimente in Arbeit — zuschauen erlaubt.“ (Wortlaut der Labs-Seite) · 12 Labs seit 03/2026: Corefall, Covert Operations, dazu SPREE|FALL (eigenes Repo `ld-spreefall`); ab 90 s die weiteren Labs als Liste
+9. **Plattform** — die neue loona-designs.de (LD Beyond, LD Flow): Browser- und Telefon-Ansichten
+10. **Produktfamilie** (120 s, Cinematic und Treibend) — loona! designs, LD Flow., LD Nova., LD Buddy., LD Ivy.
+11. **Zertifikate** (ab 90 s, je nach Stimmung) — alle zehn mit Datum und Aussteller
+12. **Kontakt** — Badge (Mondphase) → Lockup, Claim, loona-designs.de · LinkedIn · GitHub
+
+### Quellen (geprüft, Stand 21.11.2026)
+
+- **Marke:** Brand-System 2026-10 und Logo-Handoff v1.0 (Repo ld-evo, `docs/design_handoff_loona_brand`, `src/components/brand`):
+  Farben, Schriften, Zeichen/Badge/Wortmarke, Animationen (Reveal 1,2 s, Sweep, Mondphase, Slash-Wipe, Transformation) samt
+  Easings. Die Verbote sind beachtet: Zeichen nie gedreht oder verzerrt, keine Schatten oder Konturen am Zeichen, „!“ nie
+  gefärbt, Badge-Grund immer Tinte, nie zwei Logo-Formen gleichzeitig im Bild, jede Logo-Animation endet im Primärzeichen.
+  (Über dem ganzen Bild der Cinematic-Fassung liegen eine leichte Körnung und eine Vignette als Filmlook.)
+  Schreibweise „Bjoern Sellnau“ wie in der Unterzeile des Brand-Systems.
+- **Fakten und Wortlaut (DE/EN):** Inhalte der neuen Website (ld-evo, `content/*.ts` und `content/en/*.ts`): Startseite,
+  Über mich, Reise (8 Stationen), Projekte (12 Einträge „Labs“), Zertifikate (10), Stack. Nichts ist geschätzt.
+- **Award:** wie oben unter „20 Varianten“ belegt (Gewinnerlisten Best of Swiss Web 2017).
+- **Bilder:** eigene Screenshots der neuen Website (lokaler Build vom 21.11.2026), der Labs und der frühen Projekte;
+  SPREE|FALL mit Kartendaten © OpenStreetMap-Mitwirkende (im Bild genannt).
+- **Musik:** vollständig im Browser synthetisiert (Web Audio, [`quelle-trailer/music.js`](quelle-trailer/music.js)) —
+  keine Samples, keine fremden Rechte. Sie wurde in der Render-Umgebung **gemessen, nicht abgehört** (Lautheit,
+  Spitzenpegel, Frequenzverteilung je Band).
+- **Schriften:** Manrope, Instrument Serif, JetBrains Mono (SIL Open Font License 1.1, über Fontsource).
+
+### Neu rendern
+
+Quelle: [`quelle-trailer/`](quelle-trailer/) — `index.html?len=60|90|120&mood=cine|drive|calm&lang=de|en` zeichnet jedes
+Bild deterministisch (`REEL.frame(t)`) und erzeugt die Musik (`REEL.music()`).
+
+```sh
+cd quelle-trailer
+node render.mjs 90 cine de        # → ../trailer/loona-trailer-90s-cinematic-de.mp4 (+ Titelbild)
+```
+
+Voraussetzungen: Node ≥ 20, Playwright mit Chromium (`PLAYWRIGHT`/`CHROMIUM` zeigen bei Bedarf auf eine vorhandene
+Installation), ffmpeg. Texte und Fakten stehen in `data.js`, die Szenen in `scenes.js`, Ablauf je Länge in `main.js`.
 
 ## 20 Varianten
 
