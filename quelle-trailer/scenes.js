@@ -95,7 +95,11 @@ function scLogo(lt, D) {
     const p = seg(lt, 0.7, 2.5); if (p < 1) zeichenReveal(cx, cy, hBig, p); else zeichen(zx, cy, zh);
   }
   if (pl > 0) {
+    /* Die Wortmarke kommt hinter dem Zeichen hervor: links vom Zeichen (plus Abstand) bleibt sie abgeschnitten — nie Schrift über dem Zeichen */
+    const edge = zx + (zh * 28) / 48 + 0.2 * m;
+    g.save(); g.beginPath(); g.rect(edge, 0, W - edge, H); g.clip();
     wordmark(x0 + mw + 0.46 * m, cy + size * 0.345, size, TH.ink, { p: seg(pl, 0.25, 1) });
+    g.restore();
     const pt = seg(lt, tLock + (MOOD === 'drive' ? 0.5 : 1.0), tLock + (MOOD === 'drive' ? 0.9 : 2.0));
     const tag = `${NAME} · ${ROLE} · ${FOCUS.join(', ')}`;
     text(tag, cx, cy + m * 0.5 + 92 + (1 - eOut(pt)) * 10, { size: 24, weight: 500, fam: MONO, align: 'center', color: TH.soft, alpha: eOut(pt) });
@@ -107,7 +111,7 @@ function scClaim(lt, D) {
   bg(lt);
   const size = 176;
   if (MOOD === 'cine') {
-    skyMoon(W * 0.76, CY - 20, 250, eIO(seg(lt, 0, D)), eOut(seg(lt, 0, 1.6)));
+    skyMoon(W * 0.855, CY - 20, 215, eIO(seg(lt, 0, D)), eOut(seg(lt, 0, 1.6))); // rechts neben der Zeile, nie auf der Schrift
     const x = 190, y = CY - 40;
     kicker(T.claimKicker, x, y - size * 0.95, pin(lt, 0));
     drawLine(tokens(CLAIM[0]), x, y, size, pin(lt, 1, 1.2), { style: 'rise', color: TH.ink });
@@ -234,15 +238,17 @@ function scJourney(lt, D, o) {
   const inD = MOOD === 'drive' ? 0.2 : MOOD === 'cine' ? 0.7 : 0.9, outD = MOOD === 'drive' ? 0 : MOOD === 'cine' ? 0.35 : 0.5;
   const a = seg(q, 0, inD), b = i < n - 1 && outD > 0 ? seg(q, Ds - outD, Ds) : 0, al = eOut(a) * (1 - b);
   const it = list[i], tx = it[LANG], yY = CY + 70;
+  /* Die Textspalte beginnt hinter der breitesten Jahreszahl — sonst stößt z. B. „2004“ an den Titel */
+  const ySize = 280, yW = Math.max(...list.map((s) => measure(s.y, ySize, 800, MAN, -0.045 * ySize)));
   /* Jahr groß */
   g.save(); g.globalAlpha = al;
-  const ySize = 320, dy = MOOD === 'drive' ? 0 : (1 - eOut5(a)) * 60 - b * 40;
-  if (MOOD === 'drive') { const sc = lerp(1.18, 1, eOut5(a)); g.translate(x, yY); g.scale(sc, sc); g.translate(-x, -yY); }
+  const dy = MOOD === 'drive' ? 0 : (1 - eOut5(a)) * 60 - b * 40;
+  if (MOOD === 'drive') { const sc = lerp(1.1, 1, eOut5(a)); g.translate(x, yY); g.scale(sc, sc); g.translate(-x, -yY); }
   g.fillStyle = MOOD === 'calm' ? TH.ink : glassFill(yY - ySize * 0.75, yY + 10);
   setFont(ySize, 800); g.letterSpacing = -0.045 * ySize + 'px'; g.fillText(it.y, x - 10, yY + dy);
   g.restore();
   /* Titel, Rolle, Kurztext */
-  const cx = 930, cw = 810, ts = fit(tx[0], cw, 92, 800, MAN, -0.03);
+  const cx = Math.round(x - 10 + yW + 64), cw = W - 180 - cx, ts = fit(tx[0], cw, 92, 800, MAN, -0.03);
   drawLine(tokens(tx[0]), cx, yY - 150, ts, MOOD === 'drive' ? seg(q, 0.05, 0.3) : seg(q, 0.1, 0.1 + inD * 1.2), { style: TH.style, color: TH.ink, out: b });
   label(`${tx[1]} · ${tx[2]}`, cx + 2, yY - 84, { size: 24, color: TH.accentText, alpha: eOut(seg(q, 0.2 * TH.pace, 0.2 * TH.pace + inD)) * (1 - b), track: 0.1 });
   if (o.blurb) para(tx[3], cx + 2, yY - 26, cw, 30, { color: TH.soft, p: seg(q, 0.35 * TH.pace, 0.35 * TH.pace + inD * 1.4), alpha: 1 - b, lh: 1.42 });
@@ -384,11 +390,13 @@ function scOutro(lt, D) {
   bg(lt, { warm: 0.12 });
   const cx = W / 2, cy = CY - 70;
   const tB = MOOD === 'drive' ? 2 * B : Math.min(2.6, D * 0.3); // bis hier steht das Badge (Mondphase), dann Lockup
-  const pb = seg(lt, 0, MOOD === 'drive' ? 0.25 : 0.9), swap = seg(lt, tB, tB + (MOOD === 'drive' ? 0.25 : 0.7));
-  if (swap < 1) { const sc = lerp(0.86, 1, eOut5(pb)); badge(cx, cy, 250 * sc, { alpha: eOut(pb) * (1 - swap), moon: seg(lt, MOOD === 'drive' ? B : 0.7, MOOD === 'drive' ? B + 0.5 : 1.7), edge: TH.dark ? 'rgba(255,255,255,0.14)' : undefined }); }
+  const pb = seg(lt, 0, MOOD === 'drive' ? 0.25 : 0.9), swap = seg(lt, tB, tB + (MOOD === 'drive' ? 0.25 : 0.9));
+  /* Erst geht das Badge ganz, dann kommt das Lockup — nie zwei Logo-Formen gleichzeitig im Bild */
+  const bOut = seg(swap, 0, 0.45), lIn = seg(swap, 0.55, 1);
+  if (bOut < 1) { const sc = lerp(0.86, 1, eOut5(pb)); badge(cx, cy, 250 * sc, { alpha: eOut(pb) * (1 - bOut), moon: seg(lt, MOOD === 'drive' ? B : 0.7, MOOD === 'drive' ? B + 0.5 : 1.7), edge: TH.dark ? 'rgba(255,255,255,0.14)' : undefined }); }
   if (swap > 0) {
     const m = 120;
-    g.save(); g.globalAlpha = swap; lockup(cx, cy, m, TH.ink, { pw: seg(swap, 0.2, 1) }); g.restore();
+    if (lIn > 0) { g.save(); g.globalAlpha = lIn; lockup(cx, cy, m, TH.ink, { pw: seg(lIn, 0.1, 1) }); g.restore(); }
     const t2 = lt - tB, st = MOOD === 'drive' ? B : 0.6;
     const pcl = seg(t2, st, st + TH.inDur), y1 = cy + 190;
     const toks = [...tokens(CLAIM[0], { weight: 700 }), ...tokens(CLAIM[1], { serif: true, color: TH.accent })];
