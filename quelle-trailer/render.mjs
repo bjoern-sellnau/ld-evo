@@ -52,7 +52,8 @@ if (!fs.existsSync(wav)) {
   console.log(`  Musik gerendert (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
 }
 /* Lautheit: erst messen, dann mit Begrenzer noch einmal messen und die Verstärkung nachziehen (Ziel −14 LUFS) */
-const LIMITER = 'alimiter=limit=0.7:level=false:attack=1:release=60';
+/* Ansprechzeit 5 ms: bei 1 ms regelt der Begrenzer so hart, dass AAC die Kanten mit Überschwingern (bis über 0 dBTP) wiedergibt */
+const LIMITER = 'alimiter=limit=0.7:level=false:attack=5:release=60';
 const lufs = (af) => { const e = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', wav, '-af', `${af}ebur128`, '-f', 'null', '-'], { encoding: 'utf8' }).stderr; return parseFloat((e.match(/I:\s+(-?[\d.]+) LUFS/g) ?? []).pop()?.match(/-?[\d.]+/)?.[0] ?? '-16'); };
 const g1 = -14 - lufs('');
 const gain = (g1 + (-14 - lufs(`volume=${g1.toFixed(2)}dB,${LIMITER},`))).toFixed(2);
