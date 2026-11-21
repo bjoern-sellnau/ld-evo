@@ -242,6 +242,24 @@ function familyTile(cx, cy, size, key, alpha = 1) {
   else { g.fillStyle = col; g.fill(ZP[key], 'evenodd'); }
   g.restore();
 }
+/* Zeichen auf der Tinte-Kachel (Badge-Format 64, rx 14): das „Negativ-Logo“ der Site — der Negativraum des Badges, also das Primärzeichen.
+   Wunsch 21.11.2026 für die Produktfamilie; Zeichenhöhe 50 % der Kachel lässt ringsum den Schutzraum (8/28 der Zeichenbreite). */
+function zeichenTile(cx, cy, size, o = {}) {
+  const s = size / 64;
+  g.save(); g.globalAlpha *= o.alpha ?? 1; g.translate(cx - size / 2, cy - size / 2); g.scale(s, s);
+  g.fillStyle = BR.ink; g.beginPath(); g.roundRect(0, 0, 64, 64, 14); g.fill();
+  if (o.edge) { g.strokeStyle = o.edge; g.lineWidth = 1 / s; g.stroke(); }
+  g.restore();
+  g.save(); g.globalAlpha *= o.alpha ?? 1; zeichen(cx, cy, size * 0.5, o.fg ?? BR.orange); g.restore();
+}
+/* Farbkachel mit Kürzel (wie die generativen Karten der Website: Projektfarbe + Monogramm) */
+function monoTile(x, y, size, mono, col, o = {}) {
+  const n = parseInt(col.slice(1), 16), lum = (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+  g.save(); g.globalAlpha *= o.alpha ?? 1;
+  rr(x, y, size, size, size * 0.22); g.fillStyle = col; g.fill(); g.strokeStyle = o.edge ?? 'rgba(127,127,127,0.35)'; g.lineWidth = 1.5; g.stroke();
+  text(mono, x + size / 2, y + size * 0.64, { size: size * 0.4, weight: 800, align: 'center', color: lum > 0.6 ? BR.ink : '#FFFFFF', ls: -size * 0.01 });
+  g.restore();
+}
 /* Transformation Alt → Neu (6 s im Kit, hier über p = 0…1): Keyframes 1:1 aus LoonaIntro.module.css, viewBox 0 0 48 48. */
 function introTransform(cx, cy, size, p, groundCol = BR.ink) {
   const s = size / 48, E = E_SWEEP;

@@ -1,7 +1,7 @@
 /* Trailer — Stimmungen (Themes), Hintergründe und Szenen. Jede Szene: fn(lt, D) mit lokaler Zeit lt und Dauer D (Sekunden). */
 'use strict';
 const Q = new URLSearchParams(location.search);
-const LEN = [60, 90, 120].includes(+Q.get('len')) ? +Q.get('len') : 60;
+const LEN = [60, 90, 120, 300].includes(+Q.get('len')) ? +Q.get('len') : 60;
 const MOOD = ['cine', 'drive', 'calm'].includes(Q.get('mood')) ? Q.get('mood') : 'cine';
 const LANG = Q.get('lang') === 'en' ? 'en' : 'de';
 const T = TXT[LANG];
@@ -228,16 +228,28 @@ function scStack(lt, D) {
 }
 
 /* ---------- Szene: Reise ---------- */
-function journeyPick(n) { const order = ['2004', '2007', '2016', '2026', '2020', '2010', '2019', '2023']; const keep = order.slice(0, clamp(n, 4, 8)); return JOURNEY.filter((j) => keep.includes(j.y)); }
+/* Auswahl für kurze Fassungen: Start (Ausbildung), Profi-Start, Lead + Gold, heute — dann der Rest */
+function journeyPick(n) { const order = ['2000', '2007', '2016', '2026', '2004', '2020', '2010', '2023', '2019']; const keep = order.slice(0, clamp(n, 4, 9)); return JOURNEY.filter((j) => keep.includes(j.y)); }
+/* Takte je Station: gleich verteilt; übrige Takte bekommen die gewichtigeren Stationen — jeder Wechsel liegt auf einer Eins */
+function journeyBars(n, bars) {
+  const list = journeyPick(n), base = Math.max(1, Math.floor(bars / list.length)); let extra = Math.max(0, bars - base * list.length);
+  const prio = ['2026', '2016', '2007', '2020', '2023', '2010', '2004', '2019', '2000'], out = list.map(() => base);
+  for (const y of prio) { if (extra <= 0) break; const k = list.findIndex((j) => j.y === y); if (k >= 0) { out[k]++; extra--; } }
+  return out;
+}
 function scJourney(lt, D, o) {
   bg(lt);
-  const list = journeyPick(o.n), n = list.length, Ds = D / n, i = clamp(Math.floor(lt / Ds), 0, n - 1), q = lt - i * Ds;
+  const list = journeyPick(o.n), n = list.length;
+  /* Stationsgrenzen in Sekunden (o.bars: Takte je Station) */
+  const durs = (o.bars ?? list.map(() => D / n / BAR)).map((b) => b * BAR), t0s = durs.map((_, k) => durs.slice(0, k).reduce((a2, b2) => a2 + b2, 0));
+  let i = 0; for (let k = 0; k < n; k++) if (lt >= t0s[k]) i = k;
+  const Ds = durs[i], q = lt - t0s[i];
   const x = 180, top = TH.top + 40, railY = TH.bot - 70;
   kicker(T.journeyKicker, x, top + 30, pin(lt, 0));
   label(`${String(i + 1).padStart(2, '0')} / ${String(n).padStart(2, '0')}`, W - 180, top + 30, { size: 20, color: TH.soft, align: 'right', alpha: eOut(pin(lt, 1)) });
   const inD = MOOD === 'drive' ? 0.2 : MOOD === 'cine' ? 0.7 : 0.9, outD = MOOD === 'drive' ? 0 : MOOD === 'cine' ? 0.35 : 0.5;
   const a = seg(q, 0, inD), b = i < n - 1 && outD > 0 ? seg(q, Ds - outD, Ds) : 0, al = eOut(a) * (1 - b);
-  const it = list[i], tx = it[LANG], yY = CY + 70;
+  const it = list[i], tx = it[LANG], yY = CY + (o.steps ? 0 : 70);
   /* Die Textspalte beginnt hinter der breitesten Jahreszahl — sonst stößt z. B. „2004“ an den Titel */
   const ySize = 280, yW = Math.max(...list.map((s) => measure(s.y, ySize, 800, MAN, -0.045 * ySize)));
   /* Jahr groß */
@@ -251,7 +263,17 @@ function scJourney(lt, D, o) {
   const cx = Math.round(x - 10 + yW + 64), cw = W - 180 - cx, ts = fit(tx[0], cw, 92, 800, MAN, -0.03);
   drawLine(tokens(tx[0]), cx, yY - 150, ts, MOOD === 'drive' ? seg(q, 0.05, 0.3) : seg(q, 0.1, 0.1 + inD * 1.2), { style: TH.style, color: TH.ink, out: b });
   label(`${tx[1]} · ${tx[2]}`, cx + 2, yY - 84, { size: 24, color: TH.accentText, alpha: eOut(seg(q, 0.2 * TH.pace, 0.2 * TH.pace + inD)) * (1 - b), track: 0.1 });
-  if (o.blurb) para(tx[3], cx + 2, yY - 26, cw, 30, { color: TH.soft, p: seg(q, 0.35 * TH.pace, 0.35 * TH.pace + inD * 1.4), alpha: 1 - b, lh: 1.42 });
+  let nl = 0; if (o.blurb) nl = para(tx[3], cx + 2, yY - 26, cw, 30, { color: TH.soft, p: seg(q, 0.35 * TH.pace, 0.35 * TH.pace + inD * 1.4), alpha: 1 - b, lh: 1.42 });
+  /* Etappen der Station (lange Fassung): nacheinander, je mit Slash der Marke */
+  if (o.steps && it.st) {
+    const y0 = yY - 26 + nl * 30 * 1.42 + 34, t1 = MOOD === 'drive' ? BAR : 1.6, gapT = MOOD === 'drive' ? 2 * B : Math.min(1.5, (Ds - t1 - 1.2) / 3);
+    it.st[LANG].forEach((str, k) => {
+      const ps = eOut(seg(q, t1 + k * gapT, t1 + k * gapT + (MOOD === 'drive' ? 0.22 : 0.7))) * (1 - b), yy = y0 + k * 50;
+      if (ps <= 0) return;
+      g.save(); g.globalAlpha = ps; g.translate(cx + 2 + (1 - ps) * 24, yy - 21); g.scale(0.9, 0.9); g.translate(-13, -11); g.fillStyle = TH.accent; g.fill(ZP.slash); g.restore();
+      text(str, cx + 34 + (1 - ps) * 24, yy, { size: 30, weight: 600, color: TH.ink, alpha: ps });
+    });
+  }
   /* Zeitstrahl */
   const x1 = x, x2 = W - 180, pos = (k) => lerp(x1, x2, n === 1 ? 0 : k / (n - 1));
   const mk = lerp(pos(Math.max(0, i - 1)), pos(i), i === 0 ? 1 : E_SWEEP(seg(q, 0, MOOD === 'drive' ? 0.25 : 0.8)));
@@ -299,13 +321,14 @@ function scLabs(lt, D, o) {
   label(T.labsCount, W - 150 - measure(String(LABS_COUNT), 128, 800, MAN, -5) - 24, top + 124, { size: 22, color: TH.soft, align: 'right', alpha: pc });
   /* drei Karten, die aktive spielt eine Bildfolge */
   const cw = 520, ch = 292, gap = 30, x0 = (W - 3 * cw - 2 * gap) / 2, y = top + 200, per = D1 / 3, act = clamp(Math.floor(lt / per), 0, 2);
-  const cut = MOOD === 'drive' ? B : MOOD === 'cine' ? BAR / 2 : BAR;
   LABS.forEach((L, i) => {
     const a = eOut(pin(lt, 3 + i * 1.2)) * (1 - ph2); if (a <= 0) return;
     const on = i === act, k = on ? eOut(seg(lt - i * per, 0, 0.5)) : 1 - eOut(seg(lt - (i + 1) * per, 0, 0.4)), on01 = i === act ? k : i < act ? k : 0;
     const cx = x0 + i * (cw + gap), sc = 1 + 0.045 * on01;
     g.save(); g.globalAlpha = a; g.translate(cx + cw / 2, y + ch / 2 + (1 - a) * 50 - ph2 * 40); g.scale(sc, sc); g.translate(-(cx + cw / 2), -(y + ch / 2));
     g.save(); g.shadowColor = TH.dark ? 'rgba(0,0,0,0.5)' : 'rgba(23,19,16,0.18)'; g.shadowBlur = 40; g.shadowOffsetY = 18; g.fillStyle = '#000'; rr(cx, y, cw, ch, 18); g.fill(); g.restore();
+    /* Bildwechsel: Treibend auf jedem Schlag, sonst so, dass jede Karte mindestens zwei Bilder zeigt */
+    const cut = MOOD === 'drive' ? B : per / clamp(Math.round(per / (MOOD === 'cine' ? 1.25 : 1.6)), Math.min(2, L.shots.length), L.shots.length);
     const lt2 = Math.max(0, lt - i * per), si = on ? Math.floor(lt2 / cut) % L.shots.length : 0, sp = on ? (lt2 % cut) / cut : 1;
     imgCover(IMG[L.shots[si]], cx, y, cw, ch, 18, { zoom: 1.04 + 0.05 * sp });
     if (on && MOOD !== 'drive' && sp < 0.25) { g.save(); g.globalAlpha *= 1 - sp / 0.25; imgCover(IMG[L.shots[(si + L.shots.length - 1) % L.shots.length]], cx, y, cw, ch, 18, { zoom: 1.09 }); g.restore(); }
@@ -355,12 +378,141 @@ function scFamily(lt, D) {
   const items = [{ key: 'ld', name: 'loona! designs', tag: 'plattform' }, ...FAMILY], n = items.length, sz = 170, step = 310, x0 = cx - ((n - 1) * step) / 2;
   items.forEach((it, i) => {
     const p = MOOD === 'drive' ? seg(lt, i * B, i * B + 0.25) : pin(lt, 1 + i * 1.3), a = eOut(p), px = x0 + i * step, dy = (1 - eOut5(p)) * 50;
-    if (it.key === 'ld') badge(px, cy + dy, sz, { alpha: a, moon: seg(lt, 1.2, 2.3), edge: TH.dark ? 'rgba(255,255,255,0.14)' : undefined });
+    /* Kernmarke: das Zeichen (Negativ-Logo, wie im Auftakt) auf der Tinte-Kachel — nicht das Badge mit dem großen LD */
+    if (it.key === 'ld') zeichenTile(px, cy + dy, sz, { alpha: a, edge: TH.dark ? 'rgba(255,255,255,0.14)' : undefined });
     else { familyTile(px, cy + dy, sz, it.key, a); if (TH.dark) { g.save(); g.globalAlpha = a; g.strokeStyle = 'rgba(255,255,255,0.14)'; g.lineWidth = 1.5; rr(px - sz / 2, cy + dy - sz / 2, sz, sz, sz * 0.22); g.stroke(); g.restore(); } }
     if (it.key === 'ld') { g.save(); g.globalAlpha = a; const ws = 30; wordmark(px - wordmarkWidth(ws) / 2, cy + sz / 2 + 62, ws, TH.ink); g.restore(); }
     else text(it.name, px, cy + sz / 2 + 62, { size: 30, weight: 700, align: 'center', color: TH.ink, alpha: a });
     label(LANG === 'en' && it.tag === 'plattform' ? 'platform' : it.tag, px, cy + sz / 2 + 100, { size: 17, color: TH.soft, align: 'center', alpha: a, track: 0.1 });
   });
+}
+
+/* ============================================================ nur lange Fassung (300 s) ============================================================ */
+/* Titelzeile wie in der Labs-Szene: erste Hälfte Manrope, zweite Hälfte Serif-Akzent; passt sich der Breite an */
+function titlePair(pair, x, y, maxW, lt, size = 78) {
+  const ts = fit(`${pair[0]} ${pair[1]}`, maxW, size, 700);
+  drawLine(tokens(pair[0]), x, y, ts, pin(lt, 1), { style: TH.style, color: TH.ink });
+  drawLine(tokens(pair[1], { serif: true }), x + layoutLine(tokens(pair[0]), ts).width + ts * 0.3, y, ts, pin(lt, 2.5), { style: TH.style, color: TH.accent });
+  return ts;
+}
+
+/* ---------- Szene: Schwerpunkte ---------- */
+function scFocus(lt, D) {
+  bg(lt);
+  const x = 150, top = TH.top + 30;
+  kicker(T.focusKicker, x, top + 30, pin(lt, 0));
+  titlePair(T.focusTitle, x, top + 128, W - 2 * x, lt, 84);
+  const gap = 36, cw = (W - 2 * x - 2 * gap) / 3, y = top + 214, ch = Math.min(400, TH.bot - 36 - y);
+  FOCUS_AREAS.forEach((f, i) => {
+    const p = MOOD === 'drive' ? seg(lt, (2 + i * 2) * B, (2 + i * 2) * B + 0.25) : pin(lt, 3 + i * 2.4), a = eOut(p), cx = x + i * (cw + gap);
+    if (a <= 0) return;
+    g.save(); g.globalAlpha = a; g.translate(0, (1 - eOut5(p)) * 50);
+    card(cx, y, cw, ch, 24);
+    g.fillStyle = TH.accent; g.fillRect(cx + 40, y + 40, 56, 4);
+    text(f.icon, cx + 40, y + 108, { size: 40, weight: 700, fam: MONO, color: TH.accent });
+    const tsz = fit(f[LANG][0], cw - 80, 44, 800, MAN, -0.02);
+    text(f[LANG][0], cx + 40, y + 182, { size: tsz, weight: 800, color: TH.ink, ls: -0.02 * tsz });
+    para(f[LANG][1], cx + 40, y + 236, cw - 80, 26, { color: TH.soft, lh: 1.5 });
+    g.restore();
+  });
+}
+
+/* ---------- Szene: Werkliste 2002 – 2026 ---------- */
+function scWorks(lt, D) {
+  bg(lt);
+  const x = 150, top = TH.top + 30;
+  kicker(T.worksKicker, x, top + 30, pin(lt, 0));
+  titlePair(T.worksTitle, x, top + 122, W - 2 * x, lt);
+  const rows = 7, colGap = 60, y0 = top + 190, rowH = Math.min(86, (TH.bot - 16 - y0) / rows), colW = (W - 2 * x - colGap) / 2, tile = rowH - 20;
+  /* eine Markierung läuft chronologisch durch die Liste */
+  const tIn = MOOD === 'drive' ? BAR : 1.6, span = Math.max(1, D - tIn - (MOOD === 'drive' ? BAR : 2.4)), act = clamp(Math.floor(((lt - tIn) / span) * WORKS.length), -1, WORKS.length - 1);
+  WORKS.forEach((wk, i) => {
+    const col = Math.floor(i / rows), r = i % rows, px = x + col * (colW + colGap), py = y0 + r * rowH;
+    const t1 = tIn * 0.35 + i * (MOOD === 'drive' ? B / 4 : 0.11), a = eOut(seg(lt, t1, t1 + (MOOD === 'drive' ? 0.25 : 0.6)));
+    if (a <= 0) return;
+    const on = i === act, k = on ? 1 : i < act ? 0.8 : 0.55;
+    g.save(); g.globalAlpha = a; g.translate((1 - a) * 30, 0);
+    if (on) { g.fillStyle = rgba(BR.orange, TH.dark ? 0.16 : 0.13); rr(px - 14, py - 4, colW + 28, rowH - 8, 16); g.fill(); g.fillStyle = TH.accent; rr(px - 14, py - 4, 5, rowH - 8, 2.5); g.fill(); }
+    g.globalAlpha = a * k;
+    monoTile(px + 6, py + 6, tile, wk[1], wk[2]);
+    const tx = px + tile + 30, by = py + 6 + tile * 0.5;
+    label(wk[0], tx, by - 10, { size: 17, color: TH.accentText, track: 0.08 });
+    text(LANG === 'en' ? wk[4] : wk[3], tx, by + 26, { size: 30, weight: 700, color: TH.ink, ls: -0.4 });
+    text(LANG === 'en' ? wk[6] : wk[5], px + colW, by + 26, { size: 21, weight: 500, color: TH.soft, align: 'right' });
+    g.restore();
+  });
+}
+
+/* ---------- Szene: Labs in Zahlen (alle zwölf) ---------- */
+function scLabsAll(lt, D) {
+  bg(lt);
+  const x = 150, top = TH.top + 30;
+  kicker(T.labsAllKicker, x, top + 30, pin(lt, 0));
+  titlePair(T.labsAllTitle, x, top + 122, 800, lt);
+  /* Kennzahlen wie auf der Website (Experimente, Online, Seit, Werkzeuge) */
+  const vals = [String(LAB_STATS.total), String(LAB_STATS.online), LAB_STATS.since, String(LAB_STATS.tools)], vs = 60;
+  let sx = W - x; for (let k = 3; k >= 0; k--) {
+    const p = MOOD === 'drive' ? seg(lt, (2 + k) * B, (2 + k) * B + 0.22) : pin(lt, 3 + k * 1.2), a = eOut(p), w = Math.max(measure(vals[k], vs, 800, MAN, -1.5), 120);
+    text(vals[k], sx, top + 112 + (1 - eOut5(p)) * 20, { size: vs, weight: 800, color: k === 0 ? TH.accent : TH.ink, alpha: a, align: 'right', ls: -1.5 });
+    label(T.labStatLabels[k], sx, top + 146, { size: 15, color: TH.soft, alpha: a, align: 'right', track: 0.1 });
+    sx -= w + 54;
+  }
+  const cols = 6, gap = 22, gy = top + 196, gw = (W - 2 * x - (cols - 1) * gap) / cols, gh = Math.min(196, (TH.bot - 20 - gy - gap) / 2);
+  const hot = Math.floor(lt / (MOOD === 'drive' ? B : BAR / 2)) % LABS_ALL.length;
+  LABS_ALL.forEach((lb, i) => {
+    const cxx = x + (i % cols) * (gw + gap), cyy = gy + Math.floor(i / cols) * (gh + gap);
+    const t1 = (MOOD === 'drive' ? BAR / 2 : 1.2) + i * (MOOD === 'drive' ? B / 4 : 0.14), p = seg(lt, t1, t1 + (MOOD === 'drive' ? 0.25 : 0.7)), a = eOut(p);
+    if (a <= 0) return;
+    g.save(); g.globalAlpha = a; g.translate(0, (1 - eOut5(p)) * 40);
+    card(cxx, cyy, gw, gh, 18);
+    if (i === hot && lt > 3) { g.strokeStyle = TH.accent; g.lineWidth = 2.5; rr(cxx, cyy, gw, gh, 18); g.stroke(); }
+    monoTile(cxx + 18, cyy + 18, 62, lb[1], lb[2]);
+    if (lb[0]) label(lb[0], cxx + gw - 18, cyy + 42, { size: 15, color: TH.soft, align: 'right', track: 0.06 });
+    const nm = LANG === 'en' ? lb[4] : lb[3], ns = fit(nm, gw - 36, 25, 700);
+    text(nm, cxx + 18, cyy + gh - 50, { size: ns, weight: 700, color: TH.ink, ls: -0.3 });
+    label(LANG === 'en' ? lb[6] : lb[5], cxx + 18, cyy + gh - 22, { size: 14, color: TH.accentText, track: 0.06 });
+    g.restore();
+  });
+}
+
+/* ---------- Szene: Hero-Animationen (Bildfolgen aus der neuen Website) ---------- */
+function scHero(lt, D) {
+  bg(lt);
+  const x = 150, top = TH.top + 30;
+  kicker(T.heroKicker, x, top + 30, pin(lt, 0));
+  titlePair(T.heroTitle, x, top + 122, W - 2 * x, lt);
+  const pw = MOOD === 'cine' ? 206 : 262, ph = (pw * 16) / 9, gap = 46, y = top + 186, span = HERO.length * (pw + gap) - gap;
+  const scroll = lerp(0, Math.max(0, span - (W - 2 * x)), eIO(seg(lt, 1, D - 0.8)));
+  HERO.forEach(([m, de, en], i) => {
+    const px = x + i * (pw + gap) - scroll; if (px > W + 60 || px + pw < -60) return;
+    const p = MOOD === 'drive' ? seg(lt, (i * B) / 2, (i * B) / 2 + 0.25) : pin(lt, 2 + i * 0.55), a = eOut(p);
+    if (a <= 0) return;
+    /* Bildfolge vor und zurück (kein Sprung am Ende), je Gerät leicht versetzt */
+    const N = HERO_FRAMES, f0 = Math.floor(lt * 10 + i * 5) % (2 * N - 2), f = f0 < N ? f0 : 2 * N - 2 - f0;
+    g.save(); g.globalAlpha = a; g.translate(0, (1 - eOut5(p)) * 60);
+    g.save(); g.shadowColor = TH.dark ? 'rgba(0,0,0,0.55)' : 'rgba(23,19,16,0.25)'; g.shadowBlur = 40; g.shadowOffsetY = 18; g.fillStyle = '#0B0C10'; rr(px - 8, y - 8, pw + 16, ph + 16, 34); g.fill(); g.restore();
+    imgCover(IMG[`hero_${m}_${f}`], px, y, pw, ph, 26);
+    g.strokeStyle = 'rgba(255,255,255,0.2)'; g.lineWidth = 2; rr(px - 8, y - 8, pw + 16, ph + 16, 34); g.stroke();
+    label(LANG === 'en' ? en ?? de : de, px + pw / 2, y + ph + 52, { size: 17, color: TH.soft, align: 'center', track: 0.08 });
+    g.restore();
+  });
+  /* weiche Ränder */
+  [0, 1].forEach((k) => { const gr = g.createLinearGradient(k ? W - 150 : 0, 0, k ? W : 150, 0); gr.addColorStop(k ? 1 : 0, TH.bg); gr.addColorStop(k ? 0 : 1, rgba(TH.bg, 0)); g.fillStyle = gr; g.fillRect(k ? W - 150 : 0, y - 30, 150, ph + 110); });
+}
+
+/* ---------- Szene: Zitat aus den Labs ---------- */
+function scQuote(lt, D, o) {
+  bg(lt, { warm: 0.1 });
+  const q = QUOTES[o.i ?? 0], cx = W / 2, size = 84, str = LANG === 'en' ? `“${q.en}”` : `„${q.de}“`;
+  const lines = wrapLines(str, 1380, size, 700), lh = size * 1.24, y0 = CY - ((lines.length - 1) * lh) / 2 + 10;
+  kicker(T.quoteKicker, cx, y0 - size * 1.5, pin(lt, 0), 'center');
+  lines.forEach((ln, k) => {
+    const p = MOOD === 'drive' ? seg(lt, k * 2 * B, k * 2 * B + 0.5) : pin(lt, 1 + k * 2.6, 1.3);
+    drawLine(tokens(ln, { serif: true }), cx, y0 + k * lh, size, p, { style: TH.style === 'mask' ? 'mask' : 'fade', color: TH.ink, align: 'center' });
+  });
+  const pa = eOut(MOOD === 'drive' ? seg(lt, lines.length * 2 * B, lines.length * 2 * B + 0.3) : pin(lt, 2 + lines.length * 2.6)), ye = y0 + (lines.length - 1) * lh + 86;
+  hair(cx - 60 * pa, ye - 34, cx + 60 * pa, pa);
+  label(`— ${LANG === 'en' ? q.byEn ?? q.by : q.by}`, cx, ye + 14, { size: 22, color: TH.accentText, align: 'center', alpha: pa });
 }
 
 /* ---------- Szene: Zertifikate ---------- */

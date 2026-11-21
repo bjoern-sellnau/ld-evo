@@ -14,7 +14,10 @@ const CH = {
 const P8 = ['Dm', 'Bb', 'F', 'C', 'Dm', 'Bb', 'Gm', 'C'];
 /* Akkordfolge einer Szene: beginnt auf Dm, der letzte Takt führt über C zurück */
 function progFor(n) { if (n === 1) return ['Dm']; if (n === 2) return ['Dm', 'C']; if (n === 3) return ['Dm', 'Bb', 'C']; const p = Array.from({ length: n }, (_, i) => P8[i % 8]); p[n - 1] = 'C'; if (n % 4 === 1) p[n - 2] = 'Gm'; return p; }
-const SECT = { logo: 'intro', claim: 'intro2', person: 'build', origin: 'soft', stack: 'main', journey: 'main', award: 'break', labs: 'drop', site: 'drop', family: 'soft', certs: 'main', outro: 'outro' };
+const SECT = { logo: 'intro', claim: 'intro2', person: 'build', origin: 'soft', stack: 'main', journey: 'main', award: 'break', labs: 'drop', site: 'drop', family: 'soft', certs: 'main', outro: 'outro', focus: 'build', works: 'main', labsAll: 'main', hero: 'drop', quote: 'break', quote2: 'break' };
+/* Lange Szenen (über 12 Takte, in der langen Fassung die Reise) wechseln alle vier Takte den Satz — sonst wird es eintönig */
+const LONG = ['main', 'main', 'soft', 'main', 'drop', 'main', 'build', 'drop'];
+const barSect = (s, k) => (s.bars > 12 && SECT[s.id] === 'main' ? LONG[Math.floor(k / 4) % LONG.length] : SECT[s.id]);
 
 async function makeMusic() {
   const SR = 48000, len = Math.ceil(DUR * SR), ac = new OfflineAudioContext(2, len, SR);
@@ -87,9 +90,9 @@ async function makeMusic() {
 
   const sc = REEL.scenes;
   sc.forEach((s, si) => {
-    const sect = SECT[s.id], prog = progFor(s.bars), last = si === sc.length - 1, nextSect = last ? null : SECT[sc[si + 1].id];
+    const sect0 = SECT[s.id], prog = progFor(s.bars), last = si === sc.length - 1, nextSect = last ? null : SECT[sc[si + 1].id];
     for (let k = 0; k < s.bars; k++) {
-      const t0 = s.t0 + k * BAR, cn = prog[k], c = CH[cn], lastBar = k === s.bars - 1;
+      const t0 = s.t0 + k * BAR, cn = prog[k], c = CH[cn], lastBar = k === s.bars - 1, sect = barSect(s, k);
       if (MOOD === 'cine') {
         const full = sect === 'main' || sect === 'drop', E = { intro: 0.5, intro2: 0.7, build: 0.85, soft: 0.75, main: 1, break: 0.8, drop: 1.15, outro: 0.8 }[sect];
         A.pad(t0, BAR + 0.6, c.pad, 0.03 * E, { cut: full ? 1500 : sect === 'intro' ? 520 : 950, cut1: sect === 'build' ? 2000 : undefined, att: 0.7, rel: 0.9 });
@@ -139,14 +142,14 @@ async function makeMusic() {
     }
     /* Akzente auf den Bildwechseln */
     if (si > 0) {
-      if (MOOD === 'cine') { A.whoosh(s.t0, 0.14, 0.9); A.impact(s.t0, sect === 'drop' ? 0.9 : sect === 'break' ? 0.7 : 0.45); }
-      else if (MOOD === 'drive') { A.whoosh(s.t0, 0.2, 0.45); A.noise(s.t0, 1.4, 9000, 5000, 0.14, { wet: 0.5 }); if (sect === 'drop') A.impact(s.t0, 0.6); }
+      if (MOOD === 'cine') { A.whoosh(s.t0, 0.14, 0.9); A.impact(s.t0, sect0 === 'drop' ? 0.9 : sect0 === 'break' ? 0.7 : 0.45); }
+      else if (MOOD === 'drive') { A.whoosh(s.t0, 0.2, 0.45); A.noise(s.t0, 1.4, 9000, 5000, 0.14, { wet: 0.5 }); if (sect0 === 'drop') A.impact(s.t0, 0.6); }
       else A.chime(s.t0, [CH.Dm.arp[1] + 12, CH.Dm.arp[2] + 12], 0.035, 0.18);
     }
     /* besondere Momente: Zeichen steht, Gold, Reise-Stationen, Schluss-Lockup */
     if (s.id === 'logo') { const tl = s.t0 + (MOOD === 'drive' ? 2 * BAR : s.D * 0.6); A.chime(tl, [74, 77, 81, 86], MOOD === 'calm' ? 0.05 : 0.07); if (MOOD !== 'calm') A.impact(tl, MOOD === 'drive' ? 0.8 : 0.6); if (MOOD === 'cine') A.swell(tl, 2.2, CH.Dm.pad, 0.03); if (MOOD === 'drive') A.riser(s.t0 + BAR, BAR, 0.24); }
     if (s.id === 'award') A.chime(s.t0 + (MOOD === 'drive' ? B : 0.5), [74, 77, 81, 84, 86, 89], 0.06, 0.07);
-    if (s.id === 'journey') { const n = OPT.journey.n, ds = s.D / n; for (let i = 1; i < n; i++) { const t = s.t0 + i * ds; if (MOOD === 'cine') A.taiko(t, 33, 0.4); else if (MOOD === 'drive') A.noise(t, 0.5, 8000, 4000, 0.08, { wet: 0.4 }); else A.bell(t, 81, 0.03, { pan: i % 2 ? 0.3 : -0.3 }); } }
+    if (s.id === 'journey') { const jb = OPT.journey.bars; let acc = 0; for (let i = 1; i < jb.length; i++) { acc += jb[i - 1]; const t = s.t0 + acc * BAR; if (MOOD === 'cine') A.taiko(t, 33, 0.4); else if (MOOD === 'drive') A.noise(t, 0.5, 8000, 4000, 0.08, { wet: 0.4 }); else A.bell(t, 81, 0.03, { pan: i % 2 ? 0.3 : -0.3 }); } }
     if (s.id === 'outro') { const tb = s.t0 + (MOOD === 'drive' ? 2 * B : Math.min(2.6, s.D * 0.3)); A.chime(tb, [74, 77, 81, 86], 0.06); const te = s.t0 + s.D - BAR; A.pad(te, BAR, [38, 50, 57, 62, 64], 0.02, { cut: 1600, att: 0.3, rel: BAR * 0.6, wet: 0.8 }); A.piano(te, 62, 0.3, 3, { wet: 0.9 }); A.piano(te, 74, 0.25, 3, { wet: 0.9 }); if (MOOD === 'drive') A.impact(te, 0.5); }
   });
   const buf = await ac.startRendering();

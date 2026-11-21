@@ -1,37 +1,44 @@
 /* Trailer — Zeitachse je Länge und Stimmung, Übergänge, Rahmen (Chrome) und die Schnittstelle REEL zum Rendern. */
 'use strict';
 
-/* Ablauf in Takten (Summe: Cinematic 24/36/48 bei 96 BPM, Treibend 32/48/64 bei 128 BPM, Ruhig 20/30/40 bei 80 BPM = 60/90/120 s).
-   Die Reise läuft je Station einen ganzen Takt (oder ein Vielfaches), damit die Wechsel auf der Eins liegen. */
+/* Ablauf in Takten (Summe: Cinematic 24/36/48/120 bei 96 BPM, Treibend 32/48/64/160 bei 128 BPM, Ruhig 20/30/40/100 bei 80 BPM
+   = 60/90/120/300 s). Die Reise läuft je Station ganze Takte (journeyBars), damit die Wechsel auf der Eins liegen. */
 const PLANS = {
   cine: {
     60: [['logo', 3], ['claim', 2], ['person', 3], ['stack', 2], ['journey', 4], ['award', 2], ['labs', 3], ['site', 2], ['outro', 3]],
     90: [['logo', 3], ['claim', 2], ['person', 4], ['stack', 3], ['journey', 8], ['award', 2], ['labs', 5], ['site', 3], ['certs', 3], ['outro', 3]],
     120: [['logo', 3], ['claim', 3], ['person', 4], ['origin', 4], ['stack', 3], ['journey', 12], ['award', 2], ['labs', 6], ['site', 4], ['family', 2], ['certs', 2], ['outro', 3]],
+    300: [['logo', 4], ['claim', 3], ['person', 5], ['focus', 5], ['origin', 6], ['stack', 4], ['journey', 27], ['award', 4], ['works', 10], ['quote', 3], ['labs', 10], ['labsAll', 6], ['hero', 8], ['site', 8], ['quote2', 3], ['family', 3], ['certs', 5], ['outro', 6]],
   },
   drive: {
     60: [['logo', 3], ['claim', 3], ['person', 4], ['stack', 3], ['journey', 6], ['award', 2], ['labs', 5], ['site', 3], ['outro', 3]],
     90: [['logo', 4], ['claim', 3], ['person', 5], ['stack', 4], ['journey', 8], ['award', 3], ['labs', 8], ['site', 5], ['certs', 4], ['outro', 4]],
     120: [['logo', 4], ['claim', 4], ['person', 5], ['origin', 4], ['stack', 4], ['journey', 16], ['award', 3], ['labs', 8], ['site', 5], ['family', 2], ['certs', 4], ['outro', 5]],
+    300: [['logo', 5], ['claim', 4], ['person', 6], ['focus', 6], ['origin', 8], ['stack', 6], ['journey', 36], ['award', 5], ['works', 14], ['quote', 4], ['labs', 14], ['labsAll', 8], ['hero', 12], ['site', 10], ['quote2', 4], ['family', 4], ['certs', 7], ['outro', 7]],
   },
   calm: {
-    60: [['logo', 2], ['claim', 2], ['person', 3], ['journey', 4], ['award', 2], ['labs', 2], ['site', 2], ['outro', 3]],
+    60: [['logo', 2], ['claim', 2], ['person', 2], ['journey', 4], ['award', 2], ['labs', 3], ['site', 2], ['outro', 3]],
     90: [['logo', 3], ['claim', 2], ['person', 4], ['stack', 3], ['journey', 6], ['award', 2], ['labs', 4], ['site', 3], ['outro', 3]],
-    120: [['logo', 2], ['claim', 3], ['person', 4], ['origin', 4], ['stack', 3], ['journey', 8], ['award', 2], ['labs', 4], ['site', 4], ['certs', 3], ['outro', 3]],
+    120: [['logo', 2], ['claim', 3], ['person', 4], ['origin', 3], ['stack', 3], ['journey', 9], ['award', 2], ['labs', 4], ['site', 4], ['certs', 3], ['outro', 3]],
+    300: [['logo', 3], ['claim', 3], ['person', 4], ['focus', 4], ['origin', 5], ['stack', 3], ['journey', 18], ['award', 3], ['works', 9], ['quote', 3], ['labs', 9], ['labsAll', 5], ['hero', 7], ['site', 7], ['quote2', 3], ['family', 3], ['certs', 5], ['outro', 6]],
   },
 };
 const PLAN = PLANS[MOOD][LEN];
 const NB = PLAN.reduce((s, [, b]) => s + b, 0);
-const DUR = NB * BAR; // exakt 60 / 90 / 120 s
-const FN = { logo: scLogo, claim: scClaim, person: scPerson, origin: scOrigin, stack: scStack, journey: scJourney, award: scAward, labs: scLabs, site: scSite, family: scFamily, certs: scCerts, outro: scOutro };
-/* Stationen der Reise: so viele, wie Takte da sind (höchstens 8); bei doppelt so vielen Takten je Station zwei Takte */
+const DUR = NB * BAR; // exakt 60 / 90 / 120 / 300 s
+const FN = { logo: scLogo, claim: scClaim, person: scPerson, origin: scOrigin, stack: scStack, journey: scJourney, award: scAward, labs: scLabs, site: scSite, family: scFamily, certs: scCerts, outro: scOutro, focus: scFocus, works: scWorks, labsAll: scLabsAll, hero: scHero, quote: scQuote, quote2: scQuote };
+/* Stationen der Reise: so viele, wie Takte da sind (höchstens 9); übrige Takte verteilt journeyBars auf die gewichtigeren Stationen */
 const SCENES = (() => { let b = 0; return PLAN.map(([id, bars], i) => { const s = { id, i, bars, t0: b * BAR, D: bars * BAR, b0: b }; b += bars; return s; }); })();
 const jBars = (PLAN.find(([id]) => id === 'journey') || [0, 4])[1];
 const OPT = {
-  journey: { n: jBars > 8 ? 8 : Math.min(8, jBars), blurb: LEN >= 120 || (LEN >= 90 && MOOD !== 'drive') },
+  journey: { n: Math.min(9, jBars), bars: journeyBars(Math.min(9, jBars), jBars), blurb: LEN >= 120 || (LEN >= 90 && MOOD !== 'drive'), steps: LEN >= 300 },
   labs: { more: LEN >= 90, desc: LEN >= 90 },
   site: { desc: LEN >= 90, views: LEN >= 120 ? 4 : LEN >= 90 ? 3 : 2 },
+  quote: { i: 0 },
+  quote2: { i: 1 },
 };
+/* Kennung des Ablaufs: die Musik hängt nur davon ab (Zwischenspeicher beim Rendern) */
+const PLAN_KEY = (() => { const str = JSON.stringify([MOOD, PLAN, OPT.journey.bars, 'musik-2']); let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); })();
 const sceneAt = (t) => { let s = SCENES[0]; for (const x of SCENES) if (t >= x.t0) s = x; return s; };
 function drawScene(s, t) { const lt = clamp(t - s.t0, 0, s.D); FN[s.id](lt, s.D, OPT[s.id] ?? {}); }
 
@@ -107,4 +114,8 @@ window.REEL = {
   frame: async (t) => { render(t); return cv.toDataURL('image/jpeg', 0.93).slice(23); },
   still: (t) => { render(t); },
   music: () => (typeof makeMusic === 'function' ? makeMusic() : Promise.resolve(null)),
+  /* lange Stücke in Teilen abholen: erst erzeugen (gibt die Länge zurück), dann scheibenweise lesen */
+  planKey: PLAN_KEY,
+  musicStore: async () => { window.__wav = await makeMusic(); return window.__wav.length; },
+  musicSlice: (a, b) => window.__wav.slice(a, b),
 };

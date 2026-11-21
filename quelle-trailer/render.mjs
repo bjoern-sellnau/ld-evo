@@ -1,13 +1,13 @@
 /* Trailer rendern: Bilder aus dem Canvas (REEL.frame) per Playwright abgreifen und mit ffmpeg zu MP4 zusammensetzen.
 
-   node render.mjs <60|90|120> <cine|drive|calm> <de|en> [Ausgabeordner]
+   node render.mjs <60|90|120|300> <cine|drive|calm> <de|en> [Ausgabeordner]
 
    Umgebungsvariablen (optional):
      PLAYWRIGHT  Pfad/Name des Playwright-Moduls (Standard: "playwright")
      CHROMIUM    Pfad zum Chromium (Standard: der von Playwright)
-     CRF         Qualität libx264 (Standard 22), MAXRATE (Standard 4500k)
+     CRF         Qualität libx264 (Standard 22, lange Fassung 23), MAXRATE (Standard 4500k, lange Fassung 2200k)
 
-   Die Musik hängt nur von Stimmung und Länge ab und wird als WAV zwischengespeichert (<Ausgabe>/.musik/…),
+   Die Musik hängt nur von Stimmung und Ablauf ab und wird als WAV zwischengespeichert (<Ausgabe>/.musik/…),
    beide Sprachfassungen teilen sie sich. Lautheit: Verstärkung auf −14 LUFS (gemessen mit ebur128), Begrenzer bei −3 dBFS (True Peak nach AAC unter −1 dBTP). */
 import http from 'node:http';
 import fs from 'node:fs';
@@ -19,9 +19,10 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const [len = '60', mood = 'cine', lang = 'de', outArg] = process.argv.slice(2);
 const OUT = path.resolve(outArg ?? path.join(ROOT, '..', 'trailer'));
 const NAMES = { cine: 'cinematic', drive: 'treibend', calm: 'ruhig' };
-if (!NAMES[mood] || !['60', '90', '120'].includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <60|90|120> <cine|drive|calm> <de|en> [Ausgabeordner]'); process.exit(2); }
+if (!NAMES[mood] || !['60', '90', '120', '300'].includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <60|90|120|300> <cine|drive|calm> <de|en> [Ausgabeordner]'); process.exit(2); }
 const base = `loona-trailer-${len}s-${NAMES[mood]}-${lang}`;
-const FPS = 30, CRF = process.env.CRF ?? '22', MAXRATE = process.env.MAXRATE ?? '4500k';
+/* Die lange Fassung bekommt eine niedrigere Obergrenze, damit die Datei sicher unter 100 MB bleibt (GitHub-Grenze) */
+const FPS = 30, CRF = process.env.CRF ?? (len === '300' ? '23' : '22'), MAXRATE = process.env.MAXRATE ?? (len === '300' ? '2200k' : '4500k');
 fs.mkdirSync(path.join(OUT, '.musik'), { recursive: true });
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
@@ -36,16 +37,18 @@ const page = await browser.newPage({ viewport: { width: 1000, height: 600 } });
 const errs = [];
 page.on('pageerror', (e) => errs.push(String(e)));
 await page.goto(`http://127.0.0.1:${srv.address().port}/index.html?len=${len}&mood=${mood}&lang=${lang}`);
-const info = await page.evaluate(async () => ({ ready: await REEL.ready, DUR: REEL.DUR, bpm: REEL.bpm, scenes: REEL.scenes }));
+const info = await page.evaluate(async () => ({ ready: await REEL.ready, DUR: REEL.DUR, bpm: REEL.bpm, scenes: REEL.scenes, key: REEL.planKey }));
 if (errs.length) { console.error('Fehler in der Seite:', errs); process.exit(1); }
 const N = Math.round(info.DUR * FPS);
 console.log(`${base}: ${info.DUR} s, ${N} Bilder, ${info.bpm} BPM, ${info.ready}`);
 
 /* ---- Musik (einmal je Stimmung + Länge) ---- */
-const wav = path.join(OUT, '.musik', `musik-${NAMES[mood]}-${len}s.wav`);
+/* Dateiname mit der Kennung des Ablaufs: ändert sich der Ablauf, entsteht die Musik neu; lange Stücke kommen in Scheiben */
+const wav = path.join(OUT, '.musik', `musik-${NAMES[mood]}-${len}s-${info.key}.wav`);
 if (!fs.existsSync(wav)) {
-  const t0 = Date.now(), b64 = await page.evaluate(() => REEL.music());
-  fs.writeFileSync(wav, Buffer.from(b64, 'base64'));
+  const t0 = Date.now(), total = await page.evaluate(() => REEL.musicStore()), STEP = 8 * 1024 * 1024, parts = [];
+  for (let a = 0; a < total; a += STEP) parts.push(Buffer.from(await page.evaluate(([x, y]) => REEL.musicSlice(x, y), [a, Math.min(total, a + STEP)]), 'base64'));
+  fs.writeFileSync(wav, Buffer.concat(parts));
   console.log(`  Musik gerendert (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
 }
 /* Lautheit: erst messen, dann mit Begrenzer noch einmal messen und die Verstärkung nachziehen (Ziel −14 LUFS) */
@@ -59,7 +62,7 @@ const mp4 = path.join(OUT, `${base}.mp4`);
 const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y',
   '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-i', wav,
   '-vf', 'scale=in_range=full:out_range=tv:out_color_matrix=bt709,format=yuv420p',
-  '-c:v', 'libx264', '-preset', 'slow', '-crf', CRF, '-maxrate', MAXRATE, '-bufsize', '9000k', '-profile:v', 'high', '-g', String(FPS * 2),
+  '-c:v', 'libx264', '-preset', 'slow', '-crf', CRF, '-maxrate', MAXRATE, '-bufsize', `${parseInt(MAXRATE, 10) * 2}k`, '-profile:v', 'high', '-g', String(FPS * 2),
   '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
   '-af', `volume=${gain}dB,${LIMITER}`, '-ar', '48000', '-c:a', 'aac', '-b:a', '192k',
   '-t', String(info.DUR), '-movflags', '+faststart', mp4], { stdio: ['pipe', 'inherit', 'inherit'] });
