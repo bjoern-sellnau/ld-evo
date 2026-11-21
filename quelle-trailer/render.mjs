@@ -8,7 +8,7 @@
      CRF         Qualität libx264 (Standard 22), MAXRATE (Standard 4500k)
 
    Die Musik hängt nur von Stimmung und Länge ab und wird als WAV zwischengespeichert (<Ausgabe>/.musik/…),
-   beide Sprachfassungen teilen sie sich. Lautheit: Verstärkung auf −14 LUFS (gemessen mit ebur128), Begrenzer bei −1,9 dBFS (Spitzen nach AAC unter −1 dBFS). */
+   beide Sprachfassungen teilen sie sich. Lautheit: Verstärkung auf −14 LUFS (gemessen mit ebur128), Begrenzer bei −3 dBFS (True Peak nach AAC unter −1 dBTP). */
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -48,9 +48,11 @@ if (!fs.existsSync(wav)) {
   fs.writeFileSync(wav, Buffer.from(b64, 'base64'));
   console.log(`  Musik gerendert (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
 }
-const meas = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', wav, '-af', 'ebur128', '-f', 'null', '-'], { encoding: 'utf8' }).stderr;
-const I = parseFloat((meas.match(/I:\s+(-?[\d.]+) LUFS/g) ?? []).pop()?.match(/-?[\d.]+/)?.[0] ?? '-16');
-const gain = (-14 - I + 0.3).toFixed(2); // +0,3 dB Vorhalt für den Begrenzer
+/* Lautheit: erst messen, dann mit Begrenzer noch einmal messen und die Verstärkung nachziehen (Ziel −14 LUFS) */
+const LIMITER = 'alimiter=limit=0.7:level=false:attack=1:release=60';
+const lufs = (af) => { const e = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', wav, '-af', `${af}ebur128`, '-f', 'null', '-'], { encoding: 'utf8' }).stderr; return parseFloat((e.match(/I:\s+(-?[\d.]+) LUFS/g) ?? []).pop()?.match(/-?[\d.]+/)?.[0] ?? '-16'); };
+const g1 = -14 - lufs('');
+const gain = (g1 + (-14 - lufs(`volume=${g1.toFixed(2)}dB,${LIMITER},`))).toFixed(2);
 
 /* ---- Bilder → ffmpeg ---- */
 const mp4 = path.join(OUT, `${base}.mp4`);
@@ -59,7 +61,7 @@ const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y',
   '-vf', 'scale=in_range=full:out_range=tv:out_color_matrix=bt709,format=yuv420p',
   '-c:v', 'libx264', '-preset', 'slow', '-crf', CRF, '-maxrate', MAXRATE, '-bufsize', '9000k', '-profile:v', 'high', '-g', String(FPS * 2),
   '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
-  '-af', `volume=${gain}dB,alimiter=limit=0.8:level=false:attack=3:release=80`, '-ar', '48000', '-c:a', 'aac', '-b:a', '192k',
+  '-af', `volume=${gain}dB,${LIMITER}`, '-ar', '48000', '-c:a', 'aac', '-b:a', '192k',
   '-t', String(info.DUR), '-movflags', '+faststart', mp4], { stdio: ['pipe', 'inherit', 'inherit'] });
 const done = new Promise((ok, no) => ff.on('close', (c) => (c === 0 ? ok() : no(new Error(`ffmpeg ${c}`)))));
 const t0 = Date.now(), BATCH = 6;

@@ -60,7 +60,7 @@ const CERTS = [
 
 const LABS = [
   { id: 'corefall', name: 'Corefall', d: '05/2026', shots: ['cfTitle', 'cf00', 'cf13', 'cf15', 'cf18'], de: ['Spiel', '6D-Shooter à la Descent — volle Bewegungsfreiheit, Retro-Seele, moderner Stack.'], en: ['Game', 'A 6DoF shooter in the vein of Descent — full freedom of movement, retro soul, modern stack.'] },
-  { id: 'covert', name: 'Covert Operations', d: '04/2026', shots: ['coModes', 'coTitle', 'coBoot'], de: ['Spiel', 'Top-Down-, ISO- und FPS-Shooter in einem — ein Spielfeld, viele Perspektiven.'], en: ['Game', 'Top-down, iso and FPS shooter in one — one playing field, many perspectives.'] },
+  { id: 'covert', name: 'Covert Operations', d: '04/2026', shots: ['coModes'], /* Titel- und Boot-Bild sind fast schwarz — auf der Karte wirkt das wie ein Ausfall */ de: ['Spiel', 'Top-Down-, ISO- und FPS-Shooter in einem — ein Spielfeld, viele Perspektiven.'], en: ['Game', 'Top-down, iso and FPS shooter in one — one playing field, many perspectives.'] },
   { id: 'spreefall', name: 'SPREE\u2009|\u2009FALL', d: '2026', shots: ['sfTitle', 'sfGate', 'sfTower', 'sfReichstag', 'sfSpree', 'sfNight'], credit: true, de: ['Spiel', 'Open-World-Shooter in Berlin — aus OpenStreetMap generiert, eigener WebGL2-Renderer.'], en: ['Game', 'Open-world shooter in Berlin — generated from OpenStreetMap, custom WebGL2 renderer.'] },
 ];
 const LABS_MORE = ['Covert Operations Arena', 'Death Grid 3D', 'COE', 'LD WorkBench', 'LD Buddy', 'LD NotchBuddy', 'LD Beyond'];
@@ -148,7 +148,7 @@ const TXT = {
 Object.assign(SRC, {
   yayci: 'assets/old_yayci.webp', catt: 'assets/old_catt2005.webp', hanno: 'assets/old_hannoback.webp', ld2006: 'assets/old_ld2006.webp', cattshop: 'assets/old_cattshop.webp', fahrschule: 'assets/old_fahrschule.webp',
   cfTitle: 'assets/g_core-fall-menu.jpg', cf00: 'assets/g_cf-play00.jpg', cf13: 'assets/g_cf-play13.jpg', cf15: 'assets/g_cf-play15.jpg', cf18: 'assets/g_cf-play18.jpg',
-  coTitle: 'assets/g_co-menu.jpg', coModes: 'assets/g_co-q1.jpg', coBoot: 'assets/g_co-step4.jpg',
+  coModes: 'assets/g_co-q1.jpg',
   sfTitle: 'assets/sf_ui-01-title.jpg', sfGate: 'assets/sf_01-pariser-platz.jpg', sfTower: 'assets/sf_07-tv-tower.jpg', sfReichstag: 'assets/sf_05-reichstag.jpg', sfSpree: 'assets/sf_12-spree.jpg', sfNight: 'assets/sf_09-night.jpg',
   siteHome: 'assets/site_home.jpg', siteBeyond: 'assets/site_beyond.jpg', siteLabs: 'assets/site_labs.jpg', siteStory: 'assets/site_story.jpg', siteMob: 'assets/site_mob.jpg',
 });
