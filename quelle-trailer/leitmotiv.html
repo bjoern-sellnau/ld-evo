@@ -94,7 +94,7 @@ input[type="range"] { width: 130px; accent-color: var(--rh); }
 </head>
 <body>
 <!-- Leitmotiv am Klavier — die Melodie aus der Musik der loona!-designs-Trailer (quelle-trailer/music.js: CH[…].mel, Folge P8) als Klaviersatz
-     zum Lernen: Noten (VexFlow), Klaviatur mit den zu drückenden Tasten, Abspielen und Schritt-für-Schritt-Modus.
+     zum Lernen: Noten (VexFlow), Klaviatur mit den zu drückenden Tasten, Abspielen und Schritt-für-Schritt-Modus, elf Klänge je Hand.
      Linke Hand wie im Stück „Ruhig“: gebrochener Akkord (arp − 12) im Muster 0 2 1 2 3 2 1 2. -->
 <div class="wrap">
   <header>
@@ -107,7 +107,7 @@ input[type="range"] { width: 130px; accent-color: var(--rh); }
 
   <div>
     <h1>Das Leitmotiv <em>am Klavier.</em></h1>
-    <p class="lede">Acht Takte in d-Moll. Die rechte Hand spielt die Melodie, die linke gebrochene Akkorde, so wie in der ruhigen Fassung der Trailer. Hör zu, sieh auf die Tasten und spiel nach.</p>
+    <p class="lede">Acht Takte in d-Moll. Die rechte Hand spielt die Melodie, die linke gebrochene Akkorde, so wie in der ruhigen Fassung der Trailer. Hör zu, sieh auf die Tasten und spiel nach. Für Melodie und Begleitung stehen je elf Klänge zur Wahl.</p>
   </div>
 
   <dl class="facts">
@@ -133,6 +133,8 @@ input[type="range"] { width: 130px; accent-color: var(--rh); }
       </div>
     </div>
     <div class="bar">
+      <label class="field" for="instR">Klang Melodie <select id="instR"></select></label>
+      <label class="field" for="instL">Klang Begleitung <select id="instL"></select></label>
       <label class="field" for="acc">Linke Hand <select id="acc"><option value="arp">Gebrochene Akkorde</option><option value="root">Nur Grundtöne</option></select></label>
       <label class="check"><input type="checkbox" id="step"> Schritt für Schritt</label>
       <label class="check"><input type="checkbox" id="loop" checked> Wiederholen</label>
@@ -182,7 +184,7 @@ input[type="range"] { width: 130px; accent-color: var(--rh); }
   const LO = 45, HI = 84, TOTAL = 32;
   const PC_DE = ['C', 'Cis', 'D', 'Es', 'E', 'F', 'Fis', 'G', 'As', 'A', 'B', 'H'], PC_EN = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
   const VKEY = ['c', 'c#', 'd', 'eb', 'e', 'f', 'f#', 'g', 'ab', 'a', 'bb', 'b'];
-  const S = { hands: 'both', acc: 'arp', names: 'de', tempo: 72, step: false, loop: true, click: false, finger: true, playing: false, beat: 0, si: 0, done: new Set() };
+  const S = { instR: 'piano', instL: 'piano', hands: 'both', acc: 'arp', names: 'de', tempo: 72, step: false, loop: true, click: false, finger: true, playing: false, beat: 0, si: 0, done: new Set() };
   const name = (m, oct = true) => (S.names === 'de' ? PC_DE : PC_EN)[m % 12] + (oct ? Math.floor(m / 12) - 1 : '');
   const chord = (c) => (c === 'Bb' ? (S.names === 'de' ? 'B' : 'B♭') : c);
 
@@ -268,22 +270,45 @@ input[type="range"] { width: 130px; accent-color: var(--rh); }
     const sb = c.parentElement.parentElement; if (sb.scrollWidth > sb.clientWidth) { const l = p.x - 60; if (l < sb.scrollLeft || p.x + 80 > sb.scrollLeft + sb.clientWidth) sb.scrollLeft = l; }
   }
 
-  /* ---------- Klang (Web Audio): Klavier aus Teiltönen mit eigenem Abklingen, Metronom ---------- */
+  /* ---------- Klang (Web Audio): elf Instrumente, alle im Browser erzeugt (dieselben Bauarten wie in music.js) ---------- */
   let ac = null, out = null, run = null, t0 = 0, raf = 0;
   function audio() { if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); out = ac.createDynamicsCompressor(); out.threshold.value = -16; out.ratio.value = 4; const g = ac.createGain(); g.gain.value = 0.9; out.connect(g); g.connect(ac.destination); } if (ac.state === 'suspended') ac.resume(); return ac; }
-  function tone(m, t, d, vel = 0.5, dest = out) {
-    const f = 440 * Math.pow(2, (m - 69) / 12), hi = Math.max(0, Math.min(1, (m - 48) / 40)), len = Math.max(1.1, d * 1.5) * (1 - hi * 0.35);
-    [1, 2, 3, 4, 5, 6].forEach((k, i) => { if (f * k > 9000) return; const o = ac.createOscillator(), g = ac.createGain(), pk = vel * [0.5, 0.26, 0.14, 0.08, 0.045, 0.025][i] * (1 - hi * 0.1 * i), l = len / (1 + i * 0.55);
-      o.type = 'sine'; o.frequency.value = f * k * (1 + 0.00035 * k * k); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, pk), t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + l); o.connect(g); g.connect(dest); o.start(t); o.stop(t + l + 0.05); });
-  }
+  const osc = (cx, type, f, det = 0) => { const o = cx.createOscillator(); if (typeof type === 'string') o.type = type; else o.setPeriodicWave(type); o.frequency.value = f; o.detune.value = det; return o; };
+  /* Hüllkurven: perc = Anschlag und Abklingen (Klavier, Glocke); hold = der Ton steht, solange die Note dauert (Orgel, Streicher) */
+  const perc = (cx, t, pk, len, a = 0.006) => { const g = cx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, pk), t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + len); return g; };
+  const hold = (cx, t, pk, d, a, r) => { const g = cx.createGain(), e = Math.max(t + a + 0.01, t + d); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, pk), t + a); g.gain.setValueAtTime(Math.max(0.0002, pk), e); g.gain.exponentialRampToValueAtTime(0.0001, e + r); return g; };
+  const lp = (cx, f, q = 0.7) => { const b = cx.createBiquadFilter(); b.type = 'lowpass'; b.frequency.value = f; b.Q.value = q; return b; };
+  const wire = (t, end, src, ...nodes) => { let n = src; nodes.forEach((x) => { n.connect(x); n = x; }); src.start(t); src.stop(end); };
+  const vib = (cx, o, t, end, cents, delay) => { const lf = cx.createOscillator(), g = cx.createGain(); lf.frequency.value = 5.6; g.gain.setValueAtTime(0, t); g.gain.setValueAtTime(0, t + delay); g.gain.linearRampToValueAtTime(cents, t + delay + 0.12); lf.connect(g); g.connect(o.detune); lf.start(t); lf.stop(end); };
+  const PULSE = new WeakMap(), pulse = (cx) => { if (!PULSE.has(cx)) { const n = 48, re = new Float32Array(n), im = new Float32Array(n); for (let k = 1; k < n; k++) { const sg = k % 2 ? 1 : -1; im[k] = (sg / k) * (1 - Math.cos(2 * Math.PI * k * 0.25)); re[k] = (sg / k) * Math.sin(2 * Math.PI * k * 0.25); } PULSE.set(cx, cx.createPeriodicWave(re, im)); } return PULSE.get(cx); };
+  const pianoLike = (soft) => (cx, f, m, t, d, v, dest) => { const hi = Math.max(0, Math.min(1, (m - 48) / 40)), len = Math.max(1.1, d * 1.5) * (1 - hi * 0.35);
+    [1, 2, 3, 4, 5, 6].forEach((k, i) => { if (f * k > 9000) return; const l = len / (1 + i * 0.55); wire(t, t + l + 0.05, osc(cx, 'sine', f * k * (1 + 0.00035 * k * k)), perc(cx, t, v * [0.5, 0.26, 0.14, 0.08, 0.045, 0.025][i] * (i && soft ? 0.6 : 1) * (1 - hi * 0.1 * i), l, soft ? 0.016 : 0.006), dest); }); };
+  /* g = Pegelausgleich (gemessen, siehe LEITMOTIV.level), fn(cx, Frequenz, Taste, Beginn, Dauer, Stärke, Ziel) */
+  const INSTR = {
+    piano: { name: 'Klavier', g: 1, fn: pianoLike(false) },
+    felt: { name: 'Filzklavier', g: 1.05, fn: pianoLike(true) },
+    epiano: { name: 'E-Piano', g: 1, fn: (cx, f, m, t, d, v, dest) => { const len = Math.max(1.2, d * 1.6); [[1, 0.5, len], [2, 0.1, len * 0.5], [4, 0.04, len * 0.3], [7, 0.07, 0.14]].forEach(([k, a, l]) => wire(t, t + l + 0.05, osc(cx, 'sine', f * k), perc(cx, t, v * a, l, 0.004), dest)); } },
+    organ: { name: 'Orgel', g: 0.7, fn: (cx, f, m, t, d, v, dest) => [[1, 0.3], [2, 0.2], [3, 0.1], [4, 0.08], [6, 0.04]].forEach(([k, a]) => wire(t, t + d + 0.2, osc(cx, 'sine', f * k), hold(cx, t, v * a, d, 0.012, 0.07), dest)) },
+    strings: { name: 'Streicher', g: 2.2, fn: (cx, f, m, t, d, v, dest) => [-9, 9].forEach((det) => wire(t, t + d + 0.5, osc(cx, 'sawtooth', f, det), lp(cx, 1900, 0.5), hold(cx, t, v * 0.13, d, 0.12, 0.28), dest)) },
+    flute: { name: 'Flöte', g: 0.55, fn: (cx, f, m, t, d, v, dest) => [[1, 0.5], [2, 0.07], [3, 0.03]].forEach(([k, a]) => { const o = osc(cx, 'sine', f * k); vib(cx, o, t, t + d + 0.3, 9, 0.15); wire(t, t + d + 0.3, o, hold(cx, t, v * a, d, 0.07, 0.12), dest); }) },
+    bell: { name: 'Glockenspiel', g: 0.9, fn: (cx, f, m, t, d, v, dest) => [[1, 0.5, 1.8], [3.01, 0.14, 0.8], [5.4, 0.05, 0.45]].forEach(([k, a, l]) => wire(t, t + l + 0.05, osc(cx, 'sine', f * k), perc(cx, t, v * a, l, 0.002), dest)) },
+    pluck: { name: 'Zupfsynth', g: 1.4, fn: (cx, f, m, t, d, v, dest) => [['sawtooth', 0.5, 3800, 500], ['square', 0.2, 2200, 400]].forEach(([w, a, c0, c1]) => { const b = lp(cx, c0, 2.5); b.frequency.setValueAtTime(c0, t); b.frequency.exponentialRampToValueAtTime(c1, t + 0.16); wire(t, t + 0.5, osc(cx, w, f), b, perc(cx, t, v * a, 0.42, 0.003), dest); }) },
+    saw: { name: 'Supersaw', g: 1.4, fn: (cx, f, m, t, d, v, dest) => [-19, -8, 0, 8, 19].forEach((det) => wire(t, t + d + 0.3, osc(cx, 'sawtooth', f, det), lp(cx, 3400), hold(cx, t, v * 0.11, d, 0.012, 0.12), dest)) },
+    square: { name: 'Rechteck-Lead', g: 0.7, fn: (cx, f, m, t, d, v, dest) => { const o = osc(cx, 'square', f); vib(cx, o, t, t + d + 0.2, 12, 0.16); wire(t, t + d + 0.2, o, lp(cx, 4200), hold(cx, t, v * 0.28, d, 0.004, 0.03), dest); } },
+    chip: { name: 'Chip (Puls)', g: 1, fn: (cx, f, m, t, d, v, dest) => wire(t, t + d + 0.2, osc(cx, pulse(cx), f), lp(cx, 8000), hold(cx, t, v * 0.3, d, 0.004, 0.03), dest) },
+  };
+  const sound = (cx, id, m, t, d, v, dest) => { const I = INSTR[id] || INSTR.piano; I.fn(cx, 440 * Math.pow(2, (m - 69) / 12), m, t, d, v * I.g, dest); };
+  const tone = (m, t, d, vel, dest, hand = 'r') => sound(ac, hand === 'l' ? S.instL : S.instR, m, t, d, vel, dest || out);
   function tick(t, strong, dest) { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = strong ? 1500 : 1000; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(strong ? 0.22 : 0.12, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05); o.connect(g); g.connect(dest); o.start(t); o.stop(t + 0.07); }
+  /* Pegel eines Instruments messen (Melodie, Tempo 72, ohne Kompressor) — zum Abgleich der Lautstärken */
+  async function level(id) { const sr = 44100, cx = new OfflineAudioContext(1, sr * 28, sr), sp = 60 / 72; N.filter((n) => n.hand === 'r').forEach((n) => sound(cx, id, n.m, 0.05 + n.t * sp, n.d * sp * 0.96, 0.62, cx.destination)); const d = (await cx.startRendering()).getChannelData(0); let q = 0, pk = 0; for (let k = 0; k < d.length; k++) { q += d[k] * d[k]; pk = Math.max(pk, Math.abs(d[k])); } return { rms: +(10 * Math.log10(q / d.length)).toFixed(2), peak: +(20 * Math.log10(pk)).toFixed(2) }; }
 
   /* ---------- Abspielen ---------- */
   const spb = () => 60 / S.tempo;
   function play(from = S.beat >= TOTAL - 0.01 ? 0 : S.beat) {
     audio(); halt(); S.playing = true; S.beat = from; $('play').textContent = 'Anhalten';
     run = ac.createGain(); run.connect(out); t0 = ac.currentTime + 0.09 - from * spb();
-    N.filter((n) => use(n) && n.t >= from - 1e-6).forEach((n) => tone(n.m, t0 + n.t * spb(), n.d * spb(), n.hand === 'r' ? 0.62 : 0.42, run));
+    N.filter((n) => use(n) && n.t >= from - 1e-6).forEach((n) => tone(n.m, t0 + n.t * spb(), n.d * spb() * 0.96, n.hand === 'r' ? 0.62 : 0.42, run, n.hand));
     if (S.click) for (let b = Math.ceil(from); b < TOTAL; b++) tick(t0 + b * spb(), b % 4 === 0, run);
     const loop = () => { if (!S.playing) return; S.beat = (ac.currentTime - t0) / spb();
       if (S.beat >= TOTAL) { if (S.loop) { play(0); return; } halt(); S.beat = 0; show(); return; }
@@ -298,10 +323,10 @@ input[type="range"] { width: 130px; accent-color: var(--rh); }
     paint(on, held.filter((n) => !on.includes(n))); cursor(b);
   }
   /* Schritt für Schritt */
-  function go(i, sound) { S.si = (i + STEPS.length) % STEPS.length; S.done = new Set(); S.beat = STEPS[S.si].t; if (sound) { audio(); STEPS[S.si].notes.forEach((n) => tone(n.m, ac.currentTime + 0.01, Math.max(0.6, n.d * spb()), n.hand === 'r' ? 0.62 : 0.42)); } show(); }
+  function go(i, sound) { S.si = (i + STEPS.length) % STEPS.length; S.done = new Set(); S.beat = STEPS[S.si].t; if (sound) { audio(); STEPS[S.si].notes.forEach((n) => tone(n.m, ac.currentTime + 0.01, Math.max(0.6, n.d * spb()), n.hand === 'r' ? 0.62 : 0.42, out, n.hand)); } show(); }
   function press(m) {
-    audio(); tone(m, ac.currentTime + 0.005, 0.8, 0.55);
-    if (!S.step) return; const st = STEPS[S.si]; if (!st || !st.notes.some((n) => n.m === m)) return;
+    audio(); const st = S.step ? STEPS[S.si] : null, hit = st ? st.notes.find((n) => n.m === m) : null; tone(m, ac.currentTime + 0.005, 0.8, 0.55, out, hit ? hit.hand : m < 62 ? 'l' : 'r');
+    if (!hit) return;
     S.done.add(m); show(); if (st.notes.every((n) => S.done.has(n.m))) setTimeout(() => { if (S.step) go(S.si + 1, false); }, 260);
   }
   function nearest() { let k = 0; STEPS.forEach((s, i) => { if (s.t <= S.beat + 1e-6) k = i; }); return k; }
@@ -316,6 +341,7 @@ input[type="range"] { width: 130px; accent-color: var(--rh); }
   $('acc').addEventListener('change', (e) => { S.acc = e.target.value; const was = S.playing; halt(); refresh(true); if (was) play(S.beat); });
   $('names').addEventListener('change', (e) => { S.names = e.target.value; labelKeys(); sheet(); show(); });
   $('step').addEventListener('change', (e) => { halt(); S.step = e.target.checked; S.done = new Set(); refresh(false); });
+  ['instR', 'instL'].forEach((id) => { const sel = $(id); Object.entries(INSTR).forEach(([k, v]) => sel.add(new Option(v.name, k))); sel.value = S[id]; sel.addEventListener('change', () => { S[id] = sel.value; if (S.playing) play(S.beat); else { audio(); tone(id === 'instR' ? 69 : 50, ac.currentTime + 0.01, 0.7, 0.55, out, id === 'instR' ? 'r' : 'l'); } }); });
   $('loop').addEventListener('change', (e) => { S.loop = e.target.checked; });
   $('click').addEventListener('change', (e) => { S.click = e.target.checked; if (S.playing) play(S.beat); });
   $('finger').addEventListener('change', (e) => { S.finger = e.target.checked; show(); });
@@ -327,7 +353,7 @@ input[type="range"] { width: 130px; accent-color: var(--rh); }
 
   buildPiano(); steps(); sheet(); show();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { sheet(); show(); });
-  window.LEITMOTIV = { state: () => ({ ...S, done: [...S.done], steps: STEPS.length, pos: POS.length, vex: !!(window.Vex && window.Vex.Flow) }), seek: (b) => { halt(); S.beat = b; show(); } };
+  window.LEITMOTIV = { level, instruments: () => Object.keys(INSTR), state: () => ({ ...S, done: [...S.done], steps: STEPS.length, pos: POS.length, vex: !!(window.Vex && window.Vex.Flow) }), seek: (b) => { halt(); S.beat = b; show(); } };
 })();
 </script>
 </body>
