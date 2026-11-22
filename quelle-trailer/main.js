@@ -47,7 +47,9 @@ function autoPlan(tpl, total) {
   for (; diff < 0; diff++) { let best = -1; out.forEach((v, i) => { if (v > tpl[i][2] && (best < 0 || v - raw[i] > out[best] - raw[best] + 1e-9)) best = i; }); if (best < 0) break; out[best]--; }
   return tpl.map((x, i) => [x[0], out[i]]);
 }
-const PLAN = PLANS[MOOD]?.[LEN] ?? autoPlan(TEMPLATES[LEN], Math.round((LEN * TH.bpm) / 240));
+/* Eigener Ablauf über ?plan=logo:4,person:8,… (Szene:Takte) — so entsteht die Musik der Echtzeit-Demo (demo/), deren Ablauf kein Trailer ist */
+const QPLAN = (Q.get('plan') || '').split(',').map((x) => x.split(':')).filter(([id, n]) => id in SECT && +n > 0).map(([id, n]) => [id, Math.round(+n)]);
+const PLAN = QPLAN.length ? QPLAN : PLANS[MOOD]?.[LEN] ?? autoPlan(TEMPLATES[LEN], Math.round((LEN * TH.bpm) / 240));
 const NB = PLAN.reduce((s, [, b]) => s + b, 0);
 const DUR = NB * BAR; // exakt 30 / 60 / 90 / 120 / 300 s
 const FN = { logo: scLogo, claim: scClaim, person: scPerson, origin: scOrigin, stack: scStack, journey: scJourney, award: scAward, labs: scLabs, site: scSite, family: scFamily, certs: scCerts, outro: scOutro, focus: scFocus, works: scWorks, labsAll: scLabsAll, hero: scHero, quote: scQuote, quote2: scQuote };
@@ -159,6 +161,8 @@ function transition(p, A, Bc) {
   const e = eIO(p); g.drawImage(A, 0, 0); g.save(); g.globalAlpha = e; g.drawImage(Bc, 0, (1 - e) * 26); g.restore();
 }
 function render(t) {
+  /* Retro-Looks bauen das ganze Bild selbst (Szenen, Übergänge, Einblendungen, Auf- und Abblende) */
+  if (TH.retro) { g.save(); g.setTransform(1, 0, 0, 1, 0, 0); CUR = sceneAt(t); RETRO[TH.retro].render(t); g.restore(); return; }
   const s = sceneAt(t), TD = TH.td;
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
   /* Übergang liegt mittig auf der Taktgrenze; Treibend: der Slash-Wipe endet auf der Eins */
@@ -185,6 +189,7 @@ window.REEL = {
   ready: (async () => {
     await loadAll();
     await Promise.all([[500, MAN], [600, MAN], [700, MAN], [800, MAN], [500, MONO], [700, MONO]].map(([w, f]) => document.fonts.load(`${w} 100px ${f}`)).concat([document.fonts.load(`italic 400 100px ${SER}`)]));
+    if (TH.retro) await RETRO[TH.retro].init();
     return `${Object.keys(IMG).length}/${Object.keys(SRC).length} Bilder`;
   })(),
   frame: async (t) => { render(t); return cv.toDataURL('image/jpeg', 0.93).slice(23); },

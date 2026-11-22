@@ -1,7 +1,8 @@
 /* Trailer — eigene Musik, vollständig im Browser synthetisiert (Web Audio, OfflineAudioContext) — keine Samples, keine fremden Rechte.
-   Neun Stücke über dasselbe Leitmotiv in d-Moll (Dm · B♭ · F · C): Cinematic 96 BPM, Treibend 128 BPM, Ruhig 80 BPM, Action 160 BPM —
-   dazu Trance 136, Hardstyle 152, Eurodance 128, Rave 144 und Demoszene (Tracker-Klang) 120 BPM. Die Stile sind nachempfunden,
-   die Tonfolgen eigene — kein Stück zitiert ein fremdes.
+   Zwölf Stücke über dasselbe Leitmotiv in d-Moll (Dm · B♭ · F · C): Cinematic 96 BPM, Treibend 128 BPM, Ruhig 80 BPM, Action 160 BPM —
+   dazu Trance 136, Hardstyle 152, Eurodance 128, Rave 144 und Demoszene (Chip-Klang) 120 BPM, und für die Retro-Looks Demo 90
+   (Vier-Spur-Tracker, 8 bit) 128, Benchmark 97 (Acid-Trance) 136 und Benchmark 2000 (Big Beat mit verzerrtem Riff) 144 BPM.
+   Die Stile sind nachempfunden, die Tonfolgen eigene — kein Stück zitiert ein fremdes.
    Das Arrangement folgt der Szenenfolge (REEL.scenes): jede Szene beginnt auf der Eins, Akzente liegen auf den Bildwechseln. */
 'use strict';
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
@@ -17,10 +18,11 @@ const P8 = ['Dm', 'Bb', 'F', 'C', 'Dm', 'Bb', 'Gm', 'C'];
 /* Riffs der Tanz-Stile: eigene Tonfolgen in Achteln je Akkord (0 = Pause) */
 const RIFF = {
   euro: { Dm: [74, 0, 74, 77, 0, 76, 74, 72], Bb: [74, 0, 74, 77, 0, 76, 74, 70], F: [72, 0, 72, 77, 0, 76, 72, 69], C: [72, 0, 72, 76, 0, 74, 72, 67], Gm: [74, 0, 74, 79, 0, 77, 74, 70] },
+  old: { Dm: [69, 74, 77, 76, 74, 0, 72, 74], Bb: [70, 74, 77, 76, 74, 0, 70, 74], F: [69, 72, 77, 76, 72, 0, 69, 72], C: [67, 72, 76, 74, 72, 0, 67, 72], Gm: [70, 74, 79, 77, 74, 0, 70, 74] },
   rave: { Dm: [74, 74, 77, 74, 81, 81, 79, 77], Bb: [74, 74, 77, 74, 82, 82, 81, 77], F: [72, 72, 77, 72, 81, 81, 79, 77], C: [72, 72, 76, 72, 79, 79, 76, 74], Gm: [74, 74, 79, 74, 82, 82, 81, 79] },
 };
 /* Hall-Länge (s), Hall-Anteil und Höhenanhebung im Master (dB) je Stimmung */
-const MIX = { cine: [3.4, 0.8, 4], drive: [1.9, 0.55, 2.5], action: [1.5, 0.5, 3], calm: [3.8, 0.8, 4.5], trance: [3.0, 0.7, 3], hard: [1.8, 0.5, 2.5], euro: [1.8, 0.5, 3], rave: [1.7, 0.5, 2.5], demo: [1.2, 0.35, 2] };
+const MIX = { cine: [3.4, 0.8, 4], drive: [1.9, 0.55, 2.5], action: [1.5, 0.5, 3], calm: [3.8, 0.8, 4.5], trance: [3.0, 0.7, 3], hard: [1.8, 0.5, 2.5], euro: [1.8, 0.5, 3], rave: [1.7, 0.5, 2.5], demo: [1.2, 0.35, 2], old: [0.8, 0, 0], b97: [2.8, 0.65, 3], b2k: [1.6, 0.45, 2.5] };
 /* Akkordfolge einer Szene: beginnt auf Dm, der letzte Takt führt über C zurück */
 function progFor(n) { if (n === 1) return ['Dm']; if (n === 2) return ['Dm', 'C']; if (n === 3) return ['Dm', 'Bb', 'C']; const p = Array.from({ length: n }, (_, i) => P8[i % 8]); p[n - 1] = 'C'; if (n % 4 === 1) p[n - 2] = 'Gm'; return p; }
 const SECT = { logo: 'intro', claim: 'intro2', person: 'build', origin: 'soft', stack: 'main', journey: 'main', award: 'break', labs: 'drop', site: 'drop', family: 'soft', certs: 'main', outro: 'outro', focus: 'build', works: 'main', labsAll: 'main', hero: 'drop', quote: 'break', quote2: 'break' };
@@ -122,7 +124,7 @@ async function musicWindow(W0, W1) {
   /* Akkord-Stich (Klavier/Orgel der Neunziger): Dreieck mit kurzem Sägezahn-Anteil */
   A.stab = (t, notes, gain, o = {}) => notes.forEach((n, i) => { A.tone(t, o.dur ?? 0.32, midi(n), 'triangle', gain, { decay: true, att: 0.003, cut: 5000, pan: (i - 1) * 0.3, wet: o.wet ?? 0.25, bus: o.bus }); A.tone(t, (o.dur ?? 0.32) * 0.7, midi(n), 'sawtooth', gain * 0.45, { decay: true, att: 0.003, cut: o.cut ?? 3000, cut1: 700, cutT: 0.15, pan: (i - 1) * 0.3, bus: o.bus }); });
   /* Chip-Arpeggio: ein Oszillator springt in festen Schritten durch die Töne (wie die Arpeggio-Effekte der Tracker) */
-  A.chipArp = (t, dur, notes, gain, o = {}) => { if (t < W0 || t >= W1 || gain <= 0) return; t -= W0; const os = ac.createOscillator(); os.setPeriodicWave(o.wave ?? P25); const step = o.step ?? 0.02; for (let q = 0, tt = 0; tt < dur; q++, tt += step) os.frequency.setValueAtTime(midi(notes[q % notes.length]), t + tt); const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.cut ?? 6500; const gn = mkEnv(); env(gn, t, 0.002, gain, dur, 0.012); os.connect(f); f.connect(gn); route(gn, o); os.start(t); os.stop(t + dur + 0.02); };
+  A.chipArp = (t, dur, notes, gain, o = {}) => { if (t < W0 || t >= W1 || gain <= 0) return; t -= W0; const os = ac.createOscillator(), wv = o.wave ?? P25; if (typeof wv === 'string') os.type = wv; else os.setPeriodicWave(wv); const step = o.step ?? 0.02; for (let q = 0, tt = 0; tt < dur; q++, tt += step) os.frequency.setValueAtTime(midi(notes[q % notes.length]), t + tt); const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.cut ?? 6500; const gn = mkEnv(); env(gn, t, 0.002, gain, dur, 0.012); os.connect(f); f.connect(gn); route(gn, o); os.start(t); os.stop(t + dur + 0.02); };
 
   const sc = REEL.scenes;
   sc.forEach((s, si) => {
@@ -283,6 +285,72 @@ async function musicWindow(W0, W1) {
         /* Höhepunkt: zweite Arpeggio-Stimme in Sechzehnteln */
         if (sect === 'drop') for (let e = 0; e < 16; e++) A.tone(t0 + (e * B) / 4, (B / 4) * 0.7, midi(c.arp[[0, 2, 1, 3][e % 4]] + 12), P12, 0.035, { att: 0.002, rel: 0.02, cut: 7000, pan: e % 2 ? 0.5 : -0.5, dly: 0.25 });
         if (lastBar && !last) { for (let e = 8; e < 16; e++) A.noise(t0 + (e * B) / 4, 0.06, 2600, 1400, 0.06 + (e - 8) * 0.02, { type: 'bandpass', q: 0.7 }); A.chipArp(t0 + 3 * B, B * 0.95, [62, 65, 69, 74, 77, 81, 86, 89], 0.05, { step: B / 8, wave: P12, dly: 0.2 }); }
+      } else if (MOOD === 'old') {
+        /* Demo 90 (128 BPM): ein Stück wie aus einem Vier-Spur-Tracker des Amiga — Bass und Schlagzeug links, Akkorde und Melodie rechts,
+           kein Hall. Das Echo der Melodie ist nachgespielt (leiser, drei Zeilen später, auf der anderen Seite), Akkorde laufen als schnelles
+           Arpeggio (50 Schritte je Sekunde), die Melodie gleitet von Ton zu Ton (Portamento). Das Schlagzeug teilt sich eine Spur: nie zwei
+           Schläge zugleich. Der Master rechnet das Ganze auf 8 bit bei rund 22 kHz herunter (siehe makeMusic). */
+        const full = sect === 'main' || sect === 'drop' || sect === 'outro', drums = full || sect === 'build' || sect === 'intro2' || sect === 'soft', E = { intro: 0.8, intro2: 0.9, build: 0.95, soft: 0.85, main: 1, break: 0.85, drop: 1.1, outro: 0.95 }[sect], PL = -0.6, PR = 0.6, S = B / 4, tri = c.pad.slice(1).map((n) => n + 12);
+        /* Spur 1 — Bass: synkopiert mit Oktavsprüngen, im Höhepunkt durchlaufende Sechzehntel */
+        if (sect === 'intro' || sect === 'break') { A.tone(t0, BAR - 0.04, midi(c.bass + 12), 'sawtooth', 0.1 * E, { att: 0.01, rel: 0.08, cut: 650, pan: PL * 0.5 }); A.tone(t0, BAR - 0.04, midi(c.bass), 'sine', 0.12 * E, { att: 0.01, rel: 0.08, cut: 400 }); }
+        else (sect === 'drop' ? Array.from({ length: 16 }, (_, e) => [e, e % 4 === 2 ? 12 : e % 4 === 3 ? 7 : 0, 1]) : sect === 'soft' ? [[0, 0, 3], [8, 0, 3], [14, 12, 1]] : [[0, 0, 2], [3, 0, 1], [6, 12, 1], [8, 0, 2], [11, 0, 1], [14, 12, 1], [15, 7, 1]]).forEach(([e, d, l]) => { A.tone(t0 + e * S, l * S * 0.9, midi(c.bass + 12 + d), 'sawtooth', 0.16 * E, { decay: true, att: 0.002, cut: 1500, cut1: 320, cutT: 0.1, q: 2, pan: PL * 0.5 }); if (d !== 7) A.tone(t0 + e * S, l * S * 0.9, midi(c.bass + (d ? 12 : 0)), 'sine', 0.15 * E, { att: 0.003, rel: 0.02, cut: 500 }); });
+        /* Spur 2 — Akkorde: im Auftakt, Break und ruhigen Teil als Arpeggio, im Höhepunkt in Achteln, sonst kurze Stiche auf den Off-Beats */
+        if (sect === 'intro' || sect === 'break' || sect === 'soft') [0, 4, 8, 12].forEach((e) => A.chipArp(t0 + e * S, 4 * S * 0.96, tri, 0.055 * E, { wave: 'square', step: 0.02, cut: sect === 'intro' ? 900 + 600 * k : 2600, pan: PR }));
+        else if (sect === 'drop') for (let e = 0; e < 16; e += 2) A.chipArp(t0 + e * S, 2 * S * 0.9, tri, 0.05 * E, { wave: 'sawtooth', step: 0.02, cut: 3800, pan: PR });
+        else [2, 6, 10, 14].forEach((e) => tri.forEach((n) => A.tone(t0 + e * S, S * 1.5, midi(n), 'sawtooth', 0.045 * E, { decay: true, att: 0.002, cut: 3200, cut1: 900, cutT: 0.1, pan: PR })));
+        /* Spur 3 — Melodie: Rechteck mit Vibrato, gleitet vom vorigen Ton herüber; das Echo spielt die andere Seite nach */
+        let pv = 0;
+        const lead = (t, n, l, g0) => { A.tone(t, l * 0.92, midi(n), 'square', g0, { att: 0.004, rel: 0.03, cut: 4200, vib: 12, vibD: 0.16, bend: pv && Math.abs(pv - n) <= 12 ? midi(pv) / midi(n) : undefined, bendT: 0.05, pan: PR * 0.6 }); A.tone(t + 3 * S, Math.min(l, 2 * S) * 0.9, midi(n), 'square', g0 * 0.34, { att: 0.004, rel: 0.03, cut: 3000, pan: PL }); pv = n; };
+        if (sect === 'drop') RIFF.old[cn].forEach((n, e) => { if (n) lead(t0 + (e * B) / 2, n + 12, B / 2, 0.062 * E); });
+        else if (sect !== 'intro') A.mel(t0, cn, (t, n, l) => lead(t, n + (sect === 'break' ? 12 : 0), l, (sect === 'intro2' || sect === 'soft' ? 0.05 : 0.066) * E));
+        /* Spur 4 — Schlagzeug: k Bassdrum, s Snare, h Hi-Hat */
+        if (drums) [...(sect === 'drop' ? 'k.hhs.hkk.hhs.hs' : full ? 'k.h.s.hkk.h.s.h.' : sect === 'build' ? 'k.h.s.h.k.h.s.h.' : sect === 'soft' ? 'k...h...s...h...' : 'k...h...k...h.h.')].forEach((ch, e) => { const t = t0 + e * S; if (ch === 'k') A.kick(t, 0.85, { f0: 140, f1: 48, dec: 0.2 }); else if (ch === 's') A.snare(t, 0.3); else if (ch === 'h') A.hat(t, 0.07, 0.03, PL * 0.5); });
+        if (lastBar && !last) for (let e = 12; e < 16; e++) { A.snare(t0 + e * S, 0.14 + (e - 12) * 0.05); A.tone(t0 + e * S, 0.1, midi(62 - (e - 12) * 4), 'triangle', 0.3, { decay: true, att: 0.002, bend: 2, bendT: 0.04, cut: 2500, pan: PR * 0.4 }); }
+      } else if (MOOD === 'b97') {
+        /* Benchmark 97 (136 BPM): Acid-Trance, wie ihn Demos und Benchmarks um 1997 mitbrachten — rollender Bass in Sechzehnteln zwischen den
+           Bassdrums, eine Acid-Linie (Rechteck, hohe Resonanz), deren Filter über vier Takte auf- und zugeht, die Fläche im Sechzehntel-Raster
+           zerhackt (Trance-Gate), das Motiv als Glocke mit Echo; im Höhepunkt führt ein Rechteck-Lead */
+        const full = sect === 'main' || sect === 'drop', drums = full || sect === 'build' || sect === 'intro2' || sect === 'outro', E = { intro: 0.75, intro2: 0.85, build: 0.95, soft: 0.85, main: 1, break: 0.85, drop: 1.1, outro: 0.9 }[sect], S = B / 4;
+        if (sect === 'break' || sect === 'intro') A.pad(t0, BAR + 0.3, c.pad, 0.02 * E, { cut: sect === 'intro' ? 500 + 300 * k : 1500, cut1: sect === 'intro' ? undefined : 2800, att: 0.3, rel: 0.5, wet: 0.7 });
+        if (sect !== 'break') [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0].forEach((on, e) => { if (on) c.pad.forEach((n, i) => A.tone(t0 + e * S, S * 0.78, midi(n + 12), 'sawtooth', 0.022 * E, { att: 0.004, rel: 0.02, det: i % 2 ? 7 : -7, cut: sect === 'intro' ? 700 + 250 * (k * 4 + e / 4) : full ? 3600 : 2200, pan: i % 2 ? 0.45 : -0.45, wet: 0.35, dly: 0.2, bus: duck })); });
+        if (drums) for (let b = 0; b < 4; b++) { const tb = t0 + b * B; A.kick(tb, 0.95, { f0: 170, f1: 50, dec: 0.28, duck: 0.25 }); A.hat(tb + B / 2, 0.12, 0.09, 0.1); if (b % 2 && sect !== 'intro2') A.clap(tb, 0.22); if (full) { A.hat(tb + S, 0.035, 0.02, -0.3); A.hat(tb + 3 * S, 0.035, 0.02, 0.3); } if (sect === 'drop') A.noise(tb, 0.16, 7000, 6500, 0.045, { type: 'bandpass', q: 3, pan: 0.2 }); }
+        else if (sect === 'intro') { if (k >= 1) for (let b = 0; b < 4; b++) A.kick(t0 + b * B, 0.6, { lp: 200 + (k * 4 + b) * 130, soft: true }); }
+        else if (sect === 'soft') [0, 2].forEach((b) => A.kick(t0 + b * B, 0.7, { f0: 150, f1: 46, dec: 0.36, duck: 0.4 }));
+        /* Rollender Bass: drei Sechzehntel zwischen den Bassdrums; im Höhepunkt springt der letzte in die Oktave */
+        if (sect !== 'intro' && sect !== 'break') for (let b = 0; b < 4; b++) [1, 2, 3].forEach((e) => A.bass(t0 + b * B + e * S, S - 0.012, c.bass + (sect === 'drop' && e === 3 ? 12 : 0), 0.125 * E, { cut: 1100, cut1: 280, bus: duck }));
+        else if (sect === 'break') A.sub(t0, BAR - 0.1, c.bass, 0.09);
+        /* Acid-Linie: Töne der d-Moll-Pentatonik, gebundene Töne gleiten; im Aufbau geht das Filter über die Szene auf */
+        if (sect === 'build' || full || sect === 'break') { const AC = [50, 50, 62, 50, 57, 50, 60, 62, 50, 53, 62, 50, 55, 57, 60, 65]; AC.forEach((n, e) => { const sw = 0.5 - 0.5 * Math.cos((2 * Math.PI * (s.b0 + k + e / 16)) / 4), cut = sect === 'break' ? 350 + 500 * sw : sect === 'build' ? 500 + (2400 * (k + e / 16)) / s.bars : 500 + 2100 * sw, sl = e % 8 === 7 || e % 8 === 2; A.tone(t0 + e * S, S * (sl ? 1.05 : 0.6), midi(n), 'square', (e % 4 === 2 ? 0.066 : 0.048) * E, { decay: !sl, att: 0.003, rel: 0.01, cut, cut1: sl ? undefined : cut * 0.4, cutT: 0.09, q: 11, bend: sl ? midi(AC[(e + 15) % 16]) / midi(n) : undefined, bendT: 0.04, pan: 0.15, dly: 0.25, bus: duck }); }); }
+        if (sect === 'drop') { A.mel(t0, cn, (t, n, l) => A.tone(t, l * 0.94, midi(n + 12), 'square', 0.062, { att: 0.008, rel: 0.06, cut: 5200, vib: 10, vibD: 0.15, wet: 0.4, dly: 0.45, pan: -0.1 })); [0.5, 1.5, 2.5, 3.5].forEach((b, i) => A.bell(t0 + b * B, c.arp[(i * 2 + 1) % 4] + 24, 0.03, { pan: i % 2 ? 0.5 : -0.5, dur: 1.2 })); }
+        else if (sect !== 'intro' && sect !== 'intro2') A.mel(t0, cn, (t, n, l) => A.bell(t, n + 12, sect === 'break' ? 0.09 : 0.072, { dur: Math.max(1.4, l * 2.4), dly: 0.4, pan: 0.1 }));
+        if (lastBar && !last) { A.riser(t0, BAR, 0.22); if (sect === 'break' || sect === 'build' || nextSect === 'drop') for (let e = 0; e < 16; e++) A.snare(t0 + e * S, 0.05 + e * 0.014); else [3.5, 3.75].forEach((b) => A.snare(t0 + b * B, 0.2)); }
+      } else if (MOOD === 'b2k') {
+        /* Benchmark 2000 (144 BPM): Big Beat, wie er um 2000 Spiele und Benchmarks begleitete — ein Breakbeat (Bassdrum auf 1, kurz vor der 3
+           und auf „3 und“, Snare auf 2 und 4) und ein verzerrtes Riff aus Quint-Akkorden wie von einer E-Gitarre (Sägezähne durch den
+           Verzerrer): abgedämpfte Sechzehntel, offene Akzente auf Grundton, Oktave und Quinte. Im Höhepunkt führt ein Rechteck-Lead mit
+           Tonhöhen-Anlauf; im Break halbes Tempo mit gezupftem Akkord und Klavier */
+        const full = sect === 'main' || sect === 'drop' || sect === 'outro', E = { intro: 0.8, intro2: 0.9, build: 0.95, soft: 0.85, main: 1, break: 0.85, drop: 1.1, outro: 0.95 }[sect], S = B / 4, R = c.bass + 12;
+        const fc = sect === 'intro' ? 450 + (900 * (k + 1)) / s.bars : sect === 'build' ? 900 + (1700 * k) / s.bars : 3200;
+        const chord = (t, n, l, open, g0 = 1) => [0, 7, 12].forEach((d, i) => A.tone(t, l * S * (open ? 0.95 : 0.55), midi(n + d), 'sawtooth', (open ? 0.2 : 0.17) * g0, { decay: !open, att: 0.003, rel: 0.03, det: (i - 1) * 6, cut: open ? fc : fc * 0.38, cut1: open ? fc * 0.6 : 260, cutT: open ? l * S : 0.07, q: 1.2, bus: distIn }));
+        /* Riff: [Sechzehntel, Abstand zum Grundton, Länge, offen] */
+        const RF = [[0, 0, 2, 1], [2, 0, 1, 0], [3, 0, 1, 0], [4, 0, 1, 0], [6, 12, 1, 1], [7, 0, 1, 0], [8, 0, 2, 1], [10, 0, 1, 0], [11, 0, 1, 0], [12, 7, 2, 1], [14, 12, 2, 1]];
+        if (sect === 'intro' || sect === 'build' || full) RF.forEach(([e, d, l, op]) => chord(t0 + e * S, R + d, l, op && sect !== 'build', sect === 'intro' ? 0.8 : 1));
+        if (sect === 'drop') RF.forEach(([e, d, l, op]) => { if (op) A.tone(t0 + e * S, l * S * 0.9, midi(R + d + 12), 'sawtooth', 0.11, { att: 0.003, rel: 0.03, cut: 3600, cut1: 1800, cutT: l * S, bus: distIn }); });
+        /* Bass folgt dem Riff eine Oktave tiefer, unverzerrt */
+        if (sect === 'break') A.sub(t0, BAR - 0.1, c.bass, 0.1);
+        else if (sect !== 'intro') (sect === 'intro2' || sect === 'soft' ? RF.filter((x) => x[3]) : RF).forEach(([e, d, l]) => A.bass(t0 + e * S, l * S - 0.015, c.bass + d, 0.15 * E, { cut: 700, cut1: 240 }));
+        /* Breakbeat: K Bassdrum, S Snare (mit Klatscher), g leise Zwischenschläge */
+        const DR = sect === 'drop' ? 'K..KS..K..K.S.gg' : full ? 'K...S..K..K.S..g' : sect === 'build' || sect === 'intro2' ? 'K...S.....K.S...' : sect === 'soft' ? 'K.......S.K.....' : sect === 'break' ? 'K.......S.......' : k >= 1 ? 'K.........K.....' : '';
+        [...DR].forEach((ch, e) => { const t = t0 + e * S; if (ch === 'K') A.kick(t, sect === 'intro' ? 0.6 : 1, sect === 'intro' ? { lp: 260 + k * 300, soft: true } : { f0: 190, f1: 52, dec: 0.26 }); else if (ch === 'S') { A.snare(t, 0.4); A.clap(t, 0.16); } else if (ch === 'g') A.snare(t, 0.12); });
+        if (sect !== 'break') for (let e = 0; e < 16; e += sect === 'drop' ? 1 : 2) { if (sect === 'intro' && e % 4 !== 2) continue; if (full && e === 14) A.noise(t0 + e * S, 0.14, 7500, 9000, 0.1, { pan: 0.15 }); else A.hat(t0 + e * S, e % 2 ? 0.035 : e % 4 === 2 ? 0.09 : 0.06, 0.03, e % 4 === 2 ? 0.2 : -0.2); }
+        /* Melodie: im Höhepunkt Rechteck-Lead, der jeden Ton von unten anfährt; sonst gezupft mit Echo, im Break Klavier über einer Fläche */
+        if (sect === 'drop') A.mel(t0, cn, (t, n, l) => A.tone(t, l * 0.92, midi(n + 12), 'square', 0.055, { att: 0.006, rel: 0.05, cut: 5000, bend: 0.944, bendT: 0.05, vib: 9, vibD: 0.18, wet: 0.35, dly: 0.4 }));
+        else if (sect === 'main' || sect === 'outro' || sect === 'build') A.mel(t0, cn, (t, n) => A.pluck(t, n + 12, 0.075 * E, { cut: 4200, dur: 0.24, dly: 0.45, pan: 0.2 }));
+        if (sect === 'break' || sect === 'soft' || sect === 'intro2') { A.pad(t0, BAR + 0.4, c.pad, 0.02 * E, { cut: 1400, att: 0.3, rel: 0.6, wet: 0.7 }); for (let e = 0; e < 8; e++) A.pluck(t0 + (e * B) / 2, c.arp[[0, 2, 1, 3, 2, 1, 3, 2][e]], 0.07 * E, { cut: 3000, pan: e % 2 ? 0.4 : -0.4, dly: 0.4 }); }
+        if (sect === 'break') A.mel(t0, cn, (t, n, l) => A.piano(t, n + 12, 0.4, Math.max(1.6, l * 2), { wet: 0.8, dly: 0.3 }));
+        /* jeden vierten Takt ein Acid-Schnörkel auf der Vier */
+        if (full && k % 4 === 3) for (let e = 12; e < 16; e++) A.tone(t0 + e * S, S * 0.8, midi(R + 12 + [0, 12, 7, 12][e - 12]), 'sawtooth', 0.045, { decay: true, att: 0.003, cut: 900 + 700 * (e - 12), cut1: 300, cutT: 0.08, q: 10, dly: 0.2 });
+        if (lastBar && !last) { A.riser(t0, BAR, 0.22); if (sect === 'break' || sect === 'build' || nextSect === 'drop') for (let e = 0; e < 16; e++) A.snare(t0 + e * S, 0.05 + e * 0.014); else [3.5, 3.75].forEach((b) => A.snare(t0 + b * B, 0.22)); }
       } else {
         const E = { intro: 0.7, intro2: 0.85, build: 0.95, soft: 0.9, main: 1, break: 0.9, drop: 1.08, outro: 0.85 }[sect], rhythm = sect === 'main' || sect === 'drop' || sect === 'build';
         A.pad(t0, BAR + 1.0, c.pad, 0.019 * E, { wave: 'triangle', cut: 1400, att: 1.0, rel: 1.2, wet: 0.7 });
@@ -302,7 +370,8 @@ async function musicWindow(W0, W1) {
       else if (MOOD === 'drive') { A.whoosh(s.t0, 0.2, 0.45); A.noise(s.t0, 1.4, 9000, 5000, 0.14, { wet: 0.5 }); if (sect0 === 'drop') A.impact(s.t0, 0.6); }
       else if (MOOD === 'action') { A.whoosh(s.t0, 0.22, 0.4); A.noise(s.t0, 1.2, 9000, 5000, 0.16, { wet: 0.5 }); A.impact(s.t0, sect0 === 'drop' ? 0.9 : 0.6); }
       else if (MOOD === 'demo') { A.chipArp(s.t0, 0.22, [86, 81, 77, 74, 69, 65], 0.045, { step: 0.035, wave: P12, dly: 0.25 }); A.noise(s.t0, 0.5, 7000, 3000, 0.1, { wet: 0.3 }); }
-      else if (FAST) { /* Trance, Eurodance, Rave, Hardstyle: Becken auf der Eins, im Höhepunkt mit Einschlag */ A.whoosh(s.t0, 0.2, 0.45); A.noise(s.t0, 1.4, 9000, 5000, 0.15, { wet: 0.5 }); if (sect0 === 'drop' || MOOD === 'hard') A.impact(s.t0, sect0 === 'drop' ? 0.8 : 0.5); }
+      else if (MOOD === 'old') A.noise(s.t0, 0.5, 6000, 2500, 0.16);
+      else if (FAST) { /* Trance, Eurodance, Rave, Hardstyle, Benchmark 97 und 2000: Becken auf der Eins, im Höhepunkt mit Einschlag */ A.whoosh(s.t0, 0.2, 0.45); A.noise(s.t0, 1.4, 9000, 5000, 0.15, { wet: 0.5 }); if (sect0 === 'drop' || MOOD === 'hard') A.impact(s.t0, sect0 === 'drop' ? 0.8 : 0.5); }
       else A.chime(s.t0, [CH.Dm.arp[1] + 12, CH.Dm.arp[2] + 12], 0.035, 0.18);
     }
     /* besondere Momente: Zeichen steht, Gold, Reise-Stationen, Schluss-Lockup */
@@ -330,6 +399,8 @@ async function makeMusic() {
   const pre = mc.createGain(); pre.gain.value = 0.5;
   const hpf = mc.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 30; hpf.Q.value = 0.7;
   const shelf = mc.createBiquadFilter(); shelf.type = 'highshelf'; shelf.frequency.value = 3200; shelf.gain.value = MIX[MOOD][2];
+  /* Demo 90: statt der Höhenanhebung der Tiefpass des Amiga-Ausgangs (rund 7 kHz) */
+  if (MOOD === 'old') { shelf.type = 'lowpass'; shelf.frequency.value = 7500; shelf.Q.value = 0.7; }
   const comp = mc.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 8; comp.ratio.value = 3.5; comp.attack.value = 0.006; comp.release.value = 0.22;
   const out = mc.createGain(); src.connect(pre); pre.connect(hpf); hpf.connect(shelf); shelf.connect(comp); comp.connect(out); out.connect(mc.destination);
   out.gain.setValueAtTime(0.0001, 0); out.gain.exponentialRampToValueAtTime(1, FAST ? 0.05 : 0.4);
@@ -338,6 +409,8 @@ async function makeMusic() {
   const done = await mc.startRendering(), L = done.getChannelData(0), R = done.getChannelData(1);
   /* Spitzenpegel auf −1 dBFS begrenzen (die Lautheit stellt ffmpeg beim Rendern ein) */
   let pk = 0; for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(L[i]), Math.abs(R[i])); const nrm = pk > 0 ? 0.89 / pk : 1;
+  /* Demo 90: 8 bit bei rund 22 kHz wie der Tonchip des Amiga — jeden Abtastwert etwa zwei Takte lang halten und auf 256 Stufen runden */
+  if (MOOD === 'old') { const hold = SR / 22050; let acc = hold, hl = 0, hr = 0; for (let i = 0; i < n; i++) { acc += 1; if (acc >= hold) { acc -= hold; hl = Math.round(L[i] * nrm * 127) / (127 * nrm); hr = Math.round(R[i] * nrm * 127) / (127 * nrm); } L[i] = hl; R[i] = hr; } }
   const wv = new DataView(new ArrayBuffer(44 + n * 4));
   const ws = (o, s) => { for (let i = 0; i < s.length; i++) wv.setUint8(o + i, s.charCodeAt(i)); };
   ws(0, 'RIFF'); wv.setUint32(4, 36 + n * 4, true); ws(8, 'WAVE'); ws(12, 'fmt '); wv.setUint32(16, 16, true); wv.setUint16(20, 1, true); wv.setUint16(22, 2, true); wv.setUint32(24, SR, true); wv.setUint32(28, SR * 4, true); wv.setUint16(32, 4, true); wv.setUint16(34, 16, true); ws(36, 'data'); wv.setUint32(40, n * 4, true);

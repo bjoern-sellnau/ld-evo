@@ -1,7 +1,7 @@
 /* Trailer — Stimmungen (Themes), Hintergründe und Szenen. Jede Szene: fn(lt, D) mit lokaler Zeit lt und Dauer D (Sekunden). */
 'use strict';
 const Q = new URLSearchParams(location.search);
-const MOODS = ['cine', 'drive', 'calm', 'action', 'trance', 'hard', 'euro', 'rave', 'demo'];
+const MOODS = ['cine', 'drive', 'calm', 'action', 'trance', 'hard', 'euro', 'rave', 'demo', 'old', 'b97', 'b2k'];
 const MOOD = MOODS.includes(Q.get('mood')) ? Q.get('mood') : 'cine';
 /* 30 Sekunden gibt es nur für die fünf neuen Stimmungen (ihr Ablauf wird aus einer Vorlage berechnet, siehe main.js) */
 const LEN = [60, 90, 120, 300].concat(MOODS.indexOf(MOOD) > 3 ? [30] : []).includes(+Q.get('len')) ? +Q.get('len') : 60;
@@ -22,12 +22,21 @@ const THEMES = {
   euro: { name: 'eurodance', fast: true, bgk: 'euro', trans: 'iris', wipe: BR.buddy, bpm: 128, dark: false, bg: BR.cream, ink: BR.ink, soft: BR.text2, mute: BR.meta, line: 'rgba(23,19,16,0.16)', accent: BR.orange, accentText: BR.glassDark, card: 'rgba(255,255,255,0.8)', style: 'mask', inDur: 0.34, pace: 0.4, top: 96, bot: 984, td: 0.6 },
   rave: { name: 'rave', fast: true, bgk: 'rave', trans: 'slash', wipe: BR.orange, bpm: 144, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.45 },
   demo: { name: 'demoszene', fast: true, bgk: 'demo', trans: 'mosaic', bpm: 120, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.18)', accent: BR.orange, accentText: BR.orange, card: 'rgba(11,16,38,0.72)', style: 'mask', inDur: 0.36, pace: 0.42, top: 104, bot: 936, td: 0.7 },
+  /* Drei Retro-Looks (Wunsch vom 22.11.2026). Sie zeichnen nicht mit den Layout-Szenen dieser Datei, sondern mit einem eigenen Renderer
+     (retro = Schlüssel in RETRO, siehe retro-old.js und retro-gl.js): „Demo 90“ rechnet einen 320×180-Bildspeicher mit Farbpalette wie eine
+     Demo der frühen Neunziger; „Benchmark 97“ und „Benchmark 2000“ zeigen eigene 3D-Szenen im Look der 3D-Benchmarks jener Jahre (WebGL,
+     kleine Auflösung, Pixel sichtbar). Vorbild ist jeweils die Machart der Zeit — Szenen, Namen, Logos und Musik sind eigene. */
+  old: { name: 'demo90', retro: 'old', fast: true, bgk: 'demo', trans: 'mosaic', bpm: 128, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.18)', accent: BR.orange, accentText: BR.orange, card: 'rgba(11,16,38,0.72)', style: 'mask', inDur: 0.36, pace: 0.42, top: 104, bot: 936, td: 0.5 },
+  b97: { name: 'benchmark97', retro: 'gl', look: '97', fast: true, bgk: 'demo', trans: 'mosaic', bpm: 136, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.18)', accent: BR.orange, accentText: BR.orange, card: 'rgba(11,16,38,0.72)', style: 'mask', inDur: 0.36, pace: 0.42, top: 104, bot: 936, td: 0.5 },
+  b2k: { name: 'benchmark2000', retro: 'gl', look: '2k', fast: true, bgk: 'ink', trans: 'mosaic', bpm: 144, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.5 },
 };
 const TH = THEMES[MOOD];
 /* Treibend, Action und die Tanz-Stimmungen schneiden und blenden auf den Schlag; Cinematic und Ruhig lassen sich Zeit */
 const FAST = !!TH.fast;
 /* laufende Szene (setzt main.js vor dem Zeichnen) — die Demoszene-Stimmung wählt danach ihren Effekt */
 let CUR = null;
+/* Renderer der Retro-Looks: RETRO[TH.retro] = { init: async () => …, render: (t) => … } — render zeichnet das ganze Bild (1920×1080) nach g */
+const RETRO = {};
 /* Auftakt der schnellen Stimmungen: zwei Takte Sweep, dann rastet das Lockup ein — bei nur zwei Takten nach einem */
 const logoLock = (D) => (FAST ? (D >= 3 * BAR - 0.01 ? 2 * BAR : BAR) : D * 0.6);
 const B = 60 / TH.bpm, BAR = 4 * B;
