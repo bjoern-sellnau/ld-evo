@@ -2,7 +2,7 @@
 
 Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Code, keine CI).
 
-- [Trailer — „What the web can be.“ (16:9, 30 bis 300 s, neun Stimmungen, DE + EN)](#trailer--what-the-web-can-be)
+- [Trailer — „What the web can be.“ (16:9, 30 bis 300 s, zwölf Stimmungen, DE + EN) und Echtzeit-Demo](#trailer--what-the-web-can-be)
 - [20 Varianten — Terminal bis Pinnwand (33–56 s)](#20-varianten)
 - [Reel 3 — „Director's Cut“ (2:12 min, Negativ-Logo, SPREE|FALL)](#reel-3--directors-cut)
 - [Reel 2 — „BJOERN.EXE“ (80 s, mehr Action)](#reel-2--bjoernexe)
@@ -11,8 +11,9 @@ Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Co
 ## Trailer — „What the web can be.“
 
 Trailer für **loona! designs** und Bjoern Sellnau im Querformat (1920×1080, 30 fps, H.264 + AAC, −14 LUFS,
-wahre Spitze ≤ −1 dBTP) in **neun Stimmungen** und **82 Fassungen**: Cinematic, Treibend, Action und Ruhig in vier Längen (60, 90,
-120, 300 Sekunden), Trance, Hardstyle, Eurodance, Rave und Demoszene in fünf (zusätzlich 30 Sekunden) — jeweils deutsch und englisch,
+wahre Spitze ≤ −1 dBTP) in **zwölf Stimmungen** und **88 Fassungen**: Cinematic, Treibend, Action und Ruhig in vier Längen (60, 90,
+120, 300 Sekunden), Trance, Hardstyle, Eurodance, Rave und Demoszene in fünf (zusätzlich 30 Sekunden), die drei Retro-Looks Demo 90,
+Benchmark 97 und Benchmark 2000 vorerst in 60 Sekunden (der Engine kann alle fünf Längen) — jeweils deutsch und englisch,
 jede mit eigener, passend zur Szenenfolge arrangierter Musik. Gestaltung nach dem Brand-System 2026-10 (Farben, Schriften, Zeichen,
 Wortmarke und die Marken-Animationen aus dem Handoff). Übersicht: [`trailer/uebersicht.jpg`](trailer/uebersicht.jpg).
 
@@ -27,10 +28,13 @@ Wortmarke und die Marken-Animationen aus dem Handoff). Übersicht: [`trailer/ueb
 | **Eurodance** | [DE](trailer/loona-trailer-30s-eurodance-de.mp4) (5 MB) · [EN](trailer/loona-trailer-30s-eurodance-en.mp4) (5 MB) | [DE](trailer/loona-trailer-60s-eurodance-de.mp4) (9 MB) · [EN](trailer/loona-trailer-60s-eurodance-en.mp4) (9 MB) | [DE](trailer/loona-trailer-90s-eurodance-de.mp4) (14 MB) · [EN](trailer/loona-trailer-90s-eurodance-en.mp4) (14 MB) | [DE](trailer/loona-trailer-120s-eurodance-de.mp4) (19 MB) · [EN](trailer/loona-trailer-120s-eurodance-en.mp4) (19 MB) | [DE](trailer/loona-trailer-300s-eurodance-de.mp4) (48 MB) · [EN](trailer/loona-trailer-300s-eurodance-en.mp4) (48 MB) |
 | **Rave** | [DE](trailer/loona-trailer-30s-rave-de.mp4) (12 MB) · [EN](trailer/loona-trailer-30s-rave-en.mp4) (12 MB) | [DE](trailer/loona-trailer-60s-rave-de.mp4) (24 MB) · [EN](trailer/loona-trailer-60s-rave-en.mp4) (24 MB) | [DE](trailer/loona-trailer-90s-rave-de.mp4) (37 MB) · [EN](trailer/loona-trailer-90s-rave-en.mp4) (37 MB) | [DE](trailer/loona-trailer-120s-rave-de.mp4) (49 MB) · [EN](trailer/loona-trailer-120s-rave-en.mp4) (49 MB) | [DE](trailer/loona-trailer-300s-rave-de.mp4) (83 MB) · [EN](trailer/loona-trailer-300s-rave-en.mp4) (83 MB) |
 | **Demoszene** | [DE](trailer/loona-trailer-30s-demoszene-de.mp4) (6 MB) · [EN](trailer/loona-trailer-30s-demoszene-en.mp4) (6 MB) | [DE](trailer/loona-trailer-60s-demoszene-de.mp4) (13 MB) · [EN](trailer/loona-trailer-60s-demoszene-en.mp4) (13 MB) | [DE](trailer/loona-trailer-90s-demoszene-de.mp4) (22 MB) · [EN](trailer/loona-trailer-90s-demoszene-en.mp4) (22 MB) | [DE](trailer/loona-trailer-120s-demoszene-de.mp4) (28 MB) · [EN](trailer/loona-trailer-120s-demoszene-en.mp4) (28 MB) | [DE](trailer/loona-trailer-300s-demoszene-de.mp4) (64 MB) · [EN](trailer/loona-trailer-300s-demoszene-en.mp4) (64 MB) |
+| **Demo 90** | – | [DE](trailer/loona-trailer-60s-demo90-de.mp4) (17 MB) · [EN](trailer/loona-trailer-60s-demo90-en.mp4) (17 MB) | – | – | – |
+| **Benchmark 97** | – | [DE](trailer/loona-trailer-60s-benchmark97-de.mp4) (24 MB) · [EN](trailer/loona-trailer-60s-benchmark97-en.mp4) (24 MB) | – | – | – |
+| **Benchmark 2000** | – | [DE](trailer/loona-trailer-60s-benchmark2000-de.mp4) (19 MB) · [EN](trailer/loona-trailer-60s-benchmark2000-en.mp4) (19 MB) | – | – | – |
 
 Zu jeder Fassung liegt ein Titelbild daneben (`…-cover.jpg`).
 
-### Neun Stimmungen
+### Zwölf Stimmungen
 
 | | Grund | Bild | Musik |
 | --- | --- | --- | --- |
@@ -42,12 +46,21 @@ Zu jeder Fassung liegt ein Titelbild daneben (`…-cover.jpg`).
 | **Hardstyle** | Tinte `#171310`, Akzent Signalorange | breite Slash-Streifen, Pegelsäulen am unteren Rand, Blitz auf der Eins; Übergang: das Bild springt nach vorn und reißt hell ab | 152 BPM · 19 / 38 / 57 / 76 / 190 Takte — verzerrte Bassdrum mit tonalem Ausklang, Reverse Bass, Screech-Stiche, das Motiv als Supersaw im Höhepunkt, Wirbel aus Bassdrums |
 | **Eurodance** | Creme `#F6F1E8` | Formen der Neunziger (Kreise, Ringe, Dreiecke, Zickzack) in den Farben der Produktfamilie, sie hüpfen im Takt; Kreisblende | 128 BPM · 16 / 32 / 48 / 64 / 160 Takte — Oktav-Bass auf den Off-Beats, Klavier-Akkorde im Haus-Rhythmus, kurzes Synth-Riff, Streicher |
 | **Rave** | Tinte `#171310` | Laserfächer aus beiden unteren Ecken (Ivy-Grün und Signalorange), Dunst in Flow-Violett; Slash-Wipe | 144 BPM · 18 / 36 / 54 / 72 / 180 Takte — im Stil der Hard-Dance-Hymnen um 2000 („Scooter-like“): harte Bassdrum, Off-Beat-Bass, Hoover-Riff in Achteln, Klavier-Break, Sirene |
-| **Demoszene** | Nacht `#0B1026` | je Szene ein klassischer Demo-Effekt: Sternenflug, Kupferbalken, Plasma in groben Pixeln, Schachbrett-Boden, Rechteck-Tunnel, Drahtwürfel; unten ein Sinus-Scroller; Übergang als Mosaik | 120 BPM · 15 / 30 / 45 / 60 / 150 Takte — Tracker-Klang: Puls-Melodie mit Vibrato, Akkorde als schnelles Arpeggio, Dreieck-Bass, Schlagzeug aus Rauschen |
+| **Demoszene** | Nacht `#0B1026` | je Szene ein klassischer Demo-Effekt: Sternenflug, Kupferbalken, Plasma in groben Pixeln, Schachbrett-Boden, Rechteck-Tunnel, Drahtwürfel; unten ein Sinus-Scroller; Übergang als Mosaik | 120 BPM · 15 / 30 / 45 / 60 / 150 Takte — Chip-Klang: Puls-Melodie mit Vibrato, Akkorde als schnelles Arpeggio, Dreieck-Bass, Schlagzeug aus Rauschen |
+| **Demo 90** | Nacht `#0B1026` (Paletten-Eintrag 0), im Gold-Part Tinte | wie eine Demo der frühen Neunziger: Bildspeicher 320×180 mit 256-Farben-Palette, ×6 ohne Glättung — auch Zeichen, Wortmarke und Text entstehen in diesem Raster; eigener 5×7-Pixel-Font; je Szene ein Part: Sternenflug mit Kupferbalken, Plasma, Vektor-Ikosaeder, Rotozoomer, Tunnel, Feuer, Bilder in gerasterter Palette, Vektorbälle; Sinus-Scroller; Übergänge: Blitz auf Weiß, Palettenblende, Blockauflösung | 128 BPM · 16 / 32 / 48 / 64 / 160 Takte — wie aus einem Vier-Spur-Tracker: Bass und Schlagzeug links, Akkorde (als Arpeggio) und Melodie (mit Portamento) rechts, das Echo nachgespielt, kein Hall; auf 8 bit bei rund 22 kHz heruntergerechnet |
+| **Benchmark 97** | Nacht `#0B1026` | eigene 3D-Szenen (WebGL) im Look der 3D-Benchmarks von 1997: Puffer 640×360, 16-bit-Farbe mit Dithering, ×3 ohne Glättung; je Kapitel ein „Test“: Mondhorizont mit Sonnenaufgang, Partikel-Galaxie, Glaskugeln über spiegelndem Boden, Tunnelflug mit den Technologien als Tafeln, Mondlandschaft mit einem Tor je Station der Reise, Goldringe, Bildschirme mit den Labs, 2D-Bildlauf mit der Website; zum Schluss ein Ergebnis-Bildschirm | 136 BPM · 17 / 34 / 51 / 68 / 170 Takte — Acid-Trance: rollender Bass in Sechzehnteln, Acid-Linie mit wanderndem Filter, zerhackte Fläche (Trance-Gate), das Motiv als Glocke |
+| **Benchmark 2000** | Tinte `#171310` / Nacht | dieselben Tests im Look von 1999/2000: Puffer 960×540, 32 bit, ×2 ohne Glättung, die drei- bis vierfache Dreieckszahl, größere Texturen | 144 BPM · 18 / 36 / 54 / 72 / 180 Takte — Big Beat: Breakbeat, verzerrtes Riff aus Quint-Akkorden (Sägezähne durch den Verzerrer), Rechteck-Lead im Höhepunkt |
 
-Alle neun Stücke teilen sich ein Leitmotiv in d-Moll (Dm · B♭ · F · C). Jede Szene beginnt auf der Eins; Akzente
+Alle zwölf Stücke teilen sich ein Leitmotiv in d-Moll (Dm · B♭ · F · C). Jede Szene beginnt auf der Eins; Akzente
 (Whoosh, Impact, Glockenspiel) liegen auf den Bildwechseln, auf dem Einrasten des Logos, auf „Gold“ und auf den
 Stationen der Reise. Die Stile der fünf neuen Stücke sind nachempfunden, die Tonfolgen eigene — kein Stück zitiert ein fremdes.
-Bei den fünf neuen Stimmungen entsteht der Ablauf je Länge aus einer Vorlage (Gewichte und Mindesttakte je Szene, `main.js`).
+Bei den fünf neuen Stimmungen und den Retro-Looks entsteht der Ablauf je Länge aus einer Vorlage (Gewichte und Mindesttakte je Szene, `main.js`).
+
+Die drei Retro-Looks zeichnen nicht mit den Layout-Szenen, sondern mit eigenen Renderern (`retro-old.js`, `retro-old-parts.js`; `gl/glx.js`,
+`gl/glx-tests.js`, `retro-gl.js`). Vorbild ist die Machart der Zeit — Szenen, Namen, Logos und Musik sind eigene, kein Programm ist nachgebaut.
+Der Rahmen der Benchmark-Looks zeigt nur Wahres: 30 FPS ist die Bildrate des Videos, die Dreieckszahl die der gezeigten Szene, dazu Puffergröße,
+Farbtiefe und Zeit; der Ergebnis-Bildschirm nennt die belegten Zahlen (18+ Jahre, 10 Zertifikate, 21 Labs, Gold 2017) statt erfundener Punkte.
+In „Demo 90“ zeigt die Plattform-Szene nur das Browserfenster — die Telefon-Ansicht ist im 320er-Raster nicht lesbar.
 
 ### Ablauf
 
@@ -79,6 +92,22 @@ Bei den fünf neuen Stimmungen entsteht der Ablauf je Länge aus einer Vorlage (
 16. **Kontakt** — Lockup (Zeichen + Wortmarke), Claim, loona-designs.de · LinkedIn · GitHub
 
 Die lange Fassung setzt dazwischen zwei Zitate aus den Lab-Einträgen der Website.
+
+### Echtzeit-Demo (kein Video)
+
+[`quelle-trailer/demo.html`](quelle-trailer/demo.html) ist eine in Echtzeit laufende 3D-Demo mit Benchmark, gebaut auf demselben WebGL-Engine wie die
+Benchmark-Looks (rohes WebGL 1, kein Framework): Titel, acht Tests (Mondhorizont, Tunnelflug, Mondlandschaft, Glaskugeln, Partikel-Galaxie,
+Bildschirme, Goldringe, 2D-Bildlauf) und Schluss, 62 Takte, dazu ein eigenes Musikstück je Darstellung (`demo/musik-97.mp3`, `demo/musik-2k.mp3`).
+
+- **Darstellung:** 640 × 360 mit 16 bit (wie 1997) oder 960 × 540 mit 32 bit (wie 2000), jeweils ohne Glättung hochskaliert.
+- **Demo:** läuft mit Musik im Takt des Bildschirms; die Einblendung zeigt die gemessene Bildrate und die Dreiecke der Szene.
+- **Benchmark:** je Test sechs Sekunden. Gemessen wird die Rechenzeit eines Bildes (dasselbe Bild mehrfach gezeichnet, Abschluss per
+  `readPixels` erzwungen), unabhängig von der Bildwiederholrate. Ergebnis: Bilder/s je Test, die langsamsten 5 %, Tsd. Dreiecke/s und
+  Punkte (das Zehnfache des geometrischen Mittels der Bildraten).
+- **Starten:** einen einfachen Webserver im Ordner öffnen, z. B. `cd quelle-trailer && python3 -m http.server 8000`, dann
+  `http://localhost:8000/demo.html`. `gl-test.html?test=moon&look=97` zeigt einen einzelnen Test.
+- **Musik neu erzeugen:** `index.html?mood=b2k&plan=logo:4,person:8,stack:8,family:8,labs:8,certs:8,award:6,hero:6,outro:6` (bzw. `mood=b97`),
+  `REEL.music()` liefert das WAV; die MP3 haben −14 LUFS.
 
 ### Quellen (geprüft, Stand 22.11.2026)
 
@@ -122,21 +151,30 @@ Die lange Fassung setzt dazwischen zwei Zitate aus den Lab-Einträgen der Websit
 - **Farben der neuen Stimmungen:** Gründe der Marke (Nacht, Tinte, Creme); die Lichter nehmen die Farben der Produktfamilie aus dem
   Logo-Handoff (LD Flow `#A78BFA`, LD Nova `#38BDF8`, LD Buddy `#F472B6`, LD Ivy `#3DDC84`) — nie am Zeichen selbst; hinter Auftakt,
   Produktfamilie und Schluss bleiben die Hintergründe ruhig.
-- **Schriften:** Manrope, Instrument Serif, JetBrains Mono (SIL Open Font License 1.1, über Fontsource).
+- **Retro-Looks und Demo:** Zur Machart recherchiert am 22.11.2026 — Demo-Effekte (Wikipedia „Demo effect“: Plasma, Rotozoomer, Tunnel,
+  Rasterbalken, Scroller, Bobs); 3DMark 99 und 3DMark 2000 (Mitteilungen des Herstellers bei benchmarks.ul.com und die Hilfedatei von 3DMark 99:
+  Spieltests, Füllrate, hohe Polygonzahl in Tsd. Polygonen je Sekunde, Bump Mapping); Final Reality (Remedy mit VNU European Labs, 1997:
+  2D-, 3D- und Bustransfer-Tests). Übernommen ist nur die Machart; Szenen, Texturen, Namen und Musik sind eigene.
+- **Schriften:** Manrope, Instrument Serif, JetBrains Mono (SIL Open Font License 1.1, über Fontsource; die Echtzeit-Demo lädt sie von Google Fonts).
 
 ### Neu rendern
 
-Quelle: [`quelle-trailer/`](quelle-trailer/) — `index.html?len=30|60|90|120|300&mood=cine|drive|action|calm|trance|hard|euro|rave|demo&lang=de|en`
-zeichnet jedes Bild deterministisch (`REEL.frame(t)`) und erzeugt die Musik (`REEL.music()`); 30 Sekunden gibt es für die fünf neuen Stimmungen.
+Quelle: [`quelle-trailer/`](quelle-trailer/) — `index.html?len=30|60|90|120|300&mood=cine|drive|action|calm|trance|hard|euro|rave|demo|old|b97|b2k&lang=de|en`
+zeichnet jedes Bild deterministisch (`REEL.frame(t)`) und erzeugt die Musik (`REEL.music()`); 30 Sekunden gibt es nicht für Cinematic, Treibend,
+Action und Ruhig.
 
 ```sh
 cd quelle-trailer
 node render.mjs 90 cine de        # → ../trailer/loona-trailer-90s-cinematic-de.mp4 (+ Titelbild)
 node render.mjs 60 action en      # → ../trailer/loona-trailer-60s-action-en.mp4
 node render.mjs 30 demo de        # → ../trailer/loona-trailer-30s-demoszene-de.mp4
+node render.mjs 60 old de         # → ../trailer/loona-trailer-60s-demo90-de.mp4
+node render.mjs 60 b97 en         # → ../trailer/loona-trailer-60s-benchmark97-en.mp4
+node render.mjs 60 b2k de         # → ../trailer/loona-trailer-60s-benchmark2000-de.mp4
 ```
 
-Dateinamen der Stimmungen: `cinematic`, `treibend`, `action`, `ruhig`, `trance`, `hardstyle`, `eurodance`, `rave`, `demoszene`.
+Dateinamen der Stimmungen: `cinematic`, `treibend`, `action`, `ruhig`, `trance`, `hardstyle`, `eurodance`, `rave`, `demoszene`, `demo90`,
+`benchmark97`, `benchmark2000`.
 Das Render-Skript misst die fertige Datei nach. Liegt die wahre Spitze über −1 dBTP, kodiert es nur die Tonspur neu (das Bild
 bleibt): zuerst ohne den Rauschersatz (PNS) des AAC-Kodierers — er schwingt bei dichter Musik über den Begrenzer hinaus —, notfalls
 zusätzlich mit tieferem Begrenzer. Ist die Vorgabe (−14 LUFS ± 0,8, höchstens −1 dBTP) danach nicht erreicht, bricht es mit Fehler ab.
