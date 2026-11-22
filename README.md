@@ -2,7 +2,7 @@
 
 Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Code, keine CI).
 
-- [Trailer — „What the web can be.“ (16:9, 60 / 90 / 120 / 300 s, drei Stimmungen, DE + EN)](#trailer--what-the-web-can-be)
+- [Trailer — „What the web can be.“ (16:9, 30 bis 300 s, neun Stimmungen, DE + EN)](#trailer--what-the-web-can-be)
 - [20 Varianten — Terminal bis Pinnwand (33–56 s)](#20-varianten)
 - [Reel 3 — „Director's Cut“ (2:12 min, Negativ-Logo, SPREE|FALL)](#reel-3--directors-cut)
 - [Reel 2 — „BJOERN.EXE“ (80 s, mehr Action)](#reel-2--bjoernexe)
@@ -11,90 +11,136 @@ Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Co
 ## Trailer — „What the web can be.“
 
 Trailer für **loona! designs** und Bjoern Sellnau im Querformat (1920×1080, 30 fps, H.264 + AAC, −14 LUFS,
-Spitzenpegel ≤ −1 dBFS): drei Stimmungen × vier Längen (60, 90, 120 und 300 Sekunden) × zwei Sprachen = **24 Fassungen**,
+wahre Spitze ≤ −1 dBTP) in **neun Stimmungen** und **82 Fassungen**: Cinematic, Treibend, Action und Ruhig in vier Längen (60, 90,
+120, 300 Sekunden), Trance, Hardstyle, Eurodance, Rave und Demoszene in fünf (zusätzlich 30 Sekunden) — jeweils deutsch und englisch,
 jede mit eigener, passend zur Szenenfolge arrangierter Musik. Gestaltung nach dem Brand-System 2026-10 (Farben, Schriften, Zeichen,
-Badge, Wortmarke und die Marken-Animationen aus dem Handoff). Übersicht: [`trailer/uebersicht.jpg`](trailer/uebersicht.jpg).
+Wortmarke und die Marken-Animationen aus dem Handoff). Übersicht: [`trailer/uebersicht.jpg`](trailer/uebersicht.jpg).
 
-| Stimmung | 60 s | 90 s | 120 s | 300 s |
-| --- | --- | --- | --- | --- |
-| **Cinematic** | [DE](trailer/loona-trailer-60s-cinematic-de.mp4) (11 MB) · [EN](trailer/loona-trailer-60s-cinematic-en.mp4) (11 MB) | [DE](trailer/loona-trailer-90s-cinematic-de.mp4) (17 MB) · [EN](trailer/loona-trailer-90s-cinematic-en.mp4) (17 MB) | [DE](trailer/loona-trailer-120s-cinematic-de.mp4) (23 MB) · [EN](trailer/loona-trailer-120s-cinematic-en.mp4) (23 MB) | [DE](trailer/loona-trailer-300s-cinematic-de.mp4) (46 MB) · [EN](trailer/loona-trailer-300s-cinematic-en.mp4) (46 MB) |
-| **Treibend** | [DE](trailer/loona-trailer-60s-treibend-de.mp4) (12 MB) · [EN](trailer/loona-trailer-60s-treibend-en.mp4) (12 MB) | [DE](trailer/loona-trailer-90s-treibend-de.mp4) (19 MB) · [EN](trailer/loona-trailer-90s-treibend-en.mp4) (19 MB) | [DE](trailer/loona-trailer-120s-treibend-de.mp4) (26 MB) · [EN](trailer/loona-trailer-120s-treibend-en.mp4) (26 MB) | [DE](trailer/loona-trailer-300s-treibend-de.mp4) (61 MB) · [EN](trailer/loona-trailer-300s-treibend-en.mp4) (61 MB) |
-| **Ruhig** | [DE](trailer/loona-trailer-60s-ruhig-de.mp4) (11 MB) · [EN](trailer/loona-trailer-60s-ruhig-en.mp4) (11 MB) | [DE](trailer/loona-trailer-90s-ruhig-de.mp4) (18 MB) · [EN](trailer/loona-trailer-90s-ruhig-en.mp4) (18 MB) | [DE](trailer/loona-trailer-120s-ruhig-de.mp4) (25 MB) · [EN](trailer/loona-trailer-120s-ruhig-en.mp4) (25 MB) | [DE](trailer/loona-trailer-300s-ruhig-de.mp4) (51 MB) · [EN](trailer/loona-trailer-300s-ruhig-en.mp4) (51 MB) |
+| Stimmung | 30 s | 60 s | 90 s | 120 s | 300 s |
+| --- | --- | --- | --- | --- | --- |
+| **Cinematic** | – | [DE](trailer/loona-trailer-60s-cinematic-de.mp4) (11 MB) · [EN](trailer/loona-trailer-60s-cinematic-en.mp4) (11 MB) | [DE](trailer/loona-trailer-90s-cinematic-de.mp4) (17 MB) · [EN](trailer/loona-trailer-90s-cinematic-en.mp4) (17 MB) | [DE](trailer/loona-trailer-120s-cinematic-de.mp4) (24 MB) · [EN](trailer/loona-trailer-120s-cinematic-en.mp4) (24 MB) | [DE](trailer/loona-trailer-300s-cinematic-de.mp4) (47 MB) · [EN](trailer/loona-trailer-300s-cinematic-en.mp4) (47 MB) |
+| **Treibend** | – | [DE](trailer/loona-trailer-60s-treibend-de.mp4) (13 MB) · [EN](trailer/loona-trailer-60s-treibend-en.mp4) (13 MB) | [DE](trailer/loona-trailer-90s-treibend-de.mp4) (19 MB) · [EN](trailer/loona-trailer-90s-treibend-en.mp4) (19 MB) | [DE](trailer/loona-trailer-120s-treibend-de.mp4) (26 MB) · [EN](trailer/loona-trailer-120s-treibend-en.mp4) (26 MB) | [DE](trailer/loona-trailer-300s-treibend-de.mp4) (62 MB) · [EN](trailer/loona-trailer-300s-treibend-en.mp4) (62 MB) |
+| **Action** | – | [DE](trailer/loona-trailer-60s-action-de.mp4) (19 MB) · [EN](trailer/loona-trailer-60s-action-en.mp4) (19 MB) | [DE](trailer/loona-trailer-90s-action-de.mp4) (30 MB) · [EN](trailer/loona-trailer-90s-action-en.mp4) (30 MB) | [DE](trailer/loona-trailer-120s-action-de.mp4) (40 MB) · [EN](trailer/loona-trailer-120s-action-en.mp4) (40 MB) | [DE](trailer/loona-trailer-300s-action-de.mp4) (88 MB) · [EN](trailer/loona-trailer-300s-action-en.mp4) (88 MB) |
+| **Ruhig** | – | [DE](trailer/loona-trailer-60s-ruhig-de.mp4) (11 MB) · [EN](trailer/loona-trailer-60s-ruhig-en.mp4) (11 MB) | [DE](trailer/loona-trailer-90s-ruhig-de.mp4) (18 MB) · [EN](trailer/loona-trailer-90s-ruhig-en.mp4) (18 MB) | [DE](trailer/loona-trailer-120s-ruhig-de.mp4) (25 MB) · [EN](trailer/loona-trailer-120s-ruhig-en.mp4) (25 MB) | [DE](trailer/loona-trailer-300s-ruhig-de.mp4) (52 MB) · [EN](trailer/loona-trailer-300s-ruhig-en.mp4) (51 MB) |
+| **Trance** | [DE](trailer/loona-trailer-30s-trance-de.mp4) (8 MB) · [EN](trailer/loona-trailer-30s-trance-en.mp4) (8 MB) | [DE](trailer/loona-trailer-60s-trance-de.mp4) (15 MB) · [EN](trailer/loona-trailer-60s-trance-en.mp4) (15 MB) | [DE](trailer/loona-trailer-90s-trance-de.mp4) (22 MB) · [EN](trailer/loona-trailer-90s-trance-en.mp4) (22 MB) | [DE](trailer/loona-trailer-120s-trance-de.mp4) (29 MB) · [EN](trailer/loona-trailer-120s-trance-en.mp4) (29 MB) | [DE](trailer/loona-trailer-300s-trance-de.mp4) (71 MB) · [EN](trailer/loona-trailer-300s-trance-en.mp4) (70 MB) |
+| **Hardstyle** | [DE](trailer/loona-trailer-30s-hardstyle-de.mp4) (9 MB) · [EN](trailer/loona-trailer-30s-hardstyle-en.mp4) (9 MB) | [DE](trailer/loona-trailer-60s-hardstyle-de.mp4) (18 MB) · [EN](trailer/loona-trailer-60s-hardstyle-en.mp4) (18 MB) | [DE](trailer/loona-trailer-90s-hardstyle-de.mp4) (27 MB) · [EN](trailer/loona-trailer-90s-hardstyle-en.mp4) (27 MB) | [DE](trailer/loona-trailer-120s-hardstyle-de.mp4) (37 MB) · [EN](trailer/loona-trailer-120s-hardstyle-en.mp4) (37 MB) | [DE](trailer/loona-trailer-300s-hardstyle-de.mp4) (83 MB) · [EN](trailer/loona-trailer-300s-hardstyle-en.mp4) (83 MB) |
+| **Eurodance** | [DE](trailer/loona-trailer-30s-eurodance-de.mp4) (5 MB) · [EN](trailer/loona-trailer-30s-eurodance-en.mp4) (5 MB) | [DE](trailer/loona-trailer-60s-eurodance-de.mp4) (9 MB) · [EN](trailer/loona-trailer-60s-eurodance-en.mp4) (9 MB) | [DE](trailer/loona-trailer-90s-eurodance-de.mp4) (14 MB) · [EN](trailer/loona-trailer-90s-eurodance-en.mp4) (14 MB) | [DE](trailer/loona-trailer-120s-eurodance-de.mp4) (19 MB) · [EN](trailer/loona-trailer-120s-eurodance-en.mp4) (19 MB) | [DE](trailer/loona-trailer-300s-eurodance-de.mp4) (48 MB) · [EN](trailer/loona-trailer-300s-eurodance-en.mp4) (48 MB) |
+| **Rave** | [DE](trailer/loona-trailer-30s-rave-de.mp4) (12 MB) · [EN](trailer/loona-trailer-30s-rave-en.mp4) (12 MB) | [DE](trailer/loona-trailer-60s-rave-de.mp4) (24 MB) · [EN](trailer/loona-trailer-60s-rave-en.mp4) (24 MB) | [DE](trailer/loona-trailer-90s-rave-de.mp4) (37 MB) · [EN](trailer/loona-trailer-90s-rave-en.mp4) (37 MB) | [DE](trailer/loona-trailer-120s-rave-de.mp4) (49 MB) · [EN](trailer/loona-trailer-120s-rave-en.mp4) (49 MB) | [DE](trailer/loona-trailer-300s-rave-de.mp4) (83 MB) · [EN](trailer/loona-trailer-300s-rave-en.mp4) (83 MB) |
+| **Demoszene** | [DE](trailer/loona-trailer-30s-demoszene-de.mp4) (6 MB) · [EN](trailer/loona-trailer-30s-demoszene-en.mp4) (6 MB) | [DE](trailer/loona-trailer-60s-demoszene-de.mp4) (13 MB) · [EN](trailer/loona-trailer-60s-demoszene-en.mp4) (13 MB) | [DE](trailer/loona-trailer-90s-demoszene-de.mp4) (22 MB) · [EN](trailer/loona-trailer-90s-demoszene-en.mp4) (22 MB) | [DE](trailer/loona-trailer-120s-demoszene-de.mp4) (28 MB) · [EN](trailer/loona-trailer-120s-demoszene-en.mp4) (28 MB) | [DE](trailer/loona-trailer-300s-demoszene-de.mp4) (64 MB) · [EN](trailer/loona-trailer-300s-demoszene-en.mp4) (64 MB) |
 
 Zu jeder Fassung liegt ein Titelbild daneben (`…-cover.jpg`).
 
-### Drei Stimmungen
+### Neun Stimmungen
 
 | | Grund | Bild | Musik |
 | --- | --- | --- | --- |
-| **Cinematic** | Nacht `#0B1026` | Kinoformat 2,39 : 1, Sternenhimmel, Mond (Mondphase), Überblendungen mit Lichtschein; Auftakt: Transformation Alt-Logo → neues Zeichen | 96 BPM · 24 / 36 / 48 / 120 Takte — Flächen, Klavier-Motiv, Zupf-Ostinato, Taiko, Braams und Riser vor den Höhepunkten |
+| **Cinematic** | Nacht `#0B1026` | Kinoformat 2,39 : 1, Sternenhimmel, Mond (Mondphase), Überblendungen mit Lichtschein; Auftakt: das alte Logo (Mond in der Glaskugel) → neues Zeichen | 96 BPM · 24 / 36 / 48 / 120 Takte — Flächen, Klavier-Motiv, Zupf-Ostinato, Taiko, Braams und Riser vor den Höhepunkten |
 | **Treibend** | Tinte `#171310` | Slash-Streifen, harte Schnitte per Slash-Wipe auf die Eins, Fortschrittsbalken mit Slash-Kante; Auftakt: Sweep (Füllstand) | 128 BPM · 32 / 48 / 64 / 160 Takte — Four-on-the-Floor, rollender Sechzehntel-Bass, Sidechain, Säge-Lead |
+| **Action** | Tinte `#171310`, Akzent Signalorange `#FF4D1C` | Slash-Wipes in Signalorange, kurzer Stoß an jedem Szenenbeginn, Fortschrittsbalken mit Szenenmarken und Zeitcode; Auftakt: Sweep | 160 BPM · 40 / 60 / 80 / 200 Takte — Breakbeat (Bassdrum auf 1 und „3 und“, Snare auf 2 und 4), Reese-Bass, Sechzehntel-Ostinato, Akkord-Stiche, Säge-Lead, Snare-Wirbel und Riser vor den Szenenwechseln, Halftime in den ruhigen Teilen |
 | **Ruhig** | Creme `#F6F1E8` | Editorial mit Haarlinien-Rahmen, weiche Blenden; Auftakt: Reveal (1,2 s) | 80 BPM · 20 / 30 / 40 / 100 Takte — Filzklavier, Dreiecks-Flächen, Glocken, leiser Shaker |
+| **Trance** | Nacht `#0B1026` | Lichtfächer von oben, die langsam wandern und im Takt atmen; Überblendung durch einen hellen Schleier; Auftakt: Sweep | 136 BPM · 17 / 34 / 51 / 68 / 170 Takte — Bassdrum auf jedem Schlag, Bass auf den Off-Beats, Supersaw-Flächen und Arpeggio mit Sidechain, Acid-Linie im Aufbau, Breaks mit Wirbel und Riser |
+| **Hardstyle** | Tinte `#171310`, Akzent Signalorange | breite Slash-Streifen, Pegelsäulen am unteren Rand, Blitz auf der Eins; Übergang: das Bild springt nach vorn und reißt hell ab | 152 BPM · 19 / 38 / 57 / 76 / 190 Takte — verzerrte Bassdrum mit tonalem Ausklang, Reverse Bass, Screech-Stiche, das Motiv als Supersaw im Höhepunkt, Wirbel aus Bassdrums |
+| **Eurodance** | Creme `#F6F1E8` | Formen der Neunziger (Kreise, Ringe, Dreiecke, Zickzack) in den Farben der Produktfamilie, sie hüpfen im Takt; Kreisblende | 128 BPM · 16 / 32 / 48 / 64 / 160 Takte — Oktav-Bass auf den Off-Beats, Klavier-Akkorde im Haus-Rhythmus, kurzes Synth-Riff, Streicher |
+| **Rave** | Tinte `#171310` | Laserfächer aus beiden unteren Ecken (Ivy-Grün und Signalorange), Dunst in Flow-Violett; Slash-Wipe | 144 BPM · 18 / 36 / 54 / 72 / 180 Takte — im Stil der Hard-Dance-Hymnen um 2000 („Scooter-like“): harte Bassdrum, Off-Beat-Bass, Hoover-Riff in Achteln, Klavier-Break, Sirene |
+| **Demoszene** | Nacht `#0B1026` | je Szene ein klassischer Demo-Effekt: Sternenflug, Kupferbalken, Plasma in groben Pixeln, Schachbrett-Boden, Rechteck-Tunnel, Drahtwürfel; unten ein Sinus-Scroller; Übergang als Mosaik | 120 BPM · 15 / 30 / 45 / 60 / 150 Takte — Tracker-Klang: Puls-Melodie mit Vibrato, Akkorde als schnelles Arpeggio, Dreieck-Bass, Schlagzeug aus Rauschen |
 
-Alle drei Stücke teilen sich ein Leitmotiv in d-Moll (Dm · B♭ · F · C). Jede Szene beginnt auf der Eins; Akzente
+Alle neun Stücke teilen sich ein Leitmotiv in d-Moll (Dm · B♭ · F · C). Jede Szene beginnt auf der Eins; Akzente
 (Whoosh, Impact, Glockenspiel) liegen auf den Bildwechseln, auf dem Einrasten des Logos, auf „Gold“ und auf den
-Stationen der Reise.
+Stationen der Reise. Die Stile der fünf neuen Stücke sind nachempfunden, die Tonfolgen eigene — kein Stück zitiert ein fremdes.
+Bei den fünf neuen Stimmungen entsteht der Ablauf je Länge aus einer Vorlage (Gewichte und Mindesttakte je Szene, `main.js`).
 
 ### Ablauf
 
 1. **Auftakt** — das Zeichen, dann Lockup „loona! designs“ mit Unterzeile (Bjoern Sellnau · Senior Fullstack & Software Engineer · React, Mobile, TypeScript)
-2. **Anspruch** — „What the web can be.“ · „Das Web. Meine Leidenschaft.“ · Plattform & Online-Portfolio seit 2001
+2. **Anspruch** (nicht in den 30-Sekunden-Fassungen, dort steht der Claim im Schluss) — „What the web can be.“ ·
+   „Das Web. Meine Leidenschaft.“ · Plattform & Online-Portfolio seit 2001
 3. **Person** — 18+ Jahre, 10 Zertifikate, Berlin & Remote; Sekundenzähler „im Dienst des Webs“ (seit September 2007)
 4. **Schwerpunkte** (300 s) — Frontend Engineering, KI-gestützte Entwicklung, Wissen weitergeben
-5. **Anfänge** (ab 120 s) — sechs frühe Projekte 2004–2006
-6. **Stack** (nicht in „Ruhig“ 60 s) — Fokus React, Next.js, TypeScript, React Native; Laufbänder mit dem Stack der Website
+5. **Anfänge** (ab 120 s) — sechs frühe freie Projekte 2004–2006 (keine Kundenprojekte: unbezahlt)
+6. **Stack** (ab 60 s, nicht in „Ruhig“ 60 s) — Fokus React, Next.js, TypeScript, React Native; Laufbänder mit dem Stack der Website
 7. **Reise** — beginnt mit der Ausbildung 2000–2002 (Technischer Assistent für Informatik), dann je nach Länge 4 bis 9
-   Stationen bis 2026; in der langen Fassung mit den Etappen jeder Station
-8. **Gold** — Best of Swiss Web 2017, Kategorie Mobile (Relaunch Mobile MySwitzerland.com)
-9. **Projekte** (300 s) — Werkliste 2002–2026: von den ersten Kundenprojekten bis E-Government
-10. **Labs** — „Experimente in Arbeit — zuschauen erlaubt.“ (Wortlaut der Labs-Seite) · 12 Labs seit 03/2026: Corefall,
-    Covert Operations (Spielszenen in Top-Down-, ISO- und Ego-Sicht), dazu SPREE|FALL (eigenes Repo `ld-spreefall`);
-    ab 90 s die weiteren Labs als Liste
-11. **Labs in Zahlen** (300 s) — alle zwölf Labs mit Kürzel, Art und Datum; Kennzahlen wie auf der Website
-12. **Hero-Animationen** (300 s) — 14 der über 70 Hero-Animationen als laufende Bildfolgen
-13. **Plattform** — die neue loona-designs.de (LD Beyond, LD Flow): Browser- und Telefon-Ansichten
-14. **Produktfamilie** (120 s Cinematic und Treibend, 300 s alle) — loona! designs (das Zeichen auf der Tinte-Kachel),
+   Stationen bis 2026: ab 09/2007 angestellt bei PIXELTEX (Hannover, Umzug der Agentur nach Berlin 11/2011), Code-b ab 05/2020,
+   Materna seit 05/2026; in der langen Fassung mit den Etappen jeder Station
+8. **Gold** — Best of Swiss Web 2017, Kategorie Mobile (Relaunch Mobile MySwitzerland.com; Technik 2016 vorgegeben,
+   Projekt 11/2016 übernommen)
+9. **Projekte** (300 s) — Werkliste in zwei Spalten: freie Projekte 2002–2016 (unbezahlt) und die Stationen im Beruf
+   seit 09/2007, von Gadmin 4.0 bis E-Government & Zoll
+10. **Labs** — „Experimente in Arbeit — zuschauen erlaubt.“ (Wortlaut der Labs-Seite) · 21 Projekte seit 03/2026: Corefall,
+    Covert Operations (Spielszenen in Top-Down-, ISO- und Ego-Sicht), SPREE|FALL (eigenes Repo `ld-spreefall`);
+    ab 90 s die übrigen 18 als Liste
+11. **Labs in Zahlen** (300 s) — alle 21 Projekte mit Kürzel und Art; Kennzahlen: 21 Projekte, seit 03/2026,
+    16+ Spielmodi in der COE, 3 KI-Werkzeuge (Claude Code, Gemini mit Antigravity, Claude Design)
+12. **Hero-Animationen** (300 s) — „Sie zeigen, was möglich ist.“: 14 der über 70 Hero-Animationen als laufende Bildfolgen
+13. **Plattform** — „Das neue Loona! Designs.“ · LD Beyond. · 2027: Browser- und Telefon-Ansichten des Prototyps (LD Evo);
+    im Telefon scrollt nur die Seite, das schwebende Logo und die Tab-Leiste bleiben fest wie auf dem Gerät
+14. **Produktfamilie** (120 s außer „Ruhig“; 300 s alle) — loona! designs (das Zeichen auf der Tinte-Kachel),
     LD Flow., LD Nova., LD Buddy., LD Ivy.
 15. **Zertifikate** (ab 90 s, je nach Stimmung) — alle zehn mit Datum und Aussteller
-16. **Kontakt** — Badge (Mondphase) → Lockup, Claim, loona-designs.de · LinkedIn · GitHub
+16. **Kontakt** — Lockup (Zeichen + Wortmarke), Claim, loona-designs.de · LinkedIn · GitHub
 
 Die lange Fassung setzt dazwischen zwei Zitate aus den Lab-Einträgen der Website.
 
-### Quellen (geprüft, Stand 21.11.2026)
+### Quellen (geprüft, Stand 22.11.2026)
 
 - **Marke:** Brand-System 2026-10 und Logo-Handoff v1.0 (Repo ld-evo, `docs/design_handoff_loona_brand`, `src/components/brand`):
-  Farben, Schriften, Zeichen/Badge/Wortmarke, Animationen (Reveal 1,2 s, Sweep, Mondphase, Slash-Wipe, Transformation) samt
-  Easings. Die Verbote sind beachtet: Zeichen nie gedreht oder verzerrt, keine Schatten oder Konturen am Zeichen, „!“ nie
-  gefärbt, Badge-Grund immer Tinte, nie zwei Logo-Formen gleichzeitig im Bild, jede Logo-Animation endet im Primärzeichen.
+  Farben, Schriften, Zeichen und Wortmarke, Animationen (Reveal 1,2 s, Sweep, Mondphase, Slash-Wipe) samt Easings.
+  Die Verbote sind beachtet: Zeichen nie gedreht oder verzerrt, keine Schatten oder Konturen am Zeichen, „!“ nie
+  gefärbt, nie zwei Logo-Formen gleichzeitig im Bild, jede Logo-Animation endet im Primärzeichen. Signalorange füllt
+  nie das Zeichen — in „Action“ trägt es Wipes, Fortschrittsbalken und einen Lichtschein im Hintergrund.
   (Über dem ganzen Bild der Cinematic-Fassung liegen eine leichte Körnung und eine Vignette als Filmlook.)
-  In der Produktfamilie steht auf Wunsch (21.11.2026) das Zeichen — das „Negativ-Logo“ der Site — auf der Tinte-Kachel statt
-  des Badges. Schreibweise „Bjoern Sellnau“ wie in der Unterzeile des Brand-Systems.
-- **Fakten und Wortlaut (DE/EN):** Inhalte der neuen Website (ld-evo, `content/*.ts` und `content/en/*.ts`): Startseite
-  (auch die Schwerpunkte), Über mich, Reise (8 Stationen samt Etappen), Projekte (12 Einträge „Projekte“, 2 „Archiv“,
-  12 „Labs“ mit Zitaten), Zertifikate (10), Stack. Nichts ist geschätzt. Die Blog-Artikel sind dort noch als Entwurf
-  markiert und kommen deshalb nicht vor.
-- **Start der Reise:** Ausbildung 2000–2002 nach Angabe von Bjoern Sellnau (21.11.2026); Abschluss 06/2002 und der Satz
-  zur Ausbildung stehen in „Über mich“, „seit 2001“ ebenfalls, das Kundenprojekt von 2002 in den Projekten.
+  Der Badge kommt in den Trailern nicht mehr vor (Rückmeldung vom 22.11.2026): Der Schluss zeigt nur noch das Lockup,
+  in der Produktfamilie steht seit dem 21.11.2026 das Zeichen — das „Negativ-Logo“ der Site — auf der Tinte-Kachel.
+  Schreibweise „Bjoern Sellnau“ wie in der Unterzeile des Brand-Systems.
+- **Altes Logo:** der Mond in der Glaskugel, ausgeschnitten aus dem Bild, das Bjoern Sellnau am 22.11.2026 mitgeschickt hat
+  (Vorlage laut ihm: `loona-designs.de/images/moon.jpg`); `quelle-trailer/assets/old_logo.png`.
+- **Wortlaut der Plattform-Szene:** Rückmeldung vom 22.11.2026 — Titel „Das neue Loona! Designs.“; die Features (Hero-Animationen,
+  Story-Seiten, Widgets) sind kein Baukasten für Besucher, Bjoern Sellnau legt fest, was läuft: Sie „zeigen, was möglich ist“.
+- **Laufbahn und Projektliste:** Angaben von Bjoern Sellnau vom 21. und 22.11.2026 — sie gehen den Inhalten der Website vor,
+  wo sich beides widerspricht: Ausbildung 2000–2002; vor 2007 keine Kundenprojekte; ab 09/2007 angestellt bei PIXELTEX in
+  Hannover, Umzug der Agentur nach Berlin 11/2011; Mys Mobile: 01–09/2016 Beratung und Anbieterauswahl, 11/2016 übernommen,
+  Award 2017; Ende der PIXELTEX-Zeit 04/2020; Code-b ab 05/2020 (The Pioneer Website bis 2021, BMW Neuwagensuche 2022 – 06/2023
+  als Teamleiter und Tech Lead, The Pioneer App 07–12/2023, Tabletop Herald 2024 – 04/2025, The Pioneer 04/2025 – 01/2026);
+  Materna seit 05/2026 (Public Sector, E-Government, Zoll); KI seit 03/2026; die 21 Projekte samt Kurzbeschreibung;
+  LD Beyond. kommt 2027.
+- **Übrige Fakten und Wortlaut (DE/EN):** Inhalte der neuen Website (ld-evo, `content/*.ts` und `content/en/*.ts`): Startseite
+  (auch die Schwerpunkte), Über mich, Titel und Kurztexte der Reise, Namen, Jahre und Farben der Projekte, Zitate der
+  Lab-Einträge, Zertifikate (10), Stack. Nichts ist geschätzt. Die Blog-Artikel sind dort noch als Entwurf markiert und
+  kommen deshalb nicht vor. Die Website selbst führt noch den älteren Stand (zum Beispiel zwölf Labs).
 - **Award:** wie oben unter „20 Varianten“ belegt (Gewinnerlisten Best of Swiss Web 2017).
-- **Bilder:** eigene Screenshots der neuen Website (lokaler Build vom 21.11.2026), der Labs und der frühen Projekte;
+- **Bilder:** eigene Screenshots der neuen Website (lokaler Build vom 21.11.2026), der Labs und der frühen Projekte; die mobile
+  Startseite neu aufgenommen am 22.11.2026 — die Seite ohne ihre festen Elemente, schwebendes Logo und Tab-Leiste einzeln;
   SPREE|FALL mit Kartendaten © OpenStreetMap-Mitwirkende (im Bild genannt). Covert Operations: Spielszenen aus dem
   öffentlichen Repo `bjoern-sellnau/covert-operations`, lokal gestartet und mit einem kleinen Steuer-Skript gespielt
   (der Mutator „Unverwundbar“ des Spiels war an, damit der Lauf Welle 2 erreicht). Hero-Animationen: Bildfolgen aus
   den Aufnahmen für Reel 3 (`quelle-3/clips`).
 - **Musik:** vollständig im Browser synthetisiert (Web Audio, [`quelle-trailer/music.js`](quelle-trailer/music.js)) —
-  keine Samples, keine fremden Rechte. Sie wurde in der Render-Umgebung **gemessen, nicht abgehört** (Lautheit,
-  Spitzenpegel, Frequenzverteilung je Band).
+  keine Samples, keine fremden Rechte. Trance, Hardstyle, Eurodance, Rave und Demoszene sind als Stile nachempfunden
+  (Tempo, Schlagzeug-Muster, Klangfarben); Melodien, Riffs und Akkordfolge sind eigene. Die Musik wurde in der
+  Render-Umgebung **gemessen, nicht abgehört** (Lautheit, Spitzenpegel, Frequenzverteilung je Band, Verlauf über die Zeit).
+- **Lauftext der Demoszene-Fassung:** nur belegte Angaben aus den Szenen (Name, Rolle, Stack, „seit 2001“, Gold 2017, 21 Labs) und
+  der Hinweis, dass Bild und Ton im Browser entstehen.
+- **Farben der neuen Stimmungen:** Gründe der Marke (Nacht, Tinte, Creme); die Lichter nehmen die Farben der Produktfamilie aus dem
+  Logo-Handoff (LD Flow `#A78BFA`, LD Nova `#38BDF8`, LD Buddy `#F472B6`, LD Ivy `#3DDC84`) — nie am Zeichen selbst; hinter Auftakt,
+  Produktfamilie und Schluss bleiben die Hintergründe ruhig.
 - **Schriften:** Manrope, Instrument Serif, JetBrains Mono (SIL Open Font License 1.1, über Fontsource).
 
 ### Neu rendern
 
-Quelle: [`quelle-trailer/`](quelle-trailer/) — `index.html?len=60|90|120|300&mood=cine|drive|calm&lang=de|en` zeichnet jedes
-Bild deterministisch (`REEL.frame(t)`) und erzeugt die Musik (`REEL.music()`).
+Quelle: [`quelle-trailer/`](quelle-trailer/) — `index.html?len=30|60|90|120|300&mood=cine|drive|action|calm|trance|hard|euro|rave|demo&lang=de|en`
+zeichnet jedes Bild deterministisch (`REEL.frame(t)`) und erzeugt die Musik (`REEL.music()`); 30 Sekunden gibt es für die fünf neuen Stimmungen.
 
 ```sh
 cd quelle-trailer
 node render.mjs 90 cine de        # → ../trailer/loona-trailer-90s-cinematic-de.mp4 (+ Titelbild)
+node render.mjs 60 action en      # → ../trailer/loona-trailer-60s-action-en.mp4
+node render.mjs 30 demo de        # → ../trailer/loona-trailer-30s-demoszene-de.mp4
 ```
+
+Dateinamen der Stimmungen: `cinematic`, `treibend`, `action`, `ruhig`, `trance`, `hardstyle`, `eurodance`, `rave`, `demoszene`.
+Das Render-Skript misst die fertige Datei nach. Liegt die wahre Spitze über −1 dBTP, kodiert es nur die Tonspur neu (das Bild
+bleibt): zuerst ohne den Rauschersatz (PNS) des AAC-Kodierers — er schwingt bei dichter Musik über den Begrenzer hinaus —, notfalls
+zusätzlich mit tieferem Begrenzer. Ist die Vorgabe (−14 LUFS ± 0,8, höchstens −1 dBTP) danach nicht erreicht, bricht es mit Fehler ab.
+`NUR_TON=1 node render.mjs 300 action de` mischt nur die Tonspur einer vorhandenen Datei neu.
 
 Voraussetzungen: Node ≥ 20, Playwright mit Chromium (`PLAYWRIGHT`/`CHROMIUM` zeigen bei Bedarf auf eine vorhandene
 Installation), ffmpeg. Texte und Fakten stehen in `data.js`, die Szenen in `scenes.js`, Ablauf je Länge in `main.js`.
