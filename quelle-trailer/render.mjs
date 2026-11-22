@@ -8,10 +8,12 @@
      CHROMIUM    Pfad zum Chromium (Standard: der von Playwright)
      CRF         Qualität libx264 (Standard 22, lange Fassung 23, neue Stimmungen 24), MAXRATE (Standard 4500k, lange Fassung 2200k;
                  neue Stimmungen 3200k bzw. 2000k)
+     NUR_TON=1   nur die Tonspur einer vorhandenen Datei neu abmischen – das Bild bleibt unverändert (-c:v copy)
 
    Die Musik hängt nur von Stimmung und Ablauf ab und wird als WAV zwischengespeichert (<Ausgabe>/.musik/…),
-   beide Sprachfassungen teilen sie sich. Lautheit: Verstärkung auf −14 LUFS (gemessen mit ebur128), Begrenzer bei −3 dBFS; die fertige Datei wird nachgemessen und die
-   Tonspur bei Bedarf mit tieferem Begrenzer neu kodiert, bis die wahre Spitze unter −1 dBTP liegt. */
+   beide Sprachfassungen teilen sie sich. Lautheit: Verstärkung auf −14 LUFS (gemessen mit ebur128), Begrenzer bei −3 dBFS; die fertige
+   Datei wird nachgemessen und die Tonspur bei Bedarf neu kodiert (ohne Rauschersatz des AAC-Kodierers, notfalls mit tieferem Begrenzer),
+   bis die wahre Spitze unter −1 dBTP liegt. Passt es dann nicht, bricht das Skript mit Fehler ab. */
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -65,35 +67,51 @@ const gain = (g1 + (-14 - lufs(`volume=${g1.toFixed(2)}dB,${LIMITER},`))).toFixe
 
 /* ---- Bilder → ffmpeg ---- */
 const mp4 = path.join(OUT, `${base}.mp4`);
-const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y',
-  '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-i', wav,
-  '-vf', 'scale=in_range=full:out_range=tv:out_color_matrix=bt709,format=yuv420p',
-  '-c:v', 'libx264', '-preset', 'slow', '-crf', CRF, '-maxrate', MAXRATE, '-bufsize', `${parseInt(MAXRATE, 10) * 2}k`, '-profile:v', 'high', '-g', String(FPS * 2),
-  '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
-  '-af', `volume=${gain}dB,${LIMITER}`, '-ar', '48000', '-c:a', 'aac', '-b:a', '192k',
-  '-t', String(info.DUR), '-movflags', '+faststart', mp4], { stdio: ['pipe', 'inherit', 'inherit'] });
-const done = new Promise((ok, no) => ff.on('close', (c) => (c === 0 ? ok() : no(new Error(`ffmpeg ${c}`)))));
-const t0 = Date.now(), BATCH = 6;
-for (let i = 0; i < N; i += BATCH) {
-  const ts = []; for (let k = i; k < Math.min(N, i + BATCH); k++) ts.push(k / FPS);
-  const frames = await page.evaluate(async (ts) => { const out = []; for (const t of ts) out.push(await REEL.frame(t)); return out; }, ts);
-  for (const f of frames) if (!ff.stdin.write(Buffer.from(f, 'base64'))) await new Promise((ok) => ff.stdin.once('drain', ok));
-  if (i % 600 === 0 && i) console.log(`  ${base}: ${i}/${N} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
+const t0 = Date.now();
+if (process.env.NUR_TON) {
+  /* Nur der Ton: dieselbe Abmischung wie beim vollen Lauf, das Bild der vorhandenen Datei wird übernommen */
+  if (!fs.existsSync(mp4)) { console.error(`NUR_TON: ${mp4} fehlt`); process.exit(1); }
+  const tmp = `${mp4}.ton.mp4`;
+  const r = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', mp4, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', `volume=${gain}dB,${LIMITER}`, '-ar', '48000', '-c:a', 'aac', '-b:a', '192k', '-t', String(info.DUR), '-movflags', '+faststart', tmp], { stdio: 'inherit' });
+  if (r.status !== 0) { console.error('Tonspur neu abmischen fehlgeschlagen'); process.exit(1); }
+  fs.renameSync(tmp, mp4);
+} else {
+  const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y',
+    '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-i', wav,
+    '-vf', 'scale=in_range=full:out_range=tv:out_color_matrix=bt709,format=yuv420p',
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', CRF, '-maxrate', MAXRATE, '-bufsize', `${parseInt(MAXRATE, 10) * 2}k`, '-profile:v', 'high', '-g', String(FPS * 2),
+    '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
+    '-af', `volume=${gain}dB,${LIMITER}`, '-ar', '48000', '-c:a', 'aac', '-b:a', '192k',
+    '-t', String(info.DUR), '-movflags', '+faststart', mp4], { stdio: ['pipe', 'inherit', 'inherit'] });
+  const done = new Promise((ok, no) => ff.on('close', (c) => (c === 0 ? ok() : no(new Error(`ffmpeg ${c}`)))));
+  const BATCH = 6;
+  for (let i = 0; i < N; i += BATCH) {
+    const ts = []; for (let k = i; k < Math.min(N, i + BATCH); k++) ts.push(k / FPS);
+    const frames = await page.evaluate(async (ts) => { const out = []; for (const t of ts) out.push(await REEL.frame(t)); return out; }, ts);
+    for (const f of frames) if (!ff.stdin.write(Buffer.from(f, 'base64'))) await new Promise((ok) => ff.stdin.once('drain', ok));
+    if (i % 600 === 0 && i) console.log(`  ${base}: ${i}/${N} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
+  }
+  ff.stdin.end();
+  await done;
 }
-ff.stdin.end();
-await done;
 
 /* ---- Spitzenkontrolle ---- */
-/* AAC kann an sehr dichten Stellen (Wirbel + Riser + Einschlag) über den Begrenzer hinausschwingen. Liegt die wahre Spitze der fertigen
-   Datei (True Peak, ebur128) über −1 dBTP, wird nur die Tonspur mit tieferem Begrenzer neu kodiert — das Bild bleibt (-c:v copy). */
-const peakOf = (f) => { const e = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', f, '-map', '0:a', '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8' }).stderr; return parseFloat((e.match(/Peak:\s+(-?[\d.]+) dBFS/g) ?? []).pop()?.match(/-?[\d.]+/)?.[0] ?? '0'); };
-for (let n = 0, lim = 0.7; n < 3; n++) {
-  const pk = peakOf(mp4); if (pk <= -1) break;
-  lim *= 10 ** (-(pk + 1.3) / 20);
+/* Der AAC-Kodierer von ffmpeg ersetzt rauschhafte Bänder durch eigenes Rauschen (PNS). An sehr dichten Stellen (Wirbel + Riser + Einschlag)
+   schwingt das über den Begrenzer hinaus – gemessen bis +5,7 dB über der Spitze vor dem Kodieren, und ein tieferer Begrenzer hilft dagegen
+   nicht verlässlich (die Stelle wandert, der Ausreißer bleibt). Liegt die wahre Spitze der fertigen Datei (True Peak, ebur128) über −1 dBTP,
+   wird deshalb nur die Tonspur neu kodiert, das Bild bleibt (-c:v copy): zuerst ohne PNS bei gleichem Begrenzer, erst danach zusätzlich mit
+   tieferem Begrenzer. Zum Schluss wird nachgemessen – passt es nach drei Versuchen nicht, bricht das Skript ab, statt eine ungeprüfte Datei
+   liegen zu lassen. */
+const messen = (f) => { const e = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', f, '-map', '0:a', '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8' }).stderr; const z = (re) => parseFloat((e.match(re) ?? []).pop()?.match(/-?[\d.]+/)?.[0] ?? '0'); return [z(/I:\s+(-?[\d.]+) LUFS/g), z(/Peak:\s+(-?[\d.]+) dBFS/g)]; };
+for (let n = 0, lim = 0.7; ; n++) {
+  const [laut, pk] = messen(mp4);
+  if (pk <= -1 && Math.abs(laut + 14) <= 0.8) break;
+  if (n === 3 || pk <= -1) { console.error(`${base}: ${laut} LUFS, Spitze ${pk} dBTP – außerhalb der Vorgabe (−14 LUFS ± 0,8, höchstens −1 dBTP)`); process.exit(1); }
+  if (n) lim *= 10 ** (-(pk + 1.3) / 20);
   const L = `alimiter=limit=${lim.toFixed(3)}:level=false:attack=5:release=60`, h1 = -14 - lufs(''), h = (h1 + (-14 - lufs(`volume=${h1.toFixed(2)}dB,${L},`))).toFixed(2), tmp = `${mp4}.ton.mp4`;
-  const r = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', mp4, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', `volume=${h}dB,${L}`, '-ar', '48000', '-c:a', 'aac', '-b:a', '192k', '-t', String(info.DUR), '-movflags', '+faststart', tmp], { stdio: 'inherit' });
+  const r = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', mp4, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', `volume=${h}dB,${L}`, '-ar', '48000', '-c:a', 'aac', '-b:a', '192k', '-aac_pns', '0', '-t', String(info.DUR), '-movflags', '+faststart', tmp], { stdio: 'inherit' });
   if (r.status !== 0) { console.error('Tonspur nachziehen fehlgeschlagen'); process.exit(1); }
-  fs.renameSync(tmp, mp4); console.log(`  ${base}: Spitze ${pk} dBTP → Tonspur mit Begrenzer ${lim.toFixed(3)} neu kodiert`);
+  fs.renameSync(tmp, mp4); console.log(`  ${base}: Spitze ${pk} dBTP → Tonspur ohne PNS mit Begrenzer ${lim.toFixed(3)} neu kodiert`);
 }
 
 /* ---- Titelbild: die Anspruch-Szene; die 30-Sekunden-Fassung hat keine, dort der Schluss mit Lockup und Claim ---- */
