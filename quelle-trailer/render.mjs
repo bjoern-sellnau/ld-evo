@@ -1,6 +1,6 @@
 /* Trailer rendern: Bilder aus dem Canvas (REEL.frame) per Playwright abgreifen und mit ffmpeg zu MP4 zusammensetzen.
 
-   node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo|old|b97|b2k> <de|en> [Ausgabeordner]
+   node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo|old|b97|b99|b2k|b01|b03|b05> <de|en> [Ausgabeordner]
    (30 Sekunden nicht für cine, drive, calm und action)
 
    Umgebungsvariablen (optional):
@@ -23,9 +23,9 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const [len = '60', mood = 'cine', lang = 'de', outArg] = process.argv.slice(2);
 const OUT = path.resolve(outArg ?? path.join(ROOT, '..', 'trailer'));
-const NAMES = { cine: 'cinematic', drive: 'treibend', calm: 'ruhig', action: 'action', trance: 'trance', hard: 'hardstyle', euro: 'eurodance', rave: 'rave', demo: 'demoszene', old: 'demo90', b97: 'benchmark97', b2k: 'benchmark2000' };
-const NEW = ['trance', 'hard', 'euro', 'rave', 'demo', 'old', 'b97', 'b2k'];
-if (!NAMES[mood] || !['60', '90', '120', '300'].concat(NEW.includes(mood) ? ['30'] : []).includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo|old|b97|b2k> <de|en> [Ausgabeordner] — 30 nicht für cine, drive, calm, action'); process.exit(2); }
+const NAMES = { cine: 'cinematic', drive: 'treibend', calm: 'ruhig', action: 'action', trance: 'trance', hard: 'hardstyle', euro: 'eurodance', rave: 'rave', demo: 'demoszene', old: 'demo90', b97: 'benchmark97', b2k: 'benchmark2000', b99: 'benchmark99', b01: 'benchmark2001', b03: 'benchmark2003', b05: 'benchmark2005' };
+const NEW = ['trance', 'hard', 'euro', 'rave', 'demo', 'old', 'b97', 'b2k', 'b99', 'b01', 'b03', 'b05'];
+if (!NAMES[mood] || !['60', '90', '120', '300'].concat(NEW.includes(mood) ? ['30'] : []).includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo|old|b97|b99|b2k|b01|b03|b05> <de|en> [Ausgabeordner] — 30 nicht für cine, drive, calm, action'); process.exit(2); }
 const base = `loona-trailer-${len}s-${NAMES[mood]}-${lang}`;
 /* Die lange Fassung bekommt eine niedrigere Obergrenze, damit die Datei sicher unter 100 MB bleibt (GitHub-Grenze). Die fünf neuen
    Stimmungen haben sehr unruhige Hintergründe (Laser, Pegelsäulen, Plasma): etwas höherer CRF und engere Obergrenze halten die Dateien klein. */

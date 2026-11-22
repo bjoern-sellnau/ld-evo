@@ -1,7 +1,7 @@
 /* Trailer — Stimmungen (Themes), Hintergründe und Szenen. Jede Szene: fn(lt, D) mit lokaler Zeit lt und Dauer D (Sekunden). */
 'use strict';
 const Q = new URLSearchParams(location.search);
-const MOODS = ['cine', 'drive', 'calm', 'action', 'trance', 'hard', 'euro', 'rave', 'demo', 'old', 'b97', 'b2k'];
+const MOODS = ['cine', 'drive', 'calm', 'action', 'trance', 'hard', 'euro', 'rave', 'demo', 'old', 'b97', 'b2k', 'b99', 'b01', 'b03', 'b05', 'mark'];
 const MOOD = MOODS.includes(Q.get('mood')) ? Q.get('mood') : 'cine';
 /* 30 Sekunden gibt es nur für die fünf neuen Stimmungen (ihr Ablauf wird aus einer Vorlage berechnet, siehe main.js) */
 const LEN = [60, 90, 120, 300].concat(MOODS.indexOf(MOOD) > 3 ? [30] : []).includes(+Q.get('len')) ? +Q.get('len') : 60;
@@ -28,7 +28,15 @@ const THEMES = {
      kleine Auflösung, Pixel sichtbar). Vorbild ist jeweils die Machart der Zeit — Szenen, Namen, Logos und Musik sind eigene. */
   old: { name: 'demo90', retro: 'old', fast: true, bgk: 'demo', trans: 'mosaic', bpm: 128, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.18)', accent: BR.orange, accentText: BR.orange, card: 'rgba(11,16,38,0.72)', style: 'mask', inDur: 0.36, pace: 0.42, top: 104, bot: 936, td: 0.5 },
   b97: { name: 'benchmark97', retro: 'gl', look: '97', fast: true, bgk: 'demo', trans: 'mosaic', bpm: 136, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.18)', accent: BR.orange, accentText: BR.orange, card: 'rgba(11,16,38,0.72)', style: 'mask', inDur: 0.36, pace: 0.42, top: 104, bot: 936, td: 0.5 },
-  b2k: { name: 'benchmark2000', retro: 'gl', look: '2k', fast: true, bgk: 'ink', trans: 'mosaic', bpm: 144, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.5 },
+  /* Benchmark-Looks nach Jahrgängen (Wunsch vom 22.11.2026): 1999, 2000, 2001, 2003, 2005 — je mit Intro (intro = Faktor, um den der
+     Auftakt gegenüber der Vorlage wächst; er endet mit dem Titel, siehe logoLock). Machart der jeweiligen Zeit, eigene Szenen. */
+  b99: { name: 'benchmark99', retro: 'gl', look: '99', intro: 1.7, fast: true, bgk: 'ink', trans: 'mosaic', bpm: 176, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.18)', accent: BR.orange, accentText: BR.orange, card: 'rgba(11,16,38,0.72)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.5 },
+  b01: { name: 'benchmark2001', retro: 'gl', look: '01', intro: 1.7, fast: true, bgk: 'ink', trans: 'mosaic', bpm: 128, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.18)', accent: BR.orange, accentText: BR.orange, card: 'rgba(11,16,38,0.72)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.5 },
+  b03: { name: 'benchmark2003', retro: 'gl', look: '03', intro: 1.7, fast: true, bgk: 'ink', trans: 'mosaic', bpm: 152, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.5 },
+  b05: { name: 'benchmark2005', retro: 'gl', look: '05', intro: 1.7, fast: true, bgk: 'ink', trans: 'mosaic', bpm: 136, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.5 },
+  /* „mark“ ist kein Trailer: Stimmung nur für die Musik des eigenen Echtzeit-Benchmarks (ldmark.html), Aufruf mit ?plan=… */
+  mark: { name: 'ldmark', retro: 'gl', look: '03', intro: 1.7, fast: true, bgk: 'ink', trans: 'mosaic', bpm: 144, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.5 },
+  b2k: { name: 'benchmark2000', retro: 'gl', look: '2k', intro: 1.7, fast: true, bgk: 'ink', trans: 'mosaic', bpm: 144, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.5 },
 };
 const TH = THEMES[MOOD];
 /* Treibend, Action und die Tanz-Stimmungen schneiden und blenden auf den Schlag; Cinematic und Ruhig lassen sich Zeit */
@@ -38,7 +46,8 @@ let CUR = null;
 /* Renderer der Retro-Looks: RETRO[TH.retro] = { init: async () => …, render: (t) => … } — render zeichnet das ganze Bild (1920×1080) nach g */
 const RETRO = {};
 /* Auftakt der schnellen Stimmungen: zwei Takte Sweep, dann rastet das Lockup ein — bei nur zwei Takten nach einem */
-const logoLock = (D) => (FAST ? (D >= 3 * BAR - 0.01 ? 2 * BAR : BAR) : D * 0.6);
+/* Mit Intro steht der Titel am Ende des Auftakts: einen Takt vor dessen Ende, ab fünf Takten zwei */
+const logoLock = (D) => (TH.intro ? D - (D >= 5 * BAR - 0.01 ? 2 : 1) * BAR : FAST ? (D >= 3 * BAR - 0.01 ? 2 * BAR : BAR) : D * 0.6);
 const B = 60 / TH.bpm, BAR = 4 * B;
 const CY = (TH.top + TH.bot) / 2;
 /* Einblendung: Start (in „Schritten“ der Stimmung) und Dauer */

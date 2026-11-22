@@ -12,7 +12,8 @@
 </head>
 <body>
 <!-- Zeigt einen Test des GLX-Engines in Echtzeit (requestAnimationFrame) und misst die Bildrate.
-     Aufruf: gl-test.html?test=orbit|tunnel|moon|hall|galaxy|screens|gold|blit&look=97|2k — Tasten 1 … 8 wechseln den Test, L den Look. -->
+     Aufruf: gl-test.html?test=orbit|tunnel|moon|hall|galaxy|screens|gold|blit|pool|orrery|station&look=97|99|2k|01|03|05
+     (pool ab Look 01, orrery ab 03, station nur 05) — Tasten 1 … 9, 0 und - wechseln den Test, L den Look, W das Drahtgitter. -->
 <canvas id="v"></canvas>
 <div id="hud"></div>
 <script src="gl/glx.js"></script>
@@ -20,27 +21,33 @@
 <script>
 'use strict';
 (async () => {
-  const Q = new URLSearchParams(location.search), look = Q.get('look') === '97' ? '97' : '2k', hud = document.getElementById('hud');
+  const SIZE = { 97: [640, 360, true], 99: [800, 450, false], '2k': [960, 540, true], '01': [1024, 576, false], '03': [1024, 576, false], '05': [1280, 720, false] }, ORDER = ['97', '99', '2k', '01', '03', '05'];
+  const Q = new URLSearchParams(location.search), look = SIZE[Q.get('look')] ? Q.get('look') : '2k', hud = document.getElementById('hud');
   /* ein paar Bilder für die Tests „screens“ und „blit“ (eigene Screenshots aus assets/) */
   const SRC = { a: 'assets/g_core-fall-menu.jpg', b: 'assets/g_co-play3.jpg', c: 'assets/sf_01-pariser-platz.jpg', d: 'assets/site_home.jpg', e: 'assets/g_cf-play13.jpg', f: 'assets/sf_07-tv-tower.jpg', g: 'assets/site_labs.jpg', h: 'assets/g_co-play6.jpg' };
   const images = {};
-  await Promise.all(Object.entries(SRC).map(([k, s]) => new Promise((ok) => { const i = new Image(); i.onload = () => { images[k] = i; ok(); }; i.onerror = () => ok(); i.src = s; })));
-  const w = look === '97' ? 640 : 960;
-  GLX.init({ canvas: document.getElementById('v'), width: w, height: (w * 9) / 16, look, images });
+  /* in fester Reihenfolge eintragen (nicht in der des Ladens), damit die Tests bildgenau wiederholbar sind */
+  const got = await Promise.all(Object.entries(SRC).map(([k, s]) => new Promise((ok) => { const i = new Image(); i.onload = () => ok([k, i]); i.onerror = () => ok(null); i.src = s; })));
+  for (const q of got) if (q) images[q[0]] = q[1];
+  const [w, h, hard] = SIZE[look], cv = document.getElementById('v');
+  /* die alten Looks mit harten Bildpunkten, die übrigen weich hochskaliert */
+  cv.style.imageRendering = hard ? 'pixelated' : 'auto';
+  GLX.init({ canvas: cv, width: w, height: h, look, images });
   const OPT = { screens: { images: Object.keys(images) }, blit: { images: ['d', 'a', 'b', 'c', 'e'] } };
-  let test = GLX.test[Q.get('test')] ?? GLX.test.tunnel, t0 = performance.now(), n = 0, tf = t0, fps = 0;
+  let test = GLX.test[Q.get('test')] ?? GLX.test.tunnel, t0 = performance.now(), n = 0, tf = t0, fps = 0, wire = false;
   addEventListener('keydown', (e) => {
-    const k = +e.key; if (k >= 1 && k <= GLX.tests.length) { test = GLX.tests[k - 1]; t0 = performance.now(); }
-    if (e.key === 'l' || e.key === 'L') { Q.set('look', look === '97' ? '2k' : '97'); Q.set('test', test.id); location.search = Q.toString(); }
+    const k = '1234567890-'.indexOf(e.key); if (k >= 0 && k < GLX.tests.length) { test = GLX.tests[k]; t0 = performance.now(); }
+    if (e.key === 'w' || e.key === 'W') wire = !wire;
+    if (e.key === 'l' || e.key === 'L') { Q.set('look', ORDER[(ORDER.indexOf(look) + 1) % ORDER.length]); Q.set('test', test.id); location.search = Q.toString(); }
   });
   /* zum Prüfen von außen: ein bestimmtes Bild eines Tests zeichnen */
   window.GLTEST = { draw: (id, lt, D = GLX.test[id].dur) => { GLX.begin(); GLX.test[id].draw(lt, D, OPT[id] ?? {}); GLX.end(); return GLX.stats.tris; }, images };
   if (Q.get('still')) return;
   const loop = (now) => {
     const lt = ((now - t0) / 1000) % test.dur;
-    GLX.begin(); test.draw(lt, test.dur, OPT[test.id] ?? {}); GLX.end();
+    GLX.begin(); if (wire) { GLX.wireK = 1; GLX.wireC = [1, 0.47, 0.09]; } test.draw(lt, test.dur, OPT[test.id] ?? {}); GLX.end();
     n++; if (now - tf >= 1000) { fps = (n * 1000) / (now - tf); n = 0; tf = now; }
-    hud.innerHTML = `<b>${test.name.de}</b> (${test.id}) · Look ${look} · ${GLX.W}×${GLX.H}\n${fps.toFixed(1)} Bilder/s · ${GLX.stats.tris} Dreiecke · ${lt.toFixed(1)} / ${test.dur} s\nTasten 1–${GLX.tests.length}: Test · L: Look`;
+    hud.innerHTML = `<b>${test.name.de}</b> (${test.id}) · Look ${look} · ${GLX.W}×${GLX.H}\n${fps.toFixed(1)} Bilder/s · ${GLX.stats.tris} Dreiecke · ${lt.toFixed(1)} / ${test.dur} s\nTasten 1–9, 0, -: Test · L: Look · W: Drahtgitter`;
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);

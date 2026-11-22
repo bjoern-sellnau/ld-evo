@@ -1,7 +1,17 @@
-/* Trailer — Retro-Looks „Benchmark 97“ (b97) und „Benchmark 2000“ (b2k): der Trailer als Benchmark-Lauf.
+/* Trailer — Benchmark-Looks nach Jahrgang: 97 (b97), 99 (b99), 2000 (b2k), 2001 (b01), 2003 (b03), 2005 (b05) — der Trailer als Benchmark-Lauf.
    Jedes Kapitel ist ein „Test“: hinten eine eigene 3D-Szene aus dem GLX-Engine (gl/glx.js, gl/glx-tests.js), davor die Inhalte als
-   Einblendung im kleinen Raster des Looks (640×360 mit 16-bit-Dithering bzw. 960×540), am Ende ein Ergebnis-Bildschirm mit den belegten
-   Zahlen, dann Lockup, Claim und Kontakt. Vorbild ist die Machart der 3D-Benchmarks um 1997 – 2000 — Szenen, Namen und Oberfläche sind eigene.
+   Einblendung im Raster des Looks, am Ende ein Ergebnis-Bildschirm mit den belegten Zahlen, dann Lockup, Claim und Kontakt.
+   Vorbild ist die Machart der 3D-Benchmarks des jeweiligen Jahrgangs — Szenen, Namen und Oberfläche sind eigene.
+
+   Look   Bildspeicher            Technik (siehe gl/glx.js)                                     Rahmen
+   97     640×360, hart ×3        Licht je Ecke, 16 bit mit Dithering                           Winkel in den Ecken
+   99     800×450, weich          wie 97, Auftakt mit Drahtgitter                               durchgehende Bänder oben und unten
+   2000   960×540, hart ×2        mehr Polygone, 32 bit                                         Felder mit heller Oberkante
+   2001   1024×576, weich         Licht je Bildpunkt, Normal-Maps, Spiegelbecken, proj. Schatten gläserne Felder, Haarlinie
+   2003   1024×576, weich         Shadow Maps, Glanz-Maps, Glühen                               Breitbild mit schwarzen Balken
+   2005   1280×720, weich         weiche Schatten, großer Helligkeitsumfang, Brechung           Lichtverläufe, Punkte als Fortschritt
+   Die Looks ab 99 (außer 97) beginnen mit einem Intro (TH.intro): eine Montage aus ihren Tests, auf den Schlag geschnitten, ohne Rahmen —
+   sie endet auf logoLock(D) im Titel (Lockup, Name und Rolle, Zeile mit dem Look).
 
    Was eingeblendet wird, ist wahr: 30 Bilder pro Sekunde (Bildrate des Videos), die wirklich gezeichneten Dreiecke der Szene, Größe und
    Farbtiefe des Bildspeichers, die laufende Zeit. Keine Messwerte, keine Punktzahlen. Inhalte und Wortlaut kommen aus data.js.
@@ -9,7 +19,17 @@
    läuft dahinter; die Farben der Produktfamilie treten nur als Lichter auf. */
 (() => {
   'use strict';
-  let L97 = false, PW = 960, PH = 540, S = 0.5, hud = null, hc = null, ST = null, UI = null, X = null;
+  /* je Look: Breite des Bildspeichers, weich hochskalieren?, Gestalt des Rahmens, Jahr für die Titelzeile */
+  const LKS = { 97: { w: 640, hud: 'eck', yr: '97' }, 99: { w: 800, soft: true, hud: 'band', yr: '99' }, '2k': { w: 960, hud: 'kante', yr: '2000' }, '01': { w: 1024, soft: true, hud: 'glas', yr: '2001' }, '03': { w: 1024, soft: true, hud: 'kino', yr: '2003' }, '05': { w: 1280, soft: true, hud: 'licht', yr: '2005' } };
+  const STS = {
+    eck: { ink: BR.cream, soft: '#B4B9D0', acc: BR.orange, panel: 'rgba(4,7,20,0.8)', edge: BR.orange, rail: 'rgba(246,241,232,0.28)' },
+    band: { ink: BR.cream, soft: '#B4B9D0', acc: BR.orange, panel: 'rgba(6,10,28,0.88)', edge: BR.orange, rail: 'rgba(246,241,232,0.28)' },
+    kante: { ink: BR.cream, soft: BR.mutedDark, acc: BR.orange, panel: 'rgba(18,15,13,0.8)', edge: 'rgba(246,241,232,0.55)', rail: 'rgba(246,241,232,0.22)' },
+    glas: { ink: BR.cream, soft: '#B4B9D0', acc: BR.orange, panel: 'rgba(11,16,38,0.62)', edge: 'rgba(246,241,232,0.4)', rail: 'rgba(246,241,232,0.25)' },
+    kino: { ink: BR.cream, soft: BR.mutedDark, acc: BR.orange, panel: 'rgba(10,8,7,0.76)', edge: BR.orange, rail: 'rgba(246,241,232,0.22)' },
+    licht: { ink: BR.cream, soft: '#C9C2B4', acc: BR.orange, panel: 'rgba(12,10,9,0.8)', edge: 'rgba(246,241,232,0.6)', rail: 'rgba(246,241,232,0.22)' },
+  };
+  let L97 = false, LOW = false, LK = LKS['2k'], HS = 'kante', PW = 960, PH = 540, S = 0.5, hud = null, hc = null, ST = null, UI = null, X = null, cuts = [];
   let jList = [], jT0 = [], jDur = [], gates = [], plates = [], labSeq = [], siteSeq = [], originSeq = [], heroSeq = [], rise = 0.6;
   const GATE = 50, SUNX = 0.7; // Sonne rechts außen: ihr Schein bleibt neben dem Lockup
   const UIS = {
@@ -20,12 +40,10 @@
 
   /* ---------- Vorbereitung ---------- */
   async function init() {
-    L97 = TH.look === '97'; PW = L97 ? 640 : 960; PH = (PW * 9) / 16; S = PW / W; UI = UIS[LANG]; X = window.GLX;
+    LK = LKS[TH.look] ?? LKS['2k']; HS = LK.hud; L97 = TH.look === '97'; LOW = L97 || TH.look === '99'; PW = LK.w; PH = (PW * 9) / 16; S = PW / W; UI = UIS[LANG]; X = window.GLX;
     X.init({ width: PW, height: PH, look: TH.look, images: IMG, colors: BR });
     hud = document.createElement('canvas'); hud.width = PW; hud.height = PH; hc = hud.getContext('2d');
-    ST = L97
-      ? { ink: BR.cream, soft: '#B4B9D0', acc: BR.orange, panel: 'rgba(4,7,20,0.8)', edge: BR.orange, rail: 'rgba(246,241,232,0.28)' }
-      : { ink: BR.cream, soft: BR.mutedDark, acc: BR.orange, panel: 'rgba(18,15,13,0.8)', edge: 'rgba(246,241,232,0.55)', rail: 'rgba(246,241,232,0.22)' };
+    ST = STS[HS];
     rise = X.test.orbit.rise(SUNX);
     /* Reise: Stationen wie in scJourney (Takte je Station), je Station ein Tor mit der Jahreszahl */
     const oj = OPT.journey, sj = SCENES.find((s) => s.id === 'journey');
@@ -44,18 +62,19 @@
     if (sl) { const per = clamp(Math.round(((OPT.labs.more ? 0.72 : 1) * sl.D) / 1.05 / LABS.length), 1, 5); labSeq = LABS.flatMap((lab, li) => lab.shots.filter((k) => IMG[k]).slice(0, per).map((key) => ({ key, aspect: 16 / 9, lab: li }))); }
     const sv = SCENES.find((s) => s.id === 'site');
     if (sv) siteSeq = pick([{ key: 'siteBeyond', top: 0 }, { key: 'siteHome', top: 0 }, { key: 'siteMob', aspect: 0.5, top: 0 }, { key: 'siteLabs', top: 0 }, { key: 'siteStory', top: 0 }, { key: 'siteHome', top: 1 }, { key: 'siteBeyond', top: 0.35 }, { key: 'siteLabs', top: 0.5 }, { key: 'siteStory', top: 0.3 }].filter((q) => IMG[q.key]), sv.D, 3);
+    if (TH.intro) prepIntro();
     originSeq = ORIGIN.filter((q) => IMG[q.img]).map((q) => ({ key: q.img, aspect: 1.36, it: q }));
     heroSeq = HERO.filter(([m]) => IMG[`hero_${m}_6`]).map((h) => ({ key: `hero_${h[0]}_6`, aspect: 0.5625, it: h }));
   }
   function yearTex(y) {
-    const w = L97 ? 256 : 512, h = w / 2;
+    const w = LOW ? 256 : 512, h = w / 2;
     return X.texCanvas(X.cv(w, h, (c) => {
       c.textAlign = 'center'; c.font = `800 ${h * 0.66}px ${MAN}`; const gr = c.createLinearGradient(0, h * 0.18, 0, h * 0.82); gr.addColorStop(0, BR.apricot); gr.addColorStop(0.55, BR.orange); gr.addColorStop(1, BR.signal);
       c.fillStyle = gr; c.fillText(y, w / 2, h * 0.74); c.fillStyle = BR.cream; c.fillRect(0, h * 0.04, w, h * 0.035); c.fillRect(0, h * 0.925, w, h * 0.035);
     }), { aspect: 2 });
   }
   function wordTex(str, big) {
-    const h = L97 ? (big ? 64 : 40) : big ? 128 : 72, font = `${big ? 800 : 600} ${h * 0.7}px ${MAN}`, m = X.cv(4, 4).getContext('2d'); m.font = font; const w = Math.ceil(m.measureText(str).width + h * 0.5);
+    const h = LOW ? (big ? 64 : 40) : big ? 128 : 72, font = `${big ? 800 : 600} ${h * 0.7}px ${MAN}`, m = X.cv(4, 4).getContext('2d'); m.font = font; const w = Math.ceil(m.measureText(str).width + h * 0.5);
     return X.texCanvas(X.cv(w, h, (c) => { c.font = font; c.fillStyle = big ? BR.cream : '#B4B9D0'; c.fillText(str, h * 0.25, h * 0.72); if (big) { c.fillStyle = BR.orange; c.fillRect(h * 0.25, h * 0.88, w - h * 0.5, h * 0.06); } }), { mip: false });
   }
 
@@ -63,10 +82,14 @@
   function drawHud(fn) { const keep = g; g = hc; g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, PW, PH); g.setTransform(S, 0, 0, S, 0, 0); try { fn(); } finally { g.restore(); g = keep; } }
   const sn = (v) => Math.round(v * S) / S; // auf das Raster des Bildspeichers
   const u = 3; // eine Rasterzeile von Look 97 in HD-Maßen
-  /* Feld hinter Text: Look 97 mit Winkeln in den Ecken, Look 2000 mit heller Oberkante */
+  /* Feld hinter Text, je Look anders: 97 mit Winkeln in den Ecken, 99 mit orangem Balken links, 2000 mit heller Oberkante,
+     2001 gläsern mit runder Haarlinie, 2003 mit oranger Unterkante, 2005 als Verlauf, der nach rechts ausläuft */
   function box(x, y, w, h, a = 1) {
     x = sn(x); y = sn(y); w = sn(w); h = sn(h); if (a <= 0) return;
+    if (HS === 'glas') { g.save(); g.globalAlpha *= a; rr(x, y, w, h, 18); g.fillStyle = ST.panel; g.fill(); g.strokeStyle = ST.edge; g.lineWidth = 2; g.stroke(); g.restore(); return; }
+    if (HS === 'licht') { g.save(); g.globalAlpha *= a; const gr = g.createLinearGradient(x, 0, x + w, 0); gr.addColorStop(0, ST.panel); gr.addColorStop(0.62, ST.panel); gr.addColorStop(1, 'rgba(12,10,9,0.5)'); g.fillStyle = gr; g.fillRect(x, y, w, h); g.fillStyle = ST.edge; g.fillRect(x, y, 2, h); g.restore(); return; }
     g.save(); g.globalAlpha *= a; g.fillStyle = ST.panel; g.fillRect(x, y, w, h); g.fillStyle = ST.edge;
+    if (HS === 'band') g.fillRect(x, y, 2 * u, h); else if (HS === 'kino') g.fillRect(x, y + h - u, w, u); else
     if (L97) { const t = u, l = 8 * u; for (const [cx, cy, sx, sy] of [[x, y, 1, 1], [x + w, y, -1, 1], [x, y + h, 1, -1], [x + w, y + h, -1, -1]]) { g.fillRect(sx < 0 ? cx - l : cx, sy < 0 ? cy - t : cy, l, t); g.fillRect(sx < 0 ? cx - t : cx, sy < 0 ? cy - l : cy, t, l); } } else g.fillRect(x, y, w, 2);
     g.restore();
   }
@@ -76,6 +99,8 @@
   const fitm = (str, max, size, min, weight = 500, fam = MAN) => Math.max(min, fit(str, max, size, weight, fam)); // passt an, aber nie kleiner als min
   const clipX = (x, w, fn) => { g.save(); g.beginPath(); g.rect(x, 0, w, H); g.clip(); fn(); g.restore(); };
   const tc = (x) => `${String(Math.floor(x / 60)).padStart(2, '0')}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
+  /* Farbtiefe des Bildspeichers, wie sie wirklich ist: 16 bit (gedithert), 32 bit oder Halbfloat für den großen Helligkeitsumfang */
+  const bits = () => (LOW ? '16 Bit' : X.hdr ? 'HDR 64 Bit' : '32 Bit');
   /* Titel in zwei Teilen: erster Manrope, zweiter Instrument Serif kursiv in Orange (wie titlePair in scenes.js) */
   function pair(a, b, x, y, maxW, size, lt, b0 = 1) {
     const ts = fit(`${a} ${b}`, maxW, size, 700), w = layoutLine(tokens(a), ts, { weight: 700 }).width;
@@ -83,24 +108,122 @@
     drawLine(tokens(b, { serif: true }), x + w + ts * 0.3, y, ts, seg(lt, (b0 + 1) * B, (b0 + 1) * B + 0.3), { style: 'mask', color: ST.acc });
     return ts;
   }
-  /* Rahmen des Laufs: Test und Kapitel, Bildrate, Dreiecke, Bildspeicher, Zeit, Fortschritt mit den Grenzen der Tests */
+  /* Rahmen des Laufs: Test und Kapitel, Bildrate, Dreiecke, Bildspeicher, Zeit, Fortschritt mit den Grenzen der Tests — je Look anders gestaltet.
+     Mit Intro zählt der Auftakt nicht als Test. */
   function chrome(t, s, tris, a) {
     if (a <= 0.01) return; g.save(); g.globalAlpha = a;
-    const n = SCENES.length, lab = `${UI.test} ${String(s.i + 1).padStart(2, '0')}/${String(n).padStart(2, '0')}`, chap = T.chapters[s.id] ?? '', lw = monoW(lab, 30, 700), k = Math.exp(-(t - s.t0) * 5);
-    box(48, 42, lw + monoW(chap) + 78, 66);
-    if (k > 0.03 && s.i > 0) { g.fillStyle = rgba(BR.orange, 0.5 * k); g.fillRect(48, 42, sn(lw + monoW(chap) + 78), 66); }
-    mono(lab, 66, 87, { color: ST.acc, weight: 700 }); mono(chap, 66 + lw + 42, 87);
-    const pl = `${fmtInt(tris, LANG)} ${UI.polys}`, bf = `${PW}×${PH} · ${L97 ? 16 : 32} Bit`, bw = Math.max(monoW(pl), monoW(bf), 300) + 36;
-    box(W - 48 - bw, 42, bw, 156);
-    mono('30 FPS', W - 66, 93, { size: 42, weight: 700, color: ST.acc, align: 'right' }); mono(pl, W - 66, 138, { align: 'right' }); mono(bf, W - 66, 178, { align: 'right', color: ST.soft });
-    const tm = `${tc(t)} / ${tc(DUR)}`; box(48, H - 108, monoW(tm) + 36, 48); mono(tm, 66, H - 73);
-    const x0 = 48, bwid = W - 96, by = sn(H - 42);
-    g.fillStyle = ST.rail; g.fillRect(x0, by, bwid, 2 * u); g.fillStyle = ST.acc; g.fillRect(x0, by, sn((bwid * t) / DUR), 2 * u);
-    g.fillStyle = ST.ink; for (const q of SCENES) if (q.i > 0) g.fillRect(sn(x0 + (bwid * q.t0) / DUR), by - u, u, 4 * u);
+    const off = TH.intro ? 1 : 0, n = SCENES.length - off, lab = `${UI.test} ${String(s.i + 1 - off).padStart(2, '0')}/${String(n).padStart(2, '0')}`, chap = T.chapters[s.id] ?? '', lw = monoW(lab, 30, 700), k = Math.exp(-(t - s.t0) * 5);
+    const pl = `${fmtInt(tris, LANG)} ${UI.polys}`, bf = `${PW}×${PH} · ${bits()}`, tm = `${tc(t)} / ${tc(DUR + 0.01)}`, tests = SCENES.filter((q) => q.i >= off), tA = tests[0].t0, pos = (x0, w, tt) => sn(x0 + (w * (tt - tA)) / (DUR - tA));
+    const scrim = (h, top) => { const gr = g.createLinearGradient(0, top ? 0 : H - h, 0, top ? h : H); gr.addColorStop(top ? 0 : 1, 'rgba(0,0,0,0.6)'); gr.addColorStop(top ? 1 : 0, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, top ? 0 : H - h, W, h); };
+    if (HS === 'band') {
+      /* 99: zwei durchgehende Bänder */
+      g.fillStyle = 'rgba(4,7,22,0.92)'; g.fillRect(0, 0, W, 66); g.fillRect(0, H - 66, W, 66);
+      if (k > 0.03) { g.fillStyle = rgba(BR.orange, 0.5 * k); g.fillRect(0, 0, sn(lw + monoW(chap) + 132), 66); }
+      g.fillStyle = ST.acc; g.fillRect(0, 66, W, u); g.fillRect(0, H - 66 - u, W, u);
+      mono(lab, 48, 45, { color: ST.acc, weight: 700 }); mono(chap, 48 + lw + 36, 45); mono(`30 FPS · ${pl} · ${bf}`, W - 48, 45, { align: 'right' });
+      mono(tm, 48, H - 22); const x0 = sn(48 + monoW(tm) + 48), bw = W - 48 - x0, by = sn(H - 39);
+      g.fillStyle = ST.rail; g.fillRect(x0, by, bw, 2 * u); g.fillStyle = ST.acc; g.fillRect(x0, by, pos(0, bw, t), 2 * u); g.fillStyle = ST.ink; for (const q of tests) if (q.t0 > tA) g.fillRect(pos(x0, bw, q.t0), by - u, u, 4 * u);
+    } else if (HS === 'glas') {
+      /* 2001: keine Felder — eine orange Linie mit zwei Zeilen links, die Bildrate groß rechts, unten eine Haarlinie mit Marke */
+      scrim(230, true); scrim(170, false);
+      g.fillStyle = ST.acc; g.fillRect(60, 48, 4, 88); mono(lab, 86, 78, { size: 26, color: ST.acc, weight: 700 }); text(chap, 86, 130, { size: 46, weight: 700, color: ST.ink, ls: -0.5 });
+      text('30', W - 150, 118, { size: 88, weight: 500, align: 'right', color: ST.ink, ls: -3 }); mono('FPS', W - 60, 118, { align: 'right', color: ST.acc, weight: 700 }); mono(pl, W - 60, 160, { align: 'right', size: 26 }); mono(bf, W - 60, 196, { align: 'right', size: 26, color: ST.soft });
+      const x0 = 60, bw = W - 120 - monoW(tm, 26) - 40, by = sn(H - 60);
+      g.fillStyle = ST.rail; g.fillRect(x0, by, bw, 2); for (const q of tests) g.fillRect(pos(x0, bw, q.t0), by - 8, 2, 18);
+      g.fillStyle = ST.acc; g.fillRect(x0, by - 1, pos(0, bw, t), 4); g.beginPath(); g.arc(x0 + pos(0, bw, t), by + 1, 9, 0, 7); g.fill();
+      mono(tm, W - 60, H - 50, { align: 'right', size: 26 });
+    } else if (HS === 'kino') {
+      /* 2003: Breitbild — die Angaben stehen in den schwarzen Balken, der Fortschritt läuft auf der Kante */
+      g.fillStyle = '#000'; g.fillRect(0, 0, W, 132); g.fillRect(0, H - 132, W, 132);
+      mono(lab, 60, 82, { color: ST.acc, weight: 700 }); mono(chap, 60 + lw + 36, 82); mono(`30 FPS  ·  ${pl}  ·  ${bf}`, W - 60, 82, { align: 'right', color: ST.soft });
+      mono(tm, 60, H - 56); const by = sn(H - 132);
+      g.fillStyle = ST.rail; g.fillRect(0, by, W, u); g.fillStyle = ST.acc; g.fillRect(0, by, pos(0, W, t), u + 1); g.fillStyle = ST.ink; for (const q of tests) if (q.t0 > tA) g.fillRect(pos(0, W, q.t0), by, u, 14);
+      if (k > 0.03) { g.fillStyle = rgba(BR.orange, 0.8 * k); g.fillRect(0, 129, sn(W * (1 - k)), 3); }
+    } else if (HS === 'licht') {
+      /* 2005: Lichtverläufe statt Felder, die Tests als Punktreihe */
+      scrim(250, true); scrim(190, false);
+      mono(lab, 60, 76, { size: 26, color: ST.soft }); text(chap, 60, 130, { size: 50, weight: 600, color: ST.ink, ls: -0.8 }); g.fillStyle = ST.acc; g.fillRect(60, 150, sn(120 + 200 * k), 3);
+      text('30', W - 148, 122, { size: 96, weight: 500, align: 'right', color: ST.ink, ls: -4, alpha: 0.92 }); mono('FPS', W - 60, 122, { align: 'right', color: ST.acc, weight: 700 }); mono(pl, W - 60, 164, { align: 'right', size: 26 }); mono(bf, W - 60, 200, { align: 'right', size: 26, color: ST.soft });
+      mono(tm, 60, H - 52, { size: 26 });
+      const gap = Math.min(40, 900 / tests.length), x0 = W / 2 - ((tests.length - 1) * gap) / 2;
+      tests.forEach((q, i) => { const on = q.i === s.i, done = q.i < s.i; g.beginPath(); g.arc(x0 + i * gap, H - 62, on ? 10 : 6, 0, 7); if (on) { g.fillStyle = ST.acc; g.fill(); } else if (done) { g.fillStyle = ST.ink; g.fill(); } else { g.strokeStyle = ST.rail; g.lineWidth = 2; g.stroke(); } });
+      if (s.i < SCENES.length) { const q = (t - s.t0) / s.D, xi = x0 + (s.i - off) * gap; g.strokeStyle = ST.acc; g.lineWidth = 3; g.beginPath(); g.arc(xi, H - 62, 17, -Math.PI / 2, -Math.PI / 2 + q * Math.PI * 2); g.stroke(); }
+    } else {
+      box(48, 42, lw + monoW(chap) + 78, 66);
+      if (k > 0.03 && s.i > 0) { g.fillStyle = rgba(BR.orange, 0.5 * k); g.fillRect(48, 42, sn(lw + monoW(chap) + 78), 66); }
+      mono(lab, 66, 87, { color: ST.acc, weight: 700 }); mono(chap, 66 + lw + 42, 87);
+      const bw = Math.max(monoW(pl), monoW(bf), 300) + 36;
+      box(W - 48 - bw, 42, bw, 156);
+      mono('30 FPS', W - 66, 93, { size: 42, weight: 700, color: ST.acc, align: 'right' }); mono(pl, W - 66, 138, { align: 'right' }); mono(bf, W - 66, 178, { align: 'right', color: ST.soft });
+      box(48, H - 108, monoW(tm) + 36, 48); mono(tm, 66, H - 73);
+      const x0 = 48, bwid = W - 96, by = sn(H - 42);
+      g.fillStyle = ST.rail; g.fillRect(x0, by, bwid, 2 * u); g.fillStyle = ST.acc; g.fillRect(x0, by, sn((bwid * t) / DUR), 2 * u);
+      g.fillStyle = ST.ink; for (const q of SCENES) if (q.i > 0) g.fillRect(sn(x0 + (bwid * q.t0) / DUR), by - u, u, 4 * u);
+    }
     g.restore();
   }
 
+  /* ---------- Intro (Looks mit TH.intro): Montage aus den Tests des Looks, dann der Titel ---------- */
+  /* Reihenfolge der Tests in der Montage (der erste, längste Schnitt zeigt die Szene, die den Jahrgang ausmacht) und der Zeitpunkt, an dem jeder gut aussieht */
+  const SEQ = { 99: ['moon', 'tunnel', 'hall', 'gold', 'galaxy', 'screens'], '2k': ['tunnel', 'moon', 'hall', 'gold', 'galaxy', 'screens'], '01': ['pool', 'moon', 'hall', 'orbit', 'gold', 'tunnel'], '03': ['orrery', 'pool', 'moon', 'tunnel', 'hall', 'gold'], '05': ['station', 'orrery', 'pool', 'moon', 'hall', 'gold'] };
+  const OFF = { moon: 5, tunnel: 2, hall: 3, gold: 2, galaxy: 5, screens: 3.2, pool: 4, orrery: 3, station: 5.5, orbit: 7 };
+  const SLOW = () => (TH.look === '01' ? 0.45 : TH.look === '05' ? 0.6 : 1);
+  /* Schnitte in Schlägen: vom Titel rückwärts gezählt werden sie länger — zum Titel hin also kürzer (2001 und 2005 lassen sich Zeit) */
+  function prepIntro() {
+    const tL = logoLock(SCENES[0].D), nb = Math.round(tL / B), want = SLOW() < 1 ? [2, 2, 4, 4, 8, 8, 8, 8, 8] : [1, 1, 1, 1, 2, 2, 2, 4, 4, 4, 8, 8, 8, 8], len = [], seq = SEQ[TH.look];
+    let sum = 0; for (const w of want) { if (sum >= nb) break; const n = Math.min(w, nb - sum); len.unshift(n); sum += n; }
+    if (sum < nb) len[0] += nb - sum;
+    if (len.length > 2 && len[0] < len[1]) len.splice(0, 2, len[0] + len[1]); // kein kurzer Rest am Anfang
+    let b = 0; cuts = len.map((n, k) => { const c = { t0: b * B, t1: (b + n) * B, id: seq[k % seq.length], k }; b += n; return c; });
+  }
+  const cutAt = (lt) => cuts.find((q) => lt < q.t1) ?? cuts[cuts.length - 1];
+  const INTRO = {
+    d3(lt, D) {
+      const tL = logoLock(D);
+      /* Titel: ruhiger Mondhorizont, die Sonne steht rechts außen — ihr Licht bleibt neben dem Lockup */
+      if (lt >= tL) { X.test.orbit.draw(lt - tL + 20, D, { sunX: SUNX, calm: true, sun: rise + (1 - rise) * (0.3 + 0.45 * ((lt - tL) / (D - tL))) }); return; }
+      const c = cutAt(lt), q = lt - c.t0, dur = c.t1 - c.t0, test = X.test[c.id] ?? X.test.orbit;
+      /* 99: jeder Schnitt beginnt als Drahtgitter und wird zur Fläche */
+      if (TH.look === '99') { const w = q / dur; X.wireC = [1, 0.47, 0.09]; X.wireK = w < 0.5 ? 1 : clamp(1 - (w - 0.5) * 5) * 0.9; }
+      test.draw(OFF[c.id] + c.k * 1.9 + q * SLOW(), test.dur, c.id === 'screens' ? { images: labSeq } : c.id === 'orbit' ? { sun: 0.85 } : {});
+    },
+    /* Lichtblitz auf der Szene: zum Titel bei allen; an den Schnitten bei 2000 und 2003, bei 99 beim Wechsel vom Gitter zur Fläche */
+    flash(lt, D) {
+      const tL = logoLock(D); if (lt >= tL) return 0.36 * Math.exp(-(lt - tL) * 7);
+      const c = cutAt(lt), q = lt - c.t0, dur = c.t1 - c.t0;
+      if (TH.look === '99') return q >= dur / 2 ? 0.4 * Math.exp(-(q - dur / 2) * 11) : 0;
+      return (TH.look === '2k' || TH.look === '03') && c.k > 0 ? (TH.look === '2k' ? 0.5 : 0.3) * Math.exp(-q * 10) : 0;
+    },
+    /* Abblenden: vor dem Titel ins Schwarz; 2001 und 2005 tauchen an jedem Schnitt kurz ab */
+    dip(lt, D) {
+      const tL = logoLock(D); if (lt >= tL) return 0;
+      const c = cutAt(lt), q = lt - c.t0, dur = c.t1 - c.t0, soft = SLOW() < 1 ? Math.max(1 - seg(q, 0, c.k ? 0.28 : 0.9), seg(q, dur - 0.22, dur)) : 0;
+      return Math.max(soft, seg(lt, tL - 0.6, tL - 0.32)); // schwarz, bevor das Zeichen erscheint
+    },
+    /* Bildausschnitt: 99 springt beim Wechsel zur Fläche nach vorn, 2000 und 2003 zucken am Schnitt, 2001 fährt langsam heran, 2005 langsam zurück */
+    zoom(lt, D) {
+      const tL = logoLock(D); if (lt >= tL - 0.62) return 1;
+      const c = cutAt(lt), q = lt - c.t0, dur = c.t1 - c.t0;
+      return TH.look === '99' ? (q >= dur / 2 ? 1 + 0.16 * Math.exp(-(q - dur / 2) * 8) : 1) : TH.look === '01' ? 1 + 0.06 * (q / dur) : TH.look === '05' ? 1.07 - 0.07 * (q / dur) : 1 + 0.05 * Math.exp(-q * 9);
+    },
+    /* Nachbearbeitung: 2003 glüht stärker, 2005 öffnet die Blende langsam (aus dem Dunkel in das Licht) */
+    post(lt, D) { const tL = logoLock(D); return { bloom: TH.look === '03' && lt < tL ? 1.7 : TH.look === '05' && lt < tL ? 1.35 : 1, expo: TH.look === '05' && cuts.length ? lerp(0.22, 1, smooth01(lt / (cuts[0].t1 * 0.8))) : 1 }; },
+    chrome() { return 0; },
+    bars(lt) { return (HS === 'kino' ? 132 : 100) * eOut(seg(lt, 0, 0.5)); },
+    hud(lt, D) {
+      const tL = logoLock(D), cx = W / 2, cy = 462, m = 150, pm = seg(lt, tL - 0.3, tL);
+      /* das Zeichen kommt mit dem Reveal der Marke aus dem Schwarz und steht auf dem Schlag; dann die Wortmarke, Name und Rolle, die Zeile mit dem Look */
+      if (pm > 0) lockup(cx, cy, m, BR.cream, { pm, pw: seg(lt, tL + 0.04, tL + 0.5) });
+      if (lt < tL) return;
+      const t2 = lt - tL, tag = `${NAME} · ${ROLE}`, yl = `Benchmark ${LK.yr}`, wl = monoW(yl, 36, 700) + 84, y0 = cy + m * 0.5;
+      text(tag, cx, y0 + 96, { size: fit(tag, W - 420, 34, 500, MONO), weight: 500, fam: MONO, align: 'center', color: ST.soft, alpha: beat(t2, 1) });
+      box(cx - wl / 2, y0 + 150, wl, 68, beat(t2, 2)); mono(yl, cx, y0 + 197, { size: 36, weight: 700, color: ST.acc, align: 'center', alpha: beat(t2, 2) });
+    },
+  };
+
   /* ---------- die Tests: d3 zeichnet die 3D-Szene, hud die Inhalte ---------- */
+  /* Hintergrund je Look, wo er wechselt: der Claim steht vor der Szene, die den Jahrgang ausmacht */
+  const back = (lt, D, o) => { const id = o[TH.look] ?? o.x, q = typeof id === 'string' ? [id, {}] : id; X.test[q[0]].draw(lt, D, q[1]); };
   const SC = {
     /* Auftakt: Mondhorizont. Der Sweep des Zeichens läuft als Lader, daneben die Daten des Laufs; auf dem Schlag tritt die Sonne über den Rand
        und das Zeichen wird zum Lockup. */
@@ -126,9 +249,11 @@
     },
     /* Anspruch: Partikel-Galaxie rechts, der Claim links */
     claim: {
-      d3(lt, D) { X.test.galaxy.draw(lt, D, { side: 8.5 }); },
+      d3(lt, D) { back(lt, D, { x: ['galaxy', { side: 8.5 }], '01': ['pool', { side: 5 }], '03': ['orrery', { side: 5.2 }], '05': 'station' }); },
       hud(lt) {
         const x = 130, y0 = 500;
+        /* ab 2001 steht der Claim vor einer hellen Szene: ein dunkler Verlauf von links hält ihn lesbar */
+        if (X.cfg.pp) { const gr = g.createLinearGradient(0, 0, 1250, 0); gr.addColorStop(0, 'rgba(8,7,6,0.78)'); gr.addColorStop(0.55, 'rgba(8,7,6,0.6)'); gr.addColorStop(1, 'rgba(8,7,6,0)'); g.fillStyle = gr; g.fillRect(0, HS === 'kino' ? 132 : 0, 1250, HS === 'kino' ? H - 264 : H); }
         mono(T.claimKicker, x, y0 - 190, { color: ST.acc, alpha: beat(lt, 0) });
         drawLine(tokens(CLAIM[0]), x, y0, 156, seg(lt, B, B + 0.35), { style: 'mask', color: ST.ink });
         drawLine(tokens(CLAIM[1], { serif: true }), x, y0 + 172, 156, seg(lt, 2 * B, 2 * B + 0.35), { style: 'mask', color: ST.acc });
@@ -137,7 +262,7 @@
     },
     /* Person: Glaskugeln unter farbigen Lichtern; links wer, rechts die Kennzahlen */
     person: {
-      d3(lt, D) { X.test.hall.draw(lt, D); },
+      d3(lt, D) { back(lt, D, { x: 'hall', '03': 'pool', '05': 'orrery' }); },
       hud(lt) {
         const x = 138;
         box(96, 228, 1050, 690, beat(lt, 0));
@@ -235,7 +360,7 @@
           lines.forEach((ln, q) => text(ln, x, y0 + 126 + q * 58, { size: 38, weight: 600, color: ST.ink, alpha: eOut(seg(lt, D1 + 0.1 + q * B * 0.5, D1 + 0.35 + q * B * 0.5)) }));
         }
         /* SPREE|FALL zeigt Karten aus OpenStreetMap — der Hinweis steht, solange dessen Bilder im Lauf sind */
-        if (labSeq.some((q) => LABS[q.lab].credit)) { const w = monoW(T.osm, 27) + 36; box(W - 48 - w, H - 108, w, 48, beat(lt, 3)); mono(T.osm, W - 66, H - 75, { size: 27, align: 'right', color: ST.ink, alpha: beat(lt, 3) }); }
+        if (labSeq.some((q) => LABS[q.lab].credit)) { const w = monoW(T.osm, 27) + 36, cy = HS === 'band' ? H - 132 : HS === 'glas' || HS === 'licht' ? H - 170 : HS === 'kino' ? H - 198 : H - 108; box(W - 48 - w, cy, w, 48, beat(lt, 3)); mono(T.osm, W - 66, cy + 33, { size: 27, align: 'right', color: ST.ink, alpha: beat(lt, 3) }); }
       },
     },
     /* Plattform: Look 2000 fliegt an Ansichten der neuen Website vorbei; Look 97 zeigt sie als 2D-Test (ein Bild scrollt und zoomt, kleinere ziehen darüber) */
@@ -343,7 +468,7 @@
     },
     /* Zitat aus den Labs */
     quote: {
-      d3(lt, D, s) { X.test.galaxy.draw(lt + (s.id === 'quote2' ? 30 : 0), D, { dist: 40 }); },
+      d3(lt, D, s) { const t0 = lt + (s.id === 'quote2' ? 30 : 0); back(t0, D, { x: ['galaxy', { dist: 40 }], '01': 'pool', '03': 'orrery', '05': s.id === 'quote2' ? 'pool' : 'orrery' }); },
       hud(lt, D, s) {
         const q = QUOTES[(OPT[s.id] ?? {}).i ?? 0], cx = W / 2, size = 72 * 1.14, str = LANG === 'en' ? `“${q.en}”` : `„${q.de}“`;
         const lines = wrapLines(str, 1300, size, 400, SER), lh = size * 1.16, hh = lines.length * lh + 210, y0 = 540 - hh / 2;
@@ -389,15 +514,20 @@
 
   /* ---------- ein Bild ---------- */
   function render(t) {
-    const s = CUR ?? sceneAt(t), lt = clamp(t - s.t0, 0, s.D), D = s.D, sc = SC[s.id] ?? SC.claim;
+    const s = CUR ?? sceneAt(t), lt = clamp(t - s.t0, 0, s.D), D = s.D, intro = s.id === 'logo' && !!TH.intro, sc = intro ? INTRO : SC[s.id] ?? SC.claim;
     X.begin(); sc.d3(lt, D, s); const tris = X.stats.tris;
     drawHud(() => { sc.hud(lt, D, s); chrome(t, s, tris, sc.chrome ? sc.chrome(lt, D) : 1); });
     /* Wechsel der Tests als harter Schnitt durchs Schwarz; Auf- und Abblende des Films wie in finish() */
     let k = 0; if (s.i > 0) k = Math.max(k, 1 - seg(lt, 0, 0.18)); if (s.i < SCENES.length - 1) k = Math.max(k, seg(lt, D - 0.1, D));
     k = Math.max(k, 1 - eOut(seg(t, 0, 0.25)), eIn(seg(t, DUR - 0.5, DUR - 0.05)));
-    const fl = sc.flash ? sc.flash(lt, D) : 0;
-    X.end({ hud, flash: [0.965, 0.945, 0.91, fl], fade: [0, 0, 0, k] });
-    g.imageSmoothingEnabled = false; g.drawImage(X.canvas, 0, 0, W, H);
+    const fl = sc.flash ? sc.flash(lt, D) : 0, po = sc.post ? sc.post(lt, D) : {}, zoom = sc.zoom ? sc.zoom(lt, D) : 1;
+    /* das Abtauchen des Intros trifft nur die Szene, nicht das Zeichen darüber: als dunkler Lichtblitz */
+    const dip = sc.dip ? sc.dip(lt, D) : 0;
+    X.end({ hud, flash: dip > fl ? [0, 0, 0, dip] : [0.965, 0.945, 0.91, fl], fade: [0, 0, 0, k], bloom: po.bloom, expo: po.expo });
+    g.imageSmoothingEnabled = !!LK.soft;
+    if (zoom > 1.0005) { const sw = PW / zoom, sh = PH / zoom; g.drawImage(X.canvas, (PW - sw) / 2, (PH - sh) / 2, sw, sh, 0, 0, W, H); } else g.drawImage(X.canvas, 0, 0, W, H);
+    /* Intro: Balken oben und unten (Kinoformat) */
+    if (sc.bars) { const hb = sc.bars(lt, D); g.fillStyle = '#000'; g.fillRect(0, 0, W, hb); g.fillRect(0, H - hb, W, hb); }
   }
   RETRO.gl = { init, render };
 })();

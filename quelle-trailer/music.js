@@ -1,7 +1,9 @@
 /* Trailer — eigene Musik, vollständig im Browser synthetisiert (Web Audio, OfflineAudioContext) — keine Samples, keine fremden Rechte.
    Zwölf Stücke über dasselbe Leitmotiv in d-Moll (Dm · B♭ · F · C): Cinematic 96 BPM, Treibend 128 BPM, Ruhig 80 BPM, Action 160 BPM —
    dazu Trance 136, Hardstyle 152, Eurodance 128, Rave 144 und Demoszene (Chip-Klang) 120 BPM, und für die Retro-Looks Demo 90
-   (Vier-Spur-Tracker, 8 bit) 128, Benchmark 97 (Acid-Trance) 136 und Benchmark 2000 (Big Beat mit verzerrtem Riff) 144 BPM.
+   (Vier-Spur-Tracker, 8 bit) 128, Benchmark 97 (Acid-Trance) 136 und Benchmark 2000 (Big Beat mit verzerrtem Riff) 144 BPM — und für die
+   Jahrgangs-Looks Benchmark 99 (Drum & Bass) 176, Benchmark 2001 (Streicher-Ostinato über Vier-Viertel) 128, Benchmark 2003 (Industrial im
+   halben Tempo) 152 und Benchmark 2005 (Orchester mit Taikos) 136 BPM. Hat eine Stimmung ein Intro, baut der Auftakt bis zum Titel auf.
    Die Stile sind nachempfunden, die Tonfolgen eigene — kein Stück zitiert ein fremdes.
    Das Arrangement folgt der Szenenfolge (REEL.scenes): jede Szene beginnt auf der Eins, Akzente liegen auf den Bildwechseln. */
 'use strict';
@@ -22,7 +24,7 @@ const RIFF = {
   rave: { Dm: [74, 74, 77, 74, 81, 81, 79, 77], Bb: [74, 74, 77, 74, 82, 82, 81, 77], F: [72, 72, 77, 72, 81, 81, 79, 77], C: [72, 72, 76, 72, 79, 79, 76, 74], Gm: [74, 74, 79, 74, 82, 82, 81, 79] },
 };
 /* Hall-Länge (s), Hall-Anteil und Höhenanhebung im Master (dB) je Stimmung */
-const MIX = { cine: [3.4, 0.8, 4], drive: [1.9, 0.55, 2.5], action: [1.5, 0.5, 3], calm: [3.8, 0.8, 4.5], trance: [3.0, 0.7, 3], hard: [1.8, 0.5, 2.5], euro: [1.8, 0.5, 3], rave: [1.7, 0.5, 2.5], demo: [1.2, 0.35, 2], old: [0.8, 0, 0], b97: [2.8, 0.65, 3], b2k: [1.6, 0.45, 2.5] };
+const MIX = { cine: [3.4, 0.8, 4], drive: [1.9, 0.55, 2.5], action: [1.5, 0.5, 3], calm: [3.8, 0.8, 4.5], trance: [3.0, 0.7, 3], hard: [1.8, 0.5, 2.5], euro: [1.8, 0.5, 3], rave: [1.7, 0.5, 2.5], demo: [1.2, 0.35, 2], old: [0.8, 0, 0], b97: [2.8, 0.65, 3], b2k: [1.6, 0.45, 2.5], b99: [1.6, 0.45, 3], b01: [3.0, 0.7, 3], b03: [1.8, 0.5, 2.5], b05: [3.4, 0.8, 5], mark: [2.0, 0.55, 3] };
 /* Akkordfolge einer Szene: beginnt auf Dm, der letzte Takt führt über C zurück */
 function progFor(n) { if (n === 1) return ['Dm']; if (n === 2) return ['Dm', 'C']; if (n === 3) return ['Dm', 'Bb', 'C']; const p = Array.from({ length: n }, (_, i) => P8[i % 8]); p[n - 1] = 'C'; if (n % 4 === 1) p[n - 2] = 'Gm'; return p; }
 const SECT = { logo: 'intro', claim: 'intro2', person: 'build', origin: 'soft', stack: 'main', journey: 'main', award: 'break', labs: 'drop', site: 'drop', family: 'soft', certs: 'main', outro: 'outro', focus: 'build', works: 'main', labsAll: 'main', hero: 'drop', quote: 'break', quote2: 'break' };
@@ -129,8 +131,10 @@ async function musicWindow(W0, W1) {
   const sc = REEL.scenes;
   sc.forEach((s, si) => {
     const sect0 = SECT[s.id], prog = progFor(s.bars), last = si === sc.length - 1, nextSect = last ? null : SECT[sc[si + 1].id];
+    /* Intro: bis zum Titel (logoLock) baut der Auftakt auf (ip = 0 … 1), danach steht der Titel-Satz */
+    const lockBar = s.id === 'logo' && TH.intro ? Math.round(logoLock(s.D) / BAR) : 0;
     for (let k = 0; k < s.bars; k++) {
-      const t0 = s.t0 + k * BAR, cn = prog[k], c = CH[cn], lastBar = k === s.bars - 1, sect = barSect(s, k);
+      const t0 = s.t0 + k * BAR, cn = prog[k], c = CH[cn], lastBar = k === s.bars - 1, sect = lockBar ? (k >= lockBar ? 'intro2' : 'intro') : barSect(s, k), ip = lockBar ? k / lockBar : 1;
       if (MOOD === 'cine') {
         const full = sect === 'main' || sect === 'drop', E = { intro: 0.5, intro2: 0.7, build: 0.85, soft: 0.75, main: 1, break: 0.8, drop: 1.15, outro: 0.8 }[sect];
         A.pad(t0, BAR + 0.6, c.pad, 0.03 * E, { cut: full ? 1500 : sect === 'intro' ? 520 : 950, cut1: sect === 'build' ? 2000 : undefined, att: 0.7, rel: 0.9 });
@@ -350,6 +354,103 @@ async function musicWindow(W0, W1) {
         if (sect === 'break') A.mel(t0, cn, (t, n, l) => A.piano(t, n + 12, 0.4, Math.max(1.6, l * 2), { wet: 0.8, dly: 0.3 }));
         /* jeden vierten Takt ein Acid-Schnörkel auf der Vier */
         if (full && k % 4 === 3) for (let e = 12; e < 16; e++) A.tone(t0 + e * S, S * 0.8, midi(R + 12 + [0, 12, 7, 12][e - 12]), 'sawtooth', 0.045, { decay: true, att: 0.003, cut: 900 + 700 * (e - 12), cut1: 300, cutT: 0.08, q: 10, dly: 0.2 });
+        if (lastBar && !last) { A.riser(t0, BAR, 0.22); if (sect === 'break' || sect === 'build' || nextSect === 'drop') for (let e = 0; e < 16; e++) A.snare(t0 + e * S, 0.05 + e * 0.014); else [3.5, 3.75].forEach((b) => A.snare(t0 + b * B, 0.22)); }
+      } else if (MOOD === 'b99') {
+        /* Benchmark 99 (176 BPM): Drum & Bass der späten Neunziger — Zweischritt-Break (Bassdrum auf 1 und „3 und“, Snare auf 2 und 4,
+           leise Zwischenschläge, jeden vierten Takt eine Variation), Reese-Bass aus zwei verstimmten Sägezähnen, weite Flächen, Zupf-Echos */
+        const full = sect === 'main' || sect === 'drop' || sect === 'outro', drums = full || sect === 'build' || sect === 'intro2' || sect === 'soft', E = { intro: 0.8, intro2: 0.9, build: 0.95, soft: 0.85, main: 1, break: 0.85, drop: 1.1, outro: 0.95 }[sect], S = B / 4;
+        A.pad(t0, BAR + 0.4, c.pad.map((n) => n + 12), (sect === 'intro' ? 0.03 : 0.016) * E, { wave: 'triangle', cut: sect === 'intro' ? 1100 + 1600 * ip : 2600, att: 0.25, rel: 0.5, wet: 0.7 });
+        const reese = (t, dur, n, g0, cut) => { [-16, 16].forEach((d, i) => A.tone(t, dur, midi(n + 12), 'sawtooth', g0, { det: d, att: 0.012, rel: 0.05, cut, cut1: cut * 0.55, cutT: dur, q: 2.5, pan: i ? 0.25 : -0.25 })); A.tone(t, dur, midi(n), 'sine', g0 * 2.2, { att: 0.012, rel: 0.05, cut: 300 }); };
+        if (sect === 'drop') [[0, 3], [3, 3], [6, 4], [10, 3], [13, 3]].forEach(([e, l], i) => reese(t0 + e * S, l * S - 0.01, c.bass + (i === 2 ? 12 : 0), 0.075 * E, 700 + 500 * ((k + i) % 2)));
+        else if (sect !== 'intro' && sect !== 'break') [[0, 8], [8, 6], [14, 2]].forEach(([e, l], i) => reese(t0 + e * S, l * S - 0.01, c.bass + (i === 2 ? 7 : 0), 0.07 * E, 520));
+        else A.sub(t0, BAR - 0.05, c.bass, sect === 'intro' ? 0.1 + 0.05 * ip : 0.08);
+        const DR = !drums ? (sect === 'intro' ? (ip > 0.55 ? 'K.h...h...K...h.' : '..h...h...h...h.') : '') : sect === 'soft' || sect === 'intro2' ? 'K.h.S.h...K.S.h.' : sect === 'build' ? 'K.h.S.h.h.K.S.h.' : k % 4 === 3 ? 'K.h.S.hgSgK.S.SS' : sect === 'drop' ? 'K.hKS.hg.hK.S.hg' : 'K.h.S.hg.hK.S.hg';
+        [...DR].forEach((ch, e) => { const t = t0 + e * S; if (ch === 'K') A.kick(t, sect === 'intro' ? 0.6 : 1, sect === 'intro' ? { lp: 300 + 900 * ip, soft: true } : { f0: 180, f1: 55, dec: 0.2 }); else if (ch === 'S') { A.snare(t, 0.42); A.noise(t, 0.1, 4200, 2600, 0.16, { type: 'bandpass', q: 0.8 }); } else if (ch === 'g') A.snare(t, 0.11); else if (ch === 'h') A.hat(t, 0.08, 0.03, 0.15); });
+        if (drums) for (let e = 1; e < 16; e += 2) A.hat(t0 + e * S, e % 4 === 3 ? 0.05 : 0.03, 0.02, -0.25);
+        for (let e = 0; e < 8; e++) A.pluck(t0 + (e * B) / 2, c.arp[[0, 2, 3, 1, 2, 3, 1, 2][e]] + 12, (sect === 'intro' ? 0.06 : 0.04) * E, { cut: sect === 'intro' ? 1400 + 2200 * ip : 3600, dur: 0.16, pan: e % 2 ? 0.5 : -0.5, dly: 0.45, wet: 0.3 });
+        if (sect === 'drop') { A.stab(t0, c.pad.map((n) => n + 12), 0.07, { dur: 0.4, wet: 0.5 }); A.stab(t0 + 6 * S, c.pad.map((n) => n + 12), 0.055, { dur: 0.3, wet: 0.5 }); A.mel(t0, cn, (t, n, l) => A.tone(t, l * 0.9, midi(n + 12), 'square', 0.045, { att: 0.006, rel: 0.05, cut: 4200, vib: 9, vibD: 0.14, wet: 0.4, dly: 0.45 })); }
+        else if (sect !== 'intro' && sect !== 'intro2') A.mel(t0, cn, (t, n, l) => A.bell(t, n + 12, sect === 'break' ? 0.08 : 0.06, { dur: Math.max(1.2, l * 2.2), dly: 0.4 }));
+        if (sect === 'break') A.mel(t0, cn, (t, n, l) => A.piano(t, n, 0.36, Math.max(1.4, l * 2), { wet: 0.8 }));
+        if (lastBar && !last) { A.riser(t0, BAR, 0.2); for (let e = 8; e < 16; e++) A.snare(t0 + e * S, 0.06 + (e - 8) * 0.03); }
+      } else if (MOOD === 'b01') {
+        /* Benchmark 2001 (128 BPM): Streicher-Ostinato in Sechzehnteln über einer Bassdrum auf jedem Schlag — die Mischung aus Orchester und
+           Trance, die um 2001 als „episch“ galt: lange Streicher, Pauke, Klavier-Motiv, im Höhepunkt eine Supersaw-Hymne */
+        const full = sect === 'main' || sect === 'drop' || sect === 'outro', drums = full || sect === 'build' || sect === 'intro2', E = { intro: 0.8, intro2: 0.9, build: 0.95, soft: 0.85, main: 1, break: 0.85, drop: 1.1, outro: 0.95 }[sect], S = B / 4;
+        const oc = sect === 'intro' ? 900 + 1900 * ip : sect === 'break' ? 1400 : 2800;
+        [0, 2, 1, 2, 3, 2, 1, 2, 0, 2, 1, 2, 3, 2, 3, 1].forEach((ix, e) => { if (sect === 'break' && e % 2) return; A.tone(t0 + e * S, S * 0.6, midi(c.arp[ix]), 'sawtooth', (e % 4 === 0 ? 0.06 : 0.042) * E, { decay: true, att: 0.004, cut: oc, cut1: oc * 0.4, cutT: 0.09, det: e % 2 ? 6 : -6, pan: e % 2 ? 0.35 : -0.35, wet: 0.5 }); if (full) A.tone(t0 + e * S, S * 0.6, midi(c.arp[ix] + 12), 'sawtooth', 0.02 * E, { decay: true, att: 0.004, cut: 3600, cut1: 1400, cutT: 0.09, pan: e % 2 ? -0.5 : 0.5, wet: 0.5 }); });
+        A.pad(t0, BAR + 0.5, c.pad, (sect === 'intro' ? 0.026 : 0.017) * E, { cut: full ? 2200 : 1300, att: 0.35, rel: 0.7, wet: 0.7 });
+        if (sect === 'break' || sect === 'drop') A.pad(t0, BAR + 0.6, c.pad.slice(1).map((n) => n + 12), 0.013 * E, { wave: 'triangle', cut: 3000, att: 0.5, rel: 0.8, wet: 0.8 });
+        if (sect !== 'break' && sect !== 'soft') { A.taiko(t0, c.bass, sect === 'intro' ? 0.4 + 0.3 * ip : 0.45); if (full || sect === 'intro2') [3, 3.5].forEach((b) => A.taiko(t0 + b * B, c.bass + (b === 3 ? 7 : 0), 0.3)); }
+        if (drums) for (let b = 0; b < 4; b++) { const tb = t0 + b * B; A.kick(tb, 0.9, { f0: 160, f1: 48, dec: 0.3, duck: 0.35 }); A.hat(tb + B / 2, 0.1, 0.08, 0.1); if (b % 2 && sect !== 'intro2') A.clap(tb, 0.2); if (sect === 'drop') { A.hat(tb + S, 0.03, 0.02, -0.3); A.hat(tb + 3 * S, 0.03, 0.02, 0.3); } }
+        else if (sect === 'soft') [0, 2].forEach((b) => A.kick(t0 + b * B, 0.65, { f0: 140, f1: 46, dec: 0.36 }));
+        if (sect !== 'intro' && sect !== 'break') for (let e = 0; e < 8; e++) { if (!full && e % 2) continue; A.bass(t0 + (e * B) / 2, B / 2 - 0.02, c.bass + (e % 4 === 3 ? 12 : 0), 0.13 * E, { cut: 800, cut1: 260, bus: drums ? duck : undefined }); }
+        else A.sub(t0, BAR - 0.1, c.bass, sect === 'intro' ? 0.1 + 0.04 * ip : 0.09);
+        if (sect === 'drop') A.mel(t0, cn, (t, n, l) => A.saw5(t, l * 0.95, n + 12, 0.036, { att: 0.02, rel: 0.14, cut: 4600, wet: 0.5, dly: 0.35 }));
+        else if (full) A.mel(t0, cn, (t, n, l) => { A.piano(t, n + 12, 0.34, Math.max(1.4, l * 2), { wet: 0.7, dly: 0.25 }); A.tone(t, l * 0.9, midi(n), 'sawtooth', 0.03, { att: 0.05, rel: 0.12, cut: 1500, wet: 0.6 }); });
+        else if (sect === 'break' || sect === 'build') A.mel(t0, cn, (t, n, l) => A.piano(t, n + (sect === 'break' ? 12 : 0), 0.36, Math.max(1.6, l * 2.2), { wet: 0.8, dly: 0.25 }));
+        if (lastBar && !last) { A.riser(t0, BAR, 0.2); for (let e = 8; e < 16; e++) A.taiko(t0 + e * S, c.bass + (e % 2 ? 7 : 0), 0.14 + (e - 8) * 0.04); if (nextSect === 'drop' || sect === 'build') for (let e = 0; e < 16; e++) A.snare(t0 + e * S, 0.04 + e * 0.012); }
+      } else if (MOOD === 'b03') {
+        /* Benchmark 2003 (152 BPM, gefühlt halbes Tempo): Industrial — tiefe Quint-Akkorde durch den Verzerrer in abgedämpften Sechzehnteln,
+           schwere Snare auf der Drei, Metallschläge, eine Sequenzer-Linie mit wanderndem Filter; im Höhepunkt Doppel-Bassdrum und Supersaw */
+        const full = sect === 'main' || sect === 'drop' || sect === 'outro', E = { intro: 0.8, intro2: 0.9, build: 0.95, soft: 0.85, main: 1, break: 0.85, drop: 1.1, outro: 0.95 }[sect], S = B / 4, R = c.bass + 12;
+        const fc = sect === 'intro' ? 800 + 1400 * ip : sect === 'build' ? 1100 + (1300 * k) / s.bars : 2600;
+        const chord = (t, l, d0, open, g0 = 1) => [-12, 0, 7].forEach((d, i) => A.tone(t, l * S * (open ? 0.96 : 0.5), midi(R + d0 + d), 'sawtooth', (open ? 0.19 : 0.16) * g0, { decay: !open, att: 0.003, rel: 0.03, det: (i - 1) * 7, cut: open ? fc : fc * 0.4, cut1: open ? fc * 0.6 : 240, cutT: open ? l * S : 0.06, q: 1.2, bus: distIn }));
+        const RF = [[0, 0, 2, 1], [2, 0, 1, 0], [3, 0, 1, 0], [5, 0, 1, 0], [6, 0, 1, 0], [8, 12, 1, 1], [9, 0, 1, 0], [10, 0, 2, 1], [12, 0, 1, 0], [13, 0, 1, 0], [14, 7, 2, 1]];
+        if (sect === 'intro2') chord(t0, 15, 0, true, 0.55); else if (sect === 'intro' || sect === 'build' || full) RF.forEach(([e, d, l, op]) => chord(t0 + e * S, l, d, op && full, sect === 'intro' ? 0.8 + 0.2 * ip : 1));
+        if (sect === 'break' || sect === 'intro') A.sub(t0, BAR - 0.1, c.bass, 0.1); else (full || sect === 'build' ? RF : [[0, 0, 8], [8, 0, 6], [14, 7, 2]]).forEach(([e, d, l]) => A.bass(t0 + e * S, l * S - 0.015, c.bass + (d === 7 ? 7 : 0), 0.14 * E, { cut: 600, cut1: 220 }));
+        /* Sequenzer: Rechteck in Sechzehnteln über die Akkordtöne, das Filter schwingt über zwei Takte */
+        [0, 3, 1, 3, 2, 3, 1, 3, 0, 3, 1, 3, 2, 3, 2, 1].forEach((ix, e) => { const sw = 0.5 - 0.5 * Math.cos(Math.PI * (s.b0 + k + e / 16)); A.tone(t0 + e * S, S * 0.7, midi(c.arp[ix] + (sect === 'drop' ? 12 : 0)), 'square', (sect === 'break' || sect === 'intro' ? 0.045 : 0.028) * E, { decay: true, att: 0.003, cut: 700 + 2600 * sw, cut1: 400, cutT: 0.1, q: 6, pan: e % 2 ? 0.45 : -0.45, dly: 0.3, wet: 0.2 }); });
+        if (sect === 'break' || sect === 'soft' || sect === 'intro2') A.pad(t0, BAR + 0.4, c.pad, 0.018 * E, { cut: 1200, att: 0.3, rel: 0.6, wet: 0.7 });
+        const DR = sect === 'drop' ? (k % 2 ? 'K..K..K.S...KKKK' : 'K..K..K.S..K..K.') : full ? 'K.....K.S...K...' : sect === 'build' || sect === 'soft' ? 'K.......S.......' : sect === 'intro2' ? 'K.......S...K...' : sect === 'intro' ? (ip > 0.45 ? 'K.......K.......' : 'K...............') : '';
+        [...DR].forEach((ch, e) => { const t = t0 + e * S; if (ch === 'K') A.kick(t, sect === 'intro' ? 0.6 : 1, { f0: 170, f1: 46, dec: 0.3, soft: sect === 'intro' }); else if (ch === 'S') { A.snare(t, 0.5); A.clap(t, 0.2); A.noise(t, 0.35, 2500, 900, 0.14, { type: 'bandpass', q: 0.7, wet: 0.6 }); } });
+        if (full) { [4, 14].forEach((e) => A.noise(t0 + e * S, 0.09, 1900, 1700, 0.13, { type: 'bandpass', q: 9, pan: e === 4 ? 0.3 : -0.3, wet: 0.3 })); for (let e = 0; e < 16; e++) A.hat(t0 + e * S, e % 4 === 0 ? 0.07 : 0.03, 0.022, e % 2 ? 0.2 : -0.2); }
+        else if (sect === 'build' || sect === 'soft') for (let e = 0; e < 8; e++) A.hat(t0 + (e * B) / 2, 0.05, 0.03, e % 2 ? 0.2 : -0.2);
+        if (sect === 'drop') A.mel(t0, cn, (t, n, l) => A.saw5(t, l * 0.95, n + 12, 0.034, { att: 0.015, rel: 0.12, cut: 4200, wet: 0.45, dly: 0.35 }));
+        else if (full) A.mel(t0, cn, (t, n, l) => A.bell(t, n + 12, 0.06, { dur: Math.max(1.2, l * 2.2), dly: 0.4 }));
+        else if (sect === 'break') A.mel(t0, cn, (t, n, l) => A.piano(t, n, 0.4, Math.max(1.6, l * 2.2), { wet: 0.85, dly: 0.25 }));
+        if (lastBar && !last) { A.riser(t0, BAR, 0.22); for (let e = 8; e < 16; e++) A.snare(t0 + e * S, 0.06 + (e - 8) * 0.035); if (nextSect === 'drop') for (let e = 12; e < 16; e++) A.kick(t0 + e * S, 0.8, { f0: 170, f1: 46, dec: 0.12 }); }
+      } else if (MOOD === 'b05') {
+        /* Benchmark 2005 (136 BPM, gefühlt halbes Tempo): Orchester mit Taikos — liegende Streicher über dem Kontrabass, Spiccato in Achteln
+           (im Höhepunkt Sechzehntel), Taiko-Figuren, das Motiv in den Hörnern, Blech-Stöße im Höhepunkt, Klavier im Break */
+        const full = sect === 'main' || sect === 'drop' || sect === 'outro', E = { intro: 0.8, intro2: 0.9, build: 0.95, soft: 0.85, main: 1, break: 0.85, drop: 1.1, outro: 0.95 }[sect], S = B / 4, iv = sect === 'intro' ? ip : 1;
+        A.pad(t0, BAR + 0.6, c.pad, (sect === 'intro' ? 0.03 * (0.6 + 0.4 * ip) : 0.018) * E, { cut: sect === 'intro' ? 900 + 1100 * ip : full ? 2200 : 1400, att: 0.4, rel: 0.8, wet: 0.75 });
+        if (full) A.pad(t0, BAR + 0.6, [c.pad[2] + 12, c.pad[3] + 12], 0.012 * E, { wave: 'triangle', cut: 3600, att: 0.5, rel: 0.8, wet: 0.8 });
+        A.sub(t0, BAR - 0.05, c.bass, 0.065 * E * (0.6 + 0.4 * iv), { att: 0.1, rel: 0.4 });
+        if (sect !== 'break') { const n = sect === 'drop' ? 16 : 8; for (let e = 0; e < n; e++) { const ix = [0, 1, 2, 1, 3, 2, 1, 2][e % 8], t = t0 + (e * BAR) / n, g0 = (e % (n / 4) === 0 ? 0.062 : 0.044) * E * (0.6 + 0.4 * iv); A.tone(t, 0.11, midi(c.arp[ix] - 12), 'sawtooth', g0, { decay: true, att: 0.004, cut: 3000, cut1: 1000, cutT: 0.08, pan: -0.3, wet: 0.55 }); A.tone(t, 0.11, midi(c.arp[ix]), 'sawtooth', g0 * 0.9, { decay: true, att: 0.004, cut: 4200, cut1: 1400, cutT: 0.08, pan: 0.3, wet: 0.55 }); } }
+        const TK = sect === 'intro' ? (ip > 0.5 ? 'L.......l.......' : 'L...............') : sect === 'break' ? '' : sect === 'soft' ? 'L.......l.......' : sect === 'build' || sect === 'intro2' ? 'L..l..L...l.L...' : sect === 'drop' ? 'L..lL.l.L.lL.lLl' : 'L..l..L.l..lL.l.';
+        [...TK].forEach((ch, e) => { if (ch === 'L') A.taiko(t0 + e * S, 33, 0.36 * E); else if (ch === 'l') A.taiko(t0 + e * S, 40, 0.3 * E); });
+        if (full) { for (let e = 0; e < 16; e++) A.shaker(t0 + e * S, e % 4 === 2 ? 0.07 : 0.035, e % 2 ? 0.4 : -0.4); if (k % 2 === 0) A.impact(t0, 0.25); }
+        if (sect === 'intro2' || (sect === 'drop' && k % 2 === 0)) A.braam(t0, BAR * 0.92, c.bass + 12, 0.1);
+        if (full || sect === 'build') A.mel(t0, cn, (t, n, l) => { A.tone(t, l * 0.96, midi(n - 12), 'sawtooth', 0.05 * E, { att: 0.06, rel: 0.16, cut: 1500, wet: 0.7 }); A.tone(t, l * 0.96, midi(n), 'sawtooth', 0.04 * E, { att: 0.07, rel: 0.16, cut: 2100, det: 5, wet: 0.7 }); if (sect === 'drop') A.saw5(t, l * 0.96, n + 12, 0.02, { att: 0.05, rel: 0.2, cut: 3800, wet: 0.7 }); });
+        else if (sect === 'break' || sect === 'soft') A.mel(t0, cn, (t, n, l) => A.piano(t, n, 0.4, Math.max(1.8, l * 2.4), { wet: 0.85, dly: 0.2 }));
+        if (sect === 'break') A.pad(t0, BAR + 0.6, c.pad.slice(1).map((n) => n + 12), 0.014, { wave: 'triangle', cut: 2800, att: 0.6, rel: 0.9, wet: 0.85 });
+        if (lastBar && !last) { A.riser(t0, BAR, 0.18); for (let e = 0; e < 16; e++) A.snare(t0 + e * S, 0.03 + e * 0.012); [12, 13, 14, 15].forEach((e) => A.taiko(t0 + e * S, 33 + (e - 12) * 2, 0.3 + (e - 12) * 0.08)); }
+      } else if (MOOD === 'mark') {
+        /* Eigener Benchmark (144 BPM): verzerrtes Quint-Riff über einem Breakbeat, darüber ein Streicher-Ostinato in Sechzehnteln und eine
+           Sequenzer-Linie; im Höhepunkt wechselt das Schlagzeug auf vier Viertel und eine Supersaw trägt das Motiv als Hymne */
+        const full = sect === 'main' || sect === 'drop' || sect === 'outro', E = { intro: 0.8, intro2: 0.9, build: 0.95, soft: 0.85, main: 1, break: 0.85, drop: 1.1, outro: 0.95 }[sect], S = B / 4, R = c.bass + 12;
+        const fc = sect === 'intro' ? 700 + 1500 * ip : sect === 'build' ? 1000 + (1700 * k) / s.bars : 3200;
+        const chord = (t, n, l, open, g0 = 1) => [0, 7, 12].forEach((d, i) => A.tone(t, l * S * (open ? 0.95 : 0.55), midi(n + d), 'sawtooth', (open ? 0.19 : 0.16) * g0, { decay: !open, att: 0.003, rel: 0.03, det: (i - 1) * 6, cut: open ? fc : fc * 0.38, cut1: open ? fc * 0.6 : 260, cutT: open ? l * S : 0.07, q: 1.2, bus: distIn }));
+        const RF = [[0, 0, 2, 1], [3, 0, 1, 0], [4, 0, 1, 0], [6, 0, 2, 1], [8, 12, 1, 1], [10, 0, 1, 0], [11, 0, 1, 0], [12, 7, 2, 1], [14, 0, 1, 0], [15, 0, 1, 0]];
+        if (sect === 'intro2') chord(t0, R, 15, true, 0.55); else if (sect === 'intro' || sect === 'build' || full) RF.forEach(([e, d, l, op]) => chord(t0 + e * S, R + d, l, op && full, sect === 'intro' ? 0.75 + 0.25 * ip : 1));
+        if (sect === 'break' || sect === 'intro') A.sub(t0, BAR - 0.1, c.bass, 0.1);
+        else if (sect === 'drop') for (let b = 0; b < 4; b++) A.bass(t0 + b * B + B / 2, B / 2 - 0.02, c.bass, 0.15 * E, { cut: 900, cut1: 260, bus: duck });
+        else (full || sect === 'build' ? RF : RF.filter((x) => x[3])).forEach(([e, d, l]) => A.bass(t0 + e * S, l * S - 0.015, c.bass + (d === 7 ? 7 : 0), 0.14 * E, { cut: 650, cut1: 230 }));
+        /* Streicher-Ostinato */
+        const oc = sect === 'intro' ? 900 + 1900 * ip : sect === 'break' ? 1400 : 2800;
+        [0, 2, 1, 2, 3, 2, 1, 2, 0, 2, 1, 2, 3, 2, 3, 1].forEach((ix, e) => { if ((sect === 'break' || sect === 'soft') && e % 2) return; A.tone(t0 + e * S, S * 0.6, midi(c.arp[ix] + (sect === 'drop' ? 12 : 0)), 'sawtooth', (e % 4 === 0 ? 0.052 : 0.036) * E, { decay: true, att: 0.004, cut: oc, cut1: oc * 0.4, cutT: 0.08, det: e % 2 ? 6 : -6, pan: e % 2 ? 0.4 : -0.4, wet: 0.5, bus: sect === 'drop' ? duck : undefined }); });
+        if (sect !== 'main' && sect !== 'build') A.pad(t0, BAR + 0.5, c.pad, (sect === 'intro' ? 0.026 : 0.017) * E, { cut: sect === 'drop' ? 2400 : 1300, att: 0.3, rel: 0.6, wet: 0.7, bus: sect === 'drop' ? duck : undefined });
+        /* Sequenzer in Break und Aufbau */
+        if (sect === 'break' || sect === 'build' || sect === 'soft') [0, 3, 1, 3, 2, 3, 1, 3].forEach((ix, e) => { const sw = 0.5 - 0.5 * Math.cos(Math.PI * (s.b0 + k + e / 8)); A.tone(t0 + (e * B) / 2, B * 0.35, midi(c.arp[ix] + 12), 'square', 0.034 * E, { decay: true, att: 0.003, cut: 800 + 2400 * sw, cut1: 400, cutT: 0.12, q: 6, pan: e % 2 ? 0.45 : -0.45, dly: 0.35, wet: 0.2 }); });
+        /* Schlagzeug: Breakbeat, im Höhepunkt vier Viertel */
+        if (sect === 'drop') for (let b = 0; b < 4; b++) { const tb = t0 + b * B; A.kick(tb, 1, { f0: 185, f1: 50, dec: 0.28, duck: 0.3 }); A.hat(tb + B / 2, 0.12, 0.09, 0.1); A.hat(tb + S, 0.035, 0.02, -0.3); A.hat(tb + 3 * S, 0.035, 0.02, 0.3); if (b % 2) { A.snare(tb, 0.36); A.clap(tb, 0.18); } }
+        else { const DR = full ? (k % 4 === 3 ? 'K...S..K.gK.S.SS' : 'K...S..K..K.S..g') : sect === 'build' || sect === 'intro2' ? 'K...S.....K.S...' : sect === 'soft' ? 'K.......S.K.....' : sect === 'intro' ? (ip > 0.45 ? 'K.........K.....' : '') : '';
+          [...DR].forEach((ch, e) => { const t = t0 + e * S; if (ch === 'K') A.kick(t, sect === 'intro' ? 0.6 : 1, sect === 'intro' ? { lp: 300 + 900 * ip, soft: true } : { f0: 190, f1: 52, dec: 0.26 }); else if (ch === 'S') { A.snare(t, 0.4); A.clap(t, 0.16); } else if (ch === 'g') A.snare(t, 0.12); });
+          if (sect !== 'break') for (let e = 0; e < 16; e += 2) { if (sect === 'intro' && e % 4 !== 2) continue; A.hat(t0 + e * S, e % 4 === 2 ? 0.09 : 0.055, 0.03, e % 4 === 2 ? 0.2 : -0.2); } }
+        /* Motiv */
+        if (sect === 'drop') A.mel(t0, cn, (t, n, l) => A.saw5(t, l * 0.95, n + 12, 0.04, { att: 0.015, rel: 0.13, cut: 5000, wet: 0.5, dly: 0.35 }));
+        else if (full) A.mel(t0, cn, (t, n, l) => A.bell(t, n + 12, 0.062, { dur: Math.max(1.2, l * 2.2), dly: 0.4, pan: 0.15 }));
+        else if (sect === 'break' || sect === 'soft') A.mel(t0, cn, (t, n, l) => A.piano(t, n + 12, 0.4, Math.max(1.6, l * 2.2), { wet: 0.85, dly: 0.25 }));
         if (lastBar && !last) { A.riser(t0, BAR, 0.22); if (sect === 'break' || sect === 'build' || nextSect === 'drop') for (let e = 0; e < 16; e++) A.snare(t0 + e * S, 0.05 + e * 0.014); else [3.5, 3.75].forEach((b) => A.snare(t0 + b * B, 0.22)); }
       } else {
         const E = { intro: 0.7, intro2: 0.85, build: 0.95, soft: 0.9, main: 1, break: 0.9, drop: 1.08, outro: 0.85 }[sect], rhythm = sect === 'main' || sect === 'drop' || sect === 'build';

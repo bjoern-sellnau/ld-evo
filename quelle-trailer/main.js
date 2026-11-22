@@ -49,7 +49,9 @@ function autoPlan(tpl, total) {
 }
 /* Eigener Ablauf über ?plan=logo:4,person:8,… (Szene:Takte) — so entsteht die Musik der Echtzeit-Demo (demo/), deren Ablauf kein Trailer ist */
 const QPLAN = (Q.get('plan') || '').split(',').map((x) => x.split(':')).filter(([id, n]) => id in SECT && +n > 0).map(([id, n]) => [id, Math.round(+n)]);
-const PLAN = QPLAN.length ? QPLAN : PLANS[MOOD]?.[LEN] ?? autoPlan(TEMPLATES[LEN], Math.round((LEN * TH.bpm) / 240));
+/* Stimmungen mit Intro: der Auftakt bekommt mehr Gewicht und einen Takt mehr Mindestlänge */
+const TPL = TEMPLATES[LEN].map((x) => (x[0] === 'logo' && TH.intro ? ['logo', x[1] * TH.intro, x[2] + 1] : x));
+const PLAN = QPLAN.length ? QPLAN : PLANS[MOOD]?.[LEN] ?? autoPlan(TPL, Math.round((LEN * TH.bpm) / 240));
 const NB = PLAN.reduce((s, [, b]) => s + b, 0);
 const DUR = NB * BAR; // exakt 30 / 60 / 90 / 120 / 300 s
 const FN = { logo: scLogo, claim: scClaim, person: scPerson, origin: scOrigin, stack: scStack, journey: scJourney, award: scAward, labs: scLabs, site: scSite, family: scFamily, certs: scCerts, outro: scOutro, focus: scFocus, works: scWorks, labsAll: scLabsAll, hero: scHero, quote: scQuote, quote2: scQuote };
