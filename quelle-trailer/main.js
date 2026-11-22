@@ -1,8 +1,8 @@
 /* Trailer — Zeitachse je Länge und Stimmung, Übergänge, Rahmen (Chrome) und die Schnittstelle REEL zum Rendern. */
 'use strict';
 
-/* Ablauf in Takten (Summe: Cinematic 24/36/48/120 bei 96 BPM, Treibend 32/48/64/160 bei 128 BPM, Ruhig 20/30/40/100 bei 80 BPM
-   = 60/90/120/300 s). Die Reise läuft je Station ganze Takte (journeyBars), damit die Wechsel auf der Eins liegen. */
+/* Ablauf in Takten (Summe: Cinematic 24/36/48/120 bei 96 BPM, Treibend 32/48/64/160 bei 128 BPM, Ruhig 20/30/40/100 bei 80 BPM,
+   Action 40/60/80/200 bei 160 BPM = 60/90/120/300 s). Die Reise läuft je Station ganze Takte (journeyBars), damit die Wechsel auf der Eins liegen. */
 const PLANS = {
   cine: {
     60: [['logo', 3], ['claim', 2], ['person', 3], ['stack', 2], ['journey', 4], ['award', 2], ['labs', 3], ['site', 2], ['outro', 3]],
@@ -15,6 +15,12 @@ const PLANS = {
     90: [['logo', 4], ['claim', 3], ['person', 5], ['stack', 4], ['journey', 8], ['award', 3], ['labs', 8], ['site', 5], ['certs', 4], ['outro', 4]],
     120: [['logo', 4], ['claim', 4], ['person', 5], ['origin', 4], ['stack', 4], ['journey', 16], ['award', 3], ['labs', 8], ['site', 5], ['family', 2], ['certs', 4], ['outro', 5]],
     300: [['logo', 5], ['claim', 4], ['person', 6], ['focus', 6], ['origin', 8], ['stack', 6], ['journey', 36], ['award', 5], ['works', 14], ['quote', 4], ['labs', 14], ['labsAll', 8], ['hero', 12], ['site', 10], ['quote2', 4], ['family', 4], ['certs', 7], ['outro', 7]],
+  },
+  action: {
+    60: [['logo', 4], ['claim', 3], ['person', 5], ['stack', 4], ['journey', 8], ['award', 3], ['labs', 6], ['site', 4], ['outro', 3]],
+    90: [['logo', 4], ['claim', 4], ['person', 6], ['stack', 5], ['journey', 12], ['award', 4], ['labs', 10], ['site', 6], ['certs', 5], ['outro', 4]],
+    120: [['logo', 4], ['claim', 4], ['person', 6], ['origin', 6], ['stack', 5], ['journey', 18], ['award', 4], ['labs', 11], ['site', 7], ['family', 4], ['certs', 6], ['outro', 5]],
+    300: [['logo', 6], ['claim', 5], ['person', 8], ['focus', 8], ['origin', 10], ['stack', 7], ['journey', 45], ['award', 6], ['works', 18], ['quote', 5], ['labs', 18], ['labsAll', 10], ['hero', 15], ['site', 12], ['quote2', 5], ['family', 5], ['certs', 9], ['outro', 8]],
   },
   calm: {
     60: [['logo', 2], ['claim', 2], ['person', 2], ['journey', 4], ['award', 2], ['labs', 3], ['site', 2], ['outro', 3]],
@@ -31,14 +37,14 @@ const FN = { logo: scLogo, claim: scClaim, person: scPerson, origin: scOrigin, s
 const SCENES = (() => { let b = 0; return PLAN.map(([id, bars], i) => { const s = { id, i, bars, t0: b * BAR, D: bars * BAR, b0: b }; b += bars; return s; }); })();
 const jBars = (PLAN.find(([id]) => id === 'journey') || [0, 4])[1];
 const OPT = {
-  journey: { n: Math.min(9, jBars), bars: journeyBars(Math.min(9, jBars), jBars), blurb: LEN >= 120 || (LEN >= 90 && MOOD !== 'drive'), steps: LEN >= 300 },
+  journey: { n: Math.min(9, jBars), bars: journeyBars(Math.min(9, jBars), jBars), blurb: LEN >= 120 || (LEN >= 90 && !FAST), steps: LEN >= 300 },
   labs: { more: LEN >= 90, desc: LEN >= 90 },
   site: { desc: LEN >= 90, views: LEN >= 120 ? 4 : LEN >= 90 ? 3 : 2 },
   quote: { i: 0 },
   quote2: { i: 1 },
 };
 /* Kennung des Ablaufs: die Musik hängt nur davon ab (Zwischenspeicher beim Rendern) */
-const PLAN_KEY = (() => { const str = JSON.stringify([MOOD, PLAN, OPT.journey.bars, 'musik-2']); let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); })();
+const PLAN_KEY = (() => { const str = JSON.stringify([MOOD, PLAN, OPT.journey.bars, 'musik-3']); let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); })();
 const sceneAt = (t) => { let s = SCENES[0]; for (const x of SCENES) if (t >= x.t0) s = x; return s; };
 function drawScene(s, t) { const lt = clamp(t - s.t0, 0, s.D); FN[s.id](lt, s.D, OPT[s.id] ?? {}); }
 
@@ -49,11 +55,15 @@ function chrome(t, s) {
     /* Kinoformat 2,39 : 1 — Balken oben und unten, darin leise Kapitelangabe */
     const bh = (H - W / 2.39) / 2; g.fillStyle = '#000'; g.fillRect(0, 0, W, bh); g.fillRect(0, H - bh, W, bh);
     if (s.id !== 'logo' && s.id !== 'outro') { label(chap, 190, H - bh / 2 + 7, { size: 16, color: 'rgba(246,241,232,0.5)', track: 0.24 }); label(idx, W - 190, H - bh / 2 + 7, { size: 16, color: 'rgba(246,241,232,0.5)', align: 'right', track: 0.2 }); }
-  } else if (MOOD === 'drive') {
-    /* Füllstand der Marke als Fortschritt: Kante in Slash-Steigung */
-    const y = H - 14, w = W * (t / DUR); g.fillStyle = 'rgba(246,241,232,0.12)'; g.fillRect(0, y, W, 14);
-    g.fillStyle = BR.orange; g.beginPath(); g.moveTo(0, y); g.lineTo(w - 7, y); g.lineTo(w, H); g.lineTo(0, H); g.closePath(); g.fill();
-    if (s.id !== 'logo' && s.id !== 'outro') { label(chap, 150, 62, { size: 17, color: rgba(BR.cream, 0.55), track: 0.22 }); label(idx, W - 150, 62, { size: 17, color: rgba(BR.cream, 0.55), align: 'right', track: 0.18 }); }
+  } else if (FAST) {
+    /* Füllstand der Marke als Fortschritt: Kante in Slash-Steigung; Action in Signalorange, mit Szenenmarken und Zeitcode */
+    const act = MOOD === 'action', y = H - 14, w = W * (t / DUR); g.fillStyle = 'rgba(246,241,232,0.12)'; g.fillRect(0, y, W, 14);
+    g.fillStyle = act ? BR.signal : BR.orange; g.beginPath(); g.moveTo(0, y); g.lineTo(w - 7, y); g.lineTo(w, H); g.lineTo(0, H); g.closePath(); g.fill();
+    if (act) { g.fillStyle = 'rgba(23,19,16,0.7)'; for (const x of SCENES) if (x.i > 0) g.fillRect(Math.round((W * x.t0) / DUR) - 1, y, 2, 14); }
+    if (s.id !== 'logo' && s.id !== 'outro') {
+      label(chap, 150, 62, { size: 17, color: rgba(BR.cream, 0.55), track: 0.22 }); label(idx, W - 150, 62, { size: 17, color: rgba(BR.cream, 0.55), align: 'right', track: 0.18 });
+      if (act) { const mm = (v) => `${String(Math.floor(v / 60)).padStart(2, '0')}:${String(Math.floor(v % 60)).padStart(2, '0')}`; label(`${mm(t)} / ${mm(DUR)}`, W / 2, 62, { size: 17, color: rgba(BR.cream, 0.4), align: 'center', track: 0.18 }); }
+    }
   } else {
     /* Editorial: Haarlinien-Rahmen und Ecken-Beschriftung */
     g.save(); g.strokeStyle = BR.line; g.lineWidth = 1.5; g.strokeRect(48.75, 48.75, W - 97.5, H - 97.5); g.restore();
@@ -70,13 +80,13 @@ function finish(t) {
     g.save(); g.globalAlpha = 0.035; g.globalCompositeOperation = 'overlay'; const f = Math.floor(t * 30), ox = Math.floor(hash(f) * 256), oy = Math.floor(hash(f + 4) * 256); for (let y = -oy; y < H; y += 256) for (let x = -ox; x < W; x += 256) g.drawImage(GRAIN, x, y); g.restore();
   }
   /* Auf- und Abblende */
-  const a = 1 - eOut(seg(t, 0, MOOD === 'drive' ? 0.25 : 0.9)), b = eIn(seg(t, DUR - (MOOD === 'drive' ? 0.5 : 1.4), DUR - 0.05)), k = Math.max(a, b);
+  const a = 1 - eOut(seg(t, 0, FAST ? 0.25 : 0.9)), b = eIn(seg(t, DUR - (FAST ? 0.5 : 1.4), DUR - 0.05)), k = Math.max(a, b);
   if (k > 0) { g.fillStyle = MOOD === 'calm' ? rgba(BR.cream, k) : `rgba(0,0,0,${k})`; g.fillRect(0, 0, W, H); }
 }
 
 /* ---------- Übergänge ---------- */
 function transition(p, A, Bc) {
-  if (MOOD === 'drive') { slashWipe(A, Bc, p, BR.orange); return; }
+  if (FAST) { slashWipe(A, Bc, p, MOOD === 'action' ? BR.signal : BR.orange); return; }
   if (MOOD === 'cine') {
     /* Überblendung mit leichtem Schub in die Tiefe und einem warmen Lichtschein in der Mitte */
     const e = eIO(p), sp = Math.sin(Math.PI * p);
@@ -92,13 +102,18 @@ function render(t) {
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
   /* Übergang liegt mittig auf der Taktgrenze; Treibend: der Slash-Wipe endet auf der Eins */
   let tr = null;
-  for (const x of SCENES) if (x.i > 0) { const a = MOOD === 'drive' ? x.t0 - TD * 0.55 : x.t0 - TD / 2; if (t >= a && t < a + TD) tr = [x, (t - a) / TD]; }
+  for (const x of SCENES) if (x.i > 0) { const a = FAST ? x.t0 - TD * 0.55 : x.t0 - TD / 2; if (t >= a && t < a + TD) tr = [x, (t - a) / TD]; }
   if (tr) {
     const [nx, p] = tr, pv = SCENES[nx.i - 1];
     drawInto(LA, () => drawScene(pv, t)); drawInto(LB, () => drawScene(nx, t));
     transition(p, LA.canvas, LB.canvas);
     chrome(t, p < 0.5 ? pv : nx);
-  } else { drawScene(s, t); chrome(t, s); }
+  } else {
+    /* Action: kurzer Stoß am Szenenbeginn — das Bild springt leicht an und kommt sofort zur Ruhe */
+    const k = MOOD === 'action' && s.i > 0 ? Math.exp(-(t - s.t0) * 9) : 0;
+    if (k > 0.02) { g.save(); g.translate(W / 2 + Math.sin(t * 91) * 6 * k, H / 2 + Math.cos(t * 73) * 4 * k); g.scale(1 + 0.035 * k, 1 + 0.035 * k); g.translate(-W / 2, -H / 2); drawScene(s, t); g.restore(); } else drawScene(s, t);
+    chrome(t, s);
+  }
   finish(t);
   g.restore();
 }

@@ -1,5 +1,5 @@
 /* Trailer — eigene Musik, vollständig im Browser synthetisiert (Web Audio, OfflineAudioContext) — keine Samples, keine fremden Rechte.
-   Drei Stücke über dasselbe Leitmotiv in d-Moll (Dm · B♭ · F · C): Cinematic 96 BPM, Treibend 128 BPM, Ruhig 80 BPM.
+   Vier Stücke über dasselbe Leitmotiv in d-Moll (Dm · B♭ · F · C): Cinematic 96 BPM, Treibend 128 BPM, Ruhig 80 BPM, Action 160 BPM.
    Das Arrangement folgt der Szenenfolge (REEL.scenes): jede Szene beginnt auf der Eins, Akzente liegen auf den Bildwechseln. */
 'use strict';
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
@@ -28,9 +28,9 @@ async function musicWindow(W0, W1) {
   const SR = M_SR, ac = new OfflineAudioContext(2, Math.ceil((W1 - W0 + M_TAIL) * SR), SR);
   const master = ac.createGain(); master.connect(ac.destination);
   /* Hall: erzeugte Impulsantwort (Rauschen mit Abklingen, zum Ende dunkler) */
-  const vLen = MOOD === 'drive' ? 1.9 : MOOD === 'cine' ? 3.4 : 3.8, ir = ac.createBuffer(2, Math.floor(SR * vLen), SR);
+  const vLen = MOOD === 'action' ? 1.5 : MOOD === 'drive' ? 1.9 : MOOD === 'cine' ? 3.4 : 3.8, ir = ac.createBuffer(2, Math.floor(SR * vLen), SR);
   for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let lp = 0; for (let i = 0; i < d.length; i++) { const x = i / d.length, n = (hash(i * 1.37 + c * 9.1) * 2 - 1) * Math.pow(1 - x, 2.6) * (i < SR * 0.012 ? i / (SR * 0.012) : 1); const k = 0.5 - 0.42 * x; lp += k * (n - lp); d[i] = lp; } }
-  const verb = ac.createConvolver(); verb.buffer = ir; const verbG = ac.createGain(); verbG.gain.value = MOOD === 'drive' ? 0.55 : 0.8; verb.connect(verbG); verbG.connect(master);
+  const verb = ac.createConvolver(); verb.buffer = ir; const verbG = ac.createGain(); verbG.gain.value = MOOD === 'action' ? 0.5 : MOOD === 'drive' ? 0.55 : 0.8; verb.connect(verbG); verbG.connect(master);
   /* Echo (Ping-Pong, punktierte Achtel) */
   const dL = ac.createDelay(2), dR = ac.createDelay(2), fb = ac.createGain(), dIn = ac.createGain(), mrg = ac.createChannelMerger(2), dOut = ac.createGain();
   dL.delayTime.value = B * 0.75; dR.delayTime.value = B * 0.75; fb.gain.value = 0.36; dOut.gain.value = 0.5;
@@ -125,6 +125,33 @@ async function musicWindow(W0, W1) {
         if (sect === 'drop' && k % 4 === 3) [3, 3.5].forEach((b) => A.snare(t0 + b * B, 0.22));
         if (sect === 'break') { A.mel(t0, cn, (t, n, l) => A.piano(t, n + 12, 0.3, Math.max(1.2, l * 1.6), { wet: 0.7, dly: 0.3 })); if (lastBar) for (let e = 0; e < 16; e++) A.snare(t0 + (e * B) / 4, 0.06 + e * 0.014); else for (let e = 0; e < 4; e++) A.snare(t0 + e * B, 0.1); }
         if (lastBar && !last) { A.riser(t0 + (sect === 'break' ? 0 : BAR / 2), sect === 'break' ? BAR : BAR / 2, 0.2); if (sect !== 'break') [3.5, 3.75].forEach((b) => A.snare(t0 + b * B, 0.2)); }
+      } else if (MOOD === 'action') {
+        /* Action (160 BPM): Breakbeat mit Bassdrum auf 1 und „3 und“, Snare auf 2 und 4; Reese-Bass, Streicher-Ostinato in Sechzehnteln,
+           Akkord-Stiche, Säge-Lead im Höhepunkt; Halftime in den ruhigen Teilen */
+        const full = sect === 'main' || sect === 'drop', half = sect === 'soft' || sect === 'break', E = { intro: 0.75, intro2: 0.9, build: 0.95, soft: 0.85, main: 1, break: 0.8, drop: 1.12, outro: 0.9 }[sect];
+        const reese = (t, dur, gain, cut) => { [-17, 17].forEach((d) => A.tone(t, dur, midi(c.bass), 'sawtooth', gain, { det: d, att: 0.008, rel: 0.05, cut, cut1: cut * 0.45, cutT: dur, q: 4, bus: duck })); A.tone(t, dur, midi(c.bass), 'sine', gain * 1.5, { att: 0.008, rel: 0.05, cut: 300, bus: duck }); };
+        A.pad(t0, BAR + 0.15, c.pad, 0.034 * E, { cut: sect === 'intro' ? 600 : full ? 2600 : 1500, cut1: sect === 'intro' || sect === 'build' ? 2600 : undefined, att: 0.03, rel: 0.2, wet: 0.3, bus: duck });
+        if (full || sect === 'build' || sect === 'intro2') {
+          A.kick(t0, 0.78, { f0: 190, f1: 52, dec: 0.26, duck: 0.3 }); A.kick(t0 + 2.5 * B, 0.7, { f0: 190, f1: 52, dec: 0.24, duck: 0.35 });
+          if (sect === 'drop' && k % 2) A.kick(t0 + 1.75 * B, 0.45, { f0: 190, f1: 52, dec: 0.2 });
+          [1, 3].forEach((b) => { A.snare(t0 + b * B, 0.27); A.clap(t0 + b * B, 0.12); });
+          for (let e = 0; e < 16; e++) A.hat(t0 + (e * B) / 4, (e % 4 === 2 ? 0.12 : e % 2 ? 0.04 : 0.07) * (full ? 1 : 0.7), e % 4 === 2 ? 0.06 : 0.02, e % 2 ? 0.35 : -0.35);
+          if (full) A.noise(t0 + 3.5 * B, 0.09, 4000, 2500, 0.09, { type: 'bandpass', q: 1 });
+        } else if (sect === 'intro') {
+          for (let b = 0; b < 4; b++) A.kick(t0 + b * B, 0.6, { lp: 250 + (k * 4 + b) * 150, soft: true, f0: 150, f1: 50, dec: 0.25 });
+          for (let e = 0; e < 16; e++) A.hat(t0 + (e * B) / 4, 0.015 + 0.0035 * Math.min(16, k * 4 + e / 4), 0.02, e % 2 ? 0.35 : -0.35);
+        } else if (half) {
+          A.kick(t0, 0.9, { f0: 170, f1: 48, dec: 0.4, duck: 0.4 });
+          if (sect === 'soft') { A.snare(t0 + 2 * B, 0.3); for (let e = 0; e < 8; e++) A.hat(t0 + (e * B) / 2, e % 2 ? 0.07 : 0.04, 0.03, e % 2 ? 0.3 : -0.3); } else { A.taiko(t0 + 2 * B, 38, 0.5); A.taiko(t0 + 3 * B, 41, 0.35); }
+        } else { A.kick(t0, 0.9, { f0: 170, f1: 48, dec: 0.4, duck: 0.4 }); A.clap(t0 + 2 * B, 0.2); }
+        if (full) [[0, 1.5], [1.5, 0.5], [2.5, 1], [3.5, 0.5]].forEach(([b, l]) => reese(t0 + b * B, l * B - 0.02, 0.115 * E, sect === 'drop' ? 1500 : 950));
+        else if (sect !== 'intro') reese(t0, BAR - 0.05, 0.085 * E, 520);
+        if (sect !== 'intro' && sect !== 'break') for (let e = 0; e < 16; e++) A.pluck(t0 + (e * B) / 4, c.arp[[0, 1, 2, 1, 3, 1, 2, 1][e % 8]] + (e > 11 ? 12 : 0) - (sect === 'soft' ? 12 : 0), (e % 4 === 0 ? 0.078 : 0.05) * E, { cut: full ? 5200 : 3200, pan: e % 2 ? 0.45 : -0.45, dur: 0.11, dly: 0.12, wet: 0.2 });
+        if (full || sect === 'intro2' || sect === 'outro') [[0, 0.3], [1.5, 0.22]].concat(sect === 'drop' ? [[3, 0.2]] : []).forEach(([b, l]) => c.pad.forEach((n) => A.tone(t0 + b * B, l, midi(n + 12), 'sawtooth', 0.078 * E, { decay: true, cut: 5200, cut1: 1200, cutT: l, q: 1.2, wet: 0.35, dly: 0.15 })));
+        if (sect === 'drop' || sect === 'main') A.mel(t0, cn, (t, n, l) => [-9, 9].forEach((d, i) => A.tone(t, l * 0.9, midi(n + (sect === 'drop' ? 12 : 0)), 'sawtooth', sect === 'drop' ? 0.095 : 0.07, { att: 0.01, rel: 0.08, cut: sect === 'drop' ? 4600 : 3200, det: d, wet: 0.4, dly: 0.35, pan: i ? 0.25 : -0.25 })));
+        else if (half || sect === 'outro') A.mel(t0, cn, (t, n, l) => A.piano(t, n + 12, 0.4, Math.max(1.2, l * 1.6), { wet: 0.7, dly: 0.3 }));
+        if (sect === 'drop' && k % 4 === 0) A.braam(t0, BAR * 0.9, c.bass, 0.1);
+        if (lastBar && !last) { for (let e = 8; e < 16; e++) A.snare(t0 + (e * B) / 4, 0.07 + (e - 8) * 0.03); A.riser(t0, BAR, 0.22); }
       } else {
         const E = { intro: 0.7, intro2: 0.85, build: 0.95, soft: 0.9, main: 1, break: 0.9, drop: 1.08, outro: 0.85 }[sect], rhythm = sect === 'main' || sect === 'drop' || sect === 'build';
         A.pad(t0, BAR + 1.0, c.pad, 0.019 * E, { wave: 'triangle', cut: 1400, att: 1.0, rel: 1.2, wet: 0.7 });
@@ -142,13 +169,14 @@ async function musicWindow(W0, W1) {
     if (si > 0) {
       if (MOOD === 'cine') { A.whoosh(s.t0, 0.14, 0.9); A.impact(s.t0, sect0 === 'drop' ? 0.9 : sect0 === 'break' ? 0.7 : 0.45); }
       else if (MOOD === 'drive') { A.whoosh(s.t0, 0.2, 0.45); A.noise(s.t0, 1.4, 9000, 5000, 0.14, { wet: 0.5 }); if (sect0 === 'drop') A.impact(s.t0, 0.6); }
+      else if (MOOD === 'action') { A.whoosh(s.t0, 0.22, 0.4); A.noise(s.t0, 1.2, 9000, 5000, 0.16, { wet: 0.5 }); A.impact(s.t0, sect0 === 'drop' ? 0.9 : 0.6); }
       else A.chime(s.t0, [CH.Dm.arp[1] + 12, CH.Dm.arp[2] + 12], 0.035, 0.18);
     }
     /* besondere Momente: Zeichen steht, Gold, Reise-Stationen, Schluss-Lockup */
-    if (s.id === 'logo') { const tl = s.t0 + (MOOD === 'drive' ? 2 * BAR : s.D * 0.6); A.chime(tl, [74, 77, 81, 86], MOOD === 'calm' ? 0.05 : 0.07); if (MOOD !== 'calm') A.impact(tl, MOOD === 'drive' ? 0.8 : 0.6); if (MOOD === 'cine') A.swell(tl, 2.2, CH.Dm.pad, 0.03); if (MOOD === 'drive') A.riser(s.t0 + BAR, BAR, 0.24); }
-    if (s.id === 'award') A.chime(s.t0 + (MOOD === 'drive' ? B : 0.5), [74, 77, 81, 84, 86, 89], 0.06, 0.07);
-    if (s.id === 'journey') { const jb = OPT.journey.bars; let acc = 0; for (let i = 1; i < jb.length; i++) { acc += jb[i - 1]; const t = s.t0 + acc * BAR; if (MOOD === 'cine') A.taiko(t, 33, 0.4); else if (MOOD === 'drive') A.noise(t, 0.5, 8000, 4000, 0.08, { wet: 0.4 }); else A.bell(t, 81, 0.03, { pan: i % 2 ? 0.3 : -0.3 }); } }
-    if (s.id === 'outro') { const tb = s.t0 + (MOOD === 'drive' ? 2 * B : Math.min(2.6, s.D * 0.3)); A.chime(tb, [74, 77, 81, 86], 0.06); const te = s.t0 + s.D - BAR; A.pad(te, BAR, [38, 50, 57, 62, 64], 0.02, { cut: 1600, att: 0.3, rel: BAR * 0.6, wet: 0.8 }); A.piano(te, 62, 0.3, 3, { wet: 0.9 }); A.piano(te, 74, 0.25, 3, { wet: 0.9 }); if (MOOD === 'drive') A.impact(te, 0.5); }
+    if (s.id === 'logo') { const tl = s.t0 + (FAST ? 2 * BAR : s.D * 0.6); A.chime(tl, [74, 77, 81, 86], MOOD === 'calm' ? 0.05 : 0.07); if (MOOD !== 'calm') A.impact(tl, FAST ? 0.8 : 0.6); if (MOOD === 'cine') A.swell(tl, 2.2, CH.Dm.pad, 0.03); if (FAST) A.riser(s.t0 + BAR, BAR, 0.24); }
+    if (s.id === 'award') A.chime(s.t0 + (FAST ? B : 0.5), [74, 77, 81, 84, 86, 89], 0.06, 0.07);
+    if (s.id === 'journey') { const jb = OPT.journey.bars; let acc = 0; for (let i = 1; i < jb.length; i++) { acc += jb[i - 1]; const t = s.t0 + acc * BAR; if (MOOD === 'cine') A.taiko(t, 33, 0.4); else if (FAST) A.noise(t, 0.5, 8000, 4000, 0.08, { wet: 0.4 }); else A.bell(t, 81, 0.03, { pan: i % 2 ? 0.3 : -0.3 }); } }
+    if (s.id === 'outro') { const tb = s.t0 + (FAST ? B : 0.9); A.chime(tb, [74, 77, 81, 86], 0.06); const te = s.t0 + s.D - BAR; A.pad(te, BAR, [38, 50, 57, 62, 64], 0.02, { cut: 1600, att: 0.3, rel: BAR * 0.6, wet: 0.8 }); A.piano(te, 62, 0.3, 3, { wet: 0.9 }); A.piano(te, 74, 0.25, 3, { wet: 0.9 }); if (FAST) A.impact(te, 0.5); }
   });
   const buf = await ac.startRendering();
   return [buf.getChannelData(0), buf.getChannelData(1)];
@@ -167,11 +195,11 @@ async function makeMusic() {
   const src = mc.createBufferSource(); src.buffer = mb;
   const pre = mc.createGain(); pre.gain.value = 0.5;
   const hpf = mc.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 30; hpf.Q.value = 0.7;
-  const shelf = mc.createBiquadFilter(); shelf.type = 'highshelf'; shelf.frequency.value = 3200; shelf.gain.value = MOOD === 'drive' ? 2.5 : MOOD === 'cine' ? 4 : 4.5;
+  const shelf = mc.createBiquadFilter(); shelf.type = 'highshelf'; shelf.frequency.value = 3200; shelf.gain.value = MOOD === 'action' ? 3 : MOOD === 'drive' ? 2.5 : MOOD === 'cine' ? 4 : 4.5;
   const comp = mc.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 8; comp.ratio.value = 3.5; comp.attack.value = 0.006; comp.release.value = 0.22;
   const out = mc.createGain(); src.connect(pre); pre.connect(hpf); hpf.connect(shelf); shelf.connect(comp); comp.connect(out); out.connect(mc.destination);
-  out.gain.setValueAtTime(0.0001, 0); out.gain.exponentialRampToValueAtTime(1, MOOD === 'drive' ? 0.05 : 0.4);
-  out.gain.setValueAtTime(1, DUR - (MOOD === 'drive' ? 0.6 : 1.5)); out.gain.linearRampToValueAtTime(0, DUR - 0.03);
+  out.gain.setValueAtTime(0.0001, 0); out.gain.exponentialRampToValueAtTime(1, FAST ? 0.05 : 0.4);
+  out.gain.setValueAtTime(1, DUR - (FAST ? 0.6 : 1.5)); out.gain.linearRampToValueAtTime(0, DUR - 0.03);
   src.start(0);
   const done = await mc.startRendering(), L = done.getChannelData(0), R = done.getChannelData(1);
   /* Spitzenpegel auf −1 dBFS begrenzen (die Lautheit stellt ffmpeg beim Rendern ein) */

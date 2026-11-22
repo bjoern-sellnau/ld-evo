@@ -170,8 +170,6 @@ const ZP = {
   moon: new Path2D('M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z'),
   sil: new Path2D('M8 12A1 1 0 0 1 9 11H24A12 12 0 0 1 24 35H9A1 1 0 0 1 8 34Z'),
   slash: new Path2D('M13 11H16.5L28.5 35H25Z'),
-  bL: new Path2D('M0 4A1 1 0 0 1 1 3L8 3A1 1 0 0 1 9 4L9 11A1 1 0 0 0 8 12L8 34A1 1 0 0 0 9 35L22 35L25 43L1 43A1 1 0 0 1 0 42Z'),
-  bD: new Path2D('M12 4A1 1 0 0 1 13 3H27A20 20 0 0 1 27.99 42.975L22 27H19V12A1 1 0 0 0 18 11H12ZM24 12A1 1 0 0 1 25 11H27A12 12 0 0 1 27 35L24 27Z'),
   /* Produktfamilie (Logo-Handoff v1.0, 46er-System, sichtbar y 3–43) */
   nova: new Path2D('M20 3L24 19L40 23L24 27L20 43L16 27L0 23L16 19Z'),
   buddy: new Path2D('M0 3H8V11A16 16 0 0 1 8 43H0ZM8 19A8 8 0 0 1 8 35Z'),
@@ -217,20 +215,6 @@ function lockup(cx, cy, m, textCol, o = {}) {
   if (pw > 0) wordmark(x0 + mw + gap, cy + size * 0.345, size, textCol, { p: pw, alpha: o.alpha });
   return { x0, total, size, mw, gap };
 }
-/* Badge (viewBox 0 0 64 64, Grund immer Tinte). moon = 0…1 Mondphase: der innere Mond füllt sich. */
-function badge(cx, cy, size, o = {}) {
-  const s = size / 64, fg = o.fg ?? BR.orange, bg = BR.ink;
-  g.save(); g.globalAlpha *= o.alpha ?? 1; g.translate(cx - size / 2, cy - size / 2); g.scale(s, s);
-  g.fillStyle = bg; g.beginPath(); g.roundRect(0, 0, 64, 64, 14); g.fill();
-  if (o.edge) { g.strokeStyle = o.edge; g.lineWidth = 1 / s; g.stroke(); }
-  g.translate(9.44, 9.92); g.scale(0.96, 0.96);
-  g.fillStyle = fg; g.fill(ZP.bL); g.fill(ZP.bD, 'evenodd');
-  if (o.moon !== undefined) {
-    g.translate(3, 0); g.clip(ZP.moon); g.fillStyle = fg; g.fill(ZP.moon);
-    g.fillStyle = bg; g.beginPath(); g.arc(24 - 26 * E_REVEAL(clamp(o.moon)), 23, 12, 0, 7); g.fill();
-  }
-  g.restore();
-}
 /* Kachel der Produktfamilie (Tinte, Glyph in Produktfarbe; Maße wie die Favicons im Logo-Handoff) */
 function familyTile(cx, cy, size, key, alpha = 1) {
   const s = size / 64, wd = { nova: 40, buddy: 24, ivy: 40, flow: 49 }[key], col = BR[key], sc = Math.min(1.056, 51.2 / wd);
@@ -258,31 +242,6 @@ function monoTile(x, y, size, mono, col, o = {}) {
   g.save(); g.globalAlpha *= o.alpha ?? 1;
   rr(x, y, size, size, size * 0.22); g.fillStyle = col; g.fill(); g.strokeStyle = o.edge ?? 'rgba(127,127,127,0.35)'; g.lineWidth = 1.5; g.stroke();
   text(mono, x + size / 2, y + size * 0.64, { size: size * 0.4, weight: 800, align: 'center', color: lum > 0.6 ? BR.ink : '#FFFFFF', ls: -size * 0.01 });
-  g.restore();
-}
-/* Transformation Alt → Neu (6 s im Kit, hier über p = 0…1): Keyframes 1:1 aus LoonaIntro.module.css, viewBox 0 0 48 48. */
-function introTransform(cx, cy, size, p, groundCol = BR.ink) {
-  const s = size / 48, E = E_SWEEP;
-  g.save(); g.translate(cx - size / 2, cy - size / 2); g.scale(s, s);
-  const ringBlue = kf(p, [[0, 1], [0.25, 1], [0.4, 0], [1, 0]], E), ringO = kf(p, [[0, 0], [0.25, 0], [0.4, 1], [0.6, 1], [0.78, 0], [1, 0]], E);
-  const discW = kf(p, [[0, 1], [0.25, 1], [0.4, 0], [1, 0]], E), discO = kf(p, [[0, 0], [0.25, 0], [0.4, 1], [0.62, 1], [0.72, 0], [1, 0]], E);
-  const covX = kf(p, [[0, 2.5], [0.4, 2.5], [0.6, -7], [1, -7]], E), covY = kf(p, [[0, -2], [0.4, -2], [0.6, 0], [1, 0]], E), covA = kf(p, [[0, 1], [0.6, 1], [0.72, 0], [1, 0]], E);
-  const gloss = kf(p, [[0, 0.35], [0.25, 0.35], [0.4, 0], [1, 0]], E), moonA = kf(p, [[0, 0], [0.6, 0], [0.72, 1], [1, 1]], E);
-  const lx = kf(p, [[0, -16], [0.65, -16], [0.85, 0], [1, 0]], E), la = kf(p, [[0, 0], [0.65, 0], [0.85, 1], [1, 1]], E);
-  if (ringBlue > 0) { const gr = g.createRadialGradient(24, 24 - 42 * 0.08, 0, 24, 24 - 42 * 0.08, 42 * 0.6); gr.addColorStop(0, BR.sky); gr.addColorStop(1, BR.navy); g.save(); g.globalAlpha *= ringBlue; g.fillStyle = gr; g.beginPath(); g.arc(24, 24, 21, 0, 7); g.fill(); g.restore(); }
-  if (ringO > 0) { g.save(); g.globalAlpha *= ringO; g.strokeStyle = BR.orange; g.lineWidth = 1.2; g.beginPath(); g.arc(24, 24, 21, 0, 7); g.stroke(); g.restore(); }
-  /* Scheibe + Abdeckung: die Abdeckung schneidet aus (Sichel), statt mit Grundfarbe zu übermalen — funktioniert auf jedem Grund */
-  if (discW > 0 || discO > 0) {
-    const lay = LT; const keep = g; lay.save(); lay.setTransform(1, 0, 0, 1, 0, 0); lay.clearRect(0, 0, W, H); lay.setTransform(keep.getTransform());
-    if (discW > 0) { lay.globalAlpha = discW; lay.fillStyle = BR.white; lay.beginPath(); lay.arc(26, 24, 12, 0, 7); lay.fill(); }
-    if (discO > 0) { lay.globalAlpha = discO; lay.fillStyle = BR.orange; lay.beginPath(); lay.arc(26, 24, 12, 0, 7); lay.fill(); }
-    lay.globalAlpha = covA; lay.globalCompositeOperation = ringBlue > 0.5 ? 'source-atop' : 'destination-out'; lay.fillStyle = ringBlue > 0.5 ? BR.ink : '#000'; lay.beginPath(); lay.arc(26 + covX, 24 + covY, 10.5, 0, 7); lay.fill();
-    lay.restore(); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(lay.canvas, 0, 0); g.restore();
-  }
-  if (gloss > 0) { g.save(); g.globalAlpha *= gloss; g.fillStyle = BR.white; g.beginPath(); g.ellipse(28, 19.5, 5.5, 2.4, 0, 0, 7); g.fill(); g.restore(); }
-  g.translate(2, 1); g.fillStyle = BR.orange;
-  if (moonA > 0) { g.save(); g.globalAlpha *= moonA; g.fill(ZP.moon); g.restore(); }
-  if (la > 0) { g.save(); g.globalAlpha *= la; g.translate(lx, 0); g.fill(ZP.l); g.restore(); }
   g.restore();
 }
 /* Slash-Wipe als Schnitt (0,6 s, cubic-bezier(.7,0,.3,1)): Fläche mit Kanten in Slash-Steigung 1 : 2 wandert über das Bild, dahinter die neue Szene. */

@@ -2,17 +2,20 @@
 'use strict';
 const Q = new URLSearchParams(location.search);
 const LEN = [60, 90, 120, 300].includes(+Q.get('len')) ? +Q.get('len') : 60;
-const MOOD = ['cine', 'drive', 'calm'].includes(Q.get('mood')) ? Q.get('mood') : 'cine';
+const MOOD = ['cine', 'drive', 'calm', 'action'].includes(Q.get('mood')) ? Q.get('mood') : 'cine';
 const LANG = Q.get('lang') === 'en' ? 'en' : 'de';
 const T = TXT[LANG];
 
-/* Drei Stimmungen auf den Gründen der Marke: Nacht (Mondhimmel), Tinte, Creme */
+/* Vier Stimmungen auf den Gründen der Marke: Nacht (Mondhimmel), Tinte, Creme — und „Action“ auf Tinte mit Signalorange als zweitem Ton */
 const THEMES = {
   cine: { name: 'cinematic', bpm: 96, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(255,255,255,0.055)', style: 'rise', inDur: 1.0, pace: 1, top: 170, bot: 910, td: 0.9 },
   drive: { name: 'treibend', bpm: 128, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.15)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.06)', style: 'mask', inDur: 0.36, pace: 0.42, top: 96, bot: 984, td: 0.6 },
+  action: { name: 'action', bpm: 160, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.45 },
   calm: { name: 'ruhig', bpm: 80, dark: false, bg: BR.cream, ink: BR.ink, soft: BR.text2, mute: BR.meta, line: BR.line, accent: BR.orange, accentText: BR.glassDark, card: 'rgba(255,255,255,0.7)', style: 'fade', inDur: 1.3, pace: 1.15, top: 110, bot: 970, td: 1.2 },
 };
 const TH = THEMES[MOOD];
+/* Treibend und Action schneiden und blenden auf den Schlag; Cinematic und Ruhig lassen sich Zeit */
+const FAST = ['drive', 'action'].includes(MOOD);
 const B = 60 / TH.bpm, BAR = 4 * B;
 const CY = (TH.top + TH.bot) / 2;
 /* Einblendung: Start (in „Schritten“ der Stimmung) und Dauer */
@@ -58,7 +61,18 @@ function bgCream(t) {
   glow(W * (0.14 + 0.05 * Math.cos(t * 0.06)), H * (0.86 + 0.04 * Math.sin(t * 0.08)), 700, '#FFD9B0', 0.36, false);
   g.save(); g.globalAlpha = 0.8; g.fillStyle = g.createPattern(DOTS, 'repeat'); g.fillRect(0, 0, W, H); g.restore();
 }
-function bg(t, o) { if (MOOD === 'cine') bgNight(t, o); else if (MOOD === 'drive') bgInk(t, o); else bgCream(t, o); }
+/* Action: schnellere Slash-Streifen, Signalorange pulst auf der Snare (Zählzeiten 2 und 4), Orange auf jedem Schlag */
+function bgAction(t) {
+  g.fillStyle = BR.ink; g.fillRect(0, 0, W, H);
+  const p = beatPulse(t, 7), sn = Math.exp(-((((t - B) % (2 * B)) + 2 * B) % (2 * B)) * 6);
+  g.save(); g.strokeStyle = `rgba(246,241,232,${0.03 + 0.045 * p})`; g.lineWidth = 2;
+  const step = 110, off = (t * 260) % step;
+  for (let x = -H / 2 - step + off; x < W + step; x += step) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + H / 2, H); g.stroke(); }
+  g.restore();
+  glow(W * 0.86, H * 0.08, 780, BR.signal, 0.07 + 0.1 * sn);
+  glow(W * 0.1, H * 0.96, 700, BR.orange, 0.04 + 0.06 * p);
+}
+function bg(t, o) { if (MOOD === 'cine') bgNight(t, o); else if (MOOD === 'action') bgAction(t, o); else if (FAST) bgInk(t, o); else bgCream(t, o); }
 
 /* ---------- Bausteine ---------- */
 function kicker(str, x, y, p = 1, align = 'left') { label(str, x, y + (1 - eOut(p)) * 10, { size: 22, color: TH.accentText, alpha: eOut(p), align }); }
@@ -78,17 +92,20 @@ function glassFill(y0, y1) { const gr = g.createLinearGradient(0, y0, 0, y1); gr
 function scLogo(lt, D) {
   bg(lt, { warm: 0.1 });
   const cx = W / 2, cy = CY - 30, hBig = 240, m = 150;
-  const tLock = MOOD === 'drive' ? 2 * BAR : D * 0.6; // ab hier wird das Zeichen zum Lockup
-  const pl = E_REVEAL(seg(lt, tLock, tLock + (MOOD === 'drive' ? 0.5 : 1.1)));
+  const tLock = FAST ? 2 * BAR : D * 0.6; // ab hier wird das Zeichen zum Lockup
+  const pl = E_REVEAL(seg(lt, tLock, tLock + (FAST ? 0.5 : 1.1)));
   /* Lichtblitz auf dem Schlag — hinter dem Zeichen (kein Effekt auf dem Zeichen selbst) */
-  if (MOOD === 'drive' && lt >= tLock) { const f = Math.exp(-(lt - tLock) * 7); g.fillStyle = rgba(BR.cream, 0.3 * f); g.fillRect(0, 0, W, H); }
+  if (FAST && lt >= tLock) { const f = Math.exp(-(lt - tLock) * 7); g.fillStyle = rgba(BR.cream, 0.3 * f); g.fillRect(0, 0, W, H); }
   const size = 0.9275 * m, mw = (m * 28) / 24, total = mw + 0.46 * m + wordmarkWidth(size), x0 = cx - total / 2;
   const zx = lerp(cx, x0 + mw / 2, pl), zh = lerp(hBig, m, pl);
   if (MOOD === 'cine') {
     glow(cx, cy, 620, BR.apricot, 0.08 * (1 - pl));
-    const p = seg(lt, 0.35, tLock - 0.25);
-    if (p < 1) introTransform(cx, cy, hBig * 2, p); else zeichen(zx, cy, zh);
-  } else if (MOOD === 'drive') {
+    /* Vom alten Logo — dem Mond in der Glaskugel, Originalbild — zum Zeichen: die Kugel tritt zurück, das Zeichen kommt mit dem Reveal der Marke */
+    const p = seg(lt, 0.35, tLock - 0.25), o1 = eOut(seg(p, 0, 0.14)), o2 = eIO(seg(p, 0.5, 0.72)), ps = seg(p, 0.6, 1);
+    if (o2 < 1 && IMG.oldLogo) { const d = 460 * lerp(0.94, 1.03, eOut(seg(p, 0, 0.6))) * (1 - 0.14 * o2); g.save(); g.globalAlpha = o1 * (1 - o2); g.drawImage(IMG.oldLogo, cx - d / 2, cy - d / 2, d, d); g.restore(); }
+    if (o2 > 0 && p < 1) glow(cx, cy, 520, BR.apricot, 0.16 * Math.sin(Math.PI * seg(p, 0.5, 0.95)));
+    if (p >= 1) zeichen(zx, cy, zh); else if (ps > 0) zeichenReveal(cx, cy, hBig, ps);
+  } else if (FAST) {
     if (lt < tLock - 0.15) { const loop = (lt % (2 * B)) / (2 * B); zeichenSweep(cx, cy, hBig, loop); }
     else { const k = seg(lt, tLock - 0.15, tLock); g.save(); g.globalAlpha = 1 - k; zeichenSweep(cx, cy, hBig, 1); g.restore(); g.save(); g.globalAlpha = k; zeichen(zx, cy, zh); g.restore(); }
   } else {
@@ -100,7 +117,7 @@ function scLogo(lt, D) {
     g.save(); g.beginPath(); g.rect(edge, 0, W - edge, H); g.clip();
     wordmark(x0 + mw + 0.46 * m, cy + size * 0.345, size, TH.ink, { p: seg(pl, 0.25, 1) });
     g.restore();
-    const pt = seg(lt, tLock + (MOOD === 'drive' ? 0.5 : 1.0), tLock + (MOOD === 'drive' ? 0.9 : 2.0));
+    const pt = seg(lt, tLock + (FAST ? 0.5 : 1.0), tLock + (FAST ? 0.9 : 2.0));
     const tag = `${NAME} · ${ROLE} · ${FOCUS.join(', ')}`;
     text(tag, cx, cy + m * 0.5 + 92 + (1 - eOut(pt)) * 10, { size: 24, weight: 500, fam: MONO, align: 'center', color: TH.soft, alpha: eOut(pt) });
   }
@@ -118,7 +135,7 @@ function scClaim(lt, D) {
     g.save(); g.fillStyle = glassFill(y + 40, y + size * 1.15);
     drawLine(tokens(CLAIM[1], { serif: true }), x, y + size * 1.06, size, pin(lt, 3, 1.2), { style: 'rise', color: g.fillStyle }); g.restore();
     text(T.claimSub.join(' '), x + 6, y + size * 1.06 + 96, { size: 40, weight: 500, color: TH.soft, alpha: eOut(pin(lt, 6)) });
-  } else if (MOOD === 'drive') {
+  } else if (FAST) {
     const cx = W / 2, y = CY - 20, toks = [...tokens(CLAIM[0]), ...tokens(CLAIM[1], { serif: true, color: BR.orange })];
     /* je Schlag ein Wort; die Zeile steht nach fünf Schlägen */
     const L1 = layoutLine(tokens(CLAIM[0]), size), L2 = layoutLine(tokens(CLAIM[1], { serif: true }), size);
@@ -151,7 +168,7 @@ function scPerson(lt, D) {
   text(ROLE, x + 4, yR + (1 - eOut(pin(lt, 3))) * 12, { size: 46, weight: 500, color: TH.soft, alpha: eOut(pin(lt, 3)), ls: -0.6 });
   let px = x; FOCUS.concat([T.place]).forEach((f, i) => { const a = eOut(pin(lt, 4.5 + i * 0.6)); px += pill(f, px, yR + 78, { alpha: a, size: 26, stroke: i === 3 ? TH.accent : undefined, color: TH.ink }) + 14; });
   /* rotierende Rolle (wie auf der Startseite) */
-  const per = MOOD === 'drive' ? 2 * B : MOOD === 'cine' ? BAR : BAR * 0.9, ri = Math.floor(Math.max(0, lt - 1.2) / per), rp = (Math.max(0, lt - 1.2) % per) / per;
+  const per = FAST ? 2 * B : MOOD === 'cine' ? BAR : BAR * 0.9, ri = Math.floor(Math.max(0, lt - 1.2) / per), rp = (Math.max(0, lt - 1.2) % per) / per;
   const ra = Math.min(seg(rp, 0, 0.18), 1 - seg(rp, 0.85, 1)) * eOut(pin(lt, 6));
   label('→ ' + T.roles[ri % T.roles.length], x + 4, yR + 168, { size: 22, color: TH.accentText, alpha: ra, track: 0.1 });
   /* Sekundenzähler */
@@ -162,7 +179,7 @@ function scPerson(lt, D) {
   /* Kennzahlen rechts */
   const rx = 1330, rw = 410; let ry = top + 60;
   T.stats.forEach(([a, b], i) => {
-    const p = MOOD === 'drive' ? seg(lt, (2 + i) * B, (2 + i) * B + 0.22) : pin(lt, 3 + i * 1.6);
+    const p = FAST ? seg(lt, (2 + i) * B, (2 + i) * B + 0.22) : pin(lt, 3 + i * 1.6);
     hair(rx, ry, rx + rw * eOut(p), eOut(p));
     text(a, rx, ry + 118 + (1 - eOut5(p)) * 24, { size: 112, weight: 800, color: i === 0 ? TH.accent : TH.ink, alpha: eOut(p), ls: -4 });
     text(b, rx + measure(a, 112, 800, MAN, -4) + 22, ry + 118, { size: 34, weight: 500, color: TH.soft, alpha: eOut(p) });
@@ -203,7 +220,7 @@ function scStack(lt, D) {
   const s2 = fit(T.stackTitle[1], 1560, 76, 800, MAN, -0.03);
   drawLine(tokens(T.stackTitle[1]), x, top + 104 + s2 * 1.18, s2, pin(lt, 2, 1.2), { style: TH.style, color: TH.ink });
   /* Laufbänder: Fokus-Technologien voll, der Rest zurückgenommen; Trenner = Slash der Marke */
-  const speed = MOOD === 'drive' ? 240 : MOOD === 'cine' ? 70 : 34, size = 92, y0 = top + 340, dy = (TH.bot - 110 - y0) / 2;
+  const speed = FAST ? 240 : MOOD === 'cine' ? 70 : 34, size = 92, y0 = top + 340, dy = (TH.bot - 110 - y0) / 2;
   STACK_ROWS.forEach((row, r) => {
     const a = eOut(pin(lt, 3 + r));
     g.save(); g.globalAlpha = a; setFont(size, 800); g.letterSpacing = -0.03 * size + 'px';
@@ -247,36 +264,36 @@ function scJourney(lt, D, o) {
   const x = 180, top = TH.top + 40, railY = TH.bot - 70;
   kicker(T.journeyKicker, x, top + 30, pin(lt, 0));
   label(`${String(i + 1).padStart(2, '0')} / ${String(n).padStart(2, '0')}`, W - 180, top + 30, { size: 20, color: TH.soft, align: 'right', alpha: eOut(pin(lt, 1)) });
-  const inD = MOOD === 'drive' ? 0.2 : MOOD === 'cine' ? 0.7 : 0.9, outD = MOOD === 'drive' ? 0 : MOOD === 'cine' ? 0.35 : 0.5;
+  const inD = FAST ? 0.2 : MOOD === 'cine' ? 0.7 : 0.9, outD = FAST ? 0 : MOOD === 'cine' ? 0.35 : 0.5;
   const a = seg(q, 0, inD), b = i < n - 1 && outD > 0 ? seg(q, Ds - outD, Ds) : 0, al = eOut(a) * (1 - b);
   const it = list[i], tx = it[LANG], yY = CY + (o.steps ? 0 : 70);
   /* Die Textspalte beginnt hinter der breitesten Jahreszahl — sonst stößt z. B. „2004“ an den Titel */
   const ySize = 280, yW = Math.max(...list.map((s) => measure(s.y, ySize, 800, MAN, -0.045 * ySize)));
   /* Jahr groß */
   g.save(); g.globalAlpha = al;
-  const dy = MOOD === 'drive' ? 0 : (1 - eOut5(a)) * 60 - b * 40;
-  if (MOOD === 'drive') { const sc = lerp(1.1, 1, eOut5(a)); g.translate(x, yY); g.scale(sc, sc); g.translate(-x, -yY); }
+  const dy = FAST ? 0 : (1 - eOut5(a)) * 60 - b * 40;
+  if (FAST) { const sc = lerp(1.1, 1, eOut5(a)); g.translate(x, yY); g.scale(sc, sc); g.translate(-x, -yY); }
   g.fillStyle = MOOD === 'calm' ? TH.ink : glassFill(yY - ySize * 0.75, yY + 10);
   setFont(ySize, 800); g.letterSpacing = -0.045 * ySize + 'px'; g.fillText(it.y, x - 10, yY + dy);
   g.restore();
   /* Titel, Rolle, Kurztext */
   const cx = Math.round(x - 10 + yW + 64), cw = W - 180 - cx, ts = fit(tx[0], cw, 92, 800, MAN, -0.03);
-  drawLine(tokens(tx[0]), cx, yY - 150, ts, MOOD === 'drive' ? seg(q, 0.05, 0.3) : seg(q, 0.1, 0.1 + inD * 1.2), { style: TH.style, color: TH.ink, out: b });
+  drawLine(tokens(tx[0]), cx, yY - 150, ts, FAST ? seg(q, 0.05, 0.3) : seg(q, 0.1, 0.1 + inD * 1.2), { style: TH.style, color: TH.ink, out: b });
   label(`${tx[1]} · ${tx[2]}`, cx + 2, yY - 84, { size: 24, color: TH.accentText, alpha: eOut(seg(q, 0.2 * TH.pace, 0.2 * TH.pace + inD)) * (1 - b), track: 0.1 });
   let nl = 0; if (o.blurb) nl = para(tx[3], cx + 2, yY - 26, cw, 30, { color: TH.soft, p: seg(q, 0.35 * TH.pace, 0.35 * TH.pace + inD * 1.4), alpha: 1 - b, lh: 1.42 });
   /* Etappen der Station (lange Fassung): nacheinander, je mit Slash der Marke */
   if (o.steps && it.st) {
-    const y0 = yY - 26 + nl * 30 * 1.42 + 34, t1 = MOOD === 'drive' ? BAR : 1.6, gapT = MOOD === 'drive' ? 2 * B : Math.min(1.5, (Ds - t1 - 1.2) / 3);
+    const y0 = yY - 26 + nl * 30 * 1.42 + 34, t1 = FAST ? BAR : 1.6, gapT = FAST ? 2 * B : Math.min(1.5, (Ds - t1 - 1.2) / 3);
     it.st[LANG].forEach((str, k) => {
-      const ps = eOut(seg(q, t1 + k * gapT, t1 + k * gapT + (MOOD === 'drive' ? 0.22 : 0.7))) * (1 - b), yy = y0 + k * 50;
+      const ps = eOut(seg(q, t1 + k * gapT, t1 + k * gapT + (FAST ? 0.22 : 0.7))) * (1 - b), yy = y0 + k * 50;
       if (ps <= 0) return;
       g.save(); g.globalAlpha = ps; g.translate(cx + 2 + (1 - ps) * 24, yy - 21); g.scale(0.9, 0.9); g.translate(-13, -11); g.fillStyle = TH.accent; g.fill(ZP.slash); g.restore();
-      text(str, cx + 34 + (1 - ps) * 24, yy, { size: 30, weight: 600, color: TH.ink, alpha: ps });
+      text(str, cx + 34 + (1 - ps) * 24, yy, { size: fit(str, cw - 40, 30, 600), weight: 600, color: TH.ink, alpha: ps });
     });
   }
   /* Zeitstrahl */
   const x1 = x, x2 = W - 180, pos = (k) => lerp(x1, x2, n === 1 ? 0 : k / (n - 1));
-  const mk = lerp(pos(Math.max(0, i - 1)), pos(i), i === 0 ? 1 : E_SWEEP(seg(q, 0, MOOD === 'drive' ? 0.25 : 0.8)));
+  const mk = lerp(pos(Math.max(0, i - 1)), pos(i), i === 0 ? 1 : E_SWEEP(seg(q, 0, FAST ? 0.25 : 0.8)));
   const pr = eOut(pin(lt, 1, 1.4));
   g.save(); g.globalAlpha = pr; g.strokeStyle = TH.line; g.lineWidth = 2; g.beginPath(); g.moveTo(x1, railY); g.lineTo(x1 + (x2 - x1) * pr, railY); g.stroke();
   g.strokeStyle = TH.accent; g.lineWidth = 3; g.beginPath(); g.moveTo(x1, railY); g.lineTo(mk, railY); g.stroke();
@@ -295,16 +312,16 @@ function scAward(lt, D) {
   g.restore();
   if (TH.dark) glow(cx, cy, 520, BR.apricot, 0.1 + 0.05 * barPulse(lt));
   kicker(T.awardKicker, cx, cy - 196, p0, 'center');
-  const gs = 210, pg = MOOD === 'drive' ? seg(lt, B, B + 0.25) : pin(lt, 1.5, 1.3);
+  const gs = 210, pg = FAST ? seg(lt, B, B + 0.25) : pin(lt, 1.5, 1.3);
   g.save(); const fill = glassFill(cy - 170, cy - 10);
-  if (MOOD === 'drive') { const sc = lerp(1.5, 1, eOut5(pg)); g.translate(cx, cy - 70); g.scale(sc, sc); g.translate(-cx, -(cy - 70)); }
-  text('Gold', cx, cy - 6 + (MOOD === 'drive' ? 0 : (1 - eOut5(pg)) * 40), { size: gs * SERIF_SCALE, weight: 400, fam: SER, italic: true, align: 'center', color: fill, alpha: eOut(pg) });
+  if (FAST) { const sc = lerp(1.5, 1, eOut5(pg)); g.translate(cx, cy - 70); g.scale(sc, sc); g.translate(-cx, -(cy - 70)); }
+  text('Gold', cx, cy - 6 + (FAST ? 0 : (1 - eOut5(pg)) * 40), { size: gs * SERIF_SCALE, weight: 400, fam: SER, italic: true, align: 'center', color: fill, alpha: eOut(pg) });
   g.restore();
   const p2 = pin(lt, 4), p3 = pin(lt, 5.5), p4 = pin(lt, 7);
   text(T.awardTop, cx, cy + 84 + (1 - eOut(p2)) * 14, { size: 52, weight: 800, align: 'center', color: TH.ink, alpha: eOut(p2), ls: -1.5 });
   text(T.awardCat, cx, cy + 132, { size: 27, weight: 600, align: 'center', color: TH.soft, alpha: eOut(p3) });
   text(T.awardWhat, cx, cy + 170, { size: 27, weight: 500, align: 'center', color: TH.soft, alpha: eOut(p3) });
-  text(T.awardNote, cx, cy + 226, { size: 31, weight: 400, fam: SER, italic: true, align: 'center', color: TH.accentText, alpha: eOut(p4) });
+  text(T.awardNote, cx, cy + 226, { size: fit(T.awardNote, 2 * R - 190, 31, 400, SER, 0, true), weight: 400, fam: SER, italic: true, align: 'center', color: TH.accentText, alpha: eOut(p4) });
 }
 
 /* ---------- Szene: Labs ---------- */
@@ -328,10 +345,10 @@ function scLabs(lt, D, o) {
     g.save(); g.globalAlpha = a; g.translate(cx + cw / 2, y + ch / 2 + (1 - a) * 50 - ph2 * 40); g.scale(sc, sc); g.translate(-(cx + cw / 2), -(y + ch / 2));
     g.save(); g.shadowColor = TH.dark ? 'rgba(0,0,0,0.5)' : 'rgba(23,19,16,0.18)'; g.shadowBlur = 40; g.shadowOffsetY = 18; g.fillStyle = '#000'; rr(cx, y, cw, ch, 18); g.fill(); g.restore();
     /* Bildwechsel: Treibend auf jedem Schlag, sonst so, dass jede Karte mindestens zwei Bilder zeigt */
-    const cut = MOOD === 'drive' ? B : per / clamp(Math.round(per / (MOOD === 'cine' ? 1.25 : 1.6)), Math.min(2, L.shots.length), L.shots.length);
+    const cut = FAST ? B : per / clamp(Math.round(per / (MOOD === 'cine' ? 1.25 : 1.6)), Math.min(2, L.shots.length), L.shots.length);
     const lt2 = Math.max(0, lt - i * per), si = on ? Math.floor(lt2 / cut) % L.shots.length : 0, sp = on ? (lt2 % cut) / cut : 1;
     imgCover(IMG[L.shots[si]], cx, y, cw, ch, 18, { zoom: 1.04 + 0.05 * sp });
-    if (on && MOOD !== 'drive' && sp < 0.25) { g.save(); g.globalAlpha *= 1 - sp / 0.25; imgCover(IMG[L.shots[(si + L.shots.length - 1) % L.shots.length]], cx, y, cw, ch, 18, { zoom: 1.09 }); g.restore(); }
+    if (on && !FAST && sp < 0.25) { g.save(); g.globalAlpha *= 1 - sp / 0.25; imgCover(IMG[L.shots[(si + L.shots.length - 1) % L.shots.length]], cx, y, cw, ch, 18, { zoom: 1.09 }); g.restore(); }
     if (!on) { g.fillStyle = rgba(TH.dark ? '#000000' : BR.cream, TH.dark ? 0.42 : 0.35); rr(cx, y, cw, ch, 18); g.fill(); }
     g.strokeStyle = on ? TH.accent : TH.line; g.lineWidth = on ? 3 : 1.5; rr(cx, y, cw, ch, 18); g.stroke();
     label(`${L[LANG][0]} · ${L.d}`, cx + 4, y + ch + 40, { size: 17, color: TH.accentText, track: 0.1 });
@@ -341,9 +358,13 @@ function scLabs(lt, D, o) {
     g.restore();
   });
   if (ph2 > 0) {
-    const cy = (y + TH.bot) / 2 - 50; label(T.labsMore, W / 2, cy - 84, { size: 24, color: TH.soft, align: 'center', alpha: eOut(ph2) });
-    const rows = [LABS_MORE.slice(0, 4), LABS_MORE.slice(4)];
-    rows.forEach((row, r) => { const ws = row.map((s) => measure(s, 46, 600) + 69), tot = ws.reduce((s, w) => s + w + 20, -20); let px = (W - tot) / 2; row.forEach((s, i) => { const a = eOut(seg(lt, D1 + 0.1 + (r * 4 + i) * 0.09 * (MOOD === 'drive' ? 0.6 : 1), D1 + 0.6 + (r * 4 + i) * 0.09)); g.save(); g.translate(0, (1 - a) * 24); px += pill(s, px, cy + r * 118, { size: 46, alpha: a, stroke: s === 'LD Beyond' ? TH.accent : undefined }) + 20; g.restore(); }); });
+    /* die weiteren Projekte: Zeilen umbrechen und mittig setzen */
+    const size = 34, gapX = 16, gapY = 84, maxW = W - 2 * x, rowsL = []; let cur = [], cw2 = 0;
+    LABS_MORE.forEach((str) => { const w = measure(str, size, 600) + size * 1.5; if (cur.length && cw2 + gapX + w > maxW) { rowsL.push(cur); cur = []; cw2 = 0; } cw2 += (cur.length ? gapX : 0) + w; cur.push([str, w]); });
+    if (cur.length) rowsL.push(cur);
+    const cy0 = (y + TH.bot) / 2 - ((rowsL.length - 1) * gapY) / 2 + 14; let idx = 0;
+    label(T.labsMore, W / 2, cy0 - 72, { size: 24, color: TH.soft, align: 'center', alpha: eOut(ph2) });
+    rowsL.forEach((row, r) => { const tot = row.reduce((a2, it) => a2 + it[1] + gapX, -gapX); let px = (W - tot) / 2; row.forEach(([str, w]) => { const k = idx++, t1 = D1 + 0.1 + k * (FAST ? 0.035 : 0.06), a = eOut(seg(lt, t1, t1 + 0.5)); g.save(); g.translate(0, (1 - a) * 24); pill(str, px, cy0 + r * gapY, { size, alpha: a, stroke: str === 'LD Beyond.' ? TH.accent : undefined }); g.restore(); px += w + gapX; }); });
   }
 }
 
@@ -358,7 +379,7 @@ function scSite(lt, D, o) {
   let yy = top + 140 + ts * 1.06 + 70;
   if (o.desc) yy += para(T.siteDesc, x + 2, yy, 560, 27, { color: TH.soft, p: pin(lt, 4, 1.4), lh: 1.45 }) * 39 + 26;
   let px = x, py = yy + 10;
-  T.siteChips.forEach((c, i) => { const a = eOut(MOOD === 'drive' ? seg(lt, (2 + i * 0.5) * B, (2 + i * 0.5) * B + 0.2) : pin(lt, 5 + i * 0.6)); const w = measure(c, 22, 600) + 33; if (px + w > x + 570) { px = x; py += 58; } /* bleibt links vom Telefon */ px += pill(c, px, py, { size: 22, alpha: a, stroke: i === 0 ? TH.accent : undefined }) + 10; });
+  T.siteChips.forEach((c, i) => { const a = eOut(FAST ? seg(lt, (2 + i * 0.5) * B, (2 + i * 0.5) * B + 0.2) : pin(lt, 5 + i * 0.6)); const w = measure(c, 22, 600) + 33; if (px + w > x + 570) { px = x; py += 58; } /* bleibt links vom Telefon */ px += pill(c, px, py, { size: 22, alpha: a, stroke: i === 0 ? TH.accent : undefined }) + 10; });
   /* Browser mit der neuen Website: Ansichten wechseln, jede fährt langsam nach unten */
   const views = ['siteBeyond', 'siteHome', 'siteLabs', 'siteStory'].filter((k) => IMG[k]);
   const bx = 850, bw = 930, bh = 600, by = CY - bh / 2 + 6, pb = eOut(pin(lt, 2, 1.3));
@@ -377,7 +398,7 @@ function scFamily(lt, D) {
   kicker(T.familyKicker, cx, cy - 230, pin(lt, 0), 'center');
   const items = [{ key: 'ld', name: 'loona! designs', tag: 'plattform' }, ...FAMILY], n = items.length, sz = 170, step = 310, x0 = cx - ((n - 1) * step) / 2;
   items.forEach((it, i) => {
-    const p = MOOD === 'drive' ? seg(lt, i * B, i * B + 0.25) : pin(lt, 1 + i * 1.3), a = eOut(p), px = x0 + i * step, dy = (1 - eOut5(p)) * 50;
+    const p = FAST ? seg(lt, i * B, i * B + 0.25) : pin(lt, 1 + i * 1.3), a = eOut(p), px = x0 + i * step, dy = (1 - eOut5(p)) * 50;
     /* Kernmarke: das Zeichen (Negativ-Logo, wie im Auftakt) auf der Tinte-Kachel — nicht das Badge mit dem großen LD */
     if (it.key === 'ld') zeichenTile(px, cy + dy, sz, { alpha: a, edge: TH.dark ? 'rgba(255,255,255,0.14)' : undefined });
     else { familyTile(px, cy + dy, sz, it.key, a); if (TH.dark) { g.save(); g.globalAlpha = a; g.strokeStyle = 'rgba(255,255,255,0.14)'; g.lineWidth = 1.5; rr(px - sz / 2, cy + dy - sz / 2, sz, sz, sz * 0.22); g.stroke(); g.restore(); } }
@@ -404,12 +425,12 @@ function scFocus(lt, D) {
   titlePair(T.focusTitle, x, top + 128, W - 2 * x, lt, 84);
   const gap = 36, cw = (W - 2 * x - 2 * gap) / 3, y = top + 214, ch = Math.min(400, TH.bot - 36 - y);
   FOCUS_AREAS.forEach((f, i) => {
-    const p = MOOD === 'drive' ? seg(lt, (2 + i * 2) * B, (2 + i * 2) * B + 0.25) : pin(lt, 3 + i * 2.4), a = eOut(p), cx = x + i * (cw + gap);
+    const p = FAST ? seg(lt, (2 + i * 2) * B, (2 + i * 2) * B + 0.25) : pin(lt, 3 + i * 2.4), a = eOut(p), cx = x + i * (cw + gap);
     if (a <= 0) return;
     g.save(); g.globalAlpha = a; g.translate(0, (1 - eOut5(p)) * 50);
     card(cx, y, cw, ch, 24);
     /* nach dem Einblenden wandert der Akzent von Karte zu Karte */
-    const tA = MOOD === 'drive' ? 2 * BAR : 4.5, on = lt > tA && Math.floor(((lt - tA) / Math.max(1, D - tA - 0.5)) * 3) === i;
+    const tA = FAST ? 2 * BAR : 4.5, on = lt > tA && Math.floor(((lt - tA) / Math.max(1, D - tA - 0.5)) * 3) === i;
     if (on) { g.strokeStyle = TH.accent; g.lineWidth = 2.5; rr(cx, y, cw, ch, 24); g.stroke(); }
     g.fillStyle = TH.accent; g.fillRect(cx + 40, y + 40, on ? 96 : 56, 4);
     text(f.icon, cx + 40, y + 108, { size: 40, weight: 700, fam: MONO, color: TH.accent });
@@ -426,22 +447,25 @@ function scWorks(lt, D) {
   const x = 150, top = TH.top + 30;
   kicker(T.worksKicker, x, top + 30, pin(lt, 0));
   titlePair(T.worksTitle, x, top + 122, W - 2 * x, lt);
-  const rows = 7, colGap = 60, y0 = top + 190, rowH = Math.min(86, (TH.bot - 16 - y0) / rows), colW = (W - 2 * x - colGap) / 2, tile = rowH - 20;
-  /* eine Markierung läuft chronologisch durch die Liste */
-  const tIn = MOOD === 'drive' ? BAR : 1.6, span = Math.max(1, D - tIn - (MOOD === 'drive' ? BAR : 2.4)), act = clamp(Math.floor(((lt - tIn) / span) * WORKS.length), -1, WORKS.length - 1);
-  WORKS.forEach((wk, i) => {
-    const col = Math.floor(i / rows), r = i % rows, px = x + col * (colW + colGap), py = y0 + r * rowH;
-    const t1 = tIn * 0.35 + i * (MOOD === 'drive' ? B / 4 : 0.11), a = eOut(seg(lt, t1, t1 + (MOOD === 'drive' ? 0.25 : 0.6)));
+  const colGap = 70, colW = (W - 2 * x - colGap) / 2, yH = top + 188, y0 = yH + 28, rows = Math.max(WORKS.frei.length, WORKS.beruf.length), rowH = Math.min(62, (TH.bot - 14 - y0) / rows), tile = rowH - 14;
+  const all = [...WORKS.frei.map((w, i) => [w, 0, i]), ...WORKS.beruf.map((w, i) => [w, 1, i])];
+  /* eine Markierung läuft erst durch die freien Projekte, dann durch den Beruf */
+  const tIn = FAST ? BAR : 1.6, span = Math.max(1, D - tIn - (FAST ? BAR : 2.4)), act = clamp(Math.floor(((lt - tIn) / span) * all.length), -1, all.length - 1);
+  [0, 1].forEach((c) => { const a = eOut(pin(lt, 2 + c)), px = x + c * (colW + colGap); label(T.worksCols[c], px + 6, yH, { size: 18, color: c ? TH.accentText : TH.soft, alpha: a, track: 0.1 }); hair(px, yH + 14, px + colW * a, a); });
+  all.forEach(([wk, c, r], i) => {
+    const px = x + c * (colW + colGap), py = y0 + r * rowH;
+    const t1 = tIn * 0.35 + i * (FAST ? B / 4 : 0.1), a = eOut(seg(lt, t1, t1 + (FAST ? 0.25 : 0.6)));
     if (a <= 0) return;
-    const on = i === act, k = on ? 1 : i < act ? 0.8 : 0.55;
+    const on = i === act, k = on ? 1 : i < act ? 0.82 : 0.55;
     g.save(); g.globalAlpha = a; g.translate((1 - a) * 30, 0);
-    if (on) { g.fillStyle = rgba(BR.orange, TH.dark ? 0.16 : 0.13); rr(px - 14, py - 4, colW + 28, rowH - 8, 16); g.fill(); g.fillStyle = TH.accent; rr(px - 14, py - 4, 5, rowH - 8, 2.5); g.fill(); }
+    if (on) { g.fillStyle = rgba(BR.orange, TH.dark ? 0.16 : 0.13); rr(px - 12, py + 2, colW + 24, rowH - 4, 14); g.fill(); g.fillStyle = TH.accent; rr(px - 12, py + 2, 5, rowH - 4, 2.5); g.fill(); }
     g.globalAlpha = a * k;
-    monoTile(px + 6, py + 6, tile, wk[1], wk[2]);
-    const tx = px + tile + 30, by = py + 6 + tile * 0.5;
-    label(wk[0], tx, by - 10, { size: 17, color: TH.accentText, track: 0.08 });
-    text(LANG === 'en' ? wk[4] : wk[3], tx, by + 26, { size: 30, weight: 700, color: TH.ink, ls: -0.4 });
-    text(LANG === 'en' ? wk[6] : wk[5], px + colW, by + 26, { size: 21, weight: 500, color: TH.soft, align: 'right' });
+    monoTile(px + 6, py + 7, tile, wk[1], wk[2]);
+    const by = py + 7 + tile * 0.5 + 10, tx = px + tile + 26, kind = LANG === 'en' ? wk[6] : wk[5], name = LANG === 'en' ? wk[4] : wk[3];
+    label(wk[0], tx, by - 2, { size: 16, color: TH.accentText, track: 0.06 });
+    const kw = measure(kind, 20, 500), nx = tx + 112, ns = fit(name, colW - (nx - px) - kw - 24, 27, 700);
+    text(name, nx, by, { size: ns, weight: 700, color: TH.ink, ls: -0.3 });
+    text(kind, px + colW, by, { size: 20, weight: 500, color: TH.soft, align: 'right' });
     g.restore();
   });
 }
@@ -451,29 +475,29 @@ function scLabsAll(lt, D) {
   bg(lt);
   const x = 150, top = TH.top + 30;
   kicker(T.labsAllKicker, x, top + 30, pin(lt, 0));
-  titlePair(T.labsAllTitle, x, top + 122, 800, lt);
-  /* Kennzahlen wie auf der Website (Experimente, Online, Seit, Werkzeuge) */
-  const vals = [String(LAB_STATS.total), String(LAB_STATS.online), LAB_STATS.since, String(LAB_STATS.tools)], vs = 60;
-  let sx = W - x; for (let k = 3; k >= 0; k--) {
-    const p = MOOD === 'drive' ? seg(lt, (2 + k) * B, (2 + k) * B + 0.22) : pin(lt, 3 + k * 1.2), a = eOut(p), w = Math.max(measure(vals[k], vs, 800, MAN, -1.5), 120);
-    text(vals[k], sx, top + 112 + (1 - eOut5(p)) * 20, { size: vs, weight: 800, color: k === 0 ? TH.accent : TH.ink, alpha: a, align: 'right', ls: -1.5 });
+  titlePair(T.labsAllTitle, x, top + 122, 700, lt);
+  /* Kennzahlen: Projekte, Start, Spielmodi der COE, KI-Werkzeuge */
+  const vs = 60; let sx = W - x;
+  for (let k = 3; k >= 0; k--) {
+    const p = FAST ? seg(lt, (2 + k) * B, (2 + k) * B + 0.22) : pin(lt, 3 + k * 1.2), a = eOut(p), lw = measure(T.labStatLabels[k].toUpperCase(), 15, 500, MONO, 15 * 0.1), w = Math.max(measure(LAB_STATS[k], vs, 800, MAN, -1.5), lw, 110);
+    text(LAB_STATS[k], sx, top + 112 + (1 - eOut5(p)) * 20, { size: vs, weight: 800, color: k === 0 ? TH.accent : TH.ink, alpha: a, align: 'right', ls: -1.5 });
     label(T.labStatLabels[k], sx, top + 146, { size: 15, color: TH.soft, alpha: a, align: 'right', track: 0.1 });
-    sx -= w + 54;
+    sx -= w + 46;
   }
-  const cols = 6, gap = 22, gy = top + 196, gw = (W - 2 * x - (cols - 1) * gap) / cols, gh = Math.min(196, (TH.bot - 20 - gy - gap) / 2);
-  const hot = Math.floor(lt / (MOOD === 'drive' ? B : BAR / 2)) % LABS_ALL.length;
+  const cols = 7, gap = 18, gy = top + 190, gw = (W - 2 * x - (cols - 1) * gap) / cols, gh = Math.min(170, (TH.bot - 16 - gy - 2 * gap) / 3);
+  const hot = Math.floor(lt / (FAST ? B : BAR / 2)) % LABS_ALL.length;
   LABS_ALL.forEach((lb, i) => {
     const cxx = x + (i % cols) * (gw + gap), cyy = gy + Math.floor(i / cols) * (gh + gap);
-    const t1 = (MOOD === 'drive' ? BAR / 2 : 1.2) + i * (MOOD === 'drive' ? B / 4 : 0.14), p = seg(lt, t1, t1 + (MOOD === 'drive' ? 0.25 : 0.7)), a = eOut(p);
+    const t1 = (FAST ? BAR / 2 : 1.2) + i * (FAST ? B / 4 : 0.1), p = seg(lt, t1, t1 + (FAST ? 0.25 : 0.7)), a = eOut(p);
     if (a <= 0) return;
     g.save(); g.globalAlpha = a; g.translate(0, (1 - eOut5(p)) * 40);
-    card(cxx, cyy, gw, gh, 18);
-    if (i === hot && lt > 3) { g.strokeStyle = TH.accent; g.lineWidth = 2.5; rr(cxx, cyy, gw, gh, 18); g.stroke(); }
-    monoTile(cxx + 18, cyy + 18, 62, lb[1], lb[2]);
-    if (lb[0]) label(lb[0], cxx + gw - 18, cyy + 42, { size: 15, color: TH.soft, align: 'right', track: 0.06 });
-    const nm = LANG === 'en' ? lb[4] : lb[3], ns = fit(nm, gw - 36, 25, 700);
-    text(nm, cxx + 18, cyy + gh - 50, { size: ns, weight: 700, color: TH.ink, ls: -0.3 });
-    label(LANG === 'en' ? lb[6] : lb[5], cxx + 18, cyy + gh - 22, { size: 14, color: TH.accentText, track: 0.06 });
+    card(cxx, cyy, gw, gh, 16);
+    if (i === hot && lt > 3) { g.strokeStyle = TH.accent; g.lineWidth = 2.5; rr(cxx, cyy, gw, gh, 16); g.stroke(); }
+    const ts2 = Math.min(54, gh * 0.36);
+    monoTile(cxx + 16, cyy + 16, ts2, lb[0], lb[1]);
+    const ns = fit(lb[2], gw - 30, 23, 700), kind = LANG === 'en' ? lb[4] : lb[3];
+    text(lb[2], cxx + 16, cyy + gh - 44, { size: ns, weight: 700, color: TH.ink, ls: -0.3 });
+    text(kind, cxx + 16, cyy + gh - 18, { size: fit(kind, gw - 30, 16, 500), weight: 500, color: TH.accentText });
     g.restore();
   });
 }
@@ -488,7 +512,7 @@ function scHero(lt, D) {
   const scroll = lerp(0, Math.max(0, span - (W - 2 * x)), eIO(seg(lt, 1, D - 0.8)));
   HERO.forEach(([m, de, en], i) => {
     const px = x + i * (pw + gap) - scroll; if (px > W + 60 || px + pw < -60) return;
-    const p = MOOD === 'drive' ? seg(lt, (i * B) / 2, (i * B) / 2 + 0.25) : pin(lt, 2 + i * 0.55), a = eOut(p);
+    const p = FAST ? seg(lt, (i * B) / 2, (i * B) / 2 + 0.25) : pin(lt, 2 + i * 0.55), a = eOut(p);
     if (a <= 0) return;
     /* Bildfolge vor und zurück (kein Sprung am Ende), je Gerät leicht versetzt */
     const N = HERO_FRAMES, f0 = Math.floor(lt * 10 + i * 5) % (2 * N - 2), f = f0 < N ? f0 : 2 * N - 2 - f0;
@@ -510,10 +534,10 @@ function scQuote(lt, D, o) {
   const lines = wrapLines(str, 1380, size, 700), lh = size * 1.24, y0 = CY - ((lines.length - 1) * lh) / 2 + 10;
   kicker(T.quoteKicker, cx, y0 - size * 1.5, pin(lt, 0), 'center');
   lines.forEach((ln, k) => {
-    const p = MOOD === 'drive' ? seg(lt, k * 2 * B, k * 2 * B + 0.5) : pin(lt, 1 + k * 2.6, 1.3);
+    const p = FAST ? seg(lt, k * 2 * B, k * 2 * B + 0.5) : pin(lt, 1 + k * 2.6, 1.3);
     drawLine(tokens(ln, { serif: true }), cx, y0 + k * lh, size, p, { style: TH.style === 'mask' ? 'mask' : 'fade', color: TH.ink, align: 'center' });
   });
-  const pa = eOut(MOOD === 'drive' ? seg(lt, lines.length * 2 * B, lines.length * 2 * B + 0.3) : pin(lt, 2 + lines.length * 2.6)), ye = y0 + (lines.length - 1) * lh + 86;
+  const pa = eOut(FAST ? seg(lt, lines.length * 2 * B, lines.length * 2 * B + 0.3) : pin(lt, 2 + lines.length * 2.6)), ye = y0 + (lines.length - 1) * lh + 86;
   hair(cx - 60 * pa, ye - 34, cx + 60 * pa, pa);
   label(`— ${LANG === 'en' ? q.byEn ?? q.by : q.by}`, cx, ye + 14, { size: 22, color: TH.accentText, align: 'center', alpha: pa });
 }
@@ -529,7 +553,7 @@ function scCerts(lt, D) {
   text(T.certsTitle[1], x, CY + 196, { size: 64, weight: 400, fam: SER, italic: true, color: TH.ink, alpha: eOut(pin(lt, 3)) });
   const lx = 800, lw = W - 180 - lx, rh = (TH.bot - TH.top - 60) / CERTS.length, y0 = TH.top + 34;
   CERTS.forEach((c, i) => {
-    const p = MOOD === 'drive' ? seg(lt, (1 + i * 0.5) * B, (1 + i * 0.5) * B + 0.2) : seg(lt, 0.5 + i * (Math.min(D * 0.5, 3.4) / CERTS.length), 1.3 + i * (Math.min(D * 0.5, 3.4) / CERTS.length)), a = eOut(p), y = y0 + i * rh;
+    const p = FAST ? seg(lt, (1 + i * 0.5) * B, (1 + i * 0.5) * B + 0.2) : seg(lt, 0.5 + i * (Math.min(D * 0.5, 3.4) / CERTS.length), 1.3 + i * (Math.min(D * 0.5, 3.4) / CERTS.length)), a = eOut(p), y = y0 + i * rh;
     hair(lx, y, lx + lw * a, a);
     label(c.d, lx, y + rh * 0.62, { size: 18, color: TH.accentText, alpha: a, track: 0.06 });
     const by = LANG === 'en' && c.byEn ? c.byEn : c.by, bw = measure(by, 20, 500) + 20;
@@ -543,23 +567,17 @@ function scCerts(lt, D) {
 /* ---------- Szene: Schluss ---------- */
 function scOutro(lt, D) {
   bg(lt, { warm: 0.12 });
-  const cx = W / 2, cy = CY - 70;
-  const tB = MOOD === 'drive' ? 2 * B : Math.min(2.6, D * 0.3); // bis hier steht das Badge (Mondphase), dann Lockup
-  const pb = seg(lt, 0, MOOD === 'drive' ? 0.25 : 0.9), swap = seg(lt, tB, tB + (MOOD === 'drive' ? 0.25 : 0.9));
-  /* Erst geht das Badge ganz, dann kommt das Lockup — nie zwei Logo-Formen gleichzeitig im Bild */
-  const bOut = seg(swap, 0, 0.45), lIn = seg(swap, 0.55, 1);
-  if (bOut < 1) { const sc = lerp(0.86, 1, eOut5(pb)); badge(cx, cy, 250 * sc, { alpha: eOut(pb) * (1 - bOut), moon: seg(lt, MOOD === 'drive' ? B : 0.7, MOOD === 'drive' ? B + 0.5 : 1.7), edge: TH.dark ? 'rgba(255,255,255,0.14)' : undefined }); }
-  if (swap > 0) {
-    const m = 120;
-    if (lIn > 0) { g.save(); g.globalAlpha = lIn; lockup(cx, cy, m, TH.ink, { pw: seg(lIn, 0.1, 1) }); g.restore(); }
-    const t2 = lt - tB, st = MOOD === 'drive' ? B : 0.6;
-    const pcl = seg(t2, st, st + TH.inDur), y1 = cy + 190;
-    const toks = [...tokens(CLAIM[0], { weight: 700 }), ...tokens(CLAIM[1], { serif: true, color: TH.accent })];
-    drawLine(toks, cx, y1, 72, pcl, { style: TH.style === 'mask' ? 'mask' : 'fade', color: TH.ink, align: 'center', weight: 700 });
-    text(T.outroSub.join(' '), cx, y1 + 62, { size: 32, weight: 500, align: 'center', color: TH.soft, alpha: eOut(seg(t2, st * 2, st * 2 + TH.inDur)) });
-    const pl = eOut(seg(t2, st * 3, st * 3 + TH.inDur)), ly = TH.bot - 60;
-    hair(cx - 520 * pl, ly - 52, cx + 520 * pl, pl);
-    const ws = LINKS.map((s) => measure(s.toUpperCase(), 20, 500, MONO, 20 * 0.08)), gapL = 60, tot = ws.reduce((s, w) => s + w + gapL, -gapL); let px = cx - tot / 2;
-    LINKS.forEach((s, i) => { label(s, px, ly, { size: 20, color: i === 0 ? TH.ink : TH.soft, alpha: pl, track: 0.08 }); px += ws[i] + gapL; });
-  }
+  const cx = W / 2, cy = CY - 70, m = 120;
+  /* Direkt das offizielle Logo: das Zeichen mit dem Reveal der Marke, dann die Wortmarke. Das Badge davor ist entfallen (Wunsch 22.11.2026). */
+  const tB = FAST ? B : 0.9;
+  lockup(cx, cy, m, TH.ink, { pm: seg(lt, FAST ? 0.04 : 0.3, FAST ? 0.4 : 1.5), pw: seg(lt, tB, tB + (FAST ? 0.4 : 1.0)) });
+  const t2 = lt - tB, st = FAST ? B : 0.6;
+  const pcl = seg(t2, st, st + TH.inDur), y1 = cy + 190;
+  const toks = [...tokens(CLAIM[0], { weight: 700 }), ...tokens(CLAIM[1], { serif: true, color: TH.accent })];
+  drawLine(toks, cx, y1, 72, pcl, { style: TH.style === 'mask' ? 'mask' : 'fade', color: TH.ink, align: 'center', weight: 700 });
+  text(T.outroSub.join(' '), cx, y1 + 62, { size: 32, weight: 500, align: 'center', color: TH.soft, alpha: eOut(seg(t2, st * 2, st * 2 + TH.inDur)) });
+  const pl = eOut(seg(t2, st * 3, st * 3 + TH.inDur)), ly = TH.bot - 60;
+  hair(cx - 520 * pl, ly - 52, cx + 520 * pl, pl);
+  const ws = LINKS.map((s) => measure(s.toUpperCase(), 20, 500, MONO, 20 * 0.08)), gapL = 60, tot = ws.reduce((s, w) => s + w + gapL, -gapL); let px = cx - tot / 2;
+  LINKS.forEach((s, i) => { label(s, px, ly, { size: 20, color: i === 0 ? TH.ink : TH.soft, alpha: pl, track: 0.08 }); px += ws[i] + gapL; });
 }

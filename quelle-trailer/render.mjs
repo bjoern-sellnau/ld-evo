@@ -1,6 +1,6 @@
 /* Trailer rendern: Bilder aus dem Canvas (REEL.frame) per Playwright abgreifen und mit ffmpeg zu MP4 zusammensetzen.
 
-   node render.mjs <60|90|120|300> <cine|drive|calm> <de|en> [Ausgabeordner]
+   node render.mjs <60|90|120|300> <cine|drive|calm|action> <de|en> [Ausgabeordner]
 
    Umgebungsvariablen (optional):
      PLAYWRIGHT  Pfad/Name des Playwright-Moduls (Standard: "playwright")
@@ -18,8 +18,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const [len = '60', mood = 'cine', lang = 'de', outArg] = process.argv.slice(2);
 const OUT = path.resolve(outArg ?? path.join(ROOT, '..', 'trailer'));
-const NAMES = { cine: 'cinematic', drive: 'treibend', calm: 'ruhig' };
-if (!NAMES[mood] || !['60', '90', '120', '300'].includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <60|90|120|300> <cine|drive|calm> <de|en> [Ausgabeordner]'); process.exit(2); }
+const NAMES = { cine: 'cinematic', drive: 'treibend', calm: 'ruhig', action: 'action' };
+if (!NAMES[mood] || !['60', '90', '120', '300'].includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <60|90|120|300> <cine|drive|calm|action> <de|en> [Ausgabeordner]'); process.exit(2); }
 const base = `loona-trailer-${len}s-${NAMES[mood]}-${lang}`;
 /* Die lange Fassung bekommt eine niedrigere Obergrenze, damit die Datei sicher unter 100 MB bleibt (GitHub-Grenze) */
 const FPS = 30, CRF = process.env.CRF ?? (len === '300' ? '23' : '22'), MAXRATE = process.env.MAXRATE ?? (len === '300' ? '2200k' : '4500k');
