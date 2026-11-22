@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Leitmotiv am Klavier</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500;700&family=Manrope:wght@500;700;800&display=swap">
+<style>
+/* Aufbau: ein Notenpult — oben die Bedienleiste, darunter das Notenblatt (Klaviersatz, acht Takte), dann die Klaviatur.
+   Rechte Hand trägt das Orange der Marke, linke Hand Blau; beide Farben stehen nie allein, sondern mit „R“/„L“ und Fingerzahl. */
+:root {
+  --bg: #F6F1E8; --panel: #FFFDF8; --ink: #171310; --soft: #5E564B; --line: rgba(23, 19, 16, 0.16);
+  --rh: #FF7816; --rh-text: #A84600; --lh: #38BDF8; --lh-text: #0F5F8F; --held: 0.34;
+  --key-white: #FFFDF8; --key-black: #171310; --key-edge: rgba(23, 19, 16, 0.38);
+  --sans: 'Manrope', 'Segoe UI', system-ui, sans-serif; --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace; --serif: 'Instrument Serif', Georgia, serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0B1026; --panel: #121836; --ink: #F6F1E8; --soft: #B4B9D0; --line: rgba(246, 241, 232, 0.18); --rh-text: #FF9A4D; --lh-text: #7DD3FC; --key-edge: rgba(0, 0, 0, 0.55); color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #0B1026; --panel: #121836; --ink: #F6F1E8; --soft: #B4B9D0; --line: rgba(246, 241, 232, 0.18); --rh-text: #FF9A4D; --lh-text: #7DD3FC; --key-edge: rgba(0, 0, 0, 0.55); color-scheme: dark; }
+[hidden] { display: none !important; }
+html, body { background: var(--bg); }
+body { margin: 0; color: var(--ink); font: 500 15px/1.55 var(--sans); padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 26px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 20px; }
+.brand { display: flex; align-items: center; gap: 12px; font-size: 22px; letter-spacing: -0.035em; }
+.brand svg { height: 24px; width: 28px; flex: none; }
+.brand b { font-weight: 800; } .brand span { font-weight: 500; }
+.kicker { font: 700 12px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--rh-text); }
+h1 { font: 800 clamp(30px, 5vw, 50px)/1.04 var(--sans); letter-spacing: -0.035em; margin: 0; text-wrap: balance; }
+h1 em { font: italic 400 1.08em/1 var(--serif); letter-spacing: -0.01em; color: var(--rh-text); }
+.lede { color: var(--soft); max-width: 64ch; margin: 10px 0 0; }
+.facts { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 0; }
+.facts div { display: grid; gap: 2px; min-width: 0; }
+.facts dt, h2 { font: 700 12px/1.2 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); margin: 0; }
+.facts dd { margin: 0; font: 700 15px/1.35 var(--sans); }
+
+.desk { background: var(--panel); border: 1px solid var(--line); display: grid; min-width: 0; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.bar .grow { flex: 1 1 auto; }
+button, select { font: 700 14px/1 var(--sans); color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 10px 12px; cursor: pointer; }
+select { padding-right: 8px; }
+button:hover, select:hover { border-color: var(--ink); }
+button.go { background: var(--rh); border-color: var(--rh); color: #171310; min-width: 108px; }
+button:disabled { opacity: 0.4; cursor: default; }
+button:focus-visible, select:focus-visible, input:focus-visible, .key:focus-visible { outline: 2px solid var(--lh-text); outline-offset: 2px; }
+.seg { display: inline-flex; border: 1px solid var(--line); }
+.seg button { border: 0; padding: 10px 11px; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.field { display: inline-flex; align-items: center; gap: 8px; font: 500 13px/1.2 var(--sans); color: var(--soft); }
+.field output { font: 700 14px/1 var(--mono); color: var(--ink); min-width: 4ch; font-variant-numeric: tabular-nums; }
+input[type="range"] { width: 130px; accent-color: var(--rh); }
+.check { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font: 500 13px/1.2 var(--sans); }
+.check input { width: 16px; height: 16px; accent-color: var(--rh); }
+
+.sheetbox { position: relative; padding: 6px 10px 2px; min-width: 0; overflow-x: auto; }
+#sheet { position: relative; min-width: 300px; }
+#sheet svg { display: block; }
+#cursor { position: absolute; width: 24px; margin-left: -7px; background: var(--rh); opacity: 0.22; pointer-events: none; transition: left 0.08s linear; }
+.plain { margin: 8px 4px 12px; border-collapse: collapse; font: 500 13px/1.4 var(--mono); }
+.plain th, .plain td { text-align: left; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+
+.now { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: baseline; padding: 12px 14px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); min-height: 24px; }
+.now b { font: 700 12px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
+.now span { font: 700 15px/1.2 var(--mono); }
+.now .r { color: var(--rh-text); } .now .l { color: var(--lh-text); }
+
+.keys { padding: 14px 14px 16px; min-width: 0; }
+.piano { position: relative; display: flex; height: clamp(108px, 22vw, 170px); border: 1px solid var(--key-edge); border-top: 6px solid #171310; background: #171310; touch-action: manipulation; }
+.key { position: relative; padding: 0; border: 0; border-radius: 0 0 4px 4px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px; font: 700 10px/1 var(--mono); -webkit-tap-highlight-color: transparent; }
+.key.w { flex: 1 1 0; min-width: 0; background: var(--key-white); color: #5E564B; box-shadow: inset -1px 0 0 var(--key-edge); padding-bottom: 6px; }
+.key.b { position: absolute; top: 0; height: 62%; background: var(--key-black); color: #F6F1E8; z-index: 2; box-shadow: inset 0 -5px 0 rgba(255, 255, 255, 0.1); padding-bottom: 5px; }
+.key:hover { filter: brightness(0.95); border-color: transparent; }
+.key .fg { display: none; width: 1.7em; height: 1.7em; border-radius: 50%; background: #171310; color: #F6F1E8; align-items: center; justify-content: center; font-size: 11px; }
+.key.b .fg { background: #F6F1E8; color: #171310; }
+.key.on .fg { display: flex; }
+.key.rh { background: var(--rh); color: #171310; }
+.key.lh { background: var(--lh); color: #171310; }
+.key.held.rh { background: color-mix(in srgb, var(--rh) 42%, var(--key-white)); }
+.key.held.lh { background: color-mix(in srgb, var(--lh) 42%, var(--key-white)); }
+.key.b.held.rh { background: color-mix(in srgb, var(--rh) 55%, var(--key-black)); color: #F6F1E8; }
+.key.b.held.lh { background: color-mix(in srgb, var(--lh) 55%, var(--key-black)); color: #F6F1E8; }
+.key.done { outline: 3px solid #171310; outline-offset: -3px; }
+.key .nm { display: none; }
+.key.c .nm, .key.on .nm { display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 10px 0 0; font: 500 13px/1.3 var(--sans); color: var(--soft); }
+.legend i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; }
+.howto { display: grid; gap: 10px; max-width: 70ch; }
+.howto ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.note { color: var(--soft); font-size: 13px; max-width: 72ch; margin: 0; }
+@media (max-width: 620px) { .key.w .nm { font-size: 8px; } .key .fg { font-size: 9px; } input[type="range"] { width: 96px; } }
+@media (prefers-reduced-motion: reduce) { #cursor { transition: none; } }
+</style>
+</head>
+<body>
+<!-- Leitmotiv am Klavier — die Melodie aus der Musik der loona!-designs-Trailer (quelle-trailer/music.js: CH[…].mel, Folge P8) als Klaviersatz
+     zum Lernen: Noten (VexFlow), Klaviatur mit den zu drückenden Tasten, Abspielen und Schritt-für-Schritt-Modus.
+     Linke Hand wie im Stück „Ruhig“: gebrochener Akkord (arp − 12) im Muster 0 2 1 2 3 2 1 2. -->
+<div class="wrap">
+  <header>
+    <div class="brand" aria-label="loona! designs">
+      <svg viewBox="6 9 32 28" aria-hidden="true"><path fill="#FF7816" d="M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z"/><path fill="#FF7816" d="M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z"/></svg>
+      <div><b>loona!</b> <span>designs</span></div>
+    </div>
+    <span class="kicker">Leitmotiv</span>
+  </header>
+
+  <div>
+    <h1>Das Leitmotiv <em>am Klavier.</em></h1>
+    <p class="lede">Acht Takte in d-Moll. Die rechte Hand spielt die Melodie, die linke gebrochene Akkorde, so wie in der ruhigen Fassung der Trailer. Hör zu, sieh auf die Tasten und spiel nach.</p>
+  </div>
+
+  <dl class="facts">
+    <div><dt>Tonart</dt><dd>d-Moll (ein ♭)</dd></div>
+    <div><dt>Takt</dt><dd>4/4</dd></div>
+    <div><dt>Akkorde</dt><dd id="chords">Dm · B♭ · F · C · Dm · B♭ · Gm · C</dd></div>
+    <div><dt>Rechte Hand</dt><dd id="range">F4 bis F5</dd></div>
+  </dl>
+
+  <section class="desk" aria-label="Notenpult">
+    <div class="bar">
+      <button class="go" id="play">Abspielen</button>
+      <div class="seg" role="group" aria-label="Schritt">
+        <button id="prev" aria-label="Schritt zurück">◀</button>
+        <button id="next" aria-label="Schritt weiter">▶</button>
+      </div>
+      <label class="field" for="tempo">Tempo <input type="range" id="tempo" min="40" max="140" step="2" value="72"> <output id="bpm" for="tempo">72</output></label>
+      <span class="grow"></span>
+      <div class="seg" role="group" aria-label="Hände">
+        <button id="hBoth" aria-pressed="true">Beide Hände</button>
+        <button id="hR" aria-pressed="false">Rechte</button>
+        <button id="hL" aria-pressed="false">Linke</button>
+      </div>
+    </div>
+    <div class="bar">
+      <label class="field" for="acc">Linke Hand <select id="acc"><option value="arp">Gebrochene Akkorde</option><option value="root">Nur Grundtöne</option></select></label>
+      <label class="check"><input type="checkbox" id="step"> Schritt für Schritt</label>
+      <label class="check"><input type="checkbox" id="loop" checked> Wiederholen</label>
+      <label class="check"><input type="checkbox" id="click"> Metronom</label>
+      <label class="check"><input type="checkbox" id="finger" checked> Fingersatz</label>
+      <label class="field" for="names">Notennamen <select id="names"><option value="de">deutsch (H, B)</option><option value="en">international (B, B♭)</option></select></label>
+    </div>
+
+    <div class="sheetbox"><div id="sheet" role="img" aria-label="Noten des Leitmotivs: acht Takte, Klaviersatz"></div></div>
+
+    <div class="now" aria-live="off">
+      <b id="where">Takt 1 · Dm</b>
+      <span class="r" id="nowR">Rechte: –</span>
+      <span class="l" id="nowL">Linke: –</span>
+    </div>
+
+    <div class="keys">
+      <div class="piano" id="piano"></div>
+      <p class="legend"><span><i style="background: var(--rh)"></i>rechte Hand</span><span><i style="background: var(--lh)"></i>linke Hand</span><span>Zahl im Kreis: Finger (1 = Daumen)</span><span id="hint">Tasten lassen sich anklicken.</span></p>
+    </div>
+  </section>
+
+  <section class="howto">
+    <h2>So übst du</h2>
+    <ol>
+      <li>Rechte Hand allein, Tempo 60, mit „Wiederholen“. Die Melodie kommt mit acht Tasten aus.</li>
+      <li>Linke Hand allein: erst „Nur Grundtöne“, dann die gebrochenen Akkorde. Das Muster ist in jedem Takt gleich: unten, oben-mitte, unten-mitte, oben-mitte, ganz oben und zurück.</li>
+      <li>Beide Hände „Schritt für Schritt“: Die Seite wartet, bis du die markierten Tasten gedrückt hast.</li>
+      <li>Tempo nach und nach auf 80 steigern. So schnell läuft die ruhige Fassung.</li>
+    </ol>
+    <p class="note">Die Melodie ist für die Trailer von loona! designs geschrieben. Der Fingersatz ist ein Vorschlag; nimm die Finger, die dir bequem liegen.</p>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow-bravura.js"></script>
+<script>
+'use strict';
+(() => {
+  const $ = (id) => document.getElementById(id);
+  /* ---------- das Stück (aus music.js): Melodie je Akkord [Schlag, Ton, Länge], Folge der acht Takte ---------- */
+  const BARS = ['Dm', 'Bb', 'F', 'C', 'Dm', 'Bb', 'Gm', 'C'];
+  const MEL = { Dm: [[0, 69, 1.5], [1.5, 74, 0.5], [2, 72, 1], [3, 69, 1]], Bb: [[0, 65, 1.5], [1.5, 70, 0.5], [2, 69, 2]], F: [[0, 69, 1.5], [1.5, 72, 0.5], [2, 77, 1], [3, 76, 1]], C: [[0, 76, 1.5], [1.5, 74, 0.5], [2, 72, 1], [3, 67, 1]], Gm: [[0, 67, 1.5], [1.5, 70, 0.5], [2, 74, 2]] };
+  const ARP = { Dm: [50, 53, 57, 60], Bb: [46, 50, 53, 57], F: [48, 53, 57, 60], C: [48, 52, 55, 60], Gm: [50, 55, 58, 62] }, PAT = [0, 2, 1, 2, 3, 2, 1, 2];
+  const ROOT = { Dm: 50, Bb: 46, F: 53, C: 48, Gm: 55 };
+  /* Fingersatz (Vorschlag): rechte Hand je Takt, linke Hand je Akkordton von unten nach oben */
+  const FR = { Dm: [2, 5, 4, 2], Bb: [1, 4, 3], F: [1, 2, 5, 4], C: [5, 4, 3, 1], Gm: [1, 3, 5] }, FL = [5, 3, 2, 1];
+  const LO = 45, HI = 84, TOTAL = 32;
+  const PC_DE = ['C', 'Cis', 'D', 'Es', 'E', 'F', 'Fis', 'G', 'As', 'A', 'B', 'H'], PC_EN = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+  const VKEY = ['c', 'c#', 'd', 'eb', 'e', 'f', 'f#', 'g', 'ab', 'a', 'bb', 'b'];
+  const S = { hands: 'both', acc: 'arp', names: 'de', tempo: 72, step: false, loop: true, click: false, finger: true, playing: false, beat: 0, si: 0, done: new Set() };
+  const name = (m, oct = true) => (S.names === 'de' ? PC_DE : PC_EN)[m % 12] + (oct ? Math.floor(m / 12) - 1 : '');
+  const chord = (c) => (c === 'Bb' ? (S.names === 'de' ? 'B' : 'B♭') : c);
+
+  /* alle Töne des Stücks: { t, d, m, hand, f } in Schlägen ab Anfang */
+  function notes() {
+    const out = [];
+    BARS.forEach((c, b) => {
+      MEL[c].forEach(([t, m, d], i) => out.push({ t: b * 4 + t, d, m, hand: 'r', f: FR[c][i], bar: b }));
+      if (S.acc === 'arp') PAT.forEach((ix, e) => out.push({ t: b * 4 + e / 2, d: 0.5, m: ARP[c][ix], hand: 'l', f: FL[ix], bar: b }));
+      else out.push({ t: b * 4, d: 4, m: ROOT[c], hand: 'l', f: 5, bar: b });
+    });
+    return out;
+  }
+  let N = notes(), STEPS = [];
+  const use = (n) => S.hands === 'both' || S.hands === n.hand;
+  function steps() { const ts = [...new Set(N.filter(use).map((n) => n.t))].sort((a, b) => a - b); STEPS = ts.map((t) => ({ t, notes: N.filter((n) => use(n) && n.t === t) })); }
+
+  /* ---------- Klaviatur ---------- */
+  const isBlack = (m) => [1, 3, 6, 8, 10].includes(m % 12), KEYS = {};
+  function buildPiano() {
+    const p = $('piano'); p.replaceChildren(); let w = 0; const whites = []; for (let m = LO; m <= HI; m++) if (!isBlack(m)) whites.push(m);
+    for (let m = LO; m <= HI; m++) {
+      const k = document.createElement('button'); k.type = 'button'; k.className = `key ${isBlack(m) ? 'b' : 'w'}${m % 12 === 0 ? ' c' : ''}`; k.dataset.m = m;
+      const fg = document.createElement('span'); fg.className = 'fg'; const nm = document.createElement('span'); nm.className = 'nm'; k.append(fg, nm);
+      if (isBlack(m)) { const bw = (100 / whites.length) * 0.62; k.style.width = `${bw}%`; k.style.left = `${(w / whites.length) * 100 - bw / 2}%`; } else w++;
+      k.addEventListener('pointerdown', (e) => { e.preventDefault(); press(m); });
+      k.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); press(m); } });
+      KEYS[m] = { el: k, fg, nm }; p.append(k);
+    }
+    labelKeys();
+  }
+  function labelKeys() { for (let m = LO; m <= HI; m++) { KEYS[m].nm.textContent = name(m); KEYS[m].el.setAttribute('aria-label', name(m)); } $('chords').textContent = BARS.map(chord).join(' · '); $('range').textContent = `${name(65)} bis ${name(77)}`; }
+  /* Tasten einfärben: on = jetzt anschlagen, held = klingt noch */
+  function paint(on, held) {
+    for (let m = LO; m <= HI; m++) { const k = KEYS[m], a = on.find((n) => n.m === m), h = a || held.find((n) => n.m === m);
+      k.el.classList.toggle('rh', !!h && h.hand === 'r'); k.el.classList.toggle('lh', !!h && h.hand === 'l'); k.el.classList.toggle('on', !!a); k.el.classList.toggle('held', !!h && !a);
+      k.el.classList.toggle('done', S.step && !!a && S.done.has(m)); k.fg.textContent = a && S.finger ? a.f : ''; k.fg.style.display = a && S.finger ? '' : 'none'; }
+    const b = Math.min(7, Math.floor((on[0] || held[0] || { t: S.beat }).t / 4)), txt = (hand) => { const l = on.filter((n) => n.hand === hand).map((n) => name(n.m) + (S.finger ? ` (${n.f})` : '')); return l.length ? l.join(' + ') : '–'; };
+    $('where').textContent = `Takt ${b + 1} · ${chord(BARS[b])}`; $('nowR').textContent = `Rechte: ${txt('r')}`; $('nowL').textContent = `Linke: ${txt('l')}`;
+  }
+
+  /* ---------- Noten (VexFlow) ---------- */
+  let POS = [];
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  function sheet() {
+    const box = $('sheet'); box.replaceChildren(); POS = [];
+    const VF = window.Vex && window.Vex.Flow;
+    if (!VF) { plain(box); return; }
+    const W = Math.max(300, box.clientWidth), per = W < 640 ? 2 : 4, lines = 8 / per, SH = 208, ink = css('--ink') || '#171310';
+    const r = new VF.Renderer(box, VF.Renderer.Backends.SVG); r.resize(W, lines * SH + 18); const ctx = r.getContext(); ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
+    const durOf = (d) => ({ 0.5: '8', 1: 'q', 1.5: 'qd', 2: 'h', 4: 'w' })[d], vk = (m) => `${VKEY[m % 12]}/${Math.floor(m / 12) - 1}`;
+    for (let b = 0; b < 8; b++) {
+      const line = Math.floor(b / per), col = b % per, first = col === 0, extra = line === 0 ? 92 : 66, base = (W - 6 - extra) / per, x = 3 + col * base + (col ? extra : 0), w = base + (first ? extra : 0), y = 26 + line * SH;
+      const st = new VF.Stave(x, y, w, { fill_style: ink }), sb = new VF.Stave(x, y + 84, w, { fill_style: ink });
+      if (first) { st.addClef('treble').addKeySignature('F'); sb.addClef('bass').addKeySignature('F'); if (b === 0) { st.addTimeSignature('4/4'); sb.addTimeSignature('4/4'); } }
+      if (b === 7) { st.setEndBarType(VF.Barline.type.END); sb.setEndBarType(VF.Barline.type.END); }
+      const sx = Math.max(st.getNoteStartX(), sb.getNoteStartX()); st.setNoteStartX(sx); sb.setNoteStartX(sx);
+      st.setContext(ctx).draw(); sb.setContext(ctx).draw();
+      if (first) { new VF.StaveConnector(st, sb).setType(VF.StaveConnector.type.BRACE).setContext(ctx).draw(); new VF.StaveConnector(st, sb).setType(VF.StaveConnector.type.SINGLE_LEFT).setContext(ctx).draw(); }
+      new VF.StaveConnector(st, sb).setType(b === 7 ? VF.StaveConnector.type.BOLD_DOUBLE_RIGHT : VF.StaveConnector.type.SINGLE_RIGHT).setContext(ctx).draw();
+      const mk = (n, clef) => { const sn = new VF.StaveNote({ keys: [vk(n.m)], duration: durOf(n.d), clef, auto_stem: true }); if (n.d === 1.5) { if (VF.Dot && VF.Dot.buildAndAttach) VF.Dot.buildAndAttach([sn], { all: true }); else sn.addDotToAll(); } sn.__n = n; return sn; };
+      const R = N.filter((n) => n.bar === b && n.hand === 'r').map((n) => mk(n, 'treble')), L = N.filter((n) => n.bar === b && n.hand === 'l').map((n) => mk(n, 'bass'));
+      const v1 = new VF.Voice({ num_beats: 4, beat_value: 4 }).addTickables(R), v2 = new VF.Voice({ num_beats: 4, beat_value: 4 }).addTickables(L);
+      VF.Accidental.applyAccidentals([v1], 'F'); VF.Accidental.applyAccidentals([v2], 'F');
+      const beams = S.acc === 'arp' ? VF.Beam.generateBeams(L, { groups: [new VF.Fraction(2, 4)] }) : [];
+      new VF.Formatter().joinVoices([v1]).joinVoices([v2]).format([v1, v2], Math.max(60, w - (sx - x) - 14));
+      v1.draw(ctx, st); v2.draw(ctx, sb); beams.forEach((bm) => bm.setContext(ctx).draw());
+      ctx.setFont('Manrope, sans-serif', 13, 'bold'); ctx.fillText(chord(BARS[b]), sx, st.getYForLine(0) - 14);
+      const top = st.getYForLine(0) - 8, h = sb.getYForLine(4) + 8 - top;
+      R.concat(L).forEach((sn) => POS.push({ t: sn.__n.t, x: sn.getAbsoluteX(), top, h, hand: sn.__n.hand }));
+    }
+    const c = document.createElement('div'); c.id = 'cursor'; box.append(c); cursor(S.step ? (STEPS[S.si] || { t: 0 }).t : S.beat);
+  }
+  /* Ersatz, falls die Notenschrift nicht geladen werden kann: die Töne als Tabelle */
+  function plain(box) {
+    const t = document.createElement('table'); t.className = 'plain'; t.innerHTML = '<thead><tr><th>Takt</th><th>Akkord</th><th>Rechte Hand</th><th>Linke Hand</th></tr></thead>'; const tb = document.createElement('tbody');
+    BARS.forEach((c, b) => { const tr = document.createElement('tr'); [b + 1, chord(c), N.filter((n) => n.bar === b && n.hand === 'r').map((n) => name(n.m)).join('  '), N.filter((n) => n.bar === b && n.hand === 'l').map((n) => name(n.m)).join('  ')].forEach((v) => { const td = document.createElement('td'); td.textContent = v; tr.append(td); }); tb.append(tr); });
+    t.append(tb); box.append(t);
+  }
+  function cursor(t) {
+    const c = $('cursor'); if (!c || !POS.length) return; let p = null; for (const q of POS) if (q.t <= t + 1e-6 && (!p || q.t > p.t || (q.t === p.t && q.hand === 'r'))) p = q;
+    if (!p) p = POS[0]; c.style.left = `${p.x}px`; c.style.top = `${p.top}px`; c.style.height = `${p.h}px`;
+    const sb = c.parentElement.parentElement; if (sb.scrollWidth > sb.clientWidth) { const l = p.x - 60; if (l < sb.scrollLeft || p.x + 80 > sb.scrollLeft + sb.clientWidth) sb.scrollLeft = l; }
+  }
+
+  /* ---------- Klang (Web Audio): Klavier aus Teiltönen mit eigenem Abklingen, Metronom ---------- */
+  let ac = null, out = null, run = null, t0 = 0, raf = 0;
+  function audio() { if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); out = ac.createDynamicsCompressor(); out.threshold.value = -16; out.ratio.value = 4; const g = ac.createGain(); g.gain.value = 0.9; out.connect(g); g.connect(ac.destination); } if (ac.state === 'suspended') ac.resume(); return ac; }
+  function tone(m, t, d, vel = 0.5, dest = out) {
+    const f = 440 * Math.pow(2, (m - 69) / 12), hi = Math.max(0, Math.min(1, (m - 48) / 40)), len = Math.max(1.1, d * 1.5) * (1 - hi * 0.35);
+    [1, 2, 3, 4, 5, 6].forEach((k, i) => { if (f * k > 9000) return; const o = ac.createOscillator(), g = ac.createGain(), pk = vel * [0.5, 0.26, 0.14, 0.08, 0.045, 0.025][i] * (1 - hi * 0.1 * i), l = len / (1 + i * 0.55);
+      o.type = 'sine'; o.frequency.value = f * k * (1 + 0.00035 * k * k); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, pk), t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + l); o.connect(g); g.connect(dest); o.start(t); o.stop(t + l + 0.05); });
+  }
+  function tick(t, strong, dest) { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = strong ? 1500 : 1000; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(strong ? 0.22 : 0.12, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05); o.connect(g); g.connect(dest); o.start(t); o.stop(t + 0.07); }
+
+  /* ---------- Abspielen ---------- */
+  const spb = () => 60 / S.tempo;
+  function play(from = S.beat >= TOTAL - 0.01 ? 0 : S.beat) {
+    audio(); halt(); S.playing = true; S.beat = from; $('play').textContent = 'Anhalten';
+    run = ac.createGain(); run.connect(out); t0 = ac.currentTime + 0.09 - from * spb();
+    N.filter((n) => use(n) && n.t >= from - 1e-6).forEach((n) => tone(n.m, t0 + n.t * spb(), n.d * spb(), n.hand === 'r' ? 0.62 : 0.42, run));
+    if (S.click) for (let b = Math.ceil(from); b < TOTAL; b++) tick(t0 + b * spb(), b % 4 === 0, run);
+    const loop = () => { if (!S.playing) return; S.beat = (ac.currentTime - t0) / spb();
+      if (S.beat >= TOTAL) { if (S.loop) { play(0); return; } halt(); S.beat = 0; show(); return; }
+      show(); raf = requestAnimationFrame(loop); };
+    raf = requestAnimationFrame(loop);
+  }
+  function halt() { cancelAnimationFrame(raf); if (run) { try { run.gain.setTargetAtTime(0, ac.currentTime, 0.02); } catch (e) { /* schon weg */ } const r = run; setTimeout(() => r.disconnect(), 200); run = null; } S.playing = false; $('play').textContent = 'Abspielen'; }
+  /* Anzeige zum Zeitpunkt S.beat (Abspielen) bzw. zum Schritt S.si */
+  function show() {
+    if (S.step) { const st = STEPS[S.si] || { t: 0, notes: [] }; paint(st.notes, N.filter((n) => use(n) && n.t < st.t && n.t + n.d > st.t + 1e-6)); cursor(st.t); return; }
+    const b = Math.max(0, S.beat), on = N.filter((n) => use(n) && b >= n.t && b < n.t + Math.min(n.d, 0.5) * 0.9), held = N.filter((n) => use(n) && b >= n.t && b < n.t + n.d * 0.96);
+    paint(on, held.filter((n) => !on.includes(n))); cursor(b);
+  }
+  /* Schritt für Schritt */
+  function go(i, sound) { S.si = (i + STEPS.length) % STEPS.length; S.done = new Set(); S.beat = STEPS[S.si].t; if (sound) { audio(); STEPS[S.si].notes.forEach((n) => tone(n.m, ac.currentTime + 0.01, Math.max(0.6, n.d * spb()), n.hand === 'r' ? 0.62 : 0.42)); } show(); }
+  function press(m) {
+    audio(); tone(m, ac.currentTime + 0.005, 0.8, 0.55);
+    if (!S.step) return; const st = STEPS[S.si]; if (!st || !st.notes.some((n) => n.m === m)) return;
+    S.done.add(m); show(); if (st.notes.every((n) => S.done.has(n.m))) setTimeout(() => { if (S.step) go(S.si + 1, false); }, 260);
+  }
+  function nearest() { let k = 0; STEPS.forEach((s, i) => { if (s.t <= S.beat + 1e-6) k = i; }); return k; }
+
+  /* ---------- Bedienung ---------- */
+  function refresh(score) { N = notes(); steps(); if (S.step) S.si = Math.min(nearest(), STEPS.length - 1); if (score) sheet(); show(); $('hint').textContent = S.step ? 'Drücke die markierten Tasten, dann geht es weiter.' : 'Tasten lassen sich anklicken.'; $('play').disabled = S.step; }
+  $('play').addEventListener('click', () => (S.playing ? halt() : play()));
+  $('prev').addEventListener('click', () => { halt(); if (!S.step) { S.si = nearest(); } go(S.si - 1, true); if (!S.step) show(); });
+  $('next').addEventListener('click', () => { halt(); if (!S.step) { S.si = nearest(); } go(S.si + 1, true); if (!S.step) show(); });
+  $('tempo').addEventListener('input', (e) => { S.tempo = +e.target.value; $('bpm').textContent = S.tempo; if (S.playing) play(S.beat); });
+  [['hBoth', 'both'], ['hR', 'r'], ['hL', 'l']].forEach(([id, v]) => $(id).addEventListener('click', () => { S.hands = v; ['hBoth', 'hR', 'hL'].forEach((x) => $(x).setAttribute('aria-pressed', String(x === id))); const was = S.playing; halt(); refresh(false); if (was) play(S.beat); }));
+  $('acc').addEventListener('change', (e) => { S.acc = e.target.value; const was = S.playing; halt(); refresh(true); if (was) play(S.beat); });
+  $('names').addEventListener('change', (e) => { S.names = e.target.value; labelKeys(); sheet(); show(); });
+  $('step').addEventListener('change', (e) => { halt(); S.step = e.target.checked; S.done = new Set(); refresh(false); });
+  $('loop').addEventListener('change', (e) => { S.loop = e.target.checked; });
+  $('click').addEventListener('change', (e) => { S.click = e.target.checked; if (S.playing) play(S.beat); });
+  $('finger').addEventListener('change', (e) => { S.finger = e.target.checked; show(); });
+  addEventListener('keydown', (e) => { if (e.target.closest('input, select, button')) return; if (e.key === ' ') { e.preventDefault(); if (!S.step) (S.playing ? halt() : play()); } else if (e.key === 'ArrowRight') $('next').click(); else if (e.key === 'ArrowLeft') $('prev').click(); });
+  let rz = 0; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { sheet(); show(); }, 150); });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { sheet(); show(); });
+  new MutationObserver(() => { sheet(); show(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) halt(); });
+
+  buildPiano(); steps(); sheet(); show();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { sheet(); show(); });
+  window.LEITMOTIV = { state: () => ({ ...S, done: [...S.done], steps: STEPS.length, pos: POS.length, vex: !!(window.Vex && window.Vex.Flow) }), seek: (b) => { halt(); S.beat = b; show(); } };
+})();
+</script>
+</body>
+</html>
