@@ -62,7 +62,7 @@ const OPT = {
   quote2: { i: 1 },
 };
 /* Kennung des Ablaufs: die Musik hängt nur davon ab (Zwischenspeicher beim Rendern) */
-const PLAN_KEY = (() => { const str = JSON.stringify([MOOD, PLAN, OPT.journey.bars, 'musik-3']); let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); })();
+const PLAN_KEY = (() => { const str = JSON.stringify([MOOD, PLAN, OPT.journey.bars, 'musik-4']); let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); })();
 const sceneAt = (t) => { let s = SCENES[0]; for (const x of SCENES) if (t >= x.t0) s = x; return s; };
 function drawScene(s, t) { const lt = clamp(t - s.t0, 0, s.D); CUR = s; FN[s.id](lt, s.D, OPT[s.id] ?? {}); }
 

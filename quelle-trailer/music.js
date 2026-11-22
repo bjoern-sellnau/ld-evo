@@ -49,6 +49,9 @@ async function musicWindow(W0, W1) {
   const nb = ac.createBuffer(1, SR * 2, SR); { const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = hash(i * 0.731) * 2 - 1; }
   const shaper = ac.createWaveShaper(); { const c = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; c[i] = Math.tanh(2.6 * x); } shaper.curve = c; } const shG = ac.createGain(); shG.gain.value = 0.5; shaper.connect(shG); shG.connect(master); shG.connect(verb);
 
+  /* Verstärker einer Hüllkurve: startet stumm. Mit dem Vorgabewert 1 schlüpft sonst eine einzelne Probe ungedämpft durch, wenn die Quelle
+     auf ein Abtastraster gerundet einen Hauch vor ihrer Hüllkurve beginnt — bei Rauschen und Puls-Wellen ein hörbarer Knacks. */
+  const mkEnv = () => { const x = ac.createGain(); x.gain.value = 0.0001; return x; };
   const env = (gn, t, a, peak, dur, rel = 0.08) => { const pk = Math.max(0.0002, peak); gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(pk, t + a); gn.gain.setValueAtTime(pk, Math.max(t + a, t + dur - rel)); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); };
   const route = (node, o) => { let n = node; if (o.pan) { const p = ac.createStereoPanner(); p.pan.value = clamp(o.pan, -1, 1); n.connect(p); n = p; } n.connect(o.bus ?? master); if (o.wet) { const w = ac.createGain(); w.gain.value = o.wet; n.connect(w); w.connect(verb); } if (o.dly) { const w = ac.createGain(); w.gain.value = o.dly; n.connect(w); w.connect(dIn); } };
   const A = {};
@@ -56,15 +59,15 @@ async function musicWindow(W0, W1) {
     if (t < W0 || t >= W1 || gain <= 0) return; t -= W0; const os = ac.createOscillator(); if (typeof type === 'string') os.type = type; else os.setPeriodicWave(type); os.frequency.value = freq; os.detune.value = o.det ?? 0;
     /* bend: Tonhöhen-Anlauf vom Faktor zur Note (Hoover, Sirene, Chip-Bassdrum); vib: Vibrato in Cent, setzt verzögert ein */
     if (o.bend) { os.frequency.setValueAtTime(freq * o.bend, t); os.frequency.exponentialRampToValueAtTime(freq, t + (o.bendT ?? 0.06)); }
-    if (o.vib) { const lf = ac.createOscillator(), lg = ac.createGain(), d = o.vibD ?? 0.12; lf.frequency.value = o.vibF ?? 6; lg.gain.setValueAtTime(0, t); lg.gain.setValueAtTime(0, t + d); lg.gain.linearRampToValueAtTime(o.vib, t + d + 0.1); lf.connect(lg); lg.connect(os.detune); lf.start(t); lf.stop(t + dur + 0.05); }
+    if (o.vib) { const lf = ac.createOscillator(), lg = ac.createGain(), d = o.vibD ?? 0.12; lf.frequency.value = o.vibF ?? 6; lg.gain.value = 0; lg.gain.setValueAtTime(0, t); lg.gain.setValueAtTime(0, t + d); lg.gain.linearRampToValueAtTime(o.vib, t + d + 0.1); lf.connect(lg); lg.connect(os.detune); lf.start(t); lf.stop(t + dur + 0.05); }
     const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = o.q ?? 0.7; const c0 = o.cut ?? 3000; f.frequency.setValueAtTime(c0, t); if (o.cut1) f.frequency.exponentialRampToValueAtTime(o.cut1, t + (o.cutT ?? dur));
-    const gn = ac.createGain(); if (o.swell) { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + dur * 0.94); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); } else if (o.decay) { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + (o.att ?? 0.005)); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); } else env(gn, t, o.att ?? 0.01, gain, dur, o.rel ?? 0.08);
+    const gn = mkEnv(); if (o.swell) { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + dur * 0.94); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); } else if (o.decay) { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + (o.att ?? 0.005)); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); } else env(gn, t, o.att ?? 0.01, gain, dur, o.rel ?? 0.08);
     os.connect(f); f.connect(gn); route(gn, o); os.start(t); os.stop(t + dur + 0.05);
   };
   A.noise = (t, dur, f0, f1, gain, o = {}) => {
     if (t < W0 || t >= W1 || gain <= 0) return; const off = hash(t * 13.7) * 1.5; t -= W0; const s = ac.createBufferSource(); s.buffer = nb; s.loop = true;
     const f = ac.createBiquadFilter(); f.type = o.type ?? 'highpass'; f.Q.value = o.q ?? 0.7; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    const gn = ac.createGain(); if (o.swell) { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(gain, t + dur * 0.92); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); } else { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(gain, t + (o.att ?? 0.002)); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
+    const gn = mkEnv(); if (o.swell) { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(gain, t + dur * 0.92); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); } else { gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(gain, t + (o.att ?? 0.002)); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
     s.connect(f); f.connect(gn); route(gn, o); s.start(t, off); s.stop(t + dur + 0.05);
   };
   /* Klavier (additiv: Teiltöne mit eigenem Abklingen, leicht gespreizt); soft = Filzklavier */
@@ -93,8 +96,8 @@ async function musicWindow(W0, W1) {
   A.impact = (t, g0 = 1) => { A.kick(t, 1.0 * g0, { f0: 120, f1: 42, dec: 1.1, soft: true }); A.noise(t, 2.4, 1400, 70, 0.4 * g0, { type: 'lowpass', wet: 0.8 }); A.noise(t, 0.6, 6000, 2000, 0.12 * g0, { wet: 0.6 }); };
   A.riser = (t, dur, g0 = 0.22) => A.noise(t, dur, 300, 8000, g0, { type: 'bandpass', q: 2.2, swell: true, wet: 0.6 });
   A.whoosh = (t, g0 = 0.18, dur = 0.5) => A.noise(t - dur * 0.7, dur, 400, 5000, g0, { type: 'bandpass', q: 1.2, swell: true, wet: 0.5 });
-  A.swell = (t1, dur, notes, g0 = 0.05) => notes.forEach((n) => { const ta = Math.max(0, t1 - dur); if (t1 - ta < 0.2 || t1 >= DUR || ta < W0 || ta >= W1) return; const t = ta - W0, te = t1 - W0; const os = ac.createOscillator(); os.type = 'sawtooth'; os.frequency.value = midi(n); const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(3200, te); const gn = ac.createGain(); gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(g0, te - 0.02); gn.gain.exponentialRampToValueAtTime(0.0001, te + 0.06); os.connect(f); f.connect(gn); route(gn, { wet: 0.7 }); os.start(t); os.stop(te + 0.1); });
-  A.braam = (t, dur, note, g0 = 0.2) => { if (t < W0 || t >= W1) return; A.sub(t, dur, note, g0 * 0.9, { att: 0.04, rel: dur * 0.5 }); t -= W0; [-14, -5, 0, 6, 13].forEach((d) => { const os = ac.createOscillator(); os.type = 'sawtooth'; os.frequency.value = midi(note); os.detune.value = d; const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 1.2; f.frequency.setValueAtTime(260, t); f.frequency.exponentialRampToValueAtTime(1300, t + 0.25); f.frequency.exponentialRampToValueAtTime(380, t + dur); const gn = ac.createGain(); env(gn, t, 0.06, g0, dur, dur * 0.5); os.connect(f); f.connect(gn); gn.connect(shaper); os.start(t); os.stop(t + dur + 0.05); }); };
+  A.swell = (t1, dur, notes, g0 = 0.05) => notes.forEach((n) => { const ta = Math.max(0, t1 - dur); if (t1 - ta < 0.2 || t1 >= DUR || ta < W0 || ta >= W1) return; const t = ta - W0, te = t1 - W0; const os = ac.createOscillator(); os.type = 'sawtooth'; os.frequency.value = midi(n); const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(3200, te); const gn = mkEnv(); gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(g0, te - 0.02); gn.gain.exponentialRampToValueAtTime(0.0001, te + 0.06); os.connect(f); f.connect(gn); route(gn, { wet: 0.7 }); os.start(t); os.stop(te + 0.1); });
+  A.braam = (t, dur, note, g0 = 0.2) => { if (t < W0 || t >= W1) return; A.sub(t, dur, note, g0 * 0.9, { att: 0.04, rel: dur * 0.5 }); t -= W0; [-14, -5, 0, 6, 13].forEach((d) => { const os = ac.createOscillator(); os.type = 'sawtooth'; os.frequency.value = midi(note); os.detune.value = d; const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 1.2; f.frequency.setValueAtTime(260, t); f.frequency.exponentialRampToValueAtTime(1300, t + 0.25); f.frequency.exponentialRampToValueAtTime(380, t + dur); const gn = mkEnv(); env(gn, t, 0.06, g0, dur, dur * 0.5); os.connect(f); f.connect(gn); gn.connect(shaper); os.start(t); os.stop(t + dur + 0.05); }); };
   A.chime = (t, notes = [74, 77, 81, 86], g0 = 0.07, gap = 0.09) => notes.forEach((n, i) => A.bell(t + i * gap, n, g0, { pan: i % 2 ? 0.4 : -0.4, dur: 2.6 }));
   A.mel = (t0, ch, fn, o = {}) => CH[ch].mel.forEach(([b, n, l]) => { if (o.skip && o.skip(b)) return; fn(t0 + b * B, n + (o.oct ?? 0), l * B); });
 
@@ -119,7 +122,7 @@ async function musicWindow(W0, W1) {
   /* Akkord-Stich (Klavier/Orgel der Neunziger): Dreieck mit kurzem Sägezahn-Anteil */
   A.stab = (t, notes, gain, o = {}) => notes.forEach((n, i) => { A.tone(t, o.dur ?? 0.32, midi(n), 'triangle', gain, { decay: true, att: 0.003, cut: 5000, pan: (i - 1) * 0.3, wet: o.wet ?? 0.25, bus: o.bus }); A.tone(t, (o.dur ?? 0.32) * 0.7, midi(n), 'sawtooth', gain * 0.45, { decay: true, att: 0.003, cut: o.cut ?? 3000, cut1: 700, cutT: 0.15, pan: (i - 1) * 0.3, bus: o.bus }); });
   /* Chip-Arpeggio: ein Oszillator springt in festen Schritten durch die Töne (wie die Arpeggio-Effekte der Tracker) */
-  A.chipArp = (t, dur, notes, gain, o = {}) => { if (t < W0 || t >= W1 || gain <= 0) return; t -= W0; const os = ac.createOscillator(); os.setPeriodicWave(o.wave ?? P25); const step = o.step ?? 0.02; for (let q = 0, tt = 0; tt < dur; q++, tt += step) os.frequency.setValueAtTime(midi(notes[q % notes.length]), t + tt); const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.cut ?? 6500; const gn = ac.createGain(); env(gn, t, 0.002, gain, dur, 0.012); os.connect(f); f.connect(gn); route(gn, o); os.start(t); os.stop(t + dur + 0.02); };
+  A.chipArp = (t, dur, notes, gain, o = {}) => { if (t < W0 || t >= W1 || gain <= 0) return; t -= W0; const os = ac.createOscillator(); os.setPeriodicWave(o.wave ?? P25); const step = o.step ?? 0.02; for (let q = 0, tt = 0; tt < dur; q++, tt += step) os.frequency.setValueAtTime(midi(notes[q % notes.length]), t + tt); const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.cut ?? 6500; const gn = mkEnv(); env(gn, t, 0.002, gain, dur, 0.012); os.connect(f); f.connect(gn); route(gn, o); os.start(t); os.stop(t + dur + 0.02); };
 
   const sc = REEL.scenes;
   sc.forEach((s, si) => {
@@ -315,9 +318,10 @@ async function musicWindow(W0, W1) {
 async function makeMusic() {
   const SR = M_SR, n = Math.ceil(DUR * SR), sumL = new Float32Array(n), sumR = new Float32Array(n);
   /* Abschnitte auf Taktgrenzen, je rund 15 Sekunden */
-  const WIN = Math.max(4, Math.round(15 / BAR)) * BAR;
-  for (let w0 = 0; w0 < DUR - 0.001; w0 += WIN) {
-    const [l, r] = await musicWindow(w0, Math.min(DUR, w0 + WIN)), o = Math.round(w0 * SR), m = Math.min(l.length, n - o);
+  /* Die Grenzen entstehen wie die Szenenzeiten als ganze Takte mal Taktlänge — aufsummiert lägen sie um Rundungsreste daneben */
+  const WB = Math.max(4, Math.round(15 / BAR));
+  for (let b0 = 0; b0 < NB; b0 += WB) {
+    const w0 = b0 * BAR, [l, r] = await musicWindow(w0, Math.min(NB, b0 + WB) * BAR), o = Math.round(w0 * SR), m = Math.min(l.length, n - o);
     for (let i = 0; i < m; i++) { sumL[o + i] += l[i]; sumR[o + i] += r[i]; }
   }
   /* Master über das Ganze: Pegel, Tiefensperre (unter 30 Hz ist nur Hub, kein Ton), leichte Höhenanhebung, Kompressor, Blenden */
