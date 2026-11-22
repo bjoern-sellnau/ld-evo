@@ -178,8 +178,9 @@ const TXT = {
     labsCount: 'Labs',
     osm: 'Kartendaten © OpenStreetMap-Mitwirkende',
     siteKicker: 'LD Beyond. · 2027',
-    siteTitle: ['Die neue', 'loona-designs.'],
-    siteDesc: 'Loona! Designs Beyond. kommt 2027: die Plattform mit dem CMS LD Flow — Story-Seiten, Liquid Glass, Mehrsprachigkeit und Widgets zum Selberbauen.',
+    siteTitle: ['Das neue', 'Loona! Designs.'], // Wortlaut nach Rückmeldung vom 22.11.2026
+    /* Die Features sind kein Baukasten für Besucher: Bjoern Sellnau legt fest, was läuft — sie zeigen, was möglich ist (Rückmeldung 22.11.2026) */
+    siteDesc: 'Loona! Designs Beyond. kommt 2027 — mit dem CMS LD Flow. Story-Seiten, Hero-Animationen, Liquid Glass und Widgets zeigen, was möglich ist.',
     siteChips: ['LD Flow CMS', 'Story-Seiten', 'Liquid Glass', 'DE / EN', 'Widgets', '70+ Hero-Animationen'],
     familyKicker: 'Produktfamilie',
     certsKicker: 'Weiterbildung',
@@ -193,9 +194,11 @@ const TXT = {
     labsAllTitle: ['21 Labs', 'seit 03/2026.'],
     labStatLabels: ['Projekte', 'Seit', 'Spielmodi in COE', 'KI-Werkzeuge'],
     heroKicker: '70+ Hero-Animationen',
-    heroTitle: ['Eine Startseite,', 'viele Gesichter.'],
+    heroTitle: ['Sie zeigen,', 'was möglich ist.'],
     quoteKicker: 'Aus den Labs',
     outroSub: ['Das Web.', 'Meine Leidenschaft.'],
+    /* Lauftext der Demoszene-Fassung (nur belegte Angaben; „+++“ trennt wie in alten Demos) */
+    scroller: 'LOONA! DESIGNS +++ BJOERN SELLNAU +++ SENIOR FULLSTACK & SOFTWARE ENGINEER +++ REACT · NEXT.JS · TYPESCRIPT · REACT NATIVE +++ IM NETZ SEIT 2001 +++ GOLD: BEST OF SWISS WEB 2017 +++ 21 LABS SEIT 03/2026 +++ DIESER TRAILER LAEUFT IM BROWSER: CANVAS UND WEB AUDIO, MUSIK OHNE SAMPLES +++ LOONA-DESIGNS.DE +++ ',
     chapters: { logo: 'Auftakt', claim: 'Anspruch', person: 'Person', origin: 'Anfänge', stack: 'Stack', journey: 'Reise', award: 'Gold', labs: 'Labs', site: 'Plattform', family: 'Familie', certs: 'Zertifikate', outro: 'Kontakt', focus: 'Schwerpunkte', works: 'Projekte', labsAll: 'Labs in Zahlen', hero: 'Hero-Animationen', quote: 'Zitat', quote2: 'Zitat' },
   },
   en: {
@@ -223,8 +226,8 @@ const TXT = {
     labsCount: 'Labs',
     osm: 'Map data © OpenStreetMap contributors',
     siteKicker: 'LD Beyond. · 2027',
-    siteTitle: ['The new', 'loona-designs.'],
-    siteDesc: 'Loona! Designs Beyond. arrives in 2027: the platform with the LD Flow CMS — story pages, liquid glass, multilingual content and widgets to build with.',
+    siteTitle: ['The new', 'Loona! Designs.'],
+    siteDesc: 'Loona! Designs Beyond. arrives in 2027 — with the LD Flow CMS. Story pages, hero animations, liquid glass and widgets show what is possible.',
     siteChips: ['LD Flow CMS', 'Story pages', 'Liquid Glass', 'DE / EN', 'Widgets', '70+ hero animations'],
     familyKicker: 'Product family',
     certsKicker: 'Certifications',
@@ -238,12 +241,17 @@ const TXT = {
     labsAllTitle: ['21 labs', 'since 03/2026.'],
     labStatLabels: ['Projects', 'Since', 'Game modes in COE', 'AI tools'],
     heroKicker: '70+ hero animations',
-    heroTitle: ['One home page,', 'many faces.'],
+    heroTitle: ['They show', 'what is possible.'],
     quoteKicker: 'From the labs',
     outroSub: ['The web.', 'My passion.'],
+    scroller: 'LOONA! DESIGNS +++ BJOERN SELLNAU +++ SENIOR FULLSTACK & SOFTWARE ENGINEER +++ REACT · NEXT.JS · TYPESCRIPT · REACT NATIVE +++ ONLINE SINCE 2001 +++ GOLD: BEST OF SWISS WEB 2017 +++ 21 LABS SINCE 03/2026 +++ THIS TRAILER RUNS IN THE BROWSER: CANVAS AND WEB AUDIO, MUSIC WITHOUT SAMPLES +++ LOONA-DESIGNS.DE +++ ',
     chapters: { logo: 'Opening', claim: 'Claim', person: 'Person', origin: 'Early days', stack: 'Stack', journey: 'Journey', award: 'Gold', labs: 'Labs', site: 'Platform', family: 'Family', certs: 'Certificates', outro: 'Contact', focus: 'Focus', works: 'Projects', labsAll: 'Labs in numbers', hero: 'Hero animations', quote: 'Quote', quote2: 'Quote' },
   },
 };
+
+/* Feste Elemente der mobilen Startseite (Aufnahme 390 × 844 CSS-Pixel am 22.11.2026, Bilder mit 6 px Rand): Sie bleiben im Telefon stehen,
+   während die Seite scrollt — wie auf dem Gerät. Maße aus getBoundingClientRect der Aufnahme. */
+const MOB_FIX = { vw: 390, vh: 844, pad: 6, top: { x: 161.5, y: 16, w: 67, h: 56 }, bar: { x: 15, y: 766, w: 360, h: 60 } };
 
 /* Bilder (eigene Projekt-Screenshots; Herkunft im README) */
 Object.assign(SRC, {
@@ -252,6 +260,8 @@ Object.assign(SRC, {
   coModes: 'assets/g_co-q1.jpg', coP1: 'assets/g_co-play1.jpg', coP2: 'assets/g_co-play2.jpg', coP3: 'assets/g_co-play3.jpg', coP4: 'assets/g_co-play4.jpg', coP5: 'assets/g_co-play5.jpg', coP6: 'assets/g_co-play6.jpg', coP7: 'assets/g_co-play7.jpg',
   sfTitle: 'assets/sf_ui-01-title.jpg', sfGate: 'assets/sf_01-pariser-platz.jpg', sfTower: 'assets/sf_07-tv-tower.jpg', sfReichstag: 'assets/sf_05-reichstag.jpg', sfSpree: 'assets/sf_12-spree.jpg', sfNight: 'assets/sf_09-night.jpg',
   oldLogo: 'assets/old_logo.png',
-  siteHome: 'assets/site_home.jpg', siteBeyond: 'assets/site_beyond.jpg', siteLabs: 'assets/site_labs.jpg', siteStory: 'assets/site_story.jpg', siteMob: 'assets/site_mob.jpg',
+  siteHome: 'assets/site_home.jpg', siteBeyond: 'assets/site_beyond.jpg', siteLabs: 'assets/site_labs.jpg', siteStory: 'assets/site_story.jpg',
+  /* mobile Startseite ohne ihre festen Elemente; schwebendes Logo und Tab-Leiste einzeln (freigestellt) */
+  siteMob: 'assets/site_mob.jpg', siteMobTop: 'assets/site_mob_top.png', siteMobBar: 'assets/site_mob_bar.png',
   ...(new URLSearchParams(location.search).get('len') === '300' ? Object.fromEntries(HERO.flatMap(([m]) => Array.from({ length: HERO_FRAMES }, (_, i) => [`hero_${m}_${i}`, `assets/hero/${m}/f${String(i).padStart(2, '0')}.jpg`]))) : {}),
 });

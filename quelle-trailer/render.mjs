@@ -1,14 +1,17 @@
 /* Trailer rendern: Bilder aus dem Canvas (REEL.frame) per Playwright abgreifen und mit ffmpeg zu MP4 zusammensetzen.
 
-   node render.mjs <60|90|120|300> <cine|drive|calm|action> <de|en> [Ausgabeordner]
+   node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo> <de|en> [Ausgabeordner]
+   (30 Sekunden nur für trance, hard, euro, rave und demo)
 
    Umgebungsvariablen (optional):
      PLAYWRIGHT  Pfad/Name des Playwright-Moduls (Standard: "playwright")
      CHROMIUM    Pfad zum Chromium (Standard: der von Playwright)
-     CRF         Qualität libx264 (Standard 22, lange Fassung 23), MAXRATE (Standard 4500k, lange Fassung 2200k)
+     CRF         Qualität libx264 (Standard 22, lange Fassung 23, neue Stimmungen 24), MAXRATE (Standard 4500k, lange Fassung 2200k;
+                 neue Stimmungen 3200k bzw. 2000k)
 
    Die Musik hängt nur von Stimmung und Ablauf ab und wird als WAV zwischengespeichert (<Ausgabe>/.musik/…),
-   beide Sprachfassungen teilen sie sich. Lautheit: Verstärkung auf −14 LUFS (gemessen mit ebur128), Begrenzer bei −3 dBFS (True Peak nach AAC unter −1 dBTP). */
+   beide Sprachfassungen teilen sie sich. Lautheit: Verstärkung auf −14 LUFS (gemessen mit ebur128), Begrenzer bei −3 dBFS; die fertige Datei wird nachgemessen und die
+   Tonspur bei Bedarf mit tieferem Begrenzer neu kodiert, bis die wahre Spitze unter −1 dBTP liegt. */
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,11 +21,13 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const [len = '60', mood = 'cine', lang = 'de', outArg] = process.argv.slice(2);
 const OUT = path.resolve(outArg ?? path.join(ROOT, '..', 'trailer'));
-const NAMES = { cine: 'cinematic', drive: 'treibend', calm: 'ruhig', action: 'action' };
-if (!NAMES[mood] || !['60', '90', '120', '300'].includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <60|90|120|300> <cine|drive|calm|action> <de|en> [Ausgabeordner]'); process.exit(2); }
+const NAMES = { cine: 'cinematic', drive: 'treibend', calm: 'ruhig', action: 'action', trance: 'trance', hard: 'hardstyle', euro: 'eurodance', rave: 'rave', demo: 'demoszene' };
+const NEW = ['trance', 'hard', 'euro', 'rave', 'demo'];
+if (!NAMES[mood] || !['60', '90', '120', '300'].concat(NEW.includes(mood) ? ['30'] : []).includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo> <de|en> [Ausgabeordner] — 30 nur für die neuen Stimmungen'); process.exit(2); }
 const base = `loona-trailer-${len}s-${NAMES[mood]}-${lang}`;
-/* Die lange Fassung bekommt eine niedrigere Obergrenze, damit die Datei sicher unter 100 MB bleibt (GitHub-Grenze) */
-const FPS = 30, CRF = process.env.CRF ?? (len === '300' ? '23' : '22'), MAXRATE = process.env.MAXRATE ?? (len === '300' ? '2200k' : '4500k');
+/* Die lange Fassung bekommt eine niedrigere Obergrenze, damit die Datei sicher unter 100 MB bleibt (GitHub-Grenze). Die fünf neuen
+   Stimmungen haben sehr unruhige Hintergründe (Laser, Pegelsäulen, Plasma): etwas höherer CRF und engere Obergrenze halten die Dateien klein. */
+const FPS = 30, CRF = process.env.CRF ?? (NEW.includes(mood) ? '24' : len === '300' ? '23' : '22'), MAXRATE = process.env.MAXRATE ?? (NEW.includes(mood) ? (len === '300' ? '2000k' : '3200k') : len === '300' ? '2200k' : '4500k');
 fs.mkdirSync(path.join(OUT, '.musik'), { recursive: true });
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
@@ -78,9 +83,22 @@ for (let i = 0; i < N; i += BATCH) {
 ff.stdin.end();
 await done;
 
-/* ---- Titelbild: Mitte der Anspruch-Szene ---- */
-const sc = info.scenes.find((s) => s.id === 'claim') ?? info.scenes[1];
-const cover = await page.evaluate(async (t) => { await REEL.frame(t); return document.getElementById('c').toDataURL('image/jpeg', 0.9).slice(23); }, sc.t0 + sc.D * 0.8);
+/* ---- Spitzenkontrolle ---- */
+/* AAC kann an sehr dichten Stellen (Wirbel + Riser + Einschlag) über den Begrenzer hinausschwingen. Liegt die wahre Spitze der fertigen
+   Datei (True Peak, ebur128) über −1 dBTP, wird nur die Tonspur mit tieferem Begrenzer neu kodiert — das Bild bleibt (-c:v copy). */
+const peakOf = (f) => { const e = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', f, '-map', '0:a', '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8' }).stderr; return parseFloat((e.match(/Peak:\s+(-?[\d.]+) dBFS/g) ?? []).pop()?.match(/-?[\d.]+/)?.[0] ?? '0'); };
+for (let n = 0, lim = 0.7; n < 3; n++) {
+  const pk = peakOf(mp4); if (pk <= -1) break;
+  lim *= 10 ** (-(pk + 1.3) / 20);
+  const L = `alimiter=limit=${lim.toFixed(3)}:level=false:attack=5:release=60`, h1 = -14 - lufs(''), h = (h1 + (-14 - lufs(`volume=${h1.toFixed(2)}dB,${L},`))).toFixed(2), tmp = `${mp4}.ton.mp4`;
+  const r = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', mp4, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', `volume=${h}dB,${L}`, '-ar', '48000', '-c:a', 'aac', '-b:a', '192k', '-t', String(info.DUR), '-movflags', '+faststart', tmp], { stdio: 'inherit' });
+  if (r.status !== 0) { console.error('Tonspur nachziehen fehlgeschlagen'); process.exit(1); }
+  fs.renameSync(tmp, mp4); console.log(`  ${base}: Spitze ${pk} dBTP → Tonspur mit Begrenzer ${lim.toFixed(3)} neu kodiert`);
+}
+
+/* ---- Titelbild: die Anspruch-Szene; die 30-Sekunden-Fassung hat keine, dort der Schluss mit Lockup und Claim ---- */
+const sc = info.scenes.find((s) => s.id === 'claim') ?? info.scenes[info.scenes.length - 1];
+const cover = await page.evaluate(async (t) => { await REEL.frame(t); return document.getElementById('c').toDataURL('image/jpeg', 0.9).slice(23); }, sc.t0 + sc.D * (sc.id === 'claim' ? 0.8 : 0.7));
 fs.writeFileSync(path.join(OUT, `${base}-cover.jpg`), Buffer.from(cover, 'base64'));
 if (errs.length) console.error('Fehler in der Seite:', errs);
 await browser.close(); srv.close();

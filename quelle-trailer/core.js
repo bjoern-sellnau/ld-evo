@@ -154,13 +154,30 @@ function browser(img, x, y, w, h, o = {}) {
   g.strokeStyle = dark ? 'rgba(255,255,255,0.14)' : 'rgba(23,19,16,0.12)'; g.lineWidth = 1.5; rr(x, y, w, h, r); g.stroke();
   g.restore();
 }
+/* Telefon. o.fix = feste Elemente der Seite (schwebendes Logo oben, Tab-Leiste unten; position: fixed): Sie scrollen nicht mit,
+   nur die Seite darunter bewegt sich. Maße in CSS-Pixeln der Aufnahme: { vw, vh, pad, top: { img, x, y, w, h }, bar: { … } }. */
 function phone(img, cx, cy, w, o = {}) {
-  const h = w * 2.06, r = w * 0.15;
+  const h = w * 2.06, r = w * 0.15, x0 = cx - w / 2, y0 = cy - h / 2, fx = o.fix;
   g.save(); g.globalAlpha *= o.alpha ?? 1;
-  g.save(); g.shadowColor = 'rgba(0,0,0,0.5)'; g.shadowBlur = 50; g.shadowOffsetY = 20; g.fillStyle = '#0B0C10'; rr(cx - w / 2 - 10, cy - h / 2 - 10, w + 20, h + 20, r + 8); g.fill(); g.restore();
-  g.strokeStyle = 'rgba(255,255,255,0.18)'; g.lineWidth = 2; rr(cx - w / 2 - 10, cy - h / 2 - 10, w + 20, h + 20, r + 8); g.stroke();
-  if (img) { g.save(); rr(cx - w / 2, cy - h / 2, w, h, r); g.clip(); const s = w / img.width, ih = img.height * s; g.drawImage(img, cx - w / 2, cy - h / 2 - (o.scroll ?? 0) * Math.max(0, ih - h), w, ih); g.restore(); }
-  g.fillStyle = '#000'; rr(cx - w * 0.16, cy - h / 2 + 10, w * 0.32, 22, 11); g.fill();
+  g.save(); g.shadowColor = 'rgba(0,0,0,0.5)'; g.shadowBlur = 50; g.shadowOffsetY = 20; g.fillStyle = '#0B0C10'; rr(x0 - 10, y0 - 10, w + 20, h + 20, r + 8); g.fill(); g.restore();
+  g.strokeStyle = 'rgba(255,255,255,0.18)'; g.lineWidth = 2; rr(x0 - 10, y0 - 10, w + 20, h + 20, r + 8); g.stroke();
+  if (img) {
+    g.save(); rr(x0, y0, w, h, r); g.clip();
+    const s = w / img.width, ih = img.height * s; g.drawImage(img, x0, y0 - (o.scroll ?? 0) * Math.max(0, ih - h), w, ih);
+    if (fx) {
+      const k = w / fx.vw, pd = fx.pad ?? 0;
+      if (fx.top?.img) g.drawImage(fx.top.img, x0 + (fx.top.x - pd) * k, y0 + (fx.top.y - pd) * k, (fx.top.w + 2 * pd) * k, (fx.top.h + 2 * pd) * k);
+      if (fx.bar?.img) {
+        /* Abstand zum unteren Rand wie auf dem Gerät; darunter eine dunkle Tönung als Ersatz für das Mattglas der Leiste */
+        const by = y0 + h - (fx.vh - fx.bar.y) * k, bw = fx.bar.w * k, bh = fx.bar.h * k, bx = x0 + fx.bar.x * k;
+        g.fillStyle = 'rgba(10,14,26,0.6)'; rr(bx, by, bw, bh, bh / 2); g.fill();
+        g.drawImage(fx.bar.img, bx - pd * k, by - pd * k, bw + 2 * pd * k, bh + 2 * pd * k);
+      }
+    }
+    g.restore();
+  }
+  /* Ohne festes Logo der Seite sitzt oben die Aussparung des Geräts */
+  if (!fx?.top?.img) { g.fillStyle = '#000'; rr(cx - w * 0.16, y0 + 10, w * 0.32, 22, 11); g.fill(); }
   g.restore();
 }
 

@@ -1,21 +1,35 @@
 /* Trailer — Stimmungen (Themes), Hintergründe und Szenen. Jede Szene: fn(lt, D) mit lokaler Zeit lt und Dauer D (Sekunden). */
 'use strict';
 const Q = new URLSearchParams(location.search);
-const LEN = [60, 90, 120, 300].includes(+Q.get('len')) ? +Q.get('len') : 60;
-const MOOD = ['cine', 'drive', 'calm', 'action'].includes(Q.get('mood')) ? Q.get('mood') : 'cine';
+const MOODS = ['cine', 'drive', 'calm', 'action', 'trance', 'hard', 'euro', 'rave', 'demo'];
+const MOOD = MOODS.includes(Q.get('mood')) ? Q.get('mood') : 'cine';
+/* 30 Sekunden gibt es nur für die fünf neuen Stimmungen (ihr Ablauf wird aus einer Vorlage berechnet, siehe main.js) */
+const LEN = [60, 90, 120, 300].concat(MOODS.indexOf(MOOD) > 3 ? [30] : []).includes(+Q.get('len')) ? +Q.get('len') : 60;
 const LANG = Q.get('lang') === 'en' ? 'en' : 'de';
 const T = TXT[LANG];
 
-/* Vier Stimmungen auf den Gründen der Marke: Nacht (Mondhimmel), Tinte, Creme — und „Action“ auf Tinte mit Signalorange als zweitem Ton */
+/* Vier Stimmungen auf den Gründen der Marke: Nacht (Mondhimmel), Tinte, Creme — und „Action“ auf Tinte mit Signalorange als zweitem Ton.
+   fast = schneidet und blendet auf den Schlag; bgk = Hintergrund, trans = Übergang, wipe = Farbe des Übergangs. */
 const THEMES = {
-  cine: { name: 'cinematic', bpm: 96, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(255,255,255,0.055)', style: 'rise', inDur: 1.0, pace: 1, top: 170, bot: 910, td: 0.9 },
-  drive: { name: 'treibend', bpm: 128, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.15)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.06)', style: 'mask', inDur: 0.36, pace: 0.42, top: 96, bot: 984, td: 0.6 },
-  action: { name: 'action', bpm: 160, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.45 },
-  calm: { name: 'ruhig', bpm: 80, dark: false, bg: BR.cream, ink: BR.ink, soft: BR.text2, mute: BR.meta, line: BR.line, accent: BR.orange, accentText: BR.glassDark, card: 'rgba(255,255,255,0.7)', style: 'fade', inDur: 1.3, pace: 1.15, top: 110, bot: 970, td: 1.2 },
+  cine: { name: 'cinematic', bgk: 'night', trans: 'cine', bpm: 96, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(255,255,255,0.055)', style: 'rise', inDur: 1.0, pace: 1, top: 170, bot: 910, td: 0.9 },
+  drive: { name: 'treibend', fast: true, bgk: 'ink', trans: 'slash', wipe: BR.orange, bpm: 128, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.15)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.06)', style: 'mask', inDur: 0.36, pace: 0.42, top: 96, bot: 984, td: 0.6 },
+  action: { name: 'action', fast: true, bgk: 'action', trans: 'slash', wipe: BR.signal, bpm: 160, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.45 },
+  calm: { name: 'ruhig', bgk: 'cream', trans: 'soft', bpm: 80, dark: false, bg: BR.cream, ink: BR.ink, soft: BR.text2, mute: BR.meta, line: BR.line, accent: BR.orange, accentText: BR.glassDark, card: 'rgba(255,255,255,0.7)', style: 'fade', inDur: 1.3, pace: 1.15, top: 110, bot: 970, td: 1.2 },
+  /* Fünf weitere Stimmungen (Wunsch vom 22.11.2026), benannt nach ihrer Musik. Die Gründe bleiben die der Marke (Nacht, Tinte, Creme);
+     die Lichter der Tanz-Stimmungen nehmen die Farben der Produktfamilie (LD Flow, Nova, Buddy, Ivy) — nie am Zeichen selbst. */
+  trance: { name: 'trance', fast: true, bgk: 'trance', trans: 'flash', bpm: 136, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(255,255,255,0.06)', style: 'rise', inDur: 0.5, pace: 0.5, top: 96, bot: 984, td: 0.7 },
+  hard: { name: 'hardstyle', fast: true, bgk: 'hard', trans: 'punch', bpm: 152, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'slam', inDur: 0.28, pace: 0.34, top: 96, bot: 952, td: 0.4 },
+  euro: { name: 'eurodance', fast: true, bgk: 'euro', trans: 'iris', wipe: BR.buddy, bpm: 128, dark: false, bg: BR.cream, ink: BR.ink, soft: BR.text2, mute: BR.meta, line: 'rgba(23,19,16,0.16)', accent: BR.orange, accentText: BR.glassDark, card: 'rgba(255,255,255,0.8)', style: 'mask', inDur: 0.34, pace: 0.4, top: 96, bot: 984, td: 0.6 },
+  rave: { name: 'rave', fast: true, bgk: 'rave', trans: 'slash', wipe: BR.orange, bpm: 144, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.45 },
+  demo: { name: 'demoszene', fast: true, bgk: 'demo', trans: 'mosaic', bpm: 120, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.18)', accent: BR.orange, accentText: BR.orange, card: 'rgba(11,16,38,0.72)', style: 'mask', inDur: 0.36, pace: 0.42, top: 104, bot: 936, td: 0.7 },
 };
 const TH = THEMES[MOOD];
-/* Treibend und Action schneiden und blenden auf den Schlag; Cinematic und Ruhig lassen sich Zeit */
-const FAST = ['drive', 'action'].includes(MOOD);
+/* Treibend, Action und die Tanz-Stimmungen schneiden und blenden auf den Schlag; Cinematic und Ruhig lassen sich Zeit */
+const FAST = !!TH.fast;
+/* laufende Szene (setzt main.js vor dem Zeichnen) — die Demoszene-Stimmung wählt danach ihren Effekt */
+let CUR = null;
+/* Auftakt der schnellen Stimmungen: zwei Takte Sweep, dann rastet das Lockup ein — bei nur zwei Takten nach einem */
+const logoLock = (D) => (FAST ? (D >= 3 * BAR - 0.01 ? 2 * BAR : BAR) : D * 0.6);
 const B = 60 / TH.bpm, BAR = 4 * B;
 const CY = (TH.top + TH.bot) / 2;
 /* Einblendung: Start (in „Schritten“ der Stimmung) und Dauer */
@@ -72,9 +86,97 @@ function bgAction(t) {
   glow(W * 0.86, H * 0.08, 780, BR.signal, 0.07 + 0.1 * sn);
   glow(W * 0.1, H * 0.96, 700, BR.orange, 0.04 + 0.06 * p);
 }
-function bg(t, o) { if (MOOD === 'cine') bgNight(t, o); else if (MOOD === 'action') bgAction(t, o); else if (FAST) bgInk(t, o); else bgCream(t, o); }
+
+/* ---------- Hintergründe der Tanz-Stimmungen ---------- */
+/* Trance: Nachthimmel, Lichtfächer von oben wandern langsam und atmen im Takt, am Horizont ein warmer Schein */
+function bgTrance(t, o = {}) {
+  const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#0B1026'); gr.addColorStop(1, '#070B1C'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  const p = beatPulse(t, 4), k = o.logo ? 0.4 : 1, cols = [BR.apricot, '#2F7FD6', BR.orange, '#2F7FD6', BR.apricot, '#2F7FD6', BR.orange];
+  g.save(); g.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 7; i++) {
+    const a = (i - 3) * 0.31 + 0.17 * Math.sin(t * 0.33 + i * 1.7), w = 0.05 + 0.02 * Math.sin(t * 0.5 + i), len = H * 1.55, ox = W / 2 + (i - 3) * 70, oy = -170;
+    const lg = g.createLinearGradient(ox, oy, ox + Math.sin(a) * len, oy + Math.cos(a) * len); lg.addColorStop(0, rgba(cols[i], (0.2 + 0.1 * p) * k)); lg.addColorStop(1, rgba(cols[i], 0));
+    g.fillStyle = lg; g.beginPath(); g.moveTo(ox, oy); g.lineTo(ox + Math.sin(a - w) * len, oy + Math.cos(a - w) * len); g.lineTo(ox + Math.sin(a + w) * len, oy + Math.cos(a + w) * len); g.closePath(); g.fill();
+  }
+  g.restore();
+  for (const s of STARS) { const x = (((s.x - t * 14 * s.d) % W) + W) % W, a = (0.2 + 0.6 * (0.5 + 0.5 * Math.sin(t * (0.8 + s.d) + s.ph))) * s.d; g.fillStyle = `rgba(246,241,232,${a * 0.7})`; g.beginPath(); g.arc(x, s.y, s.s * 0.8, 0, 7); g.fill(); }
+  glow(W / 2, H + 140, 900, BR.orange, 0.1 + 0.08 * barPulse(t, 2));
+}
+/* Hardstyle: Tinte, breite Slash-Streifen, Signalorange stößt auf jedem Schlag von unten; Pegelsäulen am unteren Rand, zur Eins ein Blitz */
+const EQ = Array.from({ length: 64 }, (_, i) => 0.35 + 0.65 * hash(i * 4.7 + 2));
+function bgHard(t, o = {}) {
+  g.fillStyle = BR.ink; g.fillRect(0, 0, W, H);
+  const p = beatPulse(t, 8), bp = barPulse(t, 9);
+  g.save(); g.strokeStyle = `rgba(246,241,232,${0.03 + 0.05 * p})`; g.lineWidth = 3; const step = 190, off = (t * 330) % step;
+  for (let x = -H / 2 - step + off; x < W + step; x += step) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + H / 2, H); g.stroke(); }
+  g.restore();
+  glow(W / 2, H + 80, 1000, BR.signal, 0.1 + 0.2 * p); glow(W * 0.9, H * 0.06, 640, BR.orange, 0.05 + 0.07 * p);
+  if (!o.logo) { const n = EQ.length, gw = W / n; for (let i = 0; i < n; i++) { const hgt = 14 + 70 * EQ[i] * (0.25 + 0.75 * p) * (0.6 + 0.4 * (0.5 + 0.5 * Math.sin(t * 9 + i * 1.3))); g.fillStyle = rgba(i % 2 ? BR.signal : BR.orange, 0.4); g.fillRect(i * gw + 3, H - 14 - hgt, gw - 6, hgt); } }
+  if (bp > 0.05) { g.fillStyle = rgba(BR.cream, 0.07 * bp); g.fillRect(0, 0, W, H); }
+}
+/* Rave: Tinte, Laserfächer aus beiden unteren Ecken (Ivy-Grün und Signalorange), Dunst in Flow-Violett; auf jedem Schlag blitzen die Laser */
+function bgRave(t, o = {}) {
+  g.fillStyle = BR.ink; g.fillRect(0, 0, W, H);
+  const p = beatPulse(t, 7), k = o.logo ? 0.35 : 1, beat = Math.floor(t / B);
+  glow(W * 0.5, H * 0.04, 900, BR.flow, 0.05 + 0.05 * p); glow(W * 0.1, H * 0.96, 640, BR.ivy, 0.06 * k); glow(W * 0.9, H * 0.96, 640, BR.signal, 0.07 * k);
+  g.save(); g.globalCompositeOperation = 'lighter'; g.lineCap = 'round';
+  [[0, BR.ivy, 1], [W, BR.signal, -1]].forEach(([ox, col, dir], sd) => {
+    for (let i = 0; i < 9; i++) {
+      const a = 0.16 + i * 0.09 + 0.2 * Math.sin(t * (0.9 + sd * 0.13) + i * 0.5 + (beat % 4) * 0.4), len = W * 1.3;
+      g.strokeStyle = rgba(col, (0.16 + 0.3 * p) * k * (i % 2 ? 1 : 0.6)); g.lineWidth = i % 3 === 0 ? 7 : 3.5;
+      g.beginPath(); g.moveTo(ox, H + 30); g.lineTo(ox + dir * Math.cos(a) * len, H + 30 - Math.sin(a) * len); g.stroke();
+    }
+  });
+  g.restore();
+}
+/* Eurodance: Creme, darauf Formen der Neunziger (Kreise, Ringe, Dreiecke, Zickzack, Plus) in den Farben der Produktfamilie — sie hüpfen im
+   Takt, je Form auf „ihrer“ Zählzeit. In der Bildmitte, wo der Text steht, bleiben sie blass. */
+const SHAPES = Array.from({ length: 34 }, (_, i) => { const x = hash(i * 3.7 + 1) * W, y = hash(i * 9.1 + 2) * H, mid = Math.abs(x - W / 2) < 620 && Math.abs(y - H / 2) < 330; return { x, y, mid, r: 26 + hash(i * 5.3 + 3) * 58, type: i % 6, c: Math.floor(hash(i * 2.9 + 4) * 6), beat: i % 4, rot: hash(i * 6.1 + 5) * 6.283, spin: (hash(i * 1.3 + 6) - 0.5) * 0.5, k: hash(i * 8.3 + 7) * 6.283 }; });
+function bgEuro(t, o = {}) {
+  g.fillStyle = BR.cream; g.fillRect(0, 0, W, H);
+  g.save(); g.globalAlpha = 0.7; g.fillStyle = g.createPattern(DOTS, 'repeat'); g.fillRect(0, 0, W, H); g.restore();
+  const cols = [BR.buddy, BR.nova, BR.flow, BR.ivy, BR.orange, BR.apricot], bt = t / B;
+  for (const s of SHAPES) {
+    const ph = (((bt - s.beat) % 4) + 4) % 4, pop = ph < 1 ? Math.exp(-ph * 5) : 0, r = s.r * (1 + 0.24 * pop);
+    g.save(); g.translate(s.x + Math.sin(t * 0.3 + s.k) * 16, s.y + Math.cos(t * 0.26 + s.k) * 16); g.rotate(s.rot + t * s.spin);
+    g.globalAlpha = (s.mid ? 0.09 : o.logo ? 0.2 : 0.3) + 0.1 * pop; g.fillStyle = g.strokeStyle = cols[s.c]; g.lineWidth = r * 0.24; g.lineJoin = 'miter';
+    if (s.type === 0) { g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill(); }
+    else if (s.type === 1) { g.beginPath(); g.arc(0, 0, r, 0, 7); g.stroke(); }
+    else if (s.type === 2) { g.beginPath(); g.moveTo(0, -r * 1.1); g.lineTo(r, r * 0.8); g.lineTo(-r, r * 0.8); g.closePath(); g.fill(); }
+    else if (s.type === 3) { g.beginPath(); for (let q = 0; q < 6; q++) g.lineTo((q - 2.5) * r * 0.6, q % 2 ? -r * 0.4 : r * 0.4); g.stroke(); }
+    else if (s.type === 4) { g.fillRect(-r, -r * 0.18, 2 * r, r * 0.36); g.fillRect(-r * 0.18, -r, r * 0.36, 2 * r); }
+    else { g.beginPath(); g.arc(0, 0, r, 0, Math.PI); g.closePath(); g.fill(); }
+    g.restore();
+  }
+}
+/* Demoszene: je Szene ein klassischer Effekt — Sternenflug, Kupferbalken, Plasma (grobe Pixel), Schachbrett-Boden, Rechteck-Tunnel,
+   Drahtwürfel. Alles in den Tönen der Marke, hinter dem Text zurückgenommen. */
+const PX = mkLayer(160, 90), PXD = PX.createImageData(160, 90);
+const PAL = (() => { const st = [[0, [11, 16, 38]], [0.3, [11, 42, 74]], [0.55, [47, 127, 214]], [0.78, [255, 120, 22]], [1, [255, 179, 102]]], out = []; for (let i = 0; i < 16; i++) { const v = i / 15; let k = 1; while (k < st.length - 1 && v > st[k][0]) k++; const [a, ca] = st[k - 1], [b, cb] = st[k], q = (v - a) / (b - a); out.push(ca.map((c, j) => Math.round(lerp(c, cb[j], q)))); } return out; })();
+const DEMO_FX = { logo: 'stars', claim: 'copper', person: 'plasma', focus: 'cube', origin: 'floor', stack: 'tunnel', journey: 'stars', award: 'copper', works: 'floor', quote: 'stars', labs: 'plasma', labsAll: 'tunnel', hero: 'stars', site: 'floor', quote2: 'copper', family: 'stars', certs: 'tunnel', outro: 'stars' };
+function demoStars(t, n = 240) { for (let i = 0; i < n; i++) { const z = 1 - ((hash(i * 1.7 + 0.5) + t * (0.1 + 0.12 * hash(i * 0.9 + 3))) % 1), d = z + 0.06, x = W / 2 + ((hash(i * 3.1 + 1) - 0.5) * W * 0.62) / d, y = H / 2 + ((hash(i * 5.9 + 2) - 0.5) * H * 0.62) / d; if (x < 0 || x > W || y < 0 || y > H) continue; const sz = Math.max(2, Math.round(7 * (1 - z))); g.fillStyle = `rgba(246,241,232,${0.25 + 0.75 * (1 - z)})`; g.fillRect(Math.round(x), Math.round(y), sz, sz); } }
+function demoPlasma(t) { const d = PXD.data; let o = 0; for (let y = 0; y < 90; y++) for (let x = 0; x < 160; x++) { const v = Math.sin(x * 0.09 + t) + Math.sin(y * 0.11 - t * 1.3) + Math.sin((x + y) * 0.06 + t * 0.7) + Math.sin(Math.hypot(x - 80 + 40 * Math.sin(t * 0.5), y - 45 + 20 * Math.cos(t * 0.4)) * 0.14 - t * 1.6), c = PAL[clamp(Math.floor((v + 4) * 2), 0, 15)]; d[o++] = c[0]; d[o++] = c[1]; d[o++] = c[2]; d[o++] = 255; } PX.putImageData(PXD, 0, 0); g.save(); g.imageSmoothingEnabled = false; g.drawImage(PX.canvas, 0, 0, W, H); g.restore(); }
+function demoFloor(t) { const d = PXD.data, hz = 38; let o = 0; for (let y = 0; y < 90; y++) for (let x = 0; x < 160; x++) { let c = PAL[0]; if (y > hz) { const z = 22 / (y - hz), u = (x - 80) * z * 0.12, on = (Math.floor(u) + Math.floor(z * 3 + t * 3)) & 1, f = clamp((y - hz) / 30); c = on ? PAL[Math.round(2 + 6 * f)] : PAL[Math.round(1 * f)]; } d[o++] = c[0]; d[o++] = c[1]; d[o++] = c[2]; d[o++] = 255; } PX.putImageData(PXD, 0, 0); g.save(); g.imageSmoothingEnabled = false; g.drawImage(PX.canvas, 0, 0, W, H); g.restore(); demoStars(t * 0.6, 90); }
+function demoCopper(t) { const bars = [0, 1, 2, 3, 4].map((i) => ({ y: H / 2 + Math.sin(t * 1.25 + i * 0.85) * H * 0.34, z: Math.cos(t * 1.25 + i * 0.85), i })).sort((a, b) => a.z - b.z); for (const b of bars) for (let q = 0; q < 11; q++) { const v = 1 - Math.abs(q - 5) / 5.5, c = b.i % 2 ? [47 + 120 * v, 127 + 100 * v, 214 + 30 * v] : [255, 77 + 150 * v, 28 + 110 * v]; g.fillStyle = `rgba(${Math.round(c[0] * (0.35 + 0.65 * v))},${Math.round(c[1] * (0.35 + 0.65 * v))},${Math.round(c[2] * (0.35 + 0.65 * v))},0.9)`; g.fillRect(0, Math.round(b.y) - 33 + q * 6, W, 6); } }
+function demoTunnel(t) { g.save(); g.translate(W / 2, H / 2); for (let i = 0; i < 14; i++) { const s = (i / 14 + t * 0.22) % 1, sz = 60 + s * s * 1900; g.save(); g.rotate(t * 0.25 + i * 0.22); g.strokeStyle = rgba(i % 2 ? '#2F7FD6' : BR.orange, 0.15 + 0.6 * s); g.lineWidth = 2 + 6 * s; g.strokeRect(-sz / 2, -sz / 2, sz, sz); g.restore(); } g.restore(); }
+function demoCube(t) { demoStars(t * 0.5, 120); const V = [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]], Ed = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]], a = t * 0.9, b = t * 0.6; const P = V.map(([x, y, z]) => { const x1 = x * Math.cos(a) - z * Math.sin(a), z1 = x * Math.sin(a) + z * Math.cos(a), y1 = y * Math.cos(b) - z1 * Math.sin(b), z2 = y * Math.sin(b) + z1 * Math.cos(b), f = 3.2 / (4.2 + z2); return [W / 2 + x1 * f * 330, H / 2 + y1 * f * 330]; }); g.save(); g.strokeStyle = rgba(BR.orange, 0.75); g.lineWidth = 4; g.lineJoin = 'round'; Ed.forEach(([i, j]) => { g.beginPath(); g.moveTo(P[i][0], P[i][1]); g.lineTo(P[j][0], P[j][1]); g.stroke(); }); g.fillStyle = BR.cream; P.forEach(([x, y]) => g.fillRect(x - 5, y - 5, 10, 10)); g.restore(); }
+function bgDemo(t, o = {}) {
+  g.fillStyle = BR.night; g.fillRect(0, 0, W, H);
+  const fx = o.logo ? 'stars' : DEMO_FX[CUR?.id] ?? 'stars';
+  if (fx === 'plasma') demoPlasma(t); else if (fx === 'floor') demoFloor(t); else if (fx === 'copper') demoCopper(t); else if (fx === 'tunnel') demoTunnel(t); else if (fx === 'cube') demoCube(t); else demoStars(t);
+  /* hinter dem Text zurücknehmen; die Sterne bleiben klar */
+  if (fx !== 'stars') { g.fillStyle = rgba(BR.night, fx === 'plasma' ? 0.74 : fx === 'floor' ? 0.66 : 0.52); g.fillRect(0, 0, W, H); }
+}
+const BGS = { night: bgNight, ink: bgInk, action: bgAction, cream: bgCream, trance: bgTrance, hard: bgHard, rave: bgRave, euro: bgEuro, demo: bgDemo };
+function bg(t, o) { BGS[TH.bgk](t, o); }
 
 /* ---------- Bausteine ---------- */
+/* Zeichnet in eine eigene Ebene und blendet sie links und rechts weich aus (Laufbänder, Bildreihen) — der Hintergrund bleibt unberührt,
+   auch wenn er sich bewegt (Lichtfächer, Laser, Demo-Effekte). */
+function softEdges(edge, fn) {
+  drawInto(LT, () => { fn(); g.globalAlpha = 1; g.globalCompositeOperation = 'destination-in'; const gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(edge / W, '#000'); gr.addColorStop(1 - edge / W, '#000'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); });
+  g.drawImage(LT.canvas, 0, 0);
+}
 function kicker(str, x, y, p = 1, align = 'left') { label(str, x, y + (1 - eOut(p)) * 10, { size: 22, color: TH.accentText, alpha: eOut(p), align }); }
 function pill(str, x, y, o = {}) {
   const size = o.size ?? 24, padX = size * 0.75, w = measure(str, size, 600) + padX * 2, h = size * 1.9;
@@ -90,12 +192,12 @@ function glassFill(y0, y1) { const gr = g.createLinearGradient(0, y0, 0, y1); gr
 
 /* ---------- Szene: Logo (Auftakt) ---------- */
 function scLogo(lt, D) {
-  bg(lt, { warm: 0.1 });
+  bg(lt, { warm: 0.1, logo: true });
   const cx = W / 2, cy = CY - 30, hBig = 240, m = 150;
-  const tLock = FAST ? 2 * BAR : D * 0.6; // ab hier wird das Zeichen zum Lockup
+  const tLock = logoLock(D); // ab hier wird das Zeichen zum Lockup
   const pl = E_REVEAL(seg(lt, tLock, tLock + (FAST ? 0.5 : 1.1)));
   /* Lichtblitz auf dem Schlag — hinter dem Zeichen (kein Effekt auf dem Zeichen selbst) */
-  if (FAST && lt >= tLock) { const f = Math.exp(-(lt - tLock) * 7); g.fillStyle = rgba(BR.cream, 0.3 * f); g.fillRect(0, 0, W, H); }
+  if (FAST && lt >= tLock) { const f = Math.exp(-(lt - tLock) * 7); g.fillStyle = TH.dark ? rgba(BR.cream, 0.3 * f) : rgba(BR.apricot, 0.35 * f); g.fillRect(0, 0, W, H); }
   const size = 0.9275 * m, mw = (m * 28) / 24, total = mw + 0.46 * m + wordmarkWidth(size), x0 = cx - total / 2;
   const zx = lerp(cx, x0 + mw / 2, pl), zh = lerp(hBig, m, pl);
   if (MOOD === 'cine') {
@@ -142,11 +244,11 @@ function scClaim(lt, D) {
     const at = (i) => seg(lt, i * B, i * B + 0.2);
     let k = 0;
     L1.items.forEach((it) => { const q = at(k++); if (q > 0) { g.save(); const px = cx - L1.width / 2 + it.x + it.w / 2; g.translate(px, y - 50); g.scale(lerp(1.4, 1, eOut5(q)), lerp(1.4, 1, eOut5(q))); g.translate(-px, -(y - 50)); text(it.t, cx - L1.width / 2 + it.x, y, { size: it.sz, weight: 800, ls: it.ls, color: TH.ink, alpha: seg(q, 0, 0.4) }); g.restore(); } });
-    L2.items.forEach((it) => { const q = at(k++); if (q > 0) { g.save(); const px = cx - L2.width / 2 + it.x + it.w / 2; g.translate(px, y + size); g.scale(lerp(1.4, 1, eOut5(q)), lerp(1.4, 1, eOut5(q))); g.translate(-px, -(y + size)); text(it.t, cx - L2.width / 2 + it.x, y + size * 1.06, { size: it.sz, weight: 400, fam: SER, italic: true, color: BR.orange, alpha: seg(q, 0, 0.4) }); g.restore(); } });
+    L2.items.forEach((it) => { const q = at(k++); if (q > 0) { g.save(); const px = cx - L2.width / 2 + it.x + it.w / 2; g.translate(px, y + size); g.scale(lerp(1.4, 1, eOut5(q)), lerp(1.4, 1, eOut5(q))); g.translate(-px, -(y + size)); text(it.t, cx - L2.width / 2 + it.x, y + size * 1.06, { size: it.sz, weight: 400, fam: SER, italic: true, color: TH.accent, alpha: seg(q, 0, 0.4) }); g.restore(); } });
     void toks;
     kicker(T.claimKicker, cx, y - size * 0.98, seg(lt, 0, 0.3), 'center');
     const ps = seg(lt, 6 * B, 6 * B + 0.3);
-    if (ps > 0) { const str = T.claimSub.join(' '), w = measure(str, 40, 700) + 56; g.save(); g.globalAlpha = ps; g.fillStyle = BR.cream; rr(cx - w / 2, y + size * 1.06 + 50, w * E_WIPE(ps), 66, 8); g.fill(); g.beginPath(); g.rect(cx - w / 2, y + size * 1.06 + 50, w * E_WIPE(ps), 66); g.clip(); text(str, cx, y + size * 1.06 + 97, { size: 40, weight: 700, color: BR.ink, align: 'center' }); g.restore(); }
+    if (ps > 0) { const str = T.claimSub.join(' '), w = measure(str, 40, 700) + 56; g.save(); g.globalAlpha = ps; g.fillStyle = TH.ink; rr(cx - w / 2, y + size * 1.06 + 50, w * E_WIPE(ps), 66, 8); g.fill(); g.beginPath(); g.rect(cx - w / 2, y + size * 1.06 + 50, w * E_WIPE(ps), 66); g.clip(); text(str, cx, y + size * 1.06 + 97, { size: 40, weight: 700, color: TH.bg, align: 'center' }); g.restore(); }
   } else {
     const cx = W / 2, y = CY - 30;
     kicker(T.claimKicker, cx, y - size * 0.98, pin(lt, 0), 'center');
@@ -221,7 +323,7 @@ function scStack(lt, D) {
   drawLine(tokens(T.stackTitle[1]), x, top + 104 + s2 * 1.18, s2, pin(lt, 2, 1.2), { style: TH.style, color: TH.ink });
   /* Laufbänder: Fokus-Technologien voll, der Rest zurückgenommen; Trenner = Slash der Marke */
   const speed = FAST ? 240 : MOOD === 'cine' ? 70 : 34, size = 92, y0 = top + 340, dy = (TH.bot - 110 - y0) / 2;
-  STACK_ROWS.forEach((row, r) => {
+  softEdges(220, () => STACK_ROWS.forEach((row, r) => {
     const a = eOut(pin(lt, 3 + r));
     g.save(); g.globalAlpha = a; setFont(size, 800); g.letterSpacing = -0.03 * size + 'px';
     const widths = row.map((w) => g.measureText(w).width), sep = 96, total = widths.reduce((s, w) => s + w + sep, 0);
@@ -238,9 +340,7 @@ function scStack(lt, D) {
       });
     }
     g.restore();
-  });
-  /* weiche Ränder */
-  [0, 1].forEach((k) => { const gr = g.createLinearGradient(k ? W - 220 : 0, 0, k ? W : 220, 0); gr.addColorStop(k ? 1 : 0, TH.bg); gr.addColorStop(k ? 0 : 1, rgba(TH.bg, 0)); g.fillStyle = gr; g.fillRect(k ? W - 220 : 0, y0 - size, 220, dy * 2 + size * 1.4); });
+  }));
   const pn = eOut(pin(lt, 7)); label(T.stackNext + ' — ' + STACK_NEXT.join(' · '), W - 180, top + 30, { size: 20, color: TH.soft, alpha: pn, align: 'right', track: 0.08 });
 }
 
@@ -273,7 +373,7 @@ function scJourney(lt, D, o) {
   g.save(); g.globalAlpha = al;
   const dy = FAST ? 0 : (1 - eOut5(a)) * 60 - b * 40;
   if (FAST) { const sc = lerp(1.1, 1, eOut5(a)); g.translate(x, yY); g.scale(sc, sc); g.translate(-x, -yY); }
-  g.fillStyle = MOOD === 'calm' ? TH.ink : glassFill(yY - ySize * 0.75, yY + 10);
+  g.fillStyle = TH.dark ? glassFill(yY - ySize * 0.75, yY + 10) : TH.ink;
   setFont(ySize, 800); g.letterSpacing = -0.045 * ySize + 'px'; g.fillText(it.y, x - 10, yY + dy);
   g.restore();
   /* Titel, Rolle, Kurztext */
@@ -388,12 +488,12 @@ function scSite(lt, D, o) {
   browser(IMG[views[vi]], bx, by, bw, bh, { dark: true, url: 'loona-designs.de', scroll: eIO(vp) * 0.55, shadow: TH.dark ? 'rgba(0,0,0,0.6)' : 'rgba(23,19,16,0.22)' });
   if (vp < 0.18 && views.length > 1 && lt > per) { g.save(); g.globalAlpha *= 1 - vp / 0.18; browser(IMG[views[(vi + views.length - 1) % views.length]], bx, by, bw, bh, { dark: true, url: 'loona-designs.de', scroll: 0.55, blur: 0 }); g.restore(); }
   g.restore();
-  const pp = eOut(pin(lt, 4, 1.3)); if (IMG.siteMob) { g.save(); g.translate(0, (1 - pp) * 80); phone(IMG.siteMob, bx + 10, by + bh - 170, 190, { alpha: pp, scroll: eIO(seg(lt, 1, D)) * 0.5 }); g.restore(); }
+  const pp = eOut(pin(lt, 4, 1.3)); if (IMG.siteMob) { g.save(); g.translate(0, (1 - pp) * 80); phone(IMG.siteMob, bx + 10, by + bh - 170, 190, { alpha: pp, scroll: eIO(seg(lt, 1, D)) * 0.5, fix: { ...MOB_FIX, top: { ...MOB_FIX.top, img: IMG.siteMobTop }, bar: { ...MOB_FIX.bar, img: IMG.siteMobBar } } }); g.restore(); }
 }
 
 /* ---------- Szene: Produktfamilie (nur 120 s) ---------- */
 function scFamily(lt, D) {
-  bg(lt);
+  bg(lt, { logo: true });
   const cx = W / 2, cy = CY - 30;
   kicker(T.familyKicker, cx, cy - 230, pin(lt, 0), 'center');
   const items = [{ key: 'ld', name: 'loona! designs', tag: 'plattform' }, ...FAMILY], n = items.length, sz = 170, step = 310, x0 = cx - ((n - 1) * step) / 2;
@@ -510,7 +610,7 @@ function scHero(lt, D) {
   titlePair(T.heroTitle, x, top + 122, W - 2 * x, lt);
   const pw = MOOD === 'cine' ? 206 : 262, ph = (pw * 16) / 9, gap = 46, y = top + 186, span = HERO.length * (pw + gap) - gap;
   const scroll = lerp(0, Math.max(0, span - (W - 2 * x)), eIO(seg(lt, 1, D - 0.8)));
-  HERO.forEach(([m, de, en], i) => {
+  softEdges(150, () => HERO.forEach(([m, de, en], i) => {
     const px = x + i * (pw + gap) - scroll; if (px > W + 60 || px + pw < -60) return;
     const p = FAST ? seg(lt, (i * B) / 2, (i * B) / 2 + 0.25) : pin(lt, 2 + i * 0.55), a = eOut(p);
     if (a <= 0) return;
@@ -522,9 +622,7 @@ function scHero(lt, D) {
     g.strokeStyle = 'rgba(255,255,255,0.2)'; g.lineWidth = 2; rr(px - 8, y - 8, pw + 16, ph + 16, 34); g.stroke();
     label(LANG === 'en' ? en ?? de : de, px + pw / 2, y + ph + 52, { size: 17, color: TH.soft, align: 'center', track: 0.08 });
     g.restore();
-  });
-  /* weiche Ränder */
-  [0, 1].forEach((k) => { const gr = g.createLinearGradient(k ? W - 150 : 0, 0, k ? W : 150, 0); gr.addColorStop(k ? 1 : 0, TH.bg); gr.addColorStop(k ? 0 : 1, rgba(TH.bg, 0)); g.fillStyle = gr; g.fillRect(k ? W - 150 : 0, y - 30, 150, ph + 110); });
+  }));
 }
 
 /* ---------- Szene: Zitat aus den Labs ---------- */
@@ -548,7 +646,7 @@ function scCerts(lt, D) {
   const x = 180, top = TH.top + 40;
   kicker(T.certsKicker, x, top + 30, pin(lt, 0));
   const p1 = pin(lt, 1, 1.2);
-  g.save(); g.fillStyle = MOOD === 'calm' ? BR.orange : glassFill(CY - 190, CY + 110);
+  g.save(); g.fillStyle = TH.dark ? glassFill(CY - 190, CY + 110) : BR.orange;
   text(T.certsTitle[0], x - 14, CY + 110 + (1 - eOut5(p1)) * 50, { size: 400, weight: 800, color: g.fillStyle, alpha: eOut(p1), ls: -18 }); g.restore();
   text(T.certsTitle[1], x, CY + 196, { size: 64, weight: 400, fam: SER, italic: true, color: TH.ink, alpha: eOut(pin(lt, 3)) });
   const lx = 800, lw = W - 180 - lx, rh = (TH.bot - TH.top - 60) / CERTS.length, y0 = TH.top + 34;
@@ -566,7 +664,7 @@ function scCerts(lt, D) {
 
 /* ---------- Szene: Schluss ---------- */
 function scOutro(lt, D) {
-  bg(lt, { warm: 0.12 });
+  bg(lt, { warm: 0.12, logo: true });
   const cx = W / 2, cy = CY - 70, m = 120;
   /* Direkt das offizielle Logo: das Zeichen mit dem Reveal der Marke, dann die Wortmarke. Das Badge davor ist entfallen (Wunsch 22.11.2026). */
   const tB = FAST ? B : 0.9;

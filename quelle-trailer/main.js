@@ -29,9 +29,27 @@ const PLANS = {
     300: [['logo', 3], ['claim', 3], ['person', 4], ['focus', 4], ['origin', 5], ['stack', 3], ['journey', 18], ['award', 3], ['works', 9], ['quote', 3], ['labs', 9], ['labsAll', 5], ['hero', 7], ['site', 7], ['quote2', 3], ['family', 3], ['certs', 5], ['outro', 6]],
   },
 };
-const PLAN = PLANS[MOOD][LEN];
+/* Die fünf neuen Stimmungen (Trance 136, Hardstyle 152, Eurodance 128, Rave 144, Demoszene 120 BPM) bekommen ihren Ablauf aus einer
+   Vorlage je Länge: [Szene, Gewicht, Mindesttakte]. Die Takte der Länge (Sekunden × BPM / 240, immer ganzzahlig) werden nach Gewicht
+   verteilt. Die 30-Sekunden-Fassung lässt die Anspruch-Szene aus — der Claim steht im Schluss. */
+const TEMPLATES = {
+  30: [['logo', 2, 2], ['person', 2.2, 2], ['journey', 4, 4], ['award', 1.5, 1], ['labs', 2.8, 2], ['site', 2.2, 2], ['outro', 2.6, 2]],
+  60: [['logo', 3, 3], ['claim', 3, 2], ['person', 4, 2], ['stack', 3, 2], ['journey', 6, 4], ['award', 2, 2], ['labs', 5, 3], ['site', 3, 2], ['outro', 3, 3]],
+  90: [['logo', 4, 3], ['claim', 3, 2], ['person', 5, 3], ['stack', 4, 2], ['journey', 8, 5], ['award', 3, 2], ['labs', 8, 4], ['site', 5, 3], ['certs', 4, 3], ['outro', 4, 3]],
+  120: [['logo', 4, 3], ['claim', 4, 2], ['person', 5, 3], ['origin', 4, 3], ['stack', 4, 3], ['journey', 16, 9], ['award', 3, 2], ['labs', 8, 5], ['site', 5, 3], ['family', 2, 2], ['certs', 4, 3], ['outro', 5, 3]],
+  300: [['logo', 5, 4], ['claim', 4, 3], ['person', 6, 4], ['focus', 6, 4], ['origin', 8, 5], ['stack', 6, 4], ['journey', 36, 27], ['award', 5, 3], ['works', 14, 9], ['quote', 4, 3], ['labs', 14, 9], ['labsAll', 8, 5], ['hero', 12, 7], ['site', 10, 7], ['quote2', 4, 3], ['family', 4, 3], ['certs', 7, 5], ['outro', 7, 5]],
+};
+function autoPlan(tpl, total) {
+  const sum = tpl.reduce((a, x) => a + x[1], 0), raw = tpl.map((x) => (x[1] * total) / sum), out = tpl.map((x, i) => Math.max(x[2], Math.floor(raw[i])));
+  let diff = total - out.reduce((a, b) => a + b, 0);
+  /* fehlende Takte dorthin, wo am meisten zum Soll fehlt; überzählige dort weg, wo am meisten darüber liegt — nie unter das Minimum */
+  for (; diff > 0; diff--) { let best = 0; out.forEach((v, i) => { if (raw[i] - v > raw[best] - out[best] + 1e-9) best = i; }); out[best]++; }
+  for (; diff < 0; diff++) { let best = -1; out.forEach((v, i) => { if (v > tpl[i][2] && (best < 0 || v - raw[i] > out[best] - raw[best] + 1e-9)) best = i; }); if (best < 0) break; out[best]--; }
+  return tpl.map((x, i) => [x[0], out[i]]);
+}
+const PLAN = PLANS[MOOD]?.[LEN] ?? autoPlan(TEMPLATES[LEN], Math.round((LEN * TH.bpm) / 240));
 const NB = PLAN.reduce((s, [, b]) => s + b, 0);
-const DUR = NB * BAR; // exakt 60 / 90 / 120 / 300 s
+const DUR = NB * BAR; // exakt 30 / 60 / 90 / 120 / 300 s
 const FN = { logo: scLogo, claim: scClaim, person: scPerson, origin: scOrigin, stack: scStack, journey: scJourney, award: scAward, labs: scLabs, site: scSite, family: scFamily, certs: scCerts, outro: scOutro, focus: scFocus, works: scWorks, labsAll: scLabsAll, hero: scHero, quote: scQuote, quote2: scQuote };
 /* Stationen der Reise: so viele, wie Takte da sind (höchstens 9); übrige Takte verteilt journeyBars auf die gewichtigeren Stationen */
 const SCENES = (() => { let b = 0; return PLAN.map(([id, bars], i) => { const s = { id, i, bars, t0: b * BAR, D: bars * BAR, b0: b }; b += bars; return s; }); })();
@@ -46,7 +64,7 @@ const OPT = {
 /* Kennung des Ablaufs: die Musik hängt nur davon ab (Zwischenspeicher beim Rendern) */
 const PLAN_KEY = (() => { const str = JSON.stringify([MOOD, PLAN, OPT.journey.bars, 'musik-3']); let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); })();
 const sceneAt = (t) => { let s = SCENES[0]; for (const x of SCENES) if (t >= x.t0) s = x; return s; };
-function drawScene(s, t) { const lt = clamp(t - s.t0, 0, s.D); FN[s.id](lt, s.D, OPT[s.id] ?? {}); }
+function drawScene(s, t) { const lt = clamp(t - s.t0, 0, s.D); CUR = s; FN[s.id](lt, s.D, OPT[s.id] ?? {}); }
 
 /* ---------- Rahmen je Stimmung ---------- */
 function chrome(t, s) {
@@ -55,14 +73,25 @@ function chrome(t, s) {
     /* Kinoformat 2,39 : 1 — Balken oben und unten, darin leise Kapitelangabe */
     const bh = (H - W / 2.39) / 2; g.fillStyle = '#000'; g.fillRect(0, 0, W, bh); g.fillRect(0, H - bh, W, bh);
     if (s.id !== 'logo' && s.id !== 'outro') { label(chap, 190, H - bh / 2 + 7, { size: 16, color: 'rgba(246,241,232,0.5)', track: 0.24 }); label(idx, W - 190, H - bh / 2 + 7, { size: 16, color: 'rgba(246,241,232,0.5)', align: 'right', track: 0.2 }); }
+  } else if (MOOD === 'demo') {
+    /* Demoszene: Kupferlinien oben und unten, dazwischen unten ein Sinus-Scroller in der Mono-Schrift der Marke */
+    const band = (y) => { for (let q = 0; q < 5; q++) { const v = 1 - Math.abs(q - 2) / 2.5; g.fillStyle = `rgb(255,${Math.round(77 + 150 * v)},${Math.round(28 + 110 * v)})`; g.fillRect(0, y + q * 2, W, 2); } };
+    g.fillStyle = 'rgba(4,6,16,0.72)'; g.fillRect(0, H - 112, W, 112); band(H - 112); band(22);
+    const str = T.scroller, size = 40, cw = size * 0.6 + 4, total = str.length * cw, off = (t * 230) % total;
+    g.save(); g.font = `700 ${size}px ${MONO}`; g.textBaseline = 'alphabetic';
+    for (let x = W - off - total; x < W; x += total) for (let i = 0; i < str.length; i++) { const px = x + i * cw; if (px < -cw || px > W) continue; const ch = str[i], y = H - 42 + Math.sin(t * 4.2 + px * 0.011) * 15; g.fillStyle = ch === '+' ? BR.orange : BR.cream; g.fillText(ch, px, y); }
+    g.restore();
+    if (s.id !== 'logo' && s.id !== 'outro') { label(`Part ${String(s.i + 1).padStart(2, '0')} · ${chap}`, 150, 76, { size: 17, color: rgba(BR.cream, 0.6), track: 0.2 }); label(idx, W - 150, 76, { size: 17, color: rgba(BR.cream, 0.6), align: 'right', track: 0.18 }); }
   } else if (FAST) {
-    /* Füllstand der Marke als Fortschritt: Kante in Slash-Steigung; Action in Signalorange, mit Szenenmarken und Zeitcode */
-    const act = MOOD === 'action', y = H - 14, w = W * (t / DUR); g.fillStyle = 'rgba(246,241,232,0.12)'; g.fillRect(0, y, W, 14);
-    g.fillStyle = act ? BR.signal : BR.orange; g.beginPath(); g.moveTo(0, y); g.lineTo(w - 7, y); g.lineTo(w, H); g.lineTo(0, H); g.closePath(); g.fill();
-    if (act) { g.fillStyle = 'rgba(23,19,16,0.7)'; for (const x of SCENES) if (x.i > 0) g.fillRect(Math.round((W * x.t0) / DUR) - 1, y, 2, 14); }
+    /* Füllstand der Marke als Fortschritt: Kante in Slash-Steigung; Action in Signalorange, mit Szenenmarken und Zeitcode;
+       die Tanz-Stimmungen zeigen in der Mitte ihr Tempo */
+    const act = MOOD === 'action', dance = ['trance', 'hard', 'euro', 'rave'].includes(MOOD), y = H - 14, w = W * (t / DUR); g.fillStyle = rgba(TH.ink, 0.12); g.fillRect(0, y, W, 14);
+    g.fillStyle = act || MOOD === 'hard' ? BR.signal : BR.orange; g.beginPath(); g.moveTo(0, y); g.lineTo(w - 7, y); g.lineTo(w, H); g.lineTo(0, H); g.closePath(); g.fill();
+    if (act || dance) { g.fillStyle = rgba(TH.bg, 0.7); for (const x of SCENES) if (x.i > 0) g.fillRect(Math.round((W * x.t0) / DUR) - 1, y, 2, 14); }
     if (s.id !== 'logo' && s.id !== 'outro') {
-      label(chap, 150, 62, { size: 17, color: rgba(BR.cream, 0.55), track: 0.22 }); label(idx, W - 150, 62, { size: 17, color: rgba(BR.cream, 0.55), align: 'right', track: 0.18 });
+      label(chap, 150, 62, { size: 17, color: rgba(TH.ink, 0.55), track: 0.22 }); label(idx, W - 150, 62, { size: 17, color: rgba(TH.ink, 0.55), align: 'right', track: 0.18 });
       if (act) { const mm = (v) => `${String(Math.floor(v / 60)).padStart(2, '0')}:${String(Math.floor(v % 60)).padStart(2, '0')}`; label(`${mm(t)} / ${mm(DUR)}`, W / 2, 62, { size: 17, color: rgba(BR.cream, 0.4), align: 'center', track: 0.18 }); }
+      if (dance) { /* Tempo mit Schlaglicht: der Punkt leuchtet auf jedem Schlag */ const bp = beatPulse(t, 7), str = `${TH.bpm} BPM`, tw = measure(str, 17, 500, MONO, 17 * 0.18); label(str, W / 2 + 10, 62, { size: 17, color: rgba(TH.ink, 0.45), align: 'center', track: 0.18 }); g.fillStyle = rgba(BR.orange, 0.35 + 0.65 * bp); g.beginPath(); g.arc(W / 2 - tw / 2 - 8, 56, 5 + 2 * bp, 0, 7); g.fill(); }
     }
   } else {
     /* Editorial: Haarlinien-Rahmen und Ecken-Beschriftung */
@@ -81,18 +110,50 @@ function finish(t) {
   }
   /* Auf- und Abblende */
   const a = 1 - eOut(seg(t, 0, FAST ? 0.25 : 0.9)), b = eIn(seg(t, DUR - (FAST ? 0.5 : 1.4), DUR - 0.05)), k = Math.max(a, b);
-  if (k > 0) { g.fillStyle = MOOD === 'calm' ? rgba(BR.cream, k) : `rgba(0,0,0,${k})`; g.fillRect(0, 0, W, H); }
+  if (k > 0) { g.fillStyle = TH.dark ? `rgba(0,0,0,${k})` : rgba(BR.cream, k); g.fillRect(0, 0, W, H); }
 }
 
 /* ---------- Übergänge ---------- */
+const MOS = mkLayer(W / 8, H / 8);
 function transition(p, A, Bc) {
-  if (FAST) { slashWipe(A, Bc, p, MOOD === 'action' ? BR.signal : BR.orange); return; }
-  if (MOOD === 'cine') {
+  const kind = TH.trans;
+  if (kind === 'slash') { slashWipe(A, Bc, p, TH.wipe); return; }
+  if (kind === 'cine') {
     /* Überblendung mit leichtem Schub in die Tiefe und einem warmen Lichtschein in der Mitte */
     const e = eIO(p), sp = Math.sin(Math.PI * p);
     g.save(); g.translate(W / 2, H / 2); g.scale(1 + 0.05 * e, 1 + 0.05 * e); g.translate(-W / 2, -H / 2); g.drawImage(A, 0, 0); g.restore();
     g.save(); g.globalAlpha = e; g.translate(W / 2, H / 2); g.scale(1.05 - 0.05 * e, 1.05 - 0.05 * e); g.translate(-W / 2, -H / 2); g.drawImage(Bc, 0, 0); g.restore();
     glow(W / 2, H / 2, 900, BR.apricot, 0.1 * sp);
+    return;
+  }
+  if (kind === 'flash') {
+    /* Trance: Überblendung durch einen hellen Schleier — wie ein Lichtwechsel */
+    const e = eIO(p), sp = Math.sin(Math.PI * p);
+    g.drawImage(A, 0, 0); g.save(); g.globalAlpha = e; g.drawImage(Bc, 0, 0); g.restore();
+    g.fillStyle = rgba(BR.apricot, 0.2 * sp); g.fillRect(0, 0, W, H); glow(W / 2, -100, 1300, BR.cream, 0.3 * sp);
+    return;
+  }
+  if (kind === 'punch') {
+    /* Hardstyle: das alte Bild springt nach vorn und reißt hell ab, das neue setzt sich auf dem Schlag */
+    const h = p < 0.5, q = h ? eIn(p * 2) : 1 - eOut5((p - 0.5) * 2), sc = h ? 1 + 0.2 * q : 1 + 0.1 * q;
+    g.save(); g.translate(W / 2, H / 2); g.scale(sc, sc); g.translate(-W / 2, -H / 2); g.drawImage(h ? A : Bc, 0, 0); g.restore();
+    g.fillStyle = rgba(BR.cream, 0.55 * q); g.fillRect(0, 0, W, H);
+    return;
+  }
+  if (kind === 'iris') {
+    /* Eurodance: Kreisblende mit farbigem Ring */
+    const R = eIO(p) * Math.hypot(W, H) * 0.56;
+    g.drawImage(A, 0, 0); g.save(); g.beginPath(); g.arc(W / 2, H / 2, R, 0, 7); g.clip(); g.drawImage(Bc, 0, 0); g.restore();
+    if (p > 0.02 && p < 0.98) { g.save(); g.lineWidth = 26; g.strokeStyle = TH.wipe; g.beginPath(); g.arc(W / 2, H / 2, R, 0, 7); g.stroke(); g.lineWidth = 8; g.strokeStyle = BR.nova; g.beginPath(); g.arc(W / 2, H / 2, R + 30, 0, 7); g.stroke(); g.restore(); }
+    return;
+  }
+  if (kind === 'mosaic') {
+    /* Demoszene: das Bild zerfällt in grobe Blöcke und setzt sich als nächstes wieder zusammen */
+    const q = 1 - Math.abs(p * 2 - 1), bs = Math.max(1, Math.round(2 ** (q * 6))), src = p < 0.5 ? A : Bc;
+    if (bs <= 1) { g.drawImage(src, 0, 0); return; }
+    const w = Math.max(2, Math.round(W / bs)), h = Math.max(2, Math.round(H / bs));
+    MOS.save(); MOS.setTransform(1, 0, 0, 1, 0, 0); MOS.imageSmoothingEnabled = true; MOS.clearRect(0, 0, MOS.canvas.width, MOS.canvas.height); MOS.drawImage(src, 0, 0, Math.min(w, MOS.canvas.width), Math.min(h, MOS.canvas.height)); MOS.restore();
+    g.save(); g.imageSmoothingEnabled = false; g.drawImage(MOS.canvas, 0, 0, Math.min(w, MOS.canvas.width), Math.min(h, MOS.canvas.height), 0, 0, W, H); g.restore();
     return;
   }
   const e = eIO(p); g.drawImage(A, 0, 0); g.save(); g.globalAlpha = e; g.drawImage(Bc, 0, (1 - e) * 26); g.restore();
@@ -109,8 +170,8 @@ function render(t) {
     transition(p, LA.canvas, LB.canvas);
     chrome(t, p < 0.5 ? pv : nx);
   } else {
-    /* Action: kurzer Stoß am Szenenbeginn — das Bild springt leicht an und kommt sofort zur Ruhe */
-    const k = MOOD === 'action' && s.i > 0 ? Math.exp(-(t - s.t0) * 9) : 0;
+    /* Action, Hardstyle, Rave: kurzer Stoß am Szenenbeginn — das Bild springt leicht an und kommt sofort zur Ruhe */
+    const k = ['action', 'hard', 'rave'].includes(MOOD) && s.i > 0 ? Math.exp(-(t - s.t0) * 9) : 0;
     if (k > 0.02) { g.save(); g.translate(W / 2 + Math.sin(t * 91) * 6 * k, H / 2 + Math.cos(t * 73) * 4 * k); g.scale(1 + 0.035 * k, 1 + 0.035 * k); g.translate(-W / 2, -H / 2); drawScene(s, t); g.restore(); } else drawScene(s, t);
     chrome(t, s);
   }
