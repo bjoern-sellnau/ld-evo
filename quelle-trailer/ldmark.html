@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>LD Mark</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500;700&family=Manrope:wght@500;700;800&display=swap">
+<style>
+/* Aufbau: links die Bühne (16:9), rechts das Bedienfeld wie der Startdialog eines Benchmarks; darunter das Ergebnis in zwei Gruppen.
+   Eine Welt, bewusst nur dunkel: Tinte und Nacht der Marke, Orange nur für Zeichen, Messwerte und die Hauptaktion. */
+:root {
+  --ink: #171310; --deep: #0D0B09; --panel: #1D1814; --night: #0B1026; --cream: #F6F1E8; --soft: #C9BFAE; --mute: #8A8273;
+  --line: rgba(246, 241, 232, 0.16); --orange: #FF7816; --flare: #FFB366;
+  --sans: 'Manrope', 'Segoe UI', system-ui, sans-serif; --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace; --serif: 'Instrument Serif', Georgia, serif;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { background: var(--deep); }
+body { color: var(--cream); font: 500 15px/1.55 var(--sans); padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 20px; }
+.brand { display: flex; align-items: center; gap: 12px; font-size: 22px; letter-spacing: -0.035em; }
+.brand svg { height: 24px; width: 28px; flex: none; }
+.brand b { font-weight: 800; } .brand span { font-weight: 500; }
+h1 { font: 800 clamp(30px, 5vw, 52px)/1.02 var(--sans); letter-spacing: -0.035em; margin: 0; text-wrap: balance; }
+h1 em { font: italic 400 1.08em/1 var(--serif); letter-spacing: -0.01em; color: var(--orange); }
+.lede { color: var(--soft); max-width: 64ch; margin: 10px 0 0; }
+.kicker { font: 700 12px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--orange); }
+.deck { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .deck { grid-template-columns: minmax(0, 1fr); } }
+.stage { position: relative; background: #000; border: 1px solid var(--line); min-width: 0; }
+.stage canvas { display: block; width: 100%; aspect-ratio: 16 / 9; }
+.stage:fullscreen { border: 0; display: grid; place-items: center; }
+.stage:fullscreen canvas { width: min(100vw, 177.78vh); height: auto; }
+.stage .stop { position: absolute; right: 1.8%; bottom: 5.5%; padding: 8px 10px; font-size: 13px; background: rgba(13, 11, 9, 0.72); }
+.panel { background: var(--panel); border: 1px solid var(--line); padding: 18px; display: grid; gap: 18px; min-width: 0; }
+.panel h2, .result h2 { font: 700 12px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); margin: 0 0 8px; }
+.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.modes label { display: block; position: relative; cursor: pointer; }
+.modes input { position: absolute; opacity: 0; inset: 0; }
+.modes span { display: block; border: 1px solid var(--line); padding: 9px 8px; font: 700 13px/1.25 var(--mono); text-align: center; }
+.modes small { display: block; font: 500 11px/1.3 var(--sans); color: var(--mute); margin-top: 3px; }
+.modes input:checked + span { border-color: var(--orange); box-shadow: inset 0 0 0 1px var(--orange); }
+.modes input:focus-visible + span, button:focus-visible, .check input:focus-visible { outline: 2px solid var(--flare); outline-offset: 2px; }
+.actions { display: grid; gap: 8px; }
+button { font: 700 15px/1 var(--sans); color: var(--cream); background: transparent; border: 1px solid var(--line); padding: 13px 14px; cursor: pointer; text-align: left; display: flex; justify-content: space-between; gap: 12px; }
+button:hover { border-color: var(--cream); }
+button.go { background: var(--orange); border-color: var(--orange); color: var(--ink); }
+button.go:hover { background: var(--flare); border-color: var(--flare); }
+button small { font: 500 12px/1 var(--mono); opacity: 0.75; }
+button:disabled { opacity: 0.45; cursor: default; }
+.check { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--orange); }
+dl { margin: 0; display: grid; gap: 8px; }
+dl div { display: grid; gap: 2px; }
+dt { font: 500 12px/1.3 var(--mono); color: var(--mute); }
+dd { margin: 0; font: 500 13px/1.4 var(--mono); overflow-wrap: anywhere; }
+.result { border-top: 1px solid var(--line); padding-top: 22px; display: grid; gap: 14px; }
+.score { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.score strong { font: 800 clamp(44px, 9vw, 84px)/0.95 var(--sans); letter-spacing: -0.04em; color: var(--orange); font-variant-numeric: tabular-nums; }
+.score b { font: 700 13px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; }
+.score span { color: var(--soft); max-width: 46ch; flex-basis: 100%; }
+.tablebox { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 540px; font: 500 13px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--mute); font-weight: 500; } th:first-child, td:first-child { text-align: left; font-family: var(--sans); font-size: 14px; }
+tr.group td { font: 700 12px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); padding-top: 18px; text-align: left; }
+td.fps { color: var(--orange); font-weight: 700; }
+.row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.note { color: var(--mute); font-size: 13px; max-width: 72ch; margin: 0; }
+#copied { font: 500 12px/1 var(--mono); color: var(--soft); }
+textarea { width: 100%; min-height: 140px; background: var(--deep); color: var(--cream); border: 1px solid var(--line); font: 500 12px/1.5 var(--mono); padding: 10px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<!-- LD Mark — der eigene Echtzeit-Benchmark von loona! designs, in der Machart der Grafik-Benchmarks um 2001 und 2003: Licht je Bildpunkt,
+     Shadow Maps, spiegelnde Wellenfläche, Glühen. Kein Video: Der GLX-Engine (gl/glx.js, gl/glx-tests.js, Look '03') rechnet jedes Bild im
+     Browser. Eigene Szenen, eigene Musik (demo/musik-mark.mp3, erzeugt mit music.js über
+     index.html?mood=mark&plan=logo:6,person:8,stack:8,quote:4,labs:8,certs:8,award:4,hero:8,family:6,outro:6). -->
+<div class="wrap">
+  <header>
+    <div class="brand" aria-label="loona! designs">
+      <svg viewBox="6 9 32 28" aria-hidden="true"><path fill="#FF7816" d="M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z"/><path fill="#FF7816" d="M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z"/></svg>
+      <div><b>loona!</b> <span>designs</span></div>
+    </div>
+    <span class="kicker">LD Mark</span>
+  </header>
+
+  <div>
+    <h1>Vier Szenen, vier Technik-Tests, <em>eine Punktzahl.</em></h1>
+    <p class="lede">LD Mark rechnet eigene 3D-Szenen live in deinem Browser: Licht je Bildpunkt, Schatten, Spiegelungen und Glühen, wie es Grafik-Benchmarks um 2001 und 2003 zeigten. Sieh dir die Demo mit Intro und Musik an oder miss deinen Rechner.</p>
+  </div>
+
+  <div class="deck">
+    <div class="stage" id="stage">
+      <canvas id="view" width="1024" height="576"></canvas>
+      <button class="stop" id="stop" hidden>Beenden <small>Esc</small></button>
+    </div>
+
+    <div class="panel">
+      <div>
+        <h2>Auflösung</h2>
+        <div class="modes">
+          <label><input type="radio" name="res" id="res576" value="576" checked><span>1024<small>× 576</small></span></label>
+          <label><input type="radio" name="res" id="res720" value="720"><span>1280<small>× 720</small></span></label>
+          <label><input type="radio" name="res" id="res1080" value="1080"><span>1920<small>× 1080</small></span></label>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="go" id="startBench">Benchmark starten <small>ca. 55 s</small></button>
+        <button id="startDemo">Demo starten <small id="demoLen">1:50 min</small></button>
+        <button id="full">Vollbild</button>
+      </div>
+      <label class="check"><input type="checkbox" id="sound" checked> Demo mit Musik</label>
+      <dl>
+        <div><dt>Grafikkarte</dt><dd id="gpu">wird gelesen …</dd></div>
+        <div><dt>Bildpuffer</dt><dd id="buf">1024 × 576 · 32 bit</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <section class="result" id="result" hidden>
+    <h2>Ergebnis</h2>
+    <div class="score"><strong id="points">0</strong><b>LD-Punkte</b><span>Das Zehnfache des geometrischen Mittels der Bildraten der vier Szenen-Tests. Die Technik-Tests zählen nicht mit.</span></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Test</th><th>Dreiecke</th><th>Bilder/s</th><th>langsamste 5 %</th><th>Tsd. Dreiecke/s</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="row"><button id="copy">Ergebnis kopieren</button><span id="copied" role="status"></span></div>
+    <textarea id="plain" readonly hidden aria-label="Ergebnis als Text"></textarea>
+    <p class="note">Gemessen wird, wie viele Bilder dein Rechner je Sekunde fertig bekommt, ohne auf den Bildschirm zu warten. Ergebnisse sind nur bei gleicher Auflösung vergleichbar. Die Demo selbst läuft im Takt des Bildschirms.</p>
+  </section>
+
+  <p class="note">Alle Szenen und Texturen entstehen im Browser (WebGL 1, ohne Framework). Der Test „Bildschirme“ zeigt eigene Screenshots der Labs und der Website; SPREE|FALL mit Kartendaten © OpenStreetMap-Mitwirkende. Die Musik ist ein eigenes Stück, vollständig synthetisiert.</p>
+</div>
+
+<script src="gl/glx.js"></script>
+<script src="gl/glx-tests.js"></script>
+<script>
+'use strict';
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const LOOK = '03', BPM = 144, bar = 240 / BPM, MUSIC = 'demo/musik-mark.mp3';
+  const RES = { 576: [1024, 576], 720: [1280, 720], 1080: [1920, 1080] };
+  /* Ablauf der Demo in Takten: Intro, acht Tests, Schluss (zusammen 66 Takte — so ist auch die Musik gebaut) */
+  const RUN = [['intro', 6], ['moon', 8], ['pool', 8], ['gold', 4], ['orrery', 8], ['hall', 8], ['galaxy', 4], ['tunnel', 8], ['screens', 6], ['end', 6]];
+  /* Benchmark: vier Szenen-Tests (gewertet, je acht Sekunden), vier Technik-Tests (je fünf) */
+  const BENCH = [['moon', 8, 1], ['pool', 8, 1], ['orrery', 8, 1], ['hall', 8, 1], ['tunnel', 5, 0], ['galaxy', 5, 0], ['screens', 5, 0], ['gold', 5, 0]];
+  const IMAGES = { a: 'assets/g_core-fall-menu.jpg', b: 'assets/g_co-play3.jpg', c: 'assets/sf_01-pariser-platz.jpg', d: 'assets/site_home.jpg', e: 'assets/g_cf-play13.jpg', f: 'assets/sf_07-tv-tower.jpg', g: 'assets/site_labs.jpg', h: 'assets/g_co-play6.jpg' };
+  const C = { orange: '#FF7816', cream: '#F6F1E8', soft: '#C9BFAE', mute: '#8A8273' };
+  const MAN = "'Manrope', 'Segoe UI', system-ui, sans-serif", MONO = "'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace", SER = "'Instrument Serif', Georgia, serif";
+  const ZL = new Path2D('M8 12A1 1 0 0 1 9 11L15 11A1 1 0 0 1 16 12L16 27L19 27L22 35L9 35A1 1 0 0 1 8 34Z'), ZM = new Path2D('M21 12A1 1 0 0 1 22 11H24A12 12 0 0 1 24 35L21 27Z');
+  const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x)), eOut = (x) => 1 - Math.pow(1 - clamp(x), 3);
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W = 1024, H = 576, hud, h, U = 1, images = {}, audio = null, raf = 0, mode = 'idle', ok = false;
+  let segs = [], total = 0, t0 = 0, fpsN = 0, fpsT = 0, fps = 0, bench = null, results = null;
+  { let b = 0; segs = RUN.map(([id, bars], i) => { const s = { id, i, t0: b * bar, D: bars * bar }; b += bars; return s; }); total = b * bar; }
+
+  /* ---------- Engine starten (je Auflösung eine frische Zeichenfläche) ---------- */
+  function setup(res) {
+    [W, H] = RES[res] || RES[576];
+    const old = $('view'), cv = document.createElement('canvas'); cv.id = 'view'; cv.width = W; cv.height = H; old.replaceWith(cv);
+    try { GLX.init({ canvas: cv, width: W, height: H, look: LOOK, images }); ok = true; } catch (e) { ok = false; }
+    hud = document.createElement('canvas'); hud.width = W; hud.height = H; h = hud.getContext('2d'); U = W / 960;
+    $('demoLen').textContent = `${Math.floor(total / 60)}:${String(Math.round(total % 60)).padStart(2, '0')} min`;
+    $('buf').textContent = `${W} × ${H} · 32 bit`;
+    let gpu = 'WebGL nicht verfügbar';
+    if (ok) { const gl = GLX.gl, d = gl.getExtension('WEBGL_debug_renderer_info'); gpu = String(d ? gl.getParameter(d.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)); }
+    $('gpu').textContent = gpu; $('startDemo').disabled = $('startBench').disabled = !ok;
+    if (!audio) { audio = new Audio(MUSIC); audio.preload = 'auto'; }
+  }
+
+  /* ---------- Einblendungen im Raster des Bildpuffers (Maße in 960 × 540) ---------- */
+  const font = (px, fam = MAN, w = 700, it = '') => `${it} ${w} ${Math.max(6, Math.round(px * U))}px ${fam}`;
+  function txt(s, x, y, px, col, o = {}) { h.font = font(px, o.fam ?? MAN, o.w ?? 700, o.it ?? ''); h.fillStyle = col; h.textAlign = o.align ?? 'left'; h.textBaseline = 'alphabetic'; h.letterSpacing = o.ls ? `${o.ls * px * U}px` : '0px'; h.fillText(s, Math.round(x * U), Math.round(y * U)); return h.measureText(s).width / U; }
+  const mono = (s, x, y, px, col, align) => txt(s, x, y, px, col, { fam: MONO, w: 700, align, ls: 0.12 });
+  function box(x, y, w, hh, a = 0.62) { h.fillStyle = `rgba(13,11,9,${a})`; h.fillRect(Math.round(x * U), Math.round(y * U), Math.round(w * U), Math.round(hh * U)); }
+  const bars = (k = 1) => { h.fillStyle = '#000'; const b = Math.round(54 * k * U); h.fillRect(0, 0, W, b); h.fillRect(0, H - b, W, b); };
+  /* Lockup nach dem Brand Guide: Zeichenhöhe m, Schrift 0,9275 m, Abstand 0,46 m — flach und frontal */
+  function lockup(cx, cy, m, alpha = 1) {
+    const size = 0.9275 * m, ls = -0.035 * size * U; h.save(); h.globalAlpha = alpha;
+    h.font = font(size, MAN, 800); h.letterSpacing = `${ls}px`; const w1 = h.measureText('loona!').width / U; h.font = font(size, MAN, 500); const w2 = h.measureText('designs').width / U;
+    const mw = (m * 28) / 24, gap = 0.46 * m, sp = size * 0.26, x0 = cx - (mw + gap + w1 + sp + w2) / 2;
+    h.save(); h.translate((x0 + mw / 2) * U, cy * U); h.scale((m / 24) * U, (m / 24) * U); h.translate(-22, -23); h.fillStyle = C.orange; h.fill(ZL); h.fill(ZM); h.restore();
+    h.textAlign = 'left'; h.textBaseline = 'alphabetic'; h.fillStyle = C.cream; const y = (cy + size * 0.345) * U;
+    h.font = font(size, MAN, 800); h.fillText('loona!', (x0 + mw + gap) * U, y); h.font = font(size, MAN, 500); h.fillText('designs', (x0 + mw + gap + w1 + sp) * U, y);
+    h.restore(); h.letterSpacing = '0px';
+  }
+  const mmss = (t) => `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+  const nf = new Intl.NumberFormat('de-DE'), n1 = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const fpsText = (v) => (v >= 100 ? nf.format(Math.round(v)) : n1.format(v));
+  const stats = () => [`${fpsText(fps)} Bilder/s`, `${nf.format(GLX.stats.tris)} Dreiecke`.toUpperCase(), `${W}×${H} · 32 BIT`];
+
+  /* Rahmen eines Tests: Breitbild-Leisten mit Text darin (wie um 2003 üblich) */
+  function frame(label, name, right, t, T, marks) {
+    bars(0.72);
+    const lw = mono(label, 24, 25, 12, C.orange); if (name) mono(name.toUpperCase(), 24 + lw + 14, 25, 12, C.cream);
+    txt(right[0], 936, 27, 17, C.orange, { fam: MONO, w: 700, align: 'right' }); mono(`${right[1]} · ${right[2]}`, 936 - 170, 25, 10, C.soft, 'right');
+    if (T) { mono(`${mmss(t)} / ${mmss(T)}`, 24, 527, 12, C.cream);
+      h.fillStyle = 'rgba(246,241,232,0.25)'; h.fillRect(160 * U, Math.round(522 * U), 776 * U, Math.max(1, Math.round(U)));
+      h.fillStyle = C.orange; h.fillRect(160 * U, Math.round(521 * U), 776 * U * clamp(t / T), Math.max(1, Math.round(3 * U)));
+      h.fillStyle = C.cream; (marks || []).forEach((m) => h.fillRect(Math.round((160 + 776 * (m / T)) * U), Math.round(517 * U), Math.max(1, Math.round(U)), Math.round(9 * U))); }
+  }
+
+  /* ---------- eine Szene zeichnen ---------- */
+  const OPT = { screens: { images: Object.keys(IMAGES) }, blit: { images: ['d', 'a', 'b', 'c', 'e'] } };
+  function scene(id, lt, D, beat) { const o = { ...(OPT[id] || {}) }; if (id === 'tunnel') o.pulse = Math.exp(-beat * 5); GLX.test[id].draw(lt, D, o); }
+  const beatOf = (t) => ((t / (bar / 4)) % 1) * (bar / 4);
+
+  /* Intro: Montage der vier Szenen in kürzer werdenden Schnitten (Breitbild, verlangsamt), ein Takt Schwarz, dann auf dem Schlag der Titel */
+  const CUTS = [['moon', 0, 1.5], ['pool', 1.5, 2.5], ['orrery', 2.5, 3.25], ['hall', 3.25, 3.75]];
+  function intro(lt, D) {
+    const lock = D - 2 * bar, b = lt / bar; let flash = null, fade = 0;
+    if (lt < lock) {
+      const c = CUTS.find((x) => b >= x[1] && b < x[2]);
+      if (c) { const cl = lt - c[1] * bar, dur = GLX.test[c[0]].dur; scene(c[0], dur * 0.3 + cl * 0.5, dur, beatOf(lt)); flash = [1, 0.9, 0.75, 0.45 * Math.exp(-cl * 7)]; fade = clamp((b - (c[2] - 0.12)) / 0.12); }
+      else { GLX.test.orbit.draw(0, 12, { sun: 0, calm: 1, sunX: 0.55 }); fade = 1; }
+      bars();
+    } else {
+      const tl = lt - lock; GLX.test.orbit.draw(3 + tl, 14, { sun: 1, calm: 1, sunX: 0.55 }); bars();
+      lockup(480, 222, 46, clamp(tl / 0.12)); mono('LD MARK', 480, 300, 24, C.orange, 'center');
+      h.globalAlpha = clamp((tl - 0.5) / 0.5); mono(`ECHTZEIT-BENCHMARK · WEBGL · ${W}×${H}`, 480, 326, 11, C.soft, 'center'); h.globalAlpha = 1;
+      flash = [1, 0.85, 0.6, 0.55 * Math.exp(-tl * 4)];
+    }
+    return { flash, fade };
+  }
+
+  function draw(t) {
+    const s = segs.reduce((a, x) => (t >= x.t0 ? x : a), segs[0]), lt = clamp(t - s.t0, 0, s.D);
+    GLX.begin(); h.clearRect(0, 0, W, H);
+    let flash = null, inner = 0;
+    if (s.id === 'intro') ({ flash, fade: inner } = intro(lt, s.D));
+    else if (s.id === 'end') {
+      GLX.test.orbit.draw(3 + lt, 14, { sun: 1, calm: 1, sunX: 0.55 }); bars(); lockup(480, 214, 42, eOut(lt / 0.6));
+      const a = txt('What the web ', 0, -100, 26, C.cream, { w: 700 }), b = txt('can be.', 0, -100, 30, C.orange, { fam: SER, w: 400, it: 'italic' }), x0 = 480 - (a + b) / 2;
+      h.globalAlpha = eOut((lt - 0.5) / 0.6); txt('What the web ', x0, 286, 26, C.cream, { w: 700 }); txt('can be.', x0 + a, 286, 30, C.orange, { fam: SER, w: 400, it: 'italic' });
+      mono('LOONA-DESIGNS.DE', 480, 330, 12, C.soft, 'center'); h.globalAlpha = 1; if (lt < 1) flash = [1, 0.85, 0.6, 0.45 * Math.exp(-lt * 4)];
+    } else {
+      scene(s.id, lt, s.D, beatOf(t)); const nm = GLX.test[s.id].name.de;
+      frame(`TEST ${s.i}/8`, nm, stats(), t, total, segs.slice(1).map((x) => x.t0));
+      const big = clamp(1 - lt / 1.8); if (big > 0) { h.globalAlpha = eOut(big * 2); txt(nm, 40, 466, 40, C.cream, { w: 800, ls: -0.03 }); mono(`${nf.format(GLX.stats.tris)} DREIECKE`, 42, 488, 12, C.orange); h.globalAlpha = 1; }
+    }
+    const cut = s.id === 'intro' ? inner : Math.max(1 - clamp(lt / 0.18), clamp((lt - (s.D - 0.1)) / 0.1)), edge = Math.max(1 - clamp(t / 0.5), clamp((t - (total - 1.2)) / 1.1));
+    GLX.end({ hud, flash, fade: [0, 0, 0, clamp(Math.max(cut, edge))] });
+  }
+
+  /* ---------- Betriebsarten ---------- */
+  const now = () => performance.now() / 1000;
+  function count() { fpsN++; const t = now(); if (t - fpsT >= 0.5) { fps = fpsN / (t - fpsT); fpsN = 0; fpsT = t; } }
+  function stop(next = 'idle') { cancelAnimationFrame(raf); if (audio) audio.pause(); mode = next; $('stop').hidden = true; if (next === 'idle') idle(); }
+
+  /* Ruhezustand: die Tests laufen stumm im Wechsel (bei „weniger Bewegung“ steht ein Bild) */
+  function idle() {
+    if (!ok) return; mode = 'idle'; const start = now(); fpsT = start; fpsN = 0;
+    const loop = () => {
+      if (mode !== 'idle') return; const t = now() - start, k = Math.floor(t / 8) % BENCH.length, id = BENCH[k][0], lt = still ? 3 : t % 8;
+      GLX.begin(); scene(id, lt, 8, beatOf(lt)); h.clearRect(0, 0, W, H);
+      frame('VORSCHAU', GLX.test[id].name.de, stats());
+      GLX.end({ hud, fade: [0, 0, 0, still ? 0 : Math.max(1 - clamp(lt / 0.18), clamp((lt - 7.9) / 0.1))] }); count(); if (!still) raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+  }
+
+  function demo() {
+    stop('demo'); $('stop').hidden = false; $('result').hidden = true;
+    let clock = () => now() - t0; t0 = now(); fpsT = t0; fpsN = 0;
+    if ($('sound').checked && audio) { audio.currentTime = 0; const p = audio.play(); if (p) p.then(() => { clock = () => audio.currentTime; }).catch(() => {}); }
+    const loop = () => { if (mode !== 'demo') return; const t = clock(); if (t >= total - 0.02 || (audio && audio.ended)) { stop(); return; } draw(t); count(); raf = requestAnimationFrame(loop); };
+    raf = requestAnimationFrame(loop);
+  }
+
+  /* Benchmark: Gemessen wird die reine Rechenzeit eines Bildes — dasselbe Bild wird mehrfach gezeichnet und die Grafikkarte zum Abschluss
+     gezwungen (readPixels), damit auch schnelle Rechner und grobe Uhren verlässliche Werte liefern. */
+  function benchmark() {
+    stop('bench'); $('stop').hidden = false; $('result').hidden = true;
+    const gl = GLX.gl, px = new Uint8Array(4), T = BENCH.reduce((a, x) => a + x[1], 0); results = []; bench = { i: 0, start: now(), done: 0, reps: 1, samples: [], tris: 0, n: 0 };
+    const loop = () => {
+      if (mode !== 'bench') return; const [id, secs, scored] = BENCH[bench.i], lt = now() - bench.start;
+      if (lt >= secs) {
+        const s = bench.samples.slice().sort((a, b) => a - b), mean = s.reduce((a, b) => a + b, 0) / Math.max(1, s.length), worst = s.slice(Math.floor(s.length * 0.95)), slow = worst.reduce((a, b) => a + b, 0) / Math.max(1, worst.length);
+        results.push({ id, scored, name: GLX.test[id].name.de, tris: Math.round(bench.tris / Math.max(1, bench.n)), fps: 1000 / mean, low: 1000 / slow });
+        bench.done += secs; if (++bench.i >= BENCH.length) { finish(); return; }
+        bench.start = now(); bench.reps = 1; bench.samples = []; bench.tris = 0; bench.n = 0; raf = requestAnimationFrame(loop); return;
+      }
+      const a = performance.now();
+      for (let r = 0; r < bench.reps; r++) { GLX.begin(); scene(id, lt, secs, beatOf(lt)); GLX.end(); }
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      const batch = performance.now() - a, dt = batch / bench.reps;
+      if (lt > 0.6 && batch > 0) { bench.samples.push(dt); bench.tris += GLX.stats.tris; bench.n++; fps = 1000 / dt; }
+      bench.reps = batch < 5 ? Math.min(64, bench.reps * 2) : batch > 14 ? Math.max(1, bench.reps >> 1) : bench.reps;
+      /* das gezeigte Bild mit Einblendung (zählt nicht zur Messung) */
+      GLX.begin(); scene(id, lt, secs, beatOf(lt)); h.clearRect(0, 0, W, H);
+      let acc = 0; frame(`${scored ? 'SZENE' : 'TECHNIK'} ${bench.i + 1}/8`, GLX.test[id].name.de, stats(), bench.done + lt, T, BENCH.map((x) => (acc += x[1]) - x[1]).slice(1));
+      GLX.end({ hud, fade: [0, 0, 0, Math.max(1 - clamp(lt / 0.18), clamp((lt - (secs - 0.1)) / 0.1))] });
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+  }
+
+  function finish() {
+    const sc = results.filter((r) => r.scored), pts = Math.round(10 * Math.exp(sc.reduce((a, r) => a + Math.log(r.fps), 0) / sc.length));
+    $('points').textContent = nf.format(pts);
+    const row = (r) => { const tr = document.createElement('tr'); [r.name, nf.format(r.tris), fpsText(r.fps), fpsText(r.low), nf.format(Math.round((r.tris * r.fps) / 1000))].forEach((v, i) => { const td = document.createElement('td'); td.textContent = v; if (i === 2) td.className = 'fps'; tr.append(td); }); return tr; };
+    const group = (label) => { const tr = document.createElement('tr'), td = document.createElement('td'); tr.className = 'group'; td.colSpan = 5; td.textContent = label; tr.append(td); return tr; };
+    $('rows').replaceChildren(group('Szenen-Tests (gewertet)'), ...sc.map(row), group('Technik-Tests'), ...results.filter((r) => !r.scored).map(row));
+    const line = (r) => `${r.name}: ${fpsText(r.fps)} Bilder/s (langsamste 5 %: ${fpsText(r.low)}), ${nf.format(r.tris)} Dreiecke`;
+    $('plain').value = [`LD Mark — ${nf.format(pts)} LD-Punkte (${W} × ${H}, 32 bit)`, `Grafikkarte: ${$('gpu').textContent}`, 'Szenen-Tests:', ...sc.map(line), 'Technik-Tests:', ...results.filter((r) => !r.scored).map(line)].join('\n');
+    $('result').hidden = false; $('copied').textContent = ''; $('plain').hidden = true;
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    stop(); $('result').scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'nearest' });
+  }
+
+  /* ---------- Bedienung ---------- */
+  $('startDemo').addEventListener('click', demo);
+  $('startBench').addEventListener('click', benchmark);
+  $('stop').addEventListener('click', () => stop());
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && mode !== 'idle') stop(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && mode !== 'idle') stop(); });
+  $('full').addEventListener('click', () => { const s = $('stage'); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else if (s.requestFullscreen) s.requestFullscreen().catch(() => {}); });
+  document.querySelectorAll('input[name="res"]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { cancelAnimationFrame(raf); if (audio) audio.pause(); $('stop').hidden = true; setup(r.value); idle(); } }));
+  $('copy').addEventListener('click', () => {
+    const t = $('plain').value, fall = () => { $('plain').hidden = false; $('plain').select(); $('copied').textContent = 'Text markiert, bitte kopieren.'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(() => { $('copied').textContent = 'Kopiert.'; }, fall); else fall();
+  });
+
+  /* ---------- Start: Bilder und Schriften laden, dann die Vorschau ---------- */
+  (async () => {
+    await Promise.all(Object.entries(IMAGES).map(([k, src]) => new Promise((done) => { const i = new Image(); i.onload = () => { images[k] = i; done(); }; i.onerror = () => done(); i.src = src; })));
+    try { await Promise.race([Promise.all([`800 20px Manrope`, `500 20px Manrope`, `700 12px "JetBrains Mono"`, `italic 400 20px "Instrument Serif"`].map((f) => document.fonts.load(f))), new Promise((r) => setTimeout(r, 2500))]); } catch (e) { /* Ersatzschrift */ }
+    setup(document.querySelector('input[name="res"]:checked').value); idle();
+    window.LDMARK = { draw: (t) => { stop('still'); draw(t); }, total: () => total, bar, state: () => ({ mode, ok, W, H, fps, results }) };
+  })();
+})();
+</script>
+</body>
+</html>
