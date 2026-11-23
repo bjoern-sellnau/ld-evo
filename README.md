@@ -2,7 +2,7 @@
 
 Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Code, keine CI).
 
-- [Trailer — „What the web can be.“ (16:9, 30 bis 300 s, zwölf Stimmungen, DE + EN) und Echtzeit-Demo](#trailer--what-the-web-can-be)
+- [Trailer — „What the web can be.“ (16:9, 30 bis 300 s, sechzehn Stimmungen, DE + EN), LD Mark und Echtzeit-Demo](#trailer--what-the-web-can-be)
 - [20 Varianten — Terminal bis Pinnwand (33–56 s)](#20-varianten)
 - [Reel 3 — „Director's Cut“ (2:12 min, Negativ-Logo, SPREE|FALL)](#reel-3--directors-cut)
 - [Reel 2 — „BJOERN.EXE“ (80 s, mehr Action)](#reel-2--bjoernexe)
@@ -11,9 +11,9 @@ Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Co
 ## Trailer — „What the web can be.“
 
 Trailer für **loona! designs** und Bjoern Sellnau im Querformat (1920×1080, 30 fps, H.264 + AAC, −14 LUFS,
-wahre Spitze ≤ −1 dBTP) in **zwölf Stimmungen** und **88 Fassungen**: Cinematic, Treibend, Action und Ruhig in vier Längen (60, 90,
-120, 300 Sekunden), Trance, Hardstyle, Eurodance, Rave und Demoszene in fünf (zusätzlich 30 Sekunden), die drei Retro-Looks Demo 90,
-Benchmark 97 und Benchmark 2000 vorerst in 60 Sekunden (der Engine kann alle fünf Längen) — jeweils deutsch und englisch,
+wahre Spitze ≤ −1 dBTP) in **sechzehn Stimmungen** und **152 Fassungen**: Cinematic, Treibend, Action und Ruhig in vier Längen (60, 90,
+120, 300 Sekunden), alle übrigen in fünf (zusätzlich 30 Sekunden) — Trance, Hardstyle, Eurodance, Rave, Demoszene, die Retro-Looks Demo 90
+und Benchmark 97 und die Benchmark-Looks nach Jahrgang (99, 2000, 2001, 2003, 2005, je mit Intro) — jeweils deutsch und englisch,
 jede mit eigener, passend zur Szenenfolge arrangierter Musik. Gestaltung nach dem Brand-System 2026-10 (Farben, Schriften, Zeichen,
 Wortmarke und die Marken-Animationen aus dem Handoff). Übersicht: [`trailer/uebersicht.jpg`](trailer/uebersicht.jpg).
 
@@ -28,13 +28,17 @@ Wortmarke und die Marken-Animationen aus dem Handoff). Übersicht: [`trailer/ueb
 | **Eurodance** | [DE](trailer/loona-trailer-30s-eurodance-de.mp4) (5 MB) · [EN](trailer/loona-trailer-30s-eurodance-en.mp4) (5 MB) | [DE](trailer/loona-trailer-60s-eurodance-de.mp4) (9 MB) · [EN](trailer/loona-trailer-60s-eurodance-en.mp4) (9 MB) | [DE](trailer/loona-trailer-90s-eurodance-de.mp4) (14 MB) · [EN](trailer/loona-trailer-90s-eurodance-en.mp4) (14 MB) | [DE](trailer/loona-trailer-120s-eurodance-de.mp4) (19 MB) · [EN](trailer/loona-trailer-120s-eurodance-en.mp4) (19 MB) | [DE](trailer/loona-trailer-300s-eurodance-de.mp4) (48 MB) · [EN](trailer/loona-trailer-300s-eurodance-en.mp4) (48 MB) |
 | **Rave** | [DE](trailer/loona-trailer-30s-rave-de.mp4) (12 MB) · [EN](trailer/loona-trailer-30s-rave-en.mp4) (12 MB) | [DE](trailer/loona-trailer-60s-rave-de.mp4) (24 MB) · [EN](trailer/loona-trailer-60s-rave-en.mp4) (24 MB) | [DE](trailer/loona-trailer-90s-rave-de.mp4) (37 MB) · [EN](trailer/loona-trailer-90s-rave-en.mp4) (37 MB) | [DE](trailer/loona-trailer-120s-rave-de.mp4) (49 MB) · [EN](trailer/loona-trailer-120s-rave-en.mp4) (49 MB) | [DE](trailer/loona-trailer-300s-rave-de.mp4) (83 MB) · [EN](trailer/loona-trailer-300s-rave-en.mp4) (83 MB) |
 | **Demoszene** | [DE](trailer/loona-trailer-30s-demoszene-de.mp4) (6 MB) · [EN](trailer/loona-trailer-30s-demoszene-en.mp4) (6 MB) | [DE](trailer/loona-trailer-60s-demoszene-de.mp4) (13 MB) · [EN](trailer/loona-trailer-60s-demoszene-en.mp4) (13 MB) | [DE](trailer/loona-trailer-90s-demoszene-de.mp4) (22 MB) · [EN](trailer/loona-trailer-90s-demoszene-en.mp4) (22 MB) | [DE](trailer/loona-trailer-120s-demoszene-de.mp4) (28 MB) · [EN](trailer/loona-trailer-120s-demoszene-en.mp4) (28 MB) | [DE](trailer/loona-trailer-300s-demoszene-de.mp4) (64 MB) · [EN](trailer/loona-trailer-300s-demoszene-en.mp4) (64 MB) |
-| **Demo 90** | – | [DE](trailer/loona-trailer-60s-demo90-de.mp4) (17 MB) · [EN](trailer/loona-trailer-60s-demo90-en.mp4) (17 MB) | – | – | – |
-| **Benchmark 97** | – | [DE](trailer/loona-trailer-60s-benchmark97-de.mp4) (24 MB) · [EN](trailer/loona-trailer-60s-benchmark97-en.mp4) (24 MB) | – | – | – |
-| **Benchmark 2000** | – | [DE](trailer/loona-trailer-60s-benchmark2000-de.mp4) (19 MB) · [EN](trailer/loona-trailer-60s-benchmark2000-en.mp4) (19 MB) | – | – | – |
+| **Demo 90** | [DE](trailer/loona-trailer-30s-demo90-de.mp4) (7 MB) · [EN](trailer/loona-trailer-30s-demo90-en.mp4) (7 MB) | [DE](trailer/loona-trailer-60s-demo90-de.mp4) (17 MB) · [EN](trailer/loona-trailer-60s-demo90-en.mp4) (17 MB) | [DE](trailer/loona-trailer-90s-demo90-de.mp4) (22 MB) · [EN](trailer/loona-trailer-90s-demo90-en.mp4) (22 MB) | [DE](trailer/loona-trailer-120s-demo90-de.mp4) (31 MB) · [EN](trailer/loona-trailer-120s-demo90-en.mp4) (31 MB) | [DE](trailer/loona-trailer-300s-demo90-de.mp4) (58 MB) · [EN](trailer/loona-trailer-300s-demo90-en.mp4) (58 MB) |
+| **Benchmark 97** | [DE](trailer/loona-trailer-30s-benchmark97-de.mp4) (12 MB) · [EN](trailer/loona-trailer-30s-benchmark97-en.mp4) (12 MB) | [DE](trailer/loona-trailer-60s-benchmark97-de.mp4) (24 MB) · [EN](trailer/loona-trailer-60s-benchmark97-en.mp4) (24 MB) | [DE](trailer/loona-trailer-90s-benchmark97-de.mp4) (35 MB) · [EN](trailer/loona-trailer-90s-benchmark97-en.mp4) (35 MB) | [DE](trailer/loona-trailer-120s-benchmark97-de.mp4) (47 MB) · [EN](trailer/loona-trailer-120s-benchmark97-en.mp4) (47 MB) | [DE](trailer/loona-trailer-300s-benchmark97-de.mp4) (81 MB) · [EN](trailer/loona-trailer-300s-benchmark97-en.mp4) (81 MB) |
+| **Benchmark 99** | [DE](trailer/loona-trailer-30s-benchmark99-de.mp4) (10 MB) · [EN](trailer/loona-trailer-30s-benchmark99-en.mp4) (10 MB) | [DE](trailer/loona-trailer-60s-benchmark99-de.mp4) (20 MB) · [EN](trailer/loona-trailer-60s-benchmark99-en.mp4) (20 MB) | [DE](trailer/loona-trailer-90s-benchmark99-de.mp4) (28 MB) · [EN](trailer/loona-trailer-90s-benchmark99-en.mp4) (28 MB) | [DE](trailer/loona-trailer-120s-benchmark99-de.mp4) (37 MB) · [EN](trailer/loona-trailer-120s-benchmark99-en.mp4) (37 MB) | [DE](trailer/loona-trailer-300s-benchmark99-de.mp4) (75 MB) · [EN](trailer/loona-trailer-300s-benchmark99-en.mp4) (75 MB) |
+| **Benchmark 2000** | [DE](trailer/loona-trailer-30s-benchmark2000-de.mp4) (10 MB) · [EN](trailer/loona-trailer-30s-benchmark2000-en.mp4) (10 MB) | [DE](trailer/loona-trailer-60s-benchmark2000-de.mp4) (20 MB) · [EN](trailer/loona-trailer-60s-benchmark2000-en.mp4) (20 MB) | [DE](trailer/loona-trailer-90s-benchmark2000-de.mp4) (29 MB) · [EN](trailer/loona-trailer-90s-benchmark2000-en.mp4) (29 MB) | [DE](trailer/loona-trailer-120s-benchmark2000-de.mp4) (38 MB) · [EN](trailer/loona-trailer-120s-benchmark2000-en.mp4) (38 MB) | [DE](trailer/loona-trailer-300s-benchmark2000-de.mp4) (76 MB) · [EN](trailer/loona-trailer-300s-benchmark2000-en.mp4) (76 MB) |
+| **Benchmark 2001** | [DE](trailer/loona-trailer-30s-benchmark2001-de.mp4) (10 MB) · [EN](trailer/loona-trailer-30s-benchmark2001-en.mp4) (10 MB) | [DE](trailer/loona-trailer-60s-benchmark2001-de.mp4) (20 MB) · [EN](trailer/loona-trailer-60s-benchmark2001-en.mp4) (20 MB) | [DE](trailer/loona-trailer-90s-benchmark2001-de.mp4) (30 MB) · [EN](trailer/loona-trailer-90s-benchmark2001-en.mp4) (30 MB) | [DE](trailer/loona-trailer-120s-benchmark2001-de.mp4) (41 MB) · [EN](trailer/loona-trailer-120s-benchmark2001-en.mp4) (41 MB) | [DE](trailer/loona-trailer-300s-benchmark2001-de.mp4) (79 MB) · [EN](trailer/loona-trailer-300s-benchmark2001-en.mp4) (79 MB) |
+| **Benchmark 2003** | [DE](trailer/loona-trailer-30s-benchmark2003-de.mp4) (10 MB) · [EN](trailer/loona-trailer-30s-benchmark2003-en.mp4) (10 MB) | [DE](trailer/loona-trailer-60s-benchmark2003-de.mp4) (19 MB) · [EN](trailer/loona-trailer-60s-benchmark2003-en.mp4) (19 MB) | [DE](trailer/loona-trailer-90s-benchmark2003-de.mp4) (28 MB) · [EN](trailer/loona-trailer-90s-benchmark2003-en.mp4) (28 MB) | [DE](trailer/loona-trailer-120s-benchmark2003-de.mp4) (38 MB) · [EN](trailer/loona-trailer-120s-benchmark2003-en.mp4) (38 MB) | [DE](trailer/loona-trailer-300s-benchmark2003-de.mp4) (76 MB) · [EN](trailer/loona-trailer-300s-benchmark2003-en.mp4) (76 MB) |
+| **Benchmark 2005** | [DE](trailer/loona-trailer-30s-benchmark2005-de.mp4) (10 MB) · [EN](trailer/loona-trailer-30s-benchmark2005-en.mp4) (10 MB) | [DE](trailer/loona-trailer-60s-benchmark2005-de.mp4) (22 MB) · [EN](trailer/loona-trailer-60s-benchmark2005-en.mp4) (22 MB) | [DE](trailer/loona-trailer-90s-benchmark2005-de.mp4) (32 MB) · [EN](trailer/loona-trailer-90s-benchmark2005-en.mp4) (32 MB) | [DE](trailer/loona-trailer-120s-benchmark2005-de.mp4) (43 MB) · [EN](trailer/loona-trailer-120s-benchmark2005-en.mp4) (43 MB) | [DE](trailer/loona-trailer-300s-benchmark2005-de.mp4) (80 MB) · [EN](trailer/loona-trailer-300s-benchmark2005-en.mp4) (80 MB) |
 
 Zu jeder Fassung liegt ein Titelbild daneben (`…-cover.jpg`).
 
-### Zwölf Stimmungen
+### Sechzehn Stimmungen
 
 | | Grund | Bild | Musik |
 | --- | --- | --- | --- |
@@ -49,15 +53,20 @@ Zu jeder Fassung liegt ein Titelbild daneben (`…-cover.jpg`).
 | **Demoszene** | Nacht `#0B1026` | je Szene ein klassischer Demo-Effekt: Sternenflug, Kupferbalken, Plasma in groben Pixeln, Schachbrett-Boden, Rechteck-Tunnel, Drahtwürfel; unten ein Sinus-Scroller; Übergang als Mosaik | 120 BPM · 15 / 30 / 45 / 60 / 150 Takte — Chip-Klang: Puls-Melodie mit Vibrato, Akkorde als schnelles Arpeggio, Dreieck-Bass, Schlagzeug aus Rauschen |
 | **Demo 90** | Nacht `#0B1026` (Paletten-Eintrag 0), im Gold-Part Tinte | wie eine Demo der frühen Neunziger: Bildspeicher 320×180 mit 256-Farben-Palette, ×6 ohne Glättung — auch Zeichen, Wortmarke und Text entstehen in diesem Raster; eigener 5×7-Pixel-Font; je Szene ein Part: Sternenflug mit Kupferbalken, Plasma, Vektor-Ikosaeder, Rotozoomer, Tunnel, Feuer, Bilder in gerasterter Palette, Vektorbälle; Sinus-Scroller; Übergänge: Blitz auf Weiß, Palettenblende, Blockauflösung | 128 BPM · 16 / 32 / 48 / 64 / 160 Takte — wie aus einem Vier-Spur-Tracker: Bass und Schlagzeug links, Akkorde (als Arpeggio) und Melodie (mit Portamento) rechts, das Echo nachgespielt, kein Hall; auf 8 bit bei rund 22 kHz heruntergerechnet |
 | **Benchmark 97** | Nacht `#0B1026` | eigene 3D-Szenen (WebGL) im Look der 3D-Benchmarks von 1997: Puffer 640×360, 16-bit-Farbe mit Dithering, ×3 ohne Glättung; je Kapitel ein „Test“: Mondhorizont mit Sonnenaufgang, Partikel-Galaxie, Glaskugeln über spiegelndem Boden, Tunnelflug mit den Technologien als Tafeln, Mondlandschaft mit einem Tor je Station der Reise, Goldringe, Bildschirme mit den Labs, 2D-Bildlauf mit der Website; zum Schluss ein Ergebnis-Bildschirm | 136 BPM · 17 / 34 / 51 / 68 / 170 Takte — Acid-Trance: rollender Bass in Sechzehnteln, Acid-Linie mit wanderndem Filter, zerhackte Fläche (Trance-Gate), das Motiv als Glocke |
-| **Benchmark 2000** | Tinte `#171310` / Nacht | dieselben Tests im Look von 1999/2000: Puffer 960×540, 32 bit, ×2 ohne Glättung, die drei- bis vierfache Dreieckszahl, größere Texturen | 144 BPM · 18 / 36 / 54 / 72 / 180 Takte — Big Beat: Breakbeat, verzerrtes Riff aus Quint-Akkorden (Sägezähne durch den Verzerrer), Rechteck-Lead im Höhepunkt |
+| **Benchmark 99** | Nacht `#0B1026` | Look von 1999: Puffer 800×450, 16 bit mit Raster, weich hochgezogen; Licht je Ecke, Nebel, Lens Flares; Rahmen aus zwei durchgehenden Leisten. Intro: jeder Schnitt beginnt als Drahtgitter und springt mit Blitz und Zoom-Stoß zur Fläche | 176 BPM · 22 / 44 / 66 / 88 / 220 Takte — Drum & Bass: Zweischritt-Break, Reese-Bass, weite Flächen, Zupf-Echos |
+| **Benchmark 2000** | Tinte `#171310` / Nacht | Look von 2000: Puffer 960×540, 32 bit, ×2 ohne Glättung, feinere Netze, 512er-Texturen, Environment-Mapping; Kästen mit Lichtkante. Intro: schnelle Schnitte mit Blitz | 144 BPM · 18 / 36 / 54 / 72 / 180 Takte — Big Beat: Breakbeat, verzerrtes Riff aus Quint-Akkorden (Sägezähne durch den Verzerrer), Rechteck-Lead im Höhepunkt |
+| **Benchmark 2001** | Nacht `#0B1026` | Look von 2001: Puffer 1024×576; Licht je Bildpunkt mit Normal-Maps, spiegelnde Wellenfläche, projizierte Schatten; eigene Szene „Spiegelbecken“; Glas-Kästen mit großer Bildraten-Zahl. Intro: Zeitlupe, langsame Heranfahrt | 128 BPM · 16 / 32 / 48 / 64 / 160 Takte — Streicher-Ostinato in Sechzehnteln über einer Bassdrum auf jedem Schlag, Pauke, Klavier-Motiv, Supersaw-Hymne im Höhepunkt |
+| **Benchmark 2003** | Tinte `#171310` | Look von 2003: Puffer 1024×576; dazu Shadow Maps, Glanz-Maps und Glühen (Bloom); eigene Szene „Mondphasen-Werk“; Breitbild-Balken mit Text darin. Intro: Breitbild, stärkeres Glühen, Blitze an den Schnitten | 152 BPM (gefühlt halbes Tempo) · 19 / 38 / 57 / 76 / 190 Takte — Industrial: tiefe verzerrte Quint-Akkorde, schwere Snare auf der Drei, Metallschläge, Sequenzer-Linie |
+| **Benchmark 2005** | Tinte `#171310` | Look von 2005: Puffer 1280×720; weiche Schatten (16 Proben), Halbfloat-Bild mit Bloom und Tonwertkurve, Brechung hinter Glas, 1024er-Texturen; eigene Szene „Mondstation“; Verläufe und Punkte je Test. Intro: die Blende öffnet langsam aus dem Dunkel | 136 BPM (gefühlt halbes Tempo) · 17 / 34 / 51 / 68 / 170 Takte — Orchester mit Taikos: liegende Streicher, Spiccato, das Motiv in den Hörnern, Blech-Stöße, Klavier im Break |
 
-Alle zwölf Stücke teilen sich ein Leitmotiv in d-Moll (Dm · B♭ · F · C). Jede Szene beginnt auf der Eins; Akzente
+Alle sechzehn Stücke teilen sich ein Leitmotiv in d-Moll (Dm · B♭ · F · C). Jede Szene beginnt auf der Eins; Akzente
 (Whoosh, Impact, Glockenspiel) liegen auf den Bildwechseln, auf dem Einrasten des Logos, auf „Gold“ und auf den
 Stationen der Reise. Die Stile der fünf neuen Stücke sind nachempfunden, die Tonfolgen eigene — kein Stück zitiert ein fremdes.
 Bei den fünf neuen Stimmungen und den Retro-Looks entsteht der Ablauf je Länge aus einer Vorlage (Gewichte und Mindesttakte je Szene, `main.js`).
 
-Die drei Retro-Looks zeichnen nicht mit den Layout-Szenen, sondern mit eigenen Renderern (`retro-old.js`, `retro-old-parts.js`; `gl/glx.js`,
-`gl/glx-tests.js`, `retro-gl.js`). Vorbild ist die Machart der Zeit — Szenen, Namen, Logos und Musik sind eigene, kein Programm ist nachgebaut.
+Die Retro- und Benchmark-Looks zeichnen nicht mit den Layout-Szenen, sondern mit eigenen Renderern (`retro-old.js`, `retro-old-parts.js`;
+`gl/glx.js`, `gl/glx-tests.js`, `retro-gl.js`). Die Jahrgangs-Looks beginnen mit einem Intro: einer Montage ihrer Tests in Schnitten auf den
+Schlag, ohne Test-Rahmen, dann steht auf dem Einschlag der Musik der Titel (Lockup, Name und Rolle, Zeile mit dem Jahrgang). Vorbild ist die Machart der Zeit — Szenen, Namen, Logos und Musik sind eigene, kein Programm ist nachgebaut.
 Der Rahmen der Benchmark-Looks zeigt nur Wahres: 30 FPS ist die Bildrate des Videos, die Dreieckszahl die der gezeigten Szene, dazu Puffergröße,
 Farbtiefe und Zeit; der Ergebnis-Bildschirm nennt die belegten Zahlen (18+ Jahre, 10 Zertifikate, 21 Labs, Gold 2017) statt erfundener Punkte.
 In „Demo 90“ zeigt die Plattform-Szene nur das Browserfenster — die Telefon-Ansicht ist im 320er-Raster nicht lesbar.
@@ -92,6 +101,33 @@ In „Demo 90“ zeigt die Plattform-Szene nur das Browserfenster — die Telefo
 16. **Kontakt** — Lockup (Zeichen + Wortmarke), Claim, loona-designs.de · LinkedIn · GitHub
 
 Die lange Fassung setzt dazwischen zwei Zitate aus den Lab-Einträgen der Website.
+
+### LD Mark — der eigene Echtzeit-Benchmark (kein Video)
+
+[`quelle-trailer/ldmark.html`](quelle-trailer/ldmark.html) ist der Benchmark von loona! designs in der Machart von 2001/2003: Der GLX-Engine rechnet
+im Look „2003“ (Licht je Bildpunkt, Shadow Maps, spiegelnde Wellenfläche, Glühen) jedes Bild live im Browser.
+
+- **Intro:** Montage der vier Szenen in kürzer werdenden Schnitten im Breitbild, ein Takt Schwarz, dann auf dem Schlag der Titel.
+- **Demo:** Intro, acht Tests und Schluss (66 Takte bei 144 BPM, 1:50 min) mit eigenem Musikstück (`demo/musik-mark.mp3`): verzerrtes Riff über
+  einem Breakbeat, Streicher-Ostinato, im Höhepunkt eine Supersaw-Hymne über vier Vierteln.
+- **Benchmark:** vier Szenen-Tests (Mondlandschaft, Spiegelbecken, Mondphasen-Werk, Glaskugeln; je acht Sekunden, gewertet) und vier
+  Technik-Tests (Tunnelflug, Partikel-Galaxie, Bildschirme, Goldringe; je fünf Sekunden, nur ausgewiesen). Gemessen wird die Rechenzeit eines
+  Bildes wie in der Echtzeit-Demo unten; **LD-Punkte** = das Zehnfache des geometrischen Mittels der Bildraten der vier Szenen-Tests.
+- **Auflösung:** 1024 × 576, 1280 × 720 oder 1920 × 1080; Ergebnisse sind nur bei gleicher Auflösung vergleichbar.
+- **Starten:** wie die Echtzeit-Demo, dann `http://localhost:8000/ldmark.html`. Musik neu erzeugen:
+  `index.html?mood=mark&plan=logo:6,person:8,stack:8,quote:4,labs:8,certs:8,award:4,hero:8,family:6,outro:6`.
+- „LD Mark“ ist ein Arbeitstitel; „3DMark“ ist eine Marke von UL und kommt deshalb weder im Namen noch im Bild vor.
+- Geprüft nur in Chromium ohne Grafikkarte (SwiftShader); dort erreicht der Look „2003“ wenige Bilder je Sekunde.
+
+### Leitmotiv am Klavier (Lernseite)
+
+[`quelle-trailer/leitmotiv.html`](quelle-trailer/leitmotiv.html) zeigt die Melodie aller Stücke zum Nachspielen: acht Takte in d-Moll über
+Dm · B♭ · F · C · Dm · B♭ · Gm · C, als Klaviersatz (rechte Hand Melodie, linke Hand die gebrochenen Akkorde des Stücks „Ruhig“ oder nur
+Grundtöne). Unter den Noten markiert eine Klaviatur die Tasten je Hand, mit einem Fingersatz-Vorschlag. Abspielen mit Tempo, Wiederholen und
+Metronom; „Schritt für Schritt“ wartet auf die markierten Tasten; elf Klänge je Hand (Klavier, Filzklavier, E-Piano, Orgel, Streicher, Flöte,
+Glockenspiel, Zupfsynth, Supersaw, Rechteck-Lead, Chip), alle im Browser erzeugt. Die Noten setzt VexFlow 4.2.2 (MIT-Lizenz, von jsDelivr
+geladen); ohne die Bibliothek erscheint eine Tabelle der Töne. Die Melodie ist für diese Trailer geschrieben; gegen eine Melodie-Datenbank
+ist sie nicht geprüft.
 
 ### Echtzeit-Demo (kein Video)
 
@@ -151,15 +187,19 @@ Bildschirme, Goldringe, 2D-Bildlauf) und Schluss, 62 Takte, dazu ein eigenes Mus
 - **Farben der neuen Stimmungen:** Gründe der Marke (Nacht, Tinte, Creme); die Lichter nehmen die Farben der Produktfamilie aus dem
   Logo-Handoff (LD Flow `#A78BFA`, LD Nova `#38BDF8`, LD Buddy `#F472B6`, LD Ivy `#3DDC84`) — nie am Zeichen selbst; hinter Auftakt,
   Produktfamilie und Schluss bleiben die Hintergründe ruhig.
-- **Retro-Looks und Demo:** Zur Machart recherchiert am 22.11.2026 — Demo-Effekte (Wikipedia „Demo effect“: Plasma, Rotozoomer, Tunnel,
-  Rasterbalken, Scroller, Bobs); 3DMark 99 und 3DMark 2000 (Mitteilungen des Herstellers bei benchmarks.ul.com und die Hilfedatei von 3DMark 99:
-  Spieltests, Füllrate, hohe Polygonzahl in Tsd. Polygonen je Sekunde, Bump Mapping); Final Reality (Remedy mit VNU European Labs, 1997:
-  2D-, 3D- und Bustransfer-Tests). Übernommen ist nur die Machart; Szenen, Texturen, Namen und Musik sind eigene.
+- **Retro-Looks, Benchmark-Looks und Demos:** Zur Machart recherchiert am 22.11.2026 — Demo-Effekte (Wikipedia „Demo effect“: Plasma,
+  Rotozoomer, Tunnel, Rasterbalken, Scroller, Bobs); 3DMark 99 und 3DMark 2000 (Mitteilungen des Herstellers bei benchmarks.ul.com und die
+  Hilfedatei von 3DMark 99: Spieltests, Füllrate, hohe Polygonzahl in Tsd. Polygonen je Sekunde, Bump Mapping); 3DMark 2001 (Mitteilung des
+  Herstellers: erster Benchmark für DirectX 8 mit Vertex- und Pixel-Shadern, Punkt-Sprites, DOT3- und Environment-Bump-Mapping); 3DMark03
+  (erster für DirectX 9; Stencil-Schatten laut einem Testbericht von 2003); 3DMark05 (alle Grafiktests setzen Shader Model 2.0 voraus);
+  Final Reality (Remedy mit VNU European Labs, 1997: 2D-, 3D- und Bustransfer-Tests). Dass der 2005er-Look weiche Schatten und eine
+  HDR-Anmutung trägt, ist meine Einordnung der Zeit, nicht aus diesen Quellen belegt. Übernommen ist nur die Machart; Szenen, Texturen,
+  Namen und Musik sind eigene.
 - **Schriften:** Manrope, Instrument Serif, JetBrains Mono (SIL Open Font License 1.1, über Fontsource; die Echtzeit-Demo lädt sie von Google Fonts).
 
 ### Neu rendern
 
-Quelle: [`quelle-trailer/`](quelle-trailer/) — `index.html?len=30|60|90|120|300&mood=cine|drive|action|calm|trance|hard|euro|rave|demo|old|b97|b2k&lang=de|en`
+Quelle: [`quelle-trailer/`](quelle-trailer/) — `index.html?len=30|60|90|120|300&mood=cine|drive|action|calm|trance|hard|euro|rave|demo|old|b97|b99|b2k|b01|b03|b05&lang=de|en`
 zeichnet jedes Bild deterministisch (`REEL.frame(t)`) und erzeugt die Musik (`REEL.music()`); 30 Sekunden gibt es nicht für Cinematic, Treibend,
 Action und Ruhig.
 
@@ -171,10 +211,11 @@ node render.mjs 30 demo de        # → ../trailer/loona-trailer-30s-demoszene-d
 node render.mjs 60 old de         # → ../trailer/loona-trailer-60s-demo90-de.mp4
 node render.mjs 60 b97 en         # → ../trailer/loona-trailer-60s-benchmark97-en.mp4
 node render.mjs 60 b2k de         # → ../trailer/loona-trailer-60s-benchmark2000-de.mp4
+node render.mjs 90 b05 de         # → ../trailer/loona-trailer-90s-benchmark2005-de.mp4 (b99, b01, b03 entsprechend)
 ```
 
 Dateinamen der Stimmungen: `cinematic`, `treibend`, `action`, `ruhig`, `trance`, `hardstyle`, `eurodance`, `rave`, `demoszene`, `demo90`,
-`benchmark97`, `benchmark2000`.
+`benchmark97`, `benchmark99`, `benchmark2000`, `benchmark2001`, `benchmark2003`, `benchmark2005`.
 Das Render-Skript misst die fertige Datei nach. Liegt die wahre Spitze über −1 dBTP, kodiert es nur die Tonspur neu (das Bild
 bleibt): zuerst ohne den Rauschersatz (PNS) des AAC-Kodierers — er schwingt bei dichter Musik über den Begrenzer hinaus —, notfalls
 zusätzlich mit tieferem Begrenzer. Ist die Vorgabe (−14 LUFS ± 0,8, höchstens −1 dBTP) danach nicht erreicht, bricht es mit Fehler ab.
