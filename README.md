@@ -2,11 +2,113 @@
 
 Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Code, keine CI).
 
+- [Kino-Trailer — „Über mich · 20 Jahre Erfahrung“ und „LD Beyond“ (16:9 mit Kinoformat, 30 bis 120 s, DE + EN)](#kino-trailer--über-mich--20-jahre-erfahrung-und-ld-beyond)
 - [Trailer — „What the web can be.“ (16:9, 30 bis 300 s, sechzehn Stimmungen, DE + EN), LD Mark und Echtzeit-Demo](#trailer--what-the-web-can-be)
 - [20 Varianten — Terminal bis Pinnwand (33–56 s)](#20-varianten)
 - [Reel 3 — „Director's Cut“ (2:12 min, Negativ-Logo, SPREE|FALL)](#reel-3--directors-cut)
 - [Reel 2 — „BJOERN.EXE“ (80 s, mehr Action)](#reel-2--bjoernexe)
 - [Reel 1 — Intro (36 s)](#reel-1--intro)
+
+## Kino-Trailer — „Über mich · 20 Jahre Erfahrung“ und „LD Beyond“
+
+Zwei Filme im Stil eines Kinotrailers (Wunsch vom 26.11.2026), je in 30, 60, 90 und 120 Sekunden, deutsch und englisch —
+**16 Fassungen**, 1920×1080 mit Bildfenster 2,39 : 1, 30 fps, H.264 + AAC, −14 LUFS, wahre Spitze ≤ −1 dBTP.
+Übersicht: [`trailer/uebersicht-kino.jpg`](trailer/uebersicht-kino.jpg) (oben „Über mich“, unten „LD Beyond“, je die 120-Sekunden-Fassung).
+
+| Film | 30 s | 60 s | 90 s | 120 s |
+| --- | --- | --- | --- | --- |
+| **Über mich · 20 Jahre Erfahrung** | [DE](trailer/loona-trailer-30s-kino-ueber-mich-de.mp4) (7 MB) · [EN](trailer/loona-trailer-30s-kino-ueber-mich-en.mp4) (7 MB) | [DE](trailer/loona-trailer-60s-kino-ueber-mich-de.mp4) (12 MB) · [EN](trailer/loona-trailer-60s-kino-ueber-mich-en.mp4) (12 MB) | [DE](trailer/loona-trailer-90s-kino-ueber-mich-de.mp4) (16 MB) · [EN](trailer/loona-trailer-90s-kino-ueber-mich-en.mp4) (16 MB) | [DE](trailer/loona-trailer-120s-kino-ueber-mich-de.mp4) (20 MB) · [EN](trailer/loona-trailer-120s-kino-ueber-mich-en.mp4) (20 MB) |
+| **LD Beyond** | [DE](trailer/loona-trailer-30s-kino-ld-beyond-de.mp4) (9 MB) · [EN](trailer/loona-trailer-30s-kino-ld-beyond-en.mp4) (9 MB) | [DE](trailer/loona-trailer-60s-kino-ld-beyond-de.mp4) (14 MB) · [EN](trailer/loona-trailer-60s-kino-ld-beyond-en.mp4) (14 MB) | [DE](trailer/loona-trailer-90s-kino-ld-beyond-de.mp4) (19 MB) · [EN](trailer/loona-trailer-90s-kino-ld-beyond-en.mp4) (19 MB) | [DE](trailer/loona-trailer-120s-kino-ld-beyond-de.mp4) (24 MB) · [EN](trailer/loona-trailer-120s-kino-ld-beyond-en.mp4) (24 MB) |
+
+Zu jeder Fassung liegt ein Titelbild daneben (`…-cover.jpg`, der Titel des Films).
+
+Beide Filme folgen dem Bau eines Kinotrailers: Auftakt („loona! designs zeigt“), ruhige Tafeln zum Klavier, Schnitte auf den
+Schlag, Steigerung, **Stille vor dem Titel**, Titel mit Einschlag, zum Schluss ein **Abspann-Block** wie auf einem Filmplakat
+(schmale, hohe Schrift; kleine Funktionswörter vor großen Namen). Über dem Bild liegen Korn und Randabdunklung. Blitze auf den
+Schnitten sind begrenzt (höchstens halbe Deckkraft, Einstellungen unter einem Schlag schneiden ohne Blitz).
+
+### „Über mich · 20 Jahre Erfahrung“ (96 BPM, 12 / 24 / 36 / 48 Takte)
+
+Auf der Nacht der Marke, zum Rand schwarz; Schrift Manrope und Instrument Serif kursiv, Musik im Orchester-Klang
+(Streicher-Ostinato, Taikos, Hörner — synthetisiert, dasselbe Leitmotiv wie alle Stücke).
+
+1. **Auftakt** — in der 120-Sekunden-Fassung zuerst die Tafel, die im Kino vor jedem Trailer steht, in den Farben der Marke und
+   mit eigener Zeile („Die folgende Vorschau ist freigegeben für alle Bildschirmgrößen“); dann Zeichen und Wortmarke, „zeigt“
+2. **Anfänge** (ab 60 s) — „Nach einer wahren Geschichte“ (ab 90 s) · freie Projekte 2004 – 2006 im Fenster ·
+   „Und eine Erkenntnis: Das Web ist meine Bühne.“
+3. **Laufbahn** — 2007 PIXELTEX, 2010 Mobile, 2016 OpenBooking, 2019 Ausbilder (nicht in 30 s), 2020 Code-b, 2023 The Pioneer,
+   2026 Materna: große Jahreszahl, Titel der Station, Rolle und Firma; darunter eine Zeitleiste mit zwanzig Marken und die
+   Zählung „Jahr 01 / 20“ bis „Jahr 20 / 20“
+4. **Gold** — Best of Swiss Web 2017 im Lorbeer, Kategorie Mobile (Relaunch Mobile MySwitzerland.com)
+5. **Handwerk** — Fokus React, Next.js, TypeScript, React Native als Wort-Schnitte; ab 60 s zehn Zertifikate und der
+   Sekundenzähler „im Dienst des Webs“
+6. **Stille** (ab 60 s) — „Vom Flash-Kid zum Senior Engineer — ohne die Neugier zu verlieren.“
+7. **Labs** — „21 Labs seit 03/2026“, schnelle Montage aus Corefall, Covert Operations und SPREE|FALL,
+   „Experimente in Arbeit — zuschauen erlaubt.“
+8. **Titel** — Bjoern Sellnau · „20 Jahre Erfahrung“ · Senior Fullstack & Software Engineer
+9. **Abspann** — Lockup, Abspann-Block, „Demnächst · LD Beyond. · 2027“, loona-designs.de · LinkedIn · GitHub
+
+**Zur Zahl 20:** „20 Jahre Erfahrung“ ist der gewünschte Titel. Die Zählung im Film läuft über die Kalenderjahre 2007 bis 2026
+— 2026 ist das zwanzigste Berufsjahr (Start 09/2007; auf den Monat gerechnet sind es am 26.11.2026 neunzehn Jahre und knapp drei
+Monate). Die Website und die übrigen Trailer nennen an gleicher Stelle „18+ Jahre“.
+
+### „LD Beyond“ (112 BPM, 14 / 28 / 42 / 56 Takte)
+
+In den Farben und Schriften des Beyond-Designs (tiefes Nachtblau, blauer Akzent, feines Raster; Unbounded, Geist, Geist Mono),
+das Zeichen in Orange. Musik als Hybrid aus gezupftem Synth-Puls, Sub-Bass und Supersaw über demselben Leitmotiv.
+
+1. **Auftakt** — Zeichen und Wortmarke, „zeigt“
+2. **Ausgangslage** (ab 60 s) — „Eine Website, die man nie anfasst, veraltet.“ · die eigene Seite von 2006, Fahrt auf ihre
+   Zeile „what the web can be“ · „Der Anspruch ist geblieben. Zeit für eine neue Version.“
+3. **Wende** — der Mond des Beyond-Designs geht auf: „LD Beyond ist so gebaut, dass Ändern Spaß macht. Direkt auf der Seite.
+   Ohne Code.“; Schnitt auf die Startseite im Beyond-Design
+4. **Die Bühne** — Portfolio, Labs, .Tech-Magazin (nicht in 30 s), Story-Seiten, Mobil mit eigener Tab-Leiste: die Seiten als
+   großes Fenster, das nach unten fährt
+5. **Der Regieraum** — LD Flow in vier Schritten („Vom leeren Blatt zur Story.“): Bausteine wählen · direkt auf der Seite
+   schreiben · zweisprachig · veröffentlichen — je mit dem passenden Ausschnitt des Editors
+6. **Was drinsteckt** — Liquid Glass (die echte Glas-Navigation, hell und dunkel), Widgets, Zweisprachig, Sicher, Barrierearm,
+   Schnell; danach sieben der über 70 Hero-Animationen
+7. **Stille** (ab 60 s) — „Die eigene Website ist das ehrlichste Projekt.“
+8. **Titel** — „LD Beyond.“ über dem Lichtrand des Mondes · „What the web can be.“
+9. **2027** — „Kommt 2027“, Abspann-Block, Lockup, loona-designs.de
+
+### Quellen (geprüft, Stand 26.11.2026)
+
+- **„Über mich“:** alle Angaben aus `quelle-trailer/data.js` — Stationen, Rollen und Daten nach den Angaben von Bjoern Sellnau
+  vom 21./22.11.2026, Titel und Kurztexte der Stationen aus `content/journey.ts` (ld-evo), Zertifikate, Sekundenzähler (seit
+  01.09.2007), 21 Labs seit 03/2026, Auszeichnung mit Kategorie. Frei formuliert sind nur die verbindenden Tafeln („zeigt“,
+  „Nach einer wahren Geschichte“, „Und eine Erkenntnis:“, „Demnächst“) und die Freigabe-Tafel.
+- **„LD Beyond“:** Wortlaut aus der Story-Seite des Projekts „LD Beyond“ (`content/projects.ts` und `content/en/projects.ts`
+  in ld-evo: Warum, „Vom leeren Blatt zur Story.“ mit vier Schritten, „Die Bühne und der Regieraum.“, „Plattform und CMS in
+  einem.“ mit sechs Eigenschaften, Zitat), Unterzeilen der Seiten aus `src/site/i18n/dict.ts` („Ausgewählte Arbeiten“,
+  „.Tech, frisch gepinnt“, „Experimente in Arbeit — zuschauen erlaubt.“), Claim „What the web can be.“ aus `content/home.ts`
+  (Startseite im Beyond-Design). „Kommt 2027“ nach Angabe von Bjoern Sellnau (22.11.2026); „70+ Hero-Animationen“ wie in den
+  übrigen Trailern. „Der Anspruch ist geblieben. Zeit für eine neue Version.“ ist eine eigene Überleitung — belegt ist, dass
+  die Seite von 2006 denselben Satz trägt: „Loona! Designs . what the web can be“ steht in der Aufnahme
+  `assets/old_ld2006.webp` (eigenes Projekt „ld2006“).
+- **Aufnahmen** (`quelle-trailer/assets/kino/`, 26.11.2026): Website im Beyond-Design und LD Flow aus einem lokalen
+  Produktions-Build von ld-evo (Commit `781aa8d`) mit frischer Datenbank, also den Startinhalten aus `content/*.ts`.
+  Website 1600 CSS-Pixel breit, mobil 390 × 844, der Editor von LD Flow 2000 CSS-Pixel breit. Die englischen Aufnahmen zeigen die englischen Fassungen aus
+  `content/en/*.ts`; sie wurden dafür nur in dieser Wegwerf-Datenbank veröffentlicht. In LD Flow war ein Testnutzer
+  („Redaktion“) angemeldet; die Ausschnitte im Film zeigen die Seitenleiste mit ihm nicht.
+- **Farben und Schriften des Beyond-Designs:** `src/site/styles/site.css` (`body.bx-farben`) und `src/site/fonts.ts` in ld-evo.
+  Schriftdateien Unbounded, Geist und Geist Mono aus Fontsource 5.3.0, alle SIL Open Font License 1.1
+  (`quelle-trailer/fonts/`).
+- **Marke:** wie bei den übrigen Trailern — Zeichen nie gedreht, verzerrt oder mit Effekten, „!“ nie gefärbt, nie zwei
+  Logo-Formen zugleich, jede Logo-Animation endet im Primärzeichen (beide Filme schließen mit dem Lockup).
+- **Musik:** vollständig im Browser synthetisiert (Web Audio), keine Samples; eigene Stücke über das Leitmotiv der Trailer.
+  Sie ist gemessen (Lautheit, Spitzen, Frequenzbänder im Vergleich mit den vorhandenen Stücken), nicht abgehört.
+
+### Neu rendern
+
+```sh
+cd quelle-trailer
+node render.mjs 120 ka de         # → ../trailer/loona-trailer-120s-kino-ueber-mich-de.mp4 (+ Titelbild)
+node render.mjs 60 kb en          # → ../trailer/loona-trailer-60s-kino-ld-beyond-en.mp4
+```
+
+`index.html?len=30|60|90|120&mood=ka|kb&lang=de|en` — die gemeinsamen Bausteine und die Musik stehen in `kino.js`, die
+Drehbücher in `kino-a.js` („Über mich“) und `kino-b.js` („LD Beyond“), der Ablauf je Länge in `main.js` (`PLANS.ka`, `PLANS.kb`).
 
 ## Trailer — „What the web can be.“
 
