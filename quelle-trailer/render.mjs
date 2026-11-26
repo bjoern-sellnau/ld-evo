@@ -1,7 +1,7 @@
 /* Trailer rendern: Bilder aus dem Canvas (REEL.frame) per Playwright abgreifen und mit ffmpeg zu MP4 zusammensetzen.
 
-   node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo|old|b97|b99|b2k|b01|b03|b05> <de|en> [Ausgabeordner]
-   (30 Sekunden nicht für cine, drive, calm und action)
+   node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo|old|b97|b99|b2k|b01|b03|b05|ka|kb> <de|en> [Ausgabeordner]
+   (30 Sekunden nicht für cine, drive, calm und action; die Kino-Trailer ka und kb nur 30 bis 120 Sekunden)
 
    Umgebungsvariablen (optional):
      PLAYWRIGHT  Pfad/Name des Playwright-Moduls (Standard: "playwright")
@@ -23,13 +23,15 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const [len = '60', mood = 'cine', lang = 'de', outArg] = process.argv.slice(2);
 const OUT = path.resolve(outArg ?? path.join(ROOT, '..', 'trailer'));
-const NAMES = { cine: 'cinematic', drive: 'treibend', calm: 'ruhig', action: 'action', trance: 'trance', hard: 'hardstyle', euro: 'eurodance', rave: 'rave', demo: 'demoszene', old: 'demo90', b97: 'benchmark97', b2k: 'benchmark2000', b99: 'benchmark99', b01: 'benchmark2001', b03: 'benchmark2003', b05: 'benchmark2005' };
+const NAMES = { cine: 'cinematic', drive: 'treibend', calm: 'ruhig', action: 'action', trance: 'trance', hard: 'hardstyle', euro: 'eurodance', rave: 'rave', demo: 'demoszene', old: 'demo90', b97: 'benchmark97', b2k: 'benchmark2000', b99: 'benchmark99', b01: 'benchmark2001', b03: 'benchmark2003', b05: 'benchmark2005', ka: 'kino-ueber-mich', kb: 'kino-ld-beyond' };
 const NEW = ['trance', 'hard', 'euro', 'rave', 'demo', 'old', 'b97', 'b2k', 'b99', 'b01', 'b03', 'b05'];
-if (!NAMES[mood] || !['60', '90', '120', '300'].concat(NEW.includes(mood) ? ['30'] : []).includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo|old|b97|b99|b2k|b01|b03|b05> <de|en> [Ausgabeordner] — 30 nicht für cine, drive, calm, action'); process.exit(2); }
+/* Die beiden Kino-Trailer gibt es in 30, 60, 90 und 120 Sekunden */
+const KINO = ['ka', 'kb'];
+if (!NAMES[mood] || !(KINO.includes(mood) ? ['30', '60', '90', '120'] : ['60', '90', '120', '300'].concat(NEW.includes(mood) ? ['30'] : [])).includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo|old|b97|b99|b2k|b01|b03|b05> <de|en> [Ausgabeordner] — 30 nicht für cine, drive, calm, action'); process.exit(2); }
 const base = `loona-trailer-${len}s-${NAMES[mood]}-${lang}`;
 /* Die lange Fassung bekommt eine niedrigere Obergrenze, damit die Datei sicher unter 100 MB bleibt (GitHub-Grenze). Die fünf neuen
    Stimmungen haben sehr unruhige Hintergründe (Laser, Pegelsäulen, Plasma): etwas höherer CRF und engere Obergrenze halten die Dateien klein. */
-const FPS = 30, CRF = process.env.CRF ?? (NEW.includes(mood) ? '24' : len === '300' ? '23' : '22'), MAXRATE = process.env.MAXRATE ?? (NEW.includes(mood) ? (len === '300' ? '2000k' : '3200k') : len === '300' ? '2200k' : '4500k');
+const FPS = 30, CRF = process.env.CRF ?? (NEW.includes(mood) ? '24' : len === '300' || KINO.includes(mood) ? '23' : '22'), MAXRATE = process.env.MAXRATE ?? (NEW.includes(mood) ? (len === '300' ? '2000k' : '3200k') : len === '300' ? '2200k' : KINO.includes(mood) ? '3600k' : '4500k');
 fs.mkdirSync(path.join(OUT, '.musik'), { recursive: true });
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
@@ -114,8 +116,8 @@ for (let n = 0, lim = 0.7; ; n++) {
   fs.renameSync(tmp, mp4); console.log(`  ${base}: Spitze ${pk} dBTP → Tonspur ohne PNS mit Begrenzer ${lim.toFixed(3)} neu kodiert`);
 }
 
-/* ---- Titelbild: die Anspruch-Szene; die 30-Sekunden-Fassung hat keine, dort der Schluss mit Lockup und Claim ---- */
-const sc = info.scenes.find((s) => s.id === 'claim') ?? info.scenes[info.scenes.length - 1];
+/* ---- Titelbild: die Anspruch-Szene; die 30-Sekunden-Fassung hat keine, dort der Schluss mit Lockup und Claim; Kino-Trailer: der Titel ---- */
+const sc = info.scenes.find((s) => s.id === 'claim') ?? (KINO.includes(mood) ? info.scenes.find((s) => s.id === 'title') : null) ?? info.scenes[info.scenes.length - 1];
 const cover = await page.evaluate(async (t) => { await REEL.frame(t); return document.getElementById('c').toDataURL('image/jpeg', 0.9).slice(23); }, sc.t0 + sc.D * (sc.id === 'claim' ? 0.8 : 0.7));
 fs.writeFileSync(path.join(OUT, `${base}-cover.jpg`), Buffer.from(cover, 'base64'));
 if (errs.length) console.error('Fehler in der Seite:', errs);

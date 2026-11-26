@@ -28,6 +28,19 @@ const PLANS = {
     120: [['logo', 2], ['claim', 3], ['person', 4], ['origin', 3], ['stack', 3], ['journey', 9], ['award', 2], ['labs', 4], ['site', 4], ['certs', 3], ['outro', 3]],
     300: [['logo', 3], ['claim', 3], ['person', 4], ['focus', 4], ['origin', 5], ['stack', 3], ['journey', 18], ['award', 3], ['works', 9], ['quote', 3], ['labs', 9], ['labsAll', 5], ['hero', 7], ['site', 7], ['quote2', 3], ['family', 3], ['certs', 5], ['outro', 6]],
   },
+  /* Kino-Trailer: eigene Szenen (kino-a.js, kino-b.js). „Über mich“ 12/24/36/48 Takte bei 96 BPM, „LD Beyond“ 14/28/42/56 bei 112 BPM. */
+  ka: {
+    30: [['studio', 1], ['career', 3], ['gold', 1], ['craft', 1], ['labs', 2], ['title', 2], ['end', 2]],
+    60: [['studio', 2], ['begin', 3], ['career', 5], ['gold', 2], ['craft', 3], ['stop', 2], ['labs', 3], ['title', 2], ['end', 2]],
+    90: [['studio', 2], ['begin', 4], ['career', 8], ['gold', 3], ['craft', 5], ['stop', 2], ['labs', 5], ['title', 4], ['end', 3]],
+    120: [['studio', 3], ['begin', 6], ['career', 10], ['gold', 4], ['craft', 6], ['stop', 3], ['labs', 7], ['title', 5], ['end', 4]],
+  },
+  kb: {
+    30: [['studio', 1], ['turn', 2], ['stage', 2], ['steps', 3], ['inside', 2], ['title', 2], ['end', 2]],
+    60: [['studio', 2], ['premise', 3], ['turn', 3], ['stage', 4], ['steps', 5], ['inside', 4], ['stop', 2], ['title', 3], ['end', 2]],
+    90: [['studio', 2], ['premise', 4], ['turn', 5], ['stage', 7], ['steps', 7], ['inside', 6], ['stop', 3], ['title', 4], ['end', 4]],
+    120: [['studio', 3], ['premise', 6], ['turn', 7], ['stage', 9], ['steps', 9], ['inside', 8], ['stop', 3], ['title', 6], ['end', 5]],
+  },
 };
 /* Die fünf neuen Stimmungen (Trance 136, Hardstyle 152, Eurodance 128, Rave 144, Demoszene 120 BPM) bekommen ihren Ablauf aus einer
    Vorlage je Länge: [Szene, Gewicht, Mindesttakte]. Die Takte der Länge (Sekunden × BPM / 240, immer ganzzahlig) werden nach Gewicht
@@ -66,7 +79,7 @@ const OPT = {
   quote2: { i: 1 },
 };
 /* Kennung des Ablaufs: die Musik hängt nur davon ab (Zwischenspeicher beim Rendern) */
-const PLAN_KEY = (() => { const str = JSON.stringify([MOOD, PLAN, OPT.journey.bars, 'musik-4']); let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); })();
+const PLAN_KEY = (() => { const str = JSON.stringify([MOOD, PLAN, OPT.journey.bars, TH.retro === 'kino' ? 'kino-1' : 'musik-4']); let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); })();
 const sceneAt = (t) => { let s = SCENES[0]; for (const x of SCENES) if (t >= x.t0) s = x; return s; };
 function drawScene(s, t) { const lt = clamp(t - s.t0, 0, s.D); CUR = s; FN[s.id](lt, s.D, OPT[s.id] ?? {}); }
 
@@ -190,7 +203,7 @@ window.REEL = {
   scenes: SCENES.map((s) => ({ id: s.id, t0: s.t0, D: s.D, bars: s.bars, b0: s.b0 })),
   ready: (async () => {
     await loadAll();
-    await Promise.all([[500, MAN], [600, MAN], [700, MAN], [800, MAN], [500, MONO], [700, MONO]].map(([w, f]) => document.fonts.load(`${w} 100px ${f}`)).concat([document.fonts.load(`italic 400 100px ${SER}`)]));
+    await Promise.all([[400, MAN], [500, MAN], [600, MAN], [700, MAN], [800, MAN], [500, MONO], [700, MONO]].map(([w, f]) => document.fonts.load(`${w} 100px ${f}`)).concat([document.fonts.load(`italic 400 100px ${SER}`)]));
     if (TH.retro) await RETRO[TH.retro].init();
     return `${Object.keys(IMG).length}/${Object.keys(SRC).length} Bilder`;
   })(),

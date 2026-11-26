@@ -24,7 +24,7 @@ const RIFF = {
   rave: { Dm: [74, 74, 77, 74, 81, 81, 79, 77], Bb: [74, 74, 77, 74, 82, 82, 81, 77], F: [72, 72, 77, 72, 81, 81, 79, 77], C: [72, 72, 76, 72, 79, 79, 76, 74], Gm: [74, 74, 79, 74, 82, 82, 81, 79] },
 };
 /* Hall-Länge (s), Hall-Anteil und Höhenanhebung im Master (dB) je Stimmung */
-const MIX = { cine: [3.4, 0.8, 4], drive: [1.9, 0.55, 2.5], action: [1.5, 0.5, 3], calm: [3.8, 0.8, 4.5], trance: [3.0, 0.7, 3], hard: [1.8, 0.5, 2.5], euro: [1.8, 0.5, 3], rave: [1.7, 0.5, 2.5], demo: [1.2, 0.35, 2], old: [0.8, 0, 0], b97: [2.8, 0.65, 3], b2k: [1.6, 0.45, 2.5], b99: [1.6, 0.45, 3], b01: [3.0, 0.7, 3], b03: [1.8, 0.5, 2.5], b05: [3.4, 0.8, 5], mark: [2.0, 0.55, 3] };
+const MIX = { cine: [3.4, 0.8, 4], drive: [1.9, 0.55, 2.5], action: [1.5, 0.5, 3], calm: [3.8, 0.8, 4.5], trance: [3.0, 0.7, 3], hard: [1.8, 0.5, 2.5], euro: [1.8, 0.5, 3], rave: [1.7, 0.5, 2.5], demo: [1.2, 0.35, 2], old: [0.8, 0, 0], b97: [2.8, 0.65, 3], b2k: [1.6, 0.45, 2.5], b99: [1.6, 0.45, 3], b01: [3.0, 0.7, 3], b03: [1.8, 0.5, 2.5], b05: [3.4, 0.8, 5], mark: [2.0, 0.55, 3], ka: [3.6, 0.8, 5.5], kb: [3.0, 0.7, 5.5] };
 /* Akkordfolge einer Szene: beginnt auf Dm, der letzte Takt führt über C zurück */
 function progFor(n) { if (n === 1) return ['Dm']; if (n === 2) return ['Dm', 'C']; if (n === 3) return ['Dm', 'Bb', 'C']; const p = Array.from({ length: n }, (_, i) => P8[i % 8]); p[n - 1] = 'C'; if (n % 4 === 1) p[n - 2] = 'Gm'; return p; }
 const SECT = { logo: 'intro', claim: 'intro2', person: 'build', origin: 'soft', stack: 'main', journey: 'main', award: 'break', labs: 'drop', site: 'drop', family: 'soft', certs: 'main', outro: 'outro', focus: 'build', works: 'main', labsAll: 'main', hero: 'drop', quote: 'break', quote2: 'break' };
@@ -130,6 +130,8 @@ async function musicWindow(W0, W1) {
 
   const sc = REEL.scenes;
   sc.forEach((s, si) => {
+    /* Kino-Trailer: eigenes Arrangement (kino.js) */
+    if (TH.retro === 'kino') { kinoMusic(A, s, si, sc); return; }
     const sect0 = SECT[s.id], prog = progFor(s.bars), last = si === sc.length - 1, nextSect = last ? null : SECT[sc[si + 1].id];
     /* Intro: bis zum Titel (logoLock) baut der Auftakt auf (ip = 0 … 1), danach steht der Titel-Satz */
     const lockBar = s.id === 'logo' && TH.intro ? Math.round(logoLock(s.D) / BAR) : 0;

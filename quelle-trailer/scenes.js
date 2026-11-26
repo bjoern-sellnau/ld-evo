@@ -1,10 +1,11 @@
 /* Trailer — Stimmungen (Themes), Hintergründe und Szenen. Jede Szene: fn(lt, D) mit lokaler Zeit lt und Dauer D (Sekunden). */
 'use strict';
 const Q = new URLSearchParams(location.search);
-const MOODS = ['cine', 'drive', 'calm', 'action', 'trance', 'hard', 'euro', 'rave', 'demo', 'old', 'b97', 'b2k', 'b99', 'b01', 'b03', 'b05', 'mark'];
+const MOODS = ['cine', 'drive', 'calm', 'action', 'trance', 'hard', 'euro', 'rave', 'demo', 'old', 'b97', 'b2k', 'b99', 'b01', 'b03', 'b05', 'mark', 'ka', 'kb'];
 const MOOD = MOODS.includes(Q.get('mood')) ? Q.get('mood') : 'cine';
 /* 30 Sekunden gibt es nur für die fünf neuen Stimmungen (ihr Ablauf wird aus einer Vorlage berechnet, siehe main.js) */
-const LEN = [60, 90, 120, 300].concat(MOODS.indexOf(MOOD) > 3 ? [30] : []).includes(+Q.get('len')) ? +Q.get('len') : 60;
+/* Die beiden Kino-Trailer (ka, kb) haben ein eigenes Drehbuch je Länge — 30, 60, 90 und 120 Sekunden, keine lange Fassung */
+const LEN = [60, 90, 120].concat(['ka', 'kb'].includes(MOOD) ? [] : [300], MOODS.indexOf(MOOD) > 3 ? [30] : []).includes(+Q.get('len')) ? +Q.get('len') : 60;
 const LANG = Q.get('lang') === 'en' ? 'en' : 'de';
 const T = TXT[LANG];
 
@@ -37,6 +38,10 @@ const THEMES = {
   /* „mark“ ist kein Trailer: Stimmung nur für die Musik des eigenen Echtzeit-Benchmarks (ldmark.html), Aufruf mit ?plan=… */
   mark: { name: 'ldmark', retro: 'gl', look: '03', intro: 1.7, fast: true, bgk: 'ink', trans: 'mosaic', bpm: 144, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.5 },
   b2k: { name: 'benchmark2000', retro: 'gl', look: '2k', intro: 1.7, fast: true, bgk: 'ink', trans: 'mosaic', bpm: 144, dark: true, bg: BR.ink, ink: BR.cream, soft: BR.mutedDark, mute: '#8A8273', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(246,241,232,0.07)', style: 'mask', inDur: 0.3, pace: 0.36, top: 96, bot: 984, td: 0.5 },
+  /* Zwei Kino-Trailer (Wunsch vom 26.11.2026) mit eigenem Renderer und eigenem Drehbuch (kino.js, kino-a.js, kino-b.js):
+     „Über mich · 20 Jahre Erfahrung“ auf der Nacht der Marke, „LD Beyond“ in den Farben und Schriften des Beyond-Designs. */
+  ka: { name: 'kino-ueber-mich', retro: 'kino', film: 'a', bgk: 'night', trans: 'cine', bpm: 96, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(255,255,255,0.055)', style: 'rise', inDur: 1.0, pace: 1, top: 170, bot: 910, td: 0.9 },
+  kb: { name: 'kino-ld-beyond', retro: 'kino', film: 'b', bgk: 'night', trans: 'cine', bpm: 112, dark: true, bg: '#05070c', ink: '#e8eef8', soft: '#93a1b8', mute: '#7d8aa0', line: 'rgba(148,178,220,0.12)', accent: BR.orange, accentText: BR.orange, card: 'rgba(148,178,220,0.06)', style: 'rise', inDur: 1.0, pace: 1, top: 170, bot: 910, td: 0.9 },
 };
 const TH = THEMES[MOOD];
 /* Treibend, Action und die Tanz-Stimmungen schneiden und blenden auf den Schlag; Cinematic und Ruhig lassen sich Zeit */
