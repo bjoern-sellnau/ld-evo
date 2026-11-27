@@ -2,7 +2,8 @@
 
 Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Code, keine CI).
 
-- [Kino-Trailer — „Über mich · 20 Jahre Erfahrung“ und „LD Beyond“ (16:9 mit Kinoformat, 30 bis 120 s, DE + EN; dazu sechs Genre-Fassungen)](#kino-trailer--über-mich--20-jahre-erfahrung-und-ld-beyond)
+- [Kino-Trailer — „Über mich · 20 Jahre Erfahrung“ und „LD Beyond“ (16:9 mit Kinoformat, 30 bis 120 s, DE + EN; dazu sechs Genre-Fassungen und ein Countdown-Teaser)](#kino-trailer--über-mich--20-jahre-erfahrung-und-ld-beyond)
+- [Kino-Trailer — „Über mich · 20 Jahre Erfahrung“ und „LD Beyond“ (16:9 mit Kinoformat, 30 bis 120 s, DE + EN)](#kino-trailer--über-mich--20-jahre-erfahrung-und-ld-beyond)
 - [Trailer — „What the web can be.“ (16:9, 30 bis 300 s, sechzehn Stimmungen, DE + EN), LD Mark und Echtzeit-Demo](#trailer--what-the-web-can-be)
 - [20 Varianten — Terminal bis Pinnwand (33–56 s)](#20-varianten)
 - [Reel 3 — „Director's Cut“ (2:12 min, Negativ-Logo, SPREE|FALL)](#reel-3--directors-cut)
@@ -75,6 +76,29 @@ Schriftzüge, Figuren, Bilder und Tonfolgen der Vorbilder kommen nicht vor.
 - **Neu rendern:** `GENRE=horror node render.mjs 120 ka de` → `../trailer/loona-trailer-120s-kino-ueber-mich-horror-de.mp4`
   (`GENRE` = `action`, `thriller`, `comedy` → Dateiname `komoedie`, `horror`, `epos`, `helden`); im Browser `…&mood=ka&g=horror`.
   Look und Tafeln stehen in `kino-genre.js`, die Musik in `kino-musik.js`.
+
+### Countdown-Teaser (Wunsch vom 27.11.2026)
+
+Beide Filme als **stiller Teaser** in der Machart eines Ensemble-Teasers, der mit einer Countdown-Uhr endet (das Vorbild steht
+bewusst weder im Dateinamen noch im Bild): ruhiges Klavier, wenige Tafeln, breiter Titel — und statt des Abspanns eine **digitale
+Countdown-Uhr** in Sieben-Segment-Ziffern, die sekundengenau herunterzählt, während die Musik auf jeder Sekunde tickt. 16 Fassungen
+(30 / 60 / 90 / 120 s, DE + EN). Übersicht: [`trailer/uebersicht-kino-countdown.jpg`](trailer/uebersicht-kino-countdown.jpg).
+
+| Film · Ziel | 30 s | 60 s | 90 s | 120 s |
+| --- | --- | --- | --- | --- |
+| **Countdown** · Über mich — bis 03.09.2027 | [DE](trailer/loona-trailer-30s-kino-ueber-mich-countdown-de.mp4) (5 MB) · [EN](trailer/loona-trailer-30s-kino-ueber-mich-countdown-en.mp4) (5 MB) | [DE](trailer/loona-trailer-60s-kino-ueber-mich-countdown-de.mp4) (9 MB) · [EN](trailer/loona-trailer-60s-kino-ueber-mich-countdown-en.mp4) (9 MB) | [DE](trailer/loona-trailer-90s-kino-ueber-mich-countdown-de.mp4) (13 MB) · [EN](trailer/loona-trailer-90s-kino-ueber-mich-countdown-en.mp4) (13 MB) | [DE](trailer/loona-trailer-120s-kino-ueber-mich-countdown-de.mp4) (16 MB) · [EN](trailer/loona-trailer-120s-kino-ueber-mich-countdown-en.mp4) (16 MB) |
+| **Countdown** · LD Beyond — bis 06.09.2027 | [DE](trailer/loona-trailer-30s-kino-ld-beyond-countdown-de.mp4) (7 MB) · [EN](trailer/loona-trailer-30s-kino-ld-beyond-countdown-en.mp4) (7 MB) | [DE](trailer/loona-trailer-60s-kino-ld-beyond-countdown-de.mp4) (12 MB) · [EN](trailer/loona-trailer-60s-kino-ld-beyond-countdown-en.mp4) (12 MB) | [DE](trailer/loona-trailer-90s-kino-ld-beyond-countdown-de.mp4) (17 MB) · [EN](trailer/loona-trailer-90s-kino-ld-beyond-countdown-en.mp4) (17 MB) | [DE](trailer/loona-trailer-120s-kino-ld-beyond-countdown-de.mp4) (21 MB) · [EN](trailer/loona-trailer-120s-kino-ld-beyond-countdown-en.mp4) (21 MB) |
+
+- **Ziel des Countdowns** (Angabe von Bjoern Sellnau, 27.11.2026): „LD Beyond. — die neue Website“ 06.09.2027,
+  „Bjoern Sellnau — 20 Jahre Erfahrung“ 03.09.2027, jeweils gerechnet auf 0 Uhr in Berlin (Sommerzeit, UTC+2).
+- **Stand der Uhr:** Ein Video kann nicht „jetzt“ zählen. Die Uhr rechnet ab dem 28.11.2026, 0 Uhr in Berlin — dann sind es
+  278 Tage 23 Stunden (03.09.) bzw. 281 Tage 23 Stunden (06.09.) — und zählt in der Szene Sekunde für Sekunde herunter.
+  Beim Neu-Rendern setzt `?now=<ISO-Zeit>` einen anderen Stand (im Browser; `render.mjs` nutzt den festen Stand).
+- **Bild und Ton:** 120 BPM, im halben Tempo empfunden — so liegt jede Sekunde der Uhr auf einem Schlag. Die Uhr leuchtet in
+  Orange („Über mich“) bzw. im Blau des Beyond-Designs; Doppelpunkte blinken im Sekundentakt, die Anzeige pulsiert mit jedem
+  Ticken. In der Stille vor dem Titel ist das Ticken schon leise zu hören. Unter der Uhr steht am Schluss das Lockup — ohne Effekte.
+- **Neu rendern:** `GENRE=countdown node render.mjs 60 kb de` → `../trailer/loona-trailer-60s-kino-ld-beyond-countdown-de.mp4`;
+  die Uhr steht in `kino.js` (`KS.clock`, `KCD`), Look und Tafeln in `kino-genre.js`, die Musik in `kino-musik.js`.
 
 ### „Über mich · 20 Jahre Erfahrung“ (96 BPM, 12 / 24 / 36 / 48 Takte)
 
