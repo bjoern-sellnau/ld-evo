@@ -177,7 +177,7 @@ KS.steps = {
     if (x2 > 0) browser(IMG[F.k2], bx, by, bw, bh, { dark: true, alpha: x2, bar: 38, r: 14, url: 'LD Flow.', blur: 0, shadow: 'rgba(0,0,0,0)', zoom: zz, px: F.px, py: F.py });
     kGrade(bx, by, bw, bh, 14); g.restore();
     /* links Schritt, Titel, Text */
-    const x = 130, max = 540, hs = kFit(head, max, 58, { w: 600, fam: UNB, track: -0.02 }), lines = hs < 40 ? wrapLines(head, max, 46, 600, UNB, -0.02) : [head], sz = hs < 40 ? 46 : hs, y0 = KCY - (long ? 40 : 10) - (lines.length - 1) * sz * 0.6;
+    const x = 130, max = 540, hs = kFit(head, max, 58, { w: 600, fam: UNB, track: -0.02 }), lines = hs < 40 ? kWrap(head, max, 46, { w: 600, fam: UNB, track: -0.02 }) : [head], sz = hs < 40 ? 46 : hs, y0 = KCY - (long ? 40 : 10) - (lines.length - 1) * sz * 0.6;
     kText(String(k + 1).padStart(2, '0'), x, y0 - sz - 26, { size: 34, w: 700, fam: UNB, align: 'left', col: KL.acc, alpha: seg(t, 0, 0.1) });
     kLabel(`${KBT.room[1]} · ${KBT.room[0].replace(/\.$/, '')}`, x + 78, y0 - sz - 30, { size: 17, align: 'left', track: 0.24, col: KL.mute, alpha: eOut(seg(t, 0.05, 0.4)) });
     lines.forEach((ln, r) => { g.save(); g.beginPath(); g.rect(0, y0 + r * sz * 1.18 - sz * 1.05, bx - 30, sz * 1.4); g.clip(); kText(ln, x, y0 + r * sz * 1.18 + (1 - E_REVEAL(seg(t, 0.04 + r * 0.08, 0.5 + r * 0.08))) * sz * 1.2, { size: sz, w: 600, fam: UNB, align: 'left', track: -0.02 }); g.restore(); });

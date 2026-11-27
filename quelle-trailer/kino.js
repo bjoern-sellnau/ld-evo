@@ -108,6 +108,8 @@ function kText(str, x, y, o = {}) {
   g.restore();
 }
 const kMeasure = (str, size, o = {}) => { if (KGX.text) { [str, o] = KGX.text(str, { ...o, size }); size *= o.sz ?? 1; } g.save(); g.font = `${o.it ? 'italic ' : ''}${o.w ?? KL.headW} ${size}px ${o.fam ?? KL.head}`; g.letterSpacing = (o.track ?? 0) * size + 'px'; const w = g.measureText(str).width - (o.track ?? 0) * size; g.restore(); return w; };
+/* Zeilenumbruch mit dem Schriftbild des Genres (Versalien und Laufweite zählen mit) */
+function kWrap(str, max, size, o = {}) { const out = []; let line = ''; for (const w of str.split(' ')) { const tt = line ? line + ' ' + w : w; if (kMeasure(tt, size, o) > max && line) { out.push(line); line = w; } else line = tt; } if (line) out.push(line); return out; }
 const kFit = (str, max, size, o = {}) => { while (size > 14 && kMeasure(str, size, o) > max) size -= 2; return size; };
 const kLabel = (str, x, y, o = {}) => kText(str.toUpperCase(), x, y, { size: o.size ?? 22, w: o.w ?? 500, fam: KL.mono, track: o.track ?? 0.3, col: o.col ?? KL.soft, alpha: o.alpha, align: o.align ?? 'center' });
 /* Texttafel: Zeilen [{ s, size, w, fam, it, col, track, lh, at }] mittig um cy; jede Zeile blendet gestaffelt ein, die Tafel schiebt sich
