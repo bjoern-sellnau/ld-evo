@@ -7,7 +7,7 @@
    Alles entsteht aus den Instrumenten in music.js (A.*) — keine Samples. Abgemischt nach Messwerten (Lautheit, Pegel je Satz, Bänder). */
 'use strict';
 /* Hall-Länge (s), Hall-Anteil und Höhenanhebung im Master (dB) je Genre — music.js liest das als MXM */
-const KGMIX = { action: [1.5, 0.45, 5.5], thriller: [3.4, 0.7, 5], comedy: [1.0, 0.3, 5], horror: [4.5, 0.85, 3], epos: [4.2, 0.8, 6], helden: [3.8, 0.8, 5.5] };
+const KGMIX = { action: [1.5, 0.45, 5.5], thriller: [3.4, 0.7, 5], comedy: [1.0, 0.3, 5], horror: [4.5, 0.85, 3], epos: [4.2, 0.8, 6], helden: [3.8, 0.8, 5.5], countdown: [4.2, 0.8, 5] };
 const KGM = {};
 
 /* ---------- gemeinsame Hilfen ---------- */
@@ -490,4 +490,74 @@ KGM.helden = (A, s, si, sc, P) => {
     choir(A, c.a, CH.Dm, 0.012, c.d + 0.6); A.swell(c.b, Math.min(c.d, 2.4), [62, 65, 69], 0.03);
     for (let i = 0; i < c.n; i++) { const t = kmLine(c, i); A.piano(t, 50, 0.3, 3.5, { wet: 0.9 }); A.piano(t, 62, 0.22, 3.5, { wet: 0.9 }); }
   }
+};
+
+/* ---------- Countdown (120 BPM, im halben Tempo empfunden): stiller Teaser, am Ende tickt die Uhr ---------- */
+/* Solo-Klavier mit dem Motiv in halbem Tempo (ein Motiv-Takt über zwei Takte), Streicherfläche, im Titel ein breiter Satz ohne schnelle
+   Trommeln. In der Stille beginnt leise ein Ticken; in der Szene clock schlägt es auf jeder Sekunde (zwei Schläge, abwechselnd „Tick“ und
+   „Tack“), darunter nur ein tiefer Bordun und alle vier Sekunden ein dumpfer Schlag. */
+KGM.countdown = (A, s, si, sc, P) => {
+  const sec = KS[s.id].sec, last = si === sc.length - 1, c = kmC(s, P), G = kmGate(A, c), prog = progFor(Math.max(1, Math.ceil(s.bars / 2)));
+  /* Ticken: kurzer heller Schlag mit etwas Körper; hi = „Tick“, sonst „Tack“ */
+  const tick = (t, g0, hi) => { A.noise(t, 0.035, hi ? 4200 : 2900, hi ? 3400 : 2300, g0 * 1.6, { type: 'bandpass', q: 4, wet: 0.35 }); A.noise(t, 0.012, 7000, 5000, g0 * 0.5, { wet: 0.2 }); A.tone(t, 0.06, hi ? 1900 : 1350, 'sine', g0 * 0.5, { decay: true, att: 0.001, cut: 9000, wet: 0.35 }); A.tone(t, 0.08, hi ? 520 : 390, 'triangle', g0 * 0.4, { decay: true, att: 0.001, cut: 2400, wet: 0.25 }); };
+  /* Motiv in halbem Tempo: die Töne eines Motiv-Takts über zwei Takte */
+  const mel2 = (t0, cn, fn) => CH[cn].mel.forEach(([b, n, l]) => fn(t0 + b * 2 * B, n, l * 2 * B));
+  const horn = (t, n, l, g0) => { G.tone(t, l * 0.97, midi(n - 12), 'sawtooth', g0, { att: 0.12, rel: 0.3, cut: 1700, wet: 0.75 }); G.tone(t, l * 0.97, midi(n), 'sawtooth', g0 * 0.9, { att: 0.14, rel: 0.3, cut: 2500, det: 5, wet: 0.75 }); };
+  if (sec === 'clock') {
+    /* die Uhr: Sekunde für Sekunde, bis der Film ausblendet */
+    const n = Math.floor(s.D + 1e-6);
+    for (let j = 0; j <= n; j++) { const t = s.t0 + j; if (t >= DUR - 0.05) break; tick(t, j === 0 ? 0.5 : 0.42, j % 2 === 0); if (j % 4 === 0) { A.taiko(t, 33, j === 0 ? 0.26 : 0.16); A.sub(t, 3.6, 26, 0.05, { att: 0.3, rel: 1.6 }); } }
+    A.pad(s.t0, s.D, [38, 45, 50], 0.009, { cut: 520, att: 1.5, rel: 2.0, wet: 0.9 });
+    /* das Motiv noch einmal ganz leise im Klavier, dann nur noch die Uhr */
+    if (s.D >= 8) mel2(s.t0 + 2, 'Dm', (t, nn) => { if (t < s.t0 + s.D - 3.5) A.piano(t, nn, 0.22, 4.5, { soft: true, wet: 0.95, dly: 0.2 }); });
+    A.impact(s.t0, 0.3);
+    return;
+  }
+  for (let k = 0; k < s.bars; k++) {
+    const t0 = s.t0 + k * BAR, cn = prog[Math.floor(k / 2) % prog.length], ch = CH[cn], first = k % 2 === 0, lastBar = k === s.bars - 1, pr = s.bars > 1 ? k / (s.bars - 1) : 1;
+    if (sec === 'dark') {
+      G.sub(t0, BAR + 0.3, 26, 0.09, { att: 0.5, rel: 0.8 }); if (first) G.pad(t0, 2 * BAR + 0.8, [38, 45, 50], 0.014, { cut: 460 + 260 * pr, att: 1.2, rel: 1.4, wet: 0.9 });
+      if (k === 0) G.piano(t0 + B, 74, 0.2, 5, { soft: true, wet: 0.95 }); if (lastBar && s.bars > 1) G.piano(t0 + 2 * B, 69, 0.17, 4.5, { soft: true, wet: 0.95 });
+    } else if (sec === 'piano' || sec === 'tail') {
+      if (first) { G.pad(t0, 2 * BAR + 0.8, ch.pad, 0.013, { cut: 700, att: 1.0, rel: 1.2, wet: 0.9 }); G.piano(t0, ch.bass + 12, 0.28, 5, { soft: true, wet: 0.85 }); G.piano(t0, ch.bass + 24, 0.14, 4.5, { soft: true, wet: 0.85 }); mel2(t0, cn, (t, n, l) => G.piano(t, n, 0.38, Math.max(3, l * 1.6), { soft: true, wet: 0.9, dly: 0.2 })); }
+      else G.piano(t0 + 2 * B, ch.arp[1] - 12, 0.15, 4, { soft: true, wet: 0.85 });
+    } else if (sec === 'pulse' || sec === 'lift') {
+      const E = sec === 'lift' ? 1.05 : 0.8 + 0.3 * pr;
+      if (first) { G.pad(t0, 2 * BAR + 0.8, ch.pad, 0.02 * E, { cut: 1100 + 900 * pr, att: 0.9, rel: 1.2, wet: 0.85 }); G.pad(t0, 2 * BAR + 0.8, [ch.pad[2] + 12, ch.pad[3] + 12], 0.009 * E, { wave: 'triangle', cut: 3800, att: 1.2, rel: 1.2, wet: 0.9 }); G.sub(t0, 2 * BAR - 0.1, ch.bass, 0.06 * E, { att: 0.2, rel: 0.8 }); G.piano(t0, ch.bass + 12, 0.3 * E, 5, { wet: 0.8 });
+        mel2(t0, cn, (t, n, l) => { G.piano(t, n, 0.42 * E, Math.max(3, l * 1.6), { wet: 0.85, dly: 0.2 }); if (sec === 'lift' || pr > 0.45) G.tone(t, l * 0.96, midi(n + 12), 'triangle', 0.02 * E, { att: 0.2, rel: 0.4, cut: 4200, wet: 0.85, vib: 6, vibD: 0.3 }); }); }
+      /* leiser Puls im halben Tempo */
+      G.kick(t0, 0.3 * E, { f0: 100, f1: 44, dec: 0.5, soft: true }); if (!first) G.piano(t0 + 2 * B, ch.arp[2] - 12, 0.16 * E, 3.5, { soft: true, wet: 0.85 });
+      if (sec === 'lift' && k === 0) G.chime(t0 + 0.3, [74, 77, 81, 86], 0.035, 0.12);
+      if (lastBar && !last) G.riser(t0 + BAR * 0.3, BAR * 0.7, 0.08);
+    } else if (sec === 'drive' || sec === 'peak') {
+      const pk = sec === 'peak', E = pk ? 1.1 : 0.95;
+      if (first) { G.pad(t0, 2 * BAR + 0.8, ch.pad, 0.026 * E, { cut: pk ? 2600 : 1900, att: 0.7, rel: 1.2, wet: 0.85 }); G.pad(t0, 2 * BAR + 0.8, [ch.pad[2] + 12, ch.pad[3] + 12], 0.013 * E, { wave: 'triangle', cut: 4200, att: 1.0, rel: 1.2, wet: 0.9 }); G.sub(t0, 2 * BAR - 0.1, ch.bass, 0.07 * E, { att: 0.15, rel: 0.8 });
+        mel2(t0, cn, (t, n, l) => { G.piano(t, n, 0.46 * E, Math.max(3, l * 1.6), { wet: 0.8, dly: 0.2 }); G.piano(t, n + 12, 0.26 * E, 3, { wet: 0.85 }); horn(t, n, l, (pk ? 0.05 : 0.034) * E); }); G.taiko(t0, 33, (pk ? 0.34 : 0.24) * E); }
+      else G.taiko(t0 + 2 * B, 38, (pk ? 0.24 : 0.16) * E);
+      /* ruhiges Achtel-Ostinato der Streicher */
+      for (let e = 0; e < 8; e++) { const n = ch.arp[KM_IX[e]], t = t0 + (e * B) / 2, gg = (pk ? 0.034 : 0.026) * E * (e % 4 === 0 ? 1.25 : 0.9); G.tone(t, 0.2, midi(n - 12), 'sawtooth', gg, { decay: true, att: 0.01, cut: 2600, cut1: 900, cutT: 0.16, pan: -0.3, wet: 0.7 }); if (pk) G.tone(t, 0.2, midi(n), 'sawtooth', gg * 0.9, { decay: true, att: 0.01, cut: 3600, cut1: 1200, cutT: 0.16, pan: 0.3, wet: 0.7 }); }
+      if (lastBar && !last) { G.riser(t0, BAR, 0.14); G.swell(t0 + BAR, Math.min(BAR, 1.8), CH.Dm.pad, 0.03); }
+    } else if (sec === 'stop') {
+      /* Stille — und zum ersten Mal die Uhr, noch fern */
+      if (k === 0) { G.sub(t0, Math.min(2, s.bars) * BAR, 26, 0.05, { att: 0.6, rel: 1.2 }); G.piano(t0 + B, 62, 0.26, 5, { soft: true, wet: 0.95 }); G.piano(t0 + B, 74, 0.16, 5, { soft: true, wet: 0.95 }); }
+      for (let j = 0; j < 2; j++) tick(t0 + j * 2 * B, 0.1 + 0.1 * pr, (k * 2 + j) % 2 === 0);
+      if (lastBar) { G.riser(t0, BAR, 0.2); G.swell(t0 + BAR, Math.min(BAR, 1.8), CH.Dm.pad, 0.04); }
+    } else if (sec === 'title') {
+      const E = k < 2 ? 1.12 : 1;
+      if (first) { G.pad(t0, 2 * BAR + 0.9, ch.pad, 0.032 * E, { cut: 2400, att: 0.4, rel: 1.3, wet: 0.85 }); G.pad(t0, 2 * BAR + 0.9, ch.pad.slice(1).map((n) => n + 12), 0.017, { wave: 'triangle', cut: 4200, att: 0.6, rel: 1.3, wet: 0.9 }); G.sub(t0, 2 * BAR - 0.1, ch.bass, 0.1, { att: 0.08, rel: 0.9 }); G.braam(t0, 2 * BAR * 0.9, ch.bass + 12, k === 0 ? 0.11 : 0.07); G.taiko(t0, 33, 0.42);
+        mel2(t0, cn, (t, n, l) => { G.piano(t, n, 0.52, Math.max(3, l * 1.6), { wet: 0.8, dly: 0.2 }); G.piano(t, n + 12, 0.3, 3, { wet: 0.85 }); horn(t, n, l, 0.06 * E); G.saw5(t, l * 0.97, n + 12, 0.012, { att: 0.15, rel: 0.4, cut: 4200, wet: 0.8 }); }); }
+      else G.taiko(t0 + 2 * B, 38, 0.3);
+      if (lastBar) { G.pad(t0, BAR, [38, 50, 57, 62, 65], 0.02, { cut: 1500, att: 0.3, rel: BAR * 0.7, wet: 0.9 }); }
+    }
+  }
+  /* Tafel: eine Klavier-Oktave und eine leise Fläche */
+  if (c) { A.piano(c.a + 0.2, 50, 0.3, 5, { soft: true, wet: 0.95 }); A.piano(c.a + 0.2, 62, 0.22, 5, { soft: true, wet: 0.95 }); A.pad(c.a, c.d + 0.6, [50, 57, 62], 0.012, { wave: 'triangle', cut: 2200, att: 0.8, rel: 1.0, wet: 0.9 }); }
+  /* Szenenwechsel und Schnitte: zurückhaltend */
+  if (si > 0) {
+    if (sec === 'title') { A.impact(s.t0, 1.0); A.chime(s.t0 + 0.05, [74, 77, 81, 86], 0.055, 0.08); A.noise(s.t0, 2.4, 8000, 3500, 0.1, { wet: 0.8 }); }
+    else if (sec === 'peak' || sec === 'drive' || sec === 'lift') { A.whoosh(s.t0, 0.1, 0.9); A.impact(s.t0, sec === 'peak' ? 0.5 : 0.35); }
+    else if (sec === 'stop') { A.tone(s.t0, 1.8, 62, 'sine', 0.14, { decay: true, att: 0.005, bend: 2.0, bendT: 1.2, cut: 400, wet: 0.5 }); }
+    else if (sec === 'pulse') A.impact(s.t0, 0.25);
+  }
+  (P.hitsT || []).forEach(([lt, v]) => { if (lt < 0.01 || v < 0.8) return; const t = s.t0 + lt; if (c && t >= c.a && t < c.b) return; A.taiko(t, 38, 0.14); A.noise(t, 0.6, 5000, 2000, 0.025, { wet: 0.6 }); });
 };

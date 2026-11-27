@@ -43,9 +43,12 @@ const THEMES = {
   ka: { name: 'kino-ueber-mich', retro: 'kino', film: 'a', bgk: 'night', trans: 'cine', bpm: 96, dark: true, bg: BR.night, ink: BR.cream, soft: '#B4B9D0', mute: '#7C83A3', line: 'rgba(246,241,232,0.16)', accent: BR.orange, accentText: BR.orange, card: 'rgba(255,255,255,0.055)', style: 'rise', inDur: 1.0, pace: 1, top: 170, bot: 910, td: 0.9 },
   kb: { name: 'kino-ld-beyond', retro: 'kino', film: 'b', bgk: 'night', trans: 'cine', bpm: 112, dark: true, bg: '#05070c', ink: '#e8eef8', soft: '#93a1b8', mute: '#7d8aa0', line: 'rgba(148,178,220,0.12)', accent: BR.orange, accentText: BR.orange, card: 'rgba(148,178,220,0.06)', style: 'rise', inDur: 1.0, pace: 1, top: 170, bot: 910, td: 0.9 },
 };
-/* Genre-Fassungen der beiden Kino-Trailer (Wunsch vom 27.11.2026): ?g=action|thriller|comedy|horror|epos|helden — eigenes Tempo je Genre;
+/* Genre-Fassungen der beiden Kino-Trailer (Wunsch vom 27.11.2026): ?g=action|thriller|comedy|horror|epos|helden|countdown — eigenes Tempo je Genre;
    Look, Tafeln und Musik stehen in kino-genre.js und kino-musik.js. Ohne ?g= laufen die Filme unverändert in ihrer Grundfassung. */
-const KGENRES = { action: { bpm: 144, name: 'action' }, thriller: { bpm: 104, name: 'thriller' }, comedy: { bpm: 120, name: 'komoedie' }, horror: { bpm: 72, name: 'horror' }, epos: { bpm: 80, name: 'epos' }, helden: { bpm: 88, name: 'helden' } };
+const KGENRES = { action: { bpm: 144, name: 'action' }, thriller: { bpm: 104, name: 'thriller' }, comedy: { bpm: 120, name: 'komoedie' }, horror: { bpm: 72, name: 'horror' }, epos: { bpm: 80, name: 'epos' }, helden: { bpm: 88, name: 'helden' },
+  /* „countdown“ (Wunsch vom 27.11.2026): stiller Teaser, am Ende eine digitale Countdown-Uhr mit Ticken. 120 BPM, damit jede Sekunde der Uhr
+     auf einem Schlag liegt (zwei Schläge je Sekunde) — die Musik ist im halben Tempo empfunden. */
+  countdown: { bpm: 120, name: 'countdown' } };
 const GENRE = ['ka', 'kb'].includes(MOOD) && Object.hasOwn(KGENRES, Q.get('g') ?? '') ? Q.get('g') : null;
 const TH = GENRE ? { ...THEMES[MOOD], bpm: KGENRES[GENRE].bpm } : THEMES[MOOD];
 /* Treibend, Action und die Tanz-Stimmungen schneiden und blenden auf den Schlag; Cinematic und Ruhig lassen sich Zeit */

@@ -8,7 +8,7 @@
      CHROMIUM    Pfad zum Chromium (Standard: der von Playwright)
      CRF         Qualität libx264 (Standard 22, lange Fassung 23, neue Stimmungen 24), MAXRATE (Standard 4500k, lange Fassung 2200k;
                  neue Stimmungen 3200k bzw. 2000k)
-     GENRE       Genre-Fassung der Kino-Trailer ka/kb: action, thriller, comedy, horror, epos, helden (Dateiname …-kino-…-<genre>-…)
+     GENRE       Genre-Fassung der Kino-Trailer ka/kb: action, thriller, comedy, horror, epos, helden, countdown (Dateiname …-kino-…-<genre>-…)
      NUR_TON=1   nur die Tonspur einer vorhandenen Datei neu abmischen – das Bild bleibt unverändert (-c:v copy)
 
    Die Musik hängt nur von Stimmung und Ablauf ab und wird als WAV zwischengespeichert (<Ausgabe>/.musik/…),
@@ -29,9 +29,9 @@ const NEW = ['trance', 'hard', 'euro', 'rave', 'demo', 'old', 'b97', 'b2k', 'b99
 /* Die beiden Kino-Trailer gibt es in 30, 60, 90 und 120 Sekunden */
 const KINO = ['ka', 'kb'];
 /* Genre-Fassungen der Kino-Trailer über die Umgebungsvariable GENRE (action, thriller, comedy, horror, epos, helden) */
-const GENRES = { action: 'action', thriller: 'thriller', comedy: 'komoedie', horror: 'horror', epos: 'epos', helden: 'helden' };
+const GENRES = { action: 'action', thriller: 'thriller', comedy: 'komoedie', horror: 'horror', epos: 'epos', helden: 'helden', countdown: 'countdown' };
 const genre = process.env.GENRE ?? '';
-if (genre && (!GENRES[genre] || !KINO.includes(process.argv[3]))) { console.error('GENRE: action, thriller, comedy, horror, epos oder helden — nur für die Kino-Trailer ka und kb'); process.exit(1); }
+if (genre && (!GENRES[genre] || !KINO.includes(process.argv[3]))) { console.error('GENRE: action, thriller, comedy, horror, epos, helden oder countdown — nur für die Kino-Trailer ka und kb'); process.exit(1); }
 if (!NAMES[mood] || !(KINO.includes(mood) ? ['30', '60', '90', '120'] : ['60', '90', '120', '300'].concat(NEW.includes(mood) ? ['30'] : [])).includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo|old|b97|b99|b2k|b01|b03|b05> <de|en> [Ausgabeordner] — 30 nicht für cine, drive, calm, action'); process.exit(2); }
 const base = `loona-trailer-${len}s-${NAMES[mood]}${genre ? `-${GENRES[genre]}` : ''}-${lang}`;
 /* Die lange Fassung bekommt eine niedrigere Obergrenze, damit die Datei sicher unter 100 MB bleibt (GitHub-Grenze). Die fünf neuen

@@ -229,6 +229,55 @@ KS.studio = {
   },
 };
 
+/* ---------- Countdown-Uhr (Fassung „countdown“, Wunsch vom 27.11.2026) ---------- */
+/* Ziel des Countdowns je Film nach Angabe von Bjoern Sellnau: „LD Beyond“ 06.09.2027, „Über mich · 20 Jahre Erfahrung“ 03.09.2027 —
+   jeweils 0 Uhr in Berlin (Sommerzeit, UTC+2). Ein Video kann nicht „jetzt“ zählen: Die Uhr rechnet ab einem festen Stand
+   (28.11.2026, 0 Uhr in Berlin; über ?now=<ISO-Zeit> beim Neu-Rendern änderbar) und zählt in der Szene sekundengenau herunter. */
+const KCD = { target: KB ? Date.UTC(2027, 8, 5, 22, 0, 0) : Date.UTC(2027, 8, 2, 22, 0, 0), now: Date.parse(Q.get('now') || '') || Date.UTC(2026, 10, 27, 23, 0, 0),
+  date: KB ? { de: '06.09.2027', en: '6 September 2027' }[LANG] : { de: '03.09.2027', en: '3 September 2027' }[LANG], units: { de: ['Tage', 'Stunden', 'Minuten', 'Sekunden'], en: ['Days', 'Hours', 'Minutes', 'Seconds'] }[LANG],
+  top: KB ? ['LD Beyond.', { de: 'Die neue Website', en: 'The new website' }[LANG]] : [NAME, { de: '20 Jahre Erfahrung', en: '20 years of experience' }[LANG]] };
+/* Sieben-Segment-Ziffer (eigene Zeichnung): a oben, b/c rechts, d unten, e/f links, g Mitte; aus = schwach sichtbar wie bei einer Leuchtanzeige */
+const KSEG = { 0: 'abcdef', 1: 'bc', 2: 'abdeg', 3: 'abcdg', 4: 'bcfg', 5: 'acdfg', 6: 'acdefg', 7: 'abc', 8: 'abcdefg', 9: 'abcdfg' };
+function kDigit(ch, x, y, w, h, col, a = 1) {
+  const t = w * 0.17, gp = t * 0.16, on = KSEG[ch] ?? '', ym = y + h / 2;
+  const hz = (yy) => { g.beginPath(); g.moveTo(x + t * 0.5 + gp, yy); g.lineTo(x + t + gp, yy - t / 2); g.lineTo(x + w - t - gp, yy - t / 2); g.lineTo(x + w - t * 0.5 - gp, yy); g.lineTo(x + w - t - gp, yy + t / 2); g.lineTo(x + t + gp, yy + t / 2); g.closePath(); };
+  const vt = (xx, y0, y1) => { g.beginPath(); g.moveTo(xx, y0 + t * 0.5 + gp); g.lineTo(xx + t / 2, y0 + t + gp); g.lineTo(xx + t / 2, y1 - t - gp); g.lineTo(xx, y1 - t * 0.5 - gp); g.lineTo(xx - t / 2, y1 - t - gp); g.lineTo(xx - t / 2, y0 + t + gp); g.closePath(); };
+  const SG = { a: () => hz(y + t / 2), g: () => hz(ym), d: () => hz(y + h - t / 2), f: () => vt(x + t / 2, y, ym), b: () => vt(x + w - t / 2, y, ym), e: () => vt(x + t / 2, ym, y + h), c: () => vt(x + w - t / 2, ym, y + h) };
+  for (const k of 'abcdefg') { const lit = on.includes(k); SG[k](); g.save(); if (lit) { g.shadowColor = rgba(col, 0.9 * a); g.shadowBlur = 26; } g.fillStyle = lit ? rgba(col, a) : rgba(col, 0.07 * a); g.fill(); g.restore(); }
+}
+KS.clock = {
+  sec: 'clock',
+  draw(lt, D) {
+    g.fillStyle = '#000'; g.fillRect(0, KT, W, KH);
+    const col = KB ? '#19a7ff' : BR.orange, sek = Math.floor(lt + 1e-6), fr = lt - sek, rem = Math.max(0, Math.floor((KCD.target - KCD.now) / 1000) - sek), p2 = (v) => String(v).padStart(2, '0');
+    const grp = [String(Math.floor(rem / 86400)).padStart(3, '0'), p2(Math.floor(rem / 3600) % 24), p2(Math.floor(rem / 60) % 60), p2(rem % 60)];
+    const dw = 104, dh = 190, dg = 20, cw = 76, tot = grp.reduce((x, s) => x + s.length * (dw + dg) - dg, 0) + 3 * cw, y0 = KCY - dh / 2 - 12, on = lt >= 1, pulse = Math.exp(-fr * 5), aOn = on ? 0.82 + 0.18 * pulse : 0;
+    /* Schein hinter der Anzeige, pulsiert mit jedem Ticken */
+    if (on) glow(W / 2, KCY - 12, 900, col, 0.1 + 0.07 * pulse);
+    kDust(lt, 0.35, KB ? '#9cc8f2' : '#E8E6E1');
+    /* Zeile über der Uhr: wessen Countdown das ist */
+    const aT = eOut(seg(lt, 0.15, 1.0));
+    kText(KCD.top[0], W / 2, y0 - 118, { size: kFit(KCD.top[0], 1400, 62, {}), alpha: aT });
+    kLabel(KCD.top[1], W / 2, y0 - 66, { size: 22, track: 0.42, col: KB ? KL.acc : BR.apricot, alpha: aT });
+    if (on) {
+      /* Gruppen (Tage, Stunden, Minuten, Sekunden) mit ihren Plätzen; die Anzeige ist leicht geneigt wie eine Leuchtanzeige */
+      let x = W / 2 - tot / 2; const pos = grp.map((s) => { const x0 = x; x += s.length * (dw + dg) - dg + cw; return x0; }), sk = 0.07;
+      g.save(); g.transform(1, 0, -sk, 1, sk * (y0 + dh / 2), 0);
+      grp.forEach((s, gi) => {
+        [...s].forEach((ch, q) => kDigit(ch, pos[gi] + q * (dw + dg), y0, dw, dh, col, aOn));
+        if (gi < 3) { /* Doppelpunkt: leuchtet die erste Hälfte jeder Sekunde */ const cx = pos[gi] + s.length * (dw + dg) - dg + cw / 2; for (const yy of [y0 + dh * 0.32, y0 + dh * 0.68]) { g.save(); if (fr < 0.5) { g.shadowColor = rgba(col, 0.9); g.shadowBlur = 22; } g.fillStyle = rgba(col, fr < 0.5 ? aOn : 0.12); g.beginPath(); g.arc(cx, yy, 9, 0, 7); g.fill(); g.restore(); } }
+      });
+      g.restore();
+      grp.forEach((s, gi) => kLabel(KCD.units[gi], pos[gi] + (s.length * (dw + dg) - dg) / 2 - sk * (dh / 2 + 46), y0 + dh + 46, { size: 18, track: 0.34, col: KL.soft, alpha: eOut(seg(lt, 1.6, 2.4)) }));
+    }
+    /* Zieltag */
+    kText(KCD.date, W / 2, y0 + dh + 132, { size: 54, w: 600, fam: KL.mono, track: 0.12, col: KL.ink, alpha: eOut(seg(lt, 2.0, 3.0)), plain: true });
+    /* zum Schluss das Zeichen mit Wortmarke — ruhig, ohne Effekte */
+    const tL = Math.max(3.2, D - 4.6);
+    lockup(W / 2, KBO - 74, 46, KL.ink, { pm: seg(lt, tL, tL + 1.2), pw: seg(lt, tL + 0.5, tL + 1.5) });
+  },
+};
+
 /* ---------- Renderer ---------- */
 RETRO.kino = {
   init: async () => {
