@@ -12,7 +12,7 @@
      NUR_TON=1   nur die Tonspur einer vorhandenen Datei neu abmischen – das Bild bleibt unverändert (-c:v copy)
 
    Die Musik hängt nur von Stimmung und Ablauf ab und wird als WAV zwischengespeichert (<Ausgabe>/.musik/…),
-   beide Sprachfassungen teilen sie sich. Lautheit: Verstärkung auf −14 LUFS (gemessen mit ebur128), Begrenzer bei −3 dBFS; die fertige
+   beide Sprachfassungen teilen sie sich. Lautheit: Verstärkung auf −14 LUFS (gemessen mit ebur128, mit Begrenzer bis zu viermal nachgezogen), Begrenzer bei −3 dBFS; die fertige
    Datei wird nachgemessen und die Tonspur bei Bedarf neu kodiert (ohne Rauschersatz des AAC-Kodierers, notfalls mit tieferem Begrenzer),
    bis die wahre Spitze unter −1 dBTP liegt. Passt es dann nicht, bricht das Skript mit Fehler ab. */
 import http from 'node:http';
@@ -69,8 +69,12 @@ if (!fs.existsSync(wav)) {
 /* Ansprechzeit 5 ms: bei 1 ms regelt der Begrenzer so hart, dass AAC die Kanten mit Überschwingern (bis über 0 dBTP) wiedergibt */
 const LIMITER = 'alimiter=limit=0.7:level=false:attack=5:release=60';
 const lufs = (af) => { const e = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', wav, '-af', `${af}ebur128`, '-f', 'null', '-'], { encoding: 'utf8' }).stderr; return parseFloat((e.match(/I:\s+(-?[\d.]+) LUFS/g) ?? []).pop()?.match(/-?[\d.]+/)?.[0] ?? '-16'); };
-const g1 = -14 - lufs('');
-const gain = (g1 + (-14 - lufs(`volume=${g1.toFixed(2)}dB,${LIMITER},`))).toFixed(2);
+/* Der Begrenzer nimmt gerade den lauten Stellen Pegel, die die Lautheit bestimmen — bei Stücken mit großen Sprüngen (Schreck-Akzente der
+   Horror-Fassung) reicht ein Nachziehen nicht. Deshalb bis zu viermal messen und nachziehen, bis −14 LUFS auf 0,15 genau getroffen sind. */
+/* (Im Spitzen-Nachlauf weiter unten wird bewusst nur einmal nachgezogen: dort zählt die Spitze, und mehrfaches Nachziehen triebe den
+   Pegel wieder in den Begrenzer — die Lautheit darf dann bis 0,8 LU unter dem Ziel bleiben.) */
+const gainFor = (lim) => { let gd = -14 - lufs(''); for (let i = 0; i < 4; i++) { const l = lufs(`volume=${gd.toFixed(2)}dB,${lim},`); if (Math.abs(l + 14) < 0.15) break; gd += -14 - l; } return gd.toFixed(2); };
+const gain = gainFor(LIMITER);
 
 /* ---- Bilder → ffmpeg ---- */
 const mp4 = path.join(OUT, `${base}.mp4`);
