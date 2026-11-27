@@ -30,7 +30,7 @@ KS.begin = {
       browser(IMG[o.img], bx, by, bw, bh, { dark: true, alpha: 1, blur: 80 });
       if (fr < 0.14 && ix > 0) { g.save(); g.globalAlpha = a * (1 - fr / 0.14); browser(IMG[list[ix - 1].img], bx, by, bw, bh, { dark: true, blur: 0 }); g.restore(); }
       /* Bild leicht zurücknehmen — die Seiten von damals sind sehr hell */
-      g.fillStyle = 'rgba(4,6,15,0.22)'; rr(bx, by, bw, bh, 16); g.fill();
+      g.fillStyle = 'rgba(4,6,15,0.22)'; rr(bx, by, bw, bh, 16); g.fill(); kGrade(bx, by, bw, bh, 16);
       g.restore();
       const J = kJ('2004')[LANG], x = 170, hs = kFit(J[0], 760, 76, { w: 800, fam: MAN, track: -0.02 });
       kLabel(T.originKicker, x, KCY - 110, { size: 20, align: 'left', alpha: a, track: 0.2 });
@@ -48,8 +48,8 @@ KS.begin = {
 function kaTimeline(y, year, prev, tl, a) {
   /* zwanzig Marken = zwanzig Kalenderjahre 2007 … 2026; die Füllung läuft bis zum Jahr der Station */
   const x0 = 300, x1 = W - 300, xs = (yr) => lerp(x0, x1, (yr - 2007) / 19), cur = lerp(prev, year, eOut5(seg(tl, 0, 0.55)));
-  g.save(); g.globalAlpha *= a; g.fillStyle = rgba(BR.cream, 0.16); g.fillRect(x0, y - 1, x1 - x0, 2); g.fillStyle = BR.orange; g.fillRect(x0, y - 1.5, xs(cur) - x0, 3);
-  for (let yr = 2007; yr <= 2026; yr++) { const on = yr <= cur + 0.01; g.fillStyle = on ? rgba(BR.cream, 0.9) : rgba(BR.cream, 0.28); g.fillRect(xs(yr) - 1, y - (on ? 9 : 6), 2, on ? 18 : 12); }
+  g.save(); g.globalAlpha *= a; g.fillStyle = rgba(KL.ink, 0.16); g.fillRect(x0, y - 1, x1 - x0, 2); g.fillStyle = BR.orange; g.fillRect(x0, y - 1.5, xs(cur) - x0, 3);
+  for (let yr = 2007; yr <= 2026; yr++) { const on = yr <= cur + 0.01; g.fillStyle = on ? rgba(KL.ink, 0.9) : rgba(KL.ink, 0.28); g.fillRect(xs(yr) - 1, y - (on ? 9 : 6), 2, on ? 18 : 12); }
   g.fillStyle = BR.orange; g.beginPath(); g.arc(xs(cur), y, 7, 0, 7); g.fill(); glow(xs(cur), y, 46, BR.orange, 0.5);
   g.restore();
   kLabel('2007', x0 - 26, y + 7, { size: 18, align: 'right', track: 0.14, alpha: a, col: KL.mute }); kLabel('2026', x1 + 26, y + 7, { size: 18, align: 'left', track: 0.14, alpha: a, col: KL.mute });
@@ -92,7 +92,7 @@ KS.gold = {
     const cy = KCY - 112, R = 196, sc = 1 + 0.04 * (lt / D), f = Math.min(1, D / 5), out = 1 - eIn(seg(lt, D - 0.35, D));
     g.save(); g.globalAlpha = out; g.translate(W / 2, KCY); g.scale(sc, sc); g.translate(-W / 2, -KCY);
     glow(W / 2, cy, 560, BR.apricot, 0.2 * eOut(seg(lt, 0, 0.8)));
-    kLaurel(W / 2, cy, R, BR.apricot, 0.95, eOut(seg(lt, 0.05 * f, 1.0 * f)));
+    kLaurel(W / 2, cy, R, KL.gold ?? BR.apricot, 0.95, eOut(seg(lt, 0.05 * f, 1.0 * f)));
     kLabel(T.awardKicker, W / 2, cy - 58, { size: 17, track: 0.4, col: KL.soft, alpha: eOut(seg(lt, 0.2 * f, 0.8 * f)) });
     const p = seg(lt, 0.1 * f, 0.5 * f);
     kSweep(() => { g.save(); const s2 = lerp(1.25, 1, eOut5(p)); g.translate(W / 2, cy + 10); g.scale(s2, s2); g.translate(-W / 2, -(cy + 10)); kText(KA.gold.toUpperCase(), W / 2, cy + 44, { size: 92, w: 800, fam: MAN, track: 0.1, grad: [[0, '#FFF3D6'], [0.5, BR.apricot], [1, '#C8791F']], alpha: seg(lt, 0.1 * f, 0.2 * f) }); g.restore(); }, seg(lt, 0.5 * f, 1.7 * f), '#FFFFFF', 0.85);
@@ -119,7 +119,7 @@ KS.craft = {
         const sc = lerp(1.22, 1, eOut5(seg(t, 0, 0.35))) * (1 + 0.03 * (t / d));
         g.save(); g.translate(W / 2, KCY); g.scale(sc, sc); g.translate(-W / 2, -KCY); kText(wd, W / 2, KCY + size * 0.34, { size, w: 800, fam: MAN, track: -0.03, grad: [[0, '#FFFFFF'], [1, rgba(BR.cream, 0.7)]], alpha: seg(t, 0, 0.06) }); g.restore();
         kLabel(KA.focus, W / 2, KT + 86, { size: 22, track: 0.36, col: BR.apricot });
-        for (let q = 0; q < 4; q++) { g.fillStyle = q === i ? BR.orange : rgba(BR.cream, 0.25); g.beginPath(); g.arc(W / 2 + (q - 1.5) * 34, KBO - 76, q === i ? 7 : 5, 0, 7); g.fill(); }
+        for (let q = 0; q < 4; q++) { g.fillStyle = q === i ? BR.orange : rgba(KL.ink, 0.25); g.beginPath(); g.arc(W / 2 + (q - 1.5) * 34, KBO - 76, q === i ? 7 : 5, 0, 7); g.fill(); }
       });
       kCutFlash(t, 0.3);
     } else if (i === 4) {
@@ -182,7 +182,8 @@ KS.labs = {
     const key = KA_LABS[(i - 1) % KA_LABS.length], lab = LABS.find((l) => l.shots.includes(key)), h1 = hash(i * 3.7), h2 = hash(i * 5.3 + 1), inw = i % 2 === 0;
     kPunch(t, d < B * 0.8 ? 0.02 : 0.035, () => kShot(IMG[key], t, d, { z0: inw ? 1.04 : 1.2, z1: inw ? 1.2 : 1.06, x0: 0.3 + 0.4 * h1, x1: 0.3 + 0.4 * h2, y0: 0.4 + 0.2 * h2, y1: 0.4 + 0.2 * h1 }));
     kShade({ a: 0.8, h: 300 });
-    if (lab) { kText(lab.name, 170, KBO - 76, { size: 54, w: 800, fam: MAN, align: 'left', track: -0.01 }); kLabel(`Lab · ${lab.d}`, 170, KBO - 36, { size: 18, align: 'left', track: 0.24, col: BR.apricot }); if (lab.credit) kLabel(T.osm, W - 170, KBO - 36, { size: 15, align: 'right', track: 0.1, col: rgba(BR.cream, 0.75) }); }
+    /* Schrift über dem Bild: immer hell (onImg), auch auf hellem Grund */
+    if (lab) { kText(lab.name, 170, KBO - 76, { size: 54, w: 800, fam: MAN, align: 'left', track: -0.01, col: BR.cream, onImg: true }); kText(`Lab · ${lab.d}`.toUpperCase(), 170, KBO - 36, { size: 18, w: 500, fam: MONO, align: 'left', track: 0.24, col: BR.apricot, onImg: true }); if (lab.credit) kLabel(T.osm, W - 170, KBO - 36, { size: 15, align: 'right', track: 0.1, col: rgba(BR.cream, 0.75) }); }
     /* Einstellungen unter einem Schlag schneiden hart, ohne Blitz — mehr als drei Blitze je Sekunde wären zu unruhig */
     if (d >= B * 0.8) kCutFlash(t, 0.36);
   },

@@ -26,19 +26,38 @@ function kSplit(D, weights, q = B) {
 const kAt = (cuts, lt) => { let i = 0; while (i < cuts.length - 2 && lt >= cuts[i + 1]) i++; return { i, t: lt - cuts[i], d: cuts[i + 1] - cuts[i] }; };
 /* Szenen beider Filme: KS[id] = { sec (Satz der Musik), plan(D, bars) → { cuts, hits: [[Zeit, Stärke]] }, draw(lt, D, P), flash } */
 const KS = {};
+/* Haken der Genre-Fassungen (kino-genre.js füllt sie; leer = Grundfassung): text, tf, ghost (Schrift), bg, bgEnd, dust (Grund),
+   cut, punch, cam, post, overlay, img (Schnitt, Kamera, Bildlook), cards + card (Zwischentafeln je Szene) */
+const KGX = {};
+/* Taktlänge des Films in seiner Grundfassung: Die Schwellen der Drehbücher („ab fünf Takten …“) zählen in diesen Takten, damit ein
+   anderes Tempo (Genre) dieselben Fassungen wählt. */
+const KBAR0 = 240 / (KB ? 112 : 96);
 const KPC = new Map();
-function kPlan(s) { if (!KPC.has(s.id)) KPC.set(s.id, KS[s.id].plan ? KS[s.id].plan(s.D, s.bars) : {}); return KPC.get(s.id); }
+/* Plan einer Szene. Hat das Genre eine Zwischentafel für sie (KGX.cards), bekommt die Tafel dc Sekunden ab der Stelle at; die Szene
+   selbst läuft in der übrigen Zeit. hitsT = Akzente in Szenenzeit (um die Tafel verschoben). */
+function kPlan(s) {
+  if (!KPC.has(s.id)) {
+    const ks = KS[s.id], ic = KGX.cards?.[s.id], raw = ic && s.D >= 4.4 ? clamp(ic.lines.length * (ic.per ?? 1.25), 1.5, s.D * 0.42) : 0, dc = raw ? Math.max(B, Math.round(raw / B) * B) : 0;
+    const at = dc && ic.at ? Math.max(B, Math.round(Math.min(ic.at, (s.D - dc) * 0.5) / B) * B) : 0;
+    const P = ks.plan ? ks.plan(s.D - dc, (s.D - dc) / KBAR0) : {};
+    P.card = dc ? { ...ic, dc, at } : null; P.hitsT = (P.hits || []).map(([x, v]) => [x < at ? x : x + dc, v]);
+    KPC.set(s.id, P);
+  }
+  return KPC.get(s.id);
+}
 
 /* ---------- Bausteine ---------- */
 const KL1 = mkLayer(), KDUST = Array.from({ length: 90 }, (_, i) => ({ x: hash(i * 2.7 + 5) * W, y: hash(i * 4.1 + 6), s: 0.7 + hash(i * 6.3 + 7) * 2.2, d: 0.25 + hash(i * 3.3 + 8) * 0.75, ph: hash(i * 1.3 + 9) * 6.283 }));
 /* Schwebeteilchen wie Staub im Projektorlicht */
 function kDust(t, a = 1, col = KL.ink) {
+  if (KGX.dust) return KGX.dust(t, a, col);
   g.save();
   for (const p of KDUST) { const x = (((p.x + t * 14 * p.d) % W) + W) % W, y = KT + ((((p.y * KH - t * 5 * p.d) % KH) + KH) % KH), al = (0.2 + 0.8 * (0.5 + 0.5 * Math.sin(t * (0.5 + p.d) + p.ph))) * p.d * a * 0.5; g.fillStyle = rgba(col, al); g.beginPath(); g.arc(x, y, p.s, 0, 7); g.fill(); }
   g.restore();
 }
 /* Grund „Über mich“: Nacht, zum Rand schwarz, ein kühles und ein warmes Licht */
 function kaBg(t, o = {}) {
+  if (KGX.bg && KGX.bg(t, o)) return;
   g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
   const gr = g.createRadialGradient(W / 2, KCY, 60, W / 2, KCY, W * 0.62); gr.addColorStop(0, rgba(BR.night, o.mid ?? 1)); gr.addColorStop(1, 'rgba(2,3,8,1)'); g.fillStyle = gr; g.fillRect(0, KT, W, KH);
   glow(W * (0.8 + 0.04 * Math.sin(t * 0.11)), KT + 60, 820, KL.cool, o.cool ?? 0.14);
@@ -47,6 +66,7 @@ function kaBg(t, o = {}) {
 }
 /* Grund „LD Beyond“: tiefes Nachtblau mit feinem Raster und blauem Schein (bx-farben: --bg, --bx-grid, --bx-glow) */
 function kbBg(t, o = {}) {
+  if (KGX.bg && KGX.bg(t, o)) return;
   g.fillStyle = KL.bg; g.fillRect(0, 0, W, H);
   const ga = o.grid ?? 1;
   if (ga > 0) {
@@ -59,11 +79,12 @@ function kbBg(t, o = {}) {
   }
   glow(W * (o.gx ?? 0.5), KT + (o.gy ?? -80), o.gr ?? 900, KL.acc, o.top ?? 0.13);
   kDust(t, (o.dust ?? 0.6), '#9cc8f2');
+  if (KGX.bgEnd) KGX.bgEnd(t, o);
 }
 const kBg = (t, o) => (KB ? kbBg(t, o) : kaBg(t, o));
 /* Lichtstreifen wie von einem anamorphotischen Objektiv */
 function kFlare(x, y, w, col, a = 1) {
-  if (a <= 0.004) return;
+  if (a <= 0.004 || KL.light) return;
   g.save(); g.globalCompositeOperation = 'lighter';
   const gr = g.createLinearGradient(x - w, 0, x + w, 0); gr.addColorStop(0, rgba(col, 0)); gr.addColorStop(0.5, rgba(col, 0.95)); gr.addColorStop(1, rgba(col, 0)); g.fillStyle = gr;
   for (const [h, al] of [[3, 1], [12, 0.3], [44, 0.1]]) { g.globalAlpha = clamp(a * al); g.fillRect(x - w, y - h / 2, w * 2, h); }
@@ -71,19 +92,22 @@ function kFlare(x, y, w, col, a = 1) {
 }
 /* Blitz und Stoß auf einem Schnitt: tl = Zeit seit dem Schnitt */
 /* Der Blitz wird je Bild nur einmal gezeichnet (der stärkste gewinnt, höchstens 0,5) — sonst addieren sich Szenen- und Schnittblitz zu Weiß */
-let KFL = 0, KFLC = '#FFFFFF';
-function kCutFlash(tl, a = 0.5, col = '#FFFFFF') { const k = a * Math.exp(-tl * 9); if (k > KFL) { KFL = k; KFLC = col; } }
-function kPunch(tl, amt = 0.05, fn) { const k = amt * Math.exp(-tl * 7); g.save(); g.translate(W / 2 + Math.sin(tl * 80) * 220 * k, KCY + Math.cos(tl * 67) * 140 * k); g.scale(1 + k, 1 + k); g.translate(-W / 2, -KCY); fn(); g.restore(); }
+let KFL = 0, KFLC = '#FFFFFF', KTIME = 0;
+function kCutFlash(tl, a = 0.5, col = '#FFFFFF') { if (KGX.cut && KGX.cut(tl, a, col)) return; const k = a * Math.exp(-tl * 9); if (k > KFL) { KFL = k; KFLC = col; } }
+function kPunch(tl, amt = 0.05, fn) { if (KGX.punchFn) return KGX.punchFn(tl, amt, fn); const k = amt * (KGX.punch ?? 1) * Math.exp(-tl * 7); g.save(); g.translate(W / 2 + Math.sin(tl * 80) * 220 * k, KCY + Math.cos(tl * 67) * 140 * k); g.scale(1 + k, 1 + k); g.translate(-W / 2, -KCY); fn(); g.restore(); }
 /* Schrift: gesperrte Zeile, mittig sauber trotz Laufweite (letterSpacing hängt auch am letzten Zeichen) */
 function kText(str, x, y, o = {}) {
-  const size = o.size ?? 60, ls = (o.track ?? 0) * size, al = o.align ?? 'center';
+  if (KGX.text) [str, o] = KGX.text(str, o);
+  const size = (o.size ?? 60) * (o.sz ?? 1), ls = (o.track ?? 0) * size, al = o.align ?? 'center';
   g.save(); g.font = `${o.it ? 'italic ' : ''}${o.w ?? KL.headW} ${size}px ${o.fam ?? KL.head}`; g.textAlign = al; g.textBaseline = 'alphabetic'; g.letterSpacing = ls + 'px'; g.globalAlpha *= o.alpha ?? 1;
   const xx = al === 'center' ? x + ls / 2 : al === 'right' ? x + ls : x;
+  if (KGX.tf) KGX.tf(xx, y, size, o);
+  if (KGX.ghost && !o.stroke) KGX.ghost(str, xx, y, size, o);
   if (o.stroke) { g.lineWidth = o.stroke; g.lineJoin = 'round'; g.strokeStyle = o.col ?? KL.ink; g.strokeText(str, xx, y); }
   else { if (o.grad) { const gr = g.createLinearGradient(0, y - size * 0.78, 0, y + size * 0.08); o.grad.forEach(([p, c]) => gr.addColorStop(p, c)); g.fillStyle = gr; } else g.fillStyle = o.col ?? KL.ink; g.fillText(str, xx, y); }
   g.restore();
 }
-const kMeasure = (str, size, o = {}) => { g.save(); g.font = `${o.it ? 'italic ' : ''}${o.w ?? KL.headW} ${size}px ${o.fam ?? KL.head}`; g.letterSpacing = (o.track ?? 0) * size + 'px'; const w = g.measureText(str).width - (o.track ?? 0) * size; g.restore(); return w; };
+const kMeasure = (str, size, o = {}) => { if (KGX.text) { [str, o] = KGX.text(str, { ...o, size }); size *= o.sz ?? 1; } g.save(); g.font = `${o.it ? 'italic ' : ''}${o.w ?? KL.headW} ${size}px ${o.fam ?? KL.head}`; g.letterSpacing = (o.track ?? 0) * size + 'px'; const w = g.measureText(str).width - (o.track ?? 0) * size; g.restore(); return w; };
 const kFit = (str, max, size, o = {}) => { while (size > 14 && kMeasure(str, size, o) > max) size -= 2; return size; };
 const kLabel = (str, x, y, o = {}) => kText(str.toUpperCase(), x, y, { size: o.size ?? 22, w: o.w ?? 500, fam: KL.mono, track: o.track ?? 0.3, col: o.col ?? KL.soft, alpha: o.alpha, align: o.align ?? 'center' });
 /* Texttafel: Zeilen [{ s, size, w, fam, it, col, track, lh, at }] mittig um cy; jede Zeile blendet gestaffelt ein, die Tafel schiebt sich
@@ -111,7 +135,10 @@ function kShot(img, lt, D, o = {}) {
   if ((o.sat ?? 1) < 1) { g.save(); g.globalCompositeOperation = 'saturation'; g.globalAlpha = 1 - o.sat; g.fillStyle = '#808080'; g.fillRect(0, KT, W, KH); g.restore(); }
   if (o.tint) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = o.tint; g.fillRect(0, KT, W, KH); g.restore(); }
   if (o.dim) { g.fillStyle = `rgba(0,0,0,${o.dim})`; g.fillRect(0, KT, W, KH); }
+  if (KGX.img) KGX.img(0, KT, W, KH);
 }
+/* Bildlook des Genres auf einem Bildausschnitt (Fenster, Telefon): Entsättigen, Tönen — nie über dem Zeichen der Marke */
+function kGrade(x, y, w, h, r = 0) { if (!KGX.img) return; g.save(); rr(x, y, w, h, r); g.clip(); KGX.img(x, y, w, h); g.restore(); }
 /* Verlauf für Bildunterschriften: unten und links dunkel */
 function kShade(o = {}) {
   const a = o.a ?? 0.85; let gr = g.createLinearGradient(0, KBO - (o.h ?? 420), 0, KBO); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, `rgba(0,0,0,${a})`); g.fillStyle = gr; g.fillRect(0, KT, W, KH);
@@ -131,7 +158,7 @@ function kPhone(img, cx, cy, w, o = {}) {
   g.save(); g.globalAlpha *= o.alpha ?? 1;
   g.save(); g.shadowColor = o.shadow ?? 'rgba(0,0,0,0.6)'; g.shadowBlur = 60; g.shadowOffsetY = 24; g.fillStyle = '#06080d'; rr(x0 - 9, y0 - 9, w + 18, h + 18, r + 8); g.fill(); g.restore();
   g.strokeStyle = 'rgba(200,220,255,0.22)'; g.lineWidth = 2; rr(x0 - 9, y0 - 9, w + 18, h + 18, r + 8); g.stroke();
-  if (img) { g.save(); rr(x0, y0, w, h, r); g.clip(); g.drawImage(img, x0, y0, w, h); g.restore(); }
+  if (img) { g.save(); rr(x0, y0, w, h, r); g.clip(); g.drawImage(img, x0, y0, w, h); if (KGX.img) KGX.img(x0, y0, w, h); g.restore(); }
   g.restore();
 }
 /* Lorbeer (wie auf Filmplakaten um eine Auszeichnung): zwei Zweige, p = 0…1 wächst von unten */
@@ -166,9 +193,10 @@ function kBilling(rows, cx, y, o = {}) {
 }
 /* Abschluss jedes Bildes: Korn, Randabdunklung, Balken, Auf- und Abblende */
 const KGRAIN = (() => { const c = mkLayer(256, 256), d = c.createImageData(256, 256); for (let i = 0; i < d.data.length; i += 4) { const v = Math.floor(hash(i * 0.41 + 3) * 255); d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } c.putImageData(d, 0, 0); return c.canvas; })();
-function kFinish(t) {
-  const v = g.createRadialGradient(W / 2, KCY, KH * 0.5, W / 2, KCY, W * 0.62); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.6)'); g.fillStyle = v; g.fillRect(0, KT, W, KH);
-  g.save(); g.globalAlpha = 0.05; g.globalCompositeOperation = 'overlay'; const f = Math.floor(t * 30), ox = Math.floor(hash(f) * 256), oy = Math.floor(hash(f + 4) * 256); for (let y = KT - oy; y < KBO; y += 256) for (let x = -ox; x < W; x += 256) g.drawImage(KGRAIN, x, y); g.restore();
+function kFinish(t, s) {
+  const v = g.createRadialGradient(W / 2, KCY, KH * 0.5, W / 2, KCY, W * 0.62); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, `rgba(0,0,0,${KGX.vig ?? 0.6})`); g.fillStyle = v; g.fillRect(0, KT, W, KH);
+  g.save(); g.globalAlpha = KGX.grain ?? 0.05; g.globalCompositeOperation = 'overlay'; const f = Math.floor(t * 30), ox = Math.floor(hash(f) * 256), oy = Math.floor(hash(f + 4) * 256); for (let y = KT - oy; y < KBO; y += 256) for (let x = -ox; x < W; x += 256) g.drawImage(KGRAIN, x, y); g.restore();
+  if (KGX.overlay) { g.save(); g.beginPath(); g.rect(0, KT, W, KH); g.clip(); KGX.overlay(t, s); g.restore(); }
   g.fillStyle = '#000'; g.fillRect(0, 0, W, KT); g.fillRect(0, KBO, W, H - KBO);
   const k = Math.max(1 - eOut(seg(t, 0, 0.8)), eIn(seg(t, DUR - 1.3, DUR - 0.05)));
   if (k > 0) { g.fillStyle = `rgba(0,0,0,${k})`; g.fillRect(0, 0, W, H); }
@@ -190,7 +218,7 @@ KS.studio = {
   sec: 'dark',
   draw(lt, D) {
     kBg(lt, { top: 0.06, grid: 0.5, warm: 0.04, cool: 0.08 });
-    const rating = !KB && D > 2.6 * BAR, t1 = rating ? BAR * 1.15 : 0;
+    const rating = !KB && !GENRE && D > 2.6 * BAR, t1 = rating ? BAR * 1.15 : 0;
     if (rating && lt < t1) { kRating(lt, t1); return; }
     const u = lt - t1, d = D - t1, f = Math.min(1, d / 3.4), a = 1 - eIn(seg(u, d - 0.55, d));
     g.save(); g.globalAlpha = a;
@@ -207,14 +235,24 @@ RETRO.kino = {
     await Promise.all((KB ? [[500, UNB], [600, UNB], [700, UNB], [400, GEI], [500, GEI], [700, GEI], [500, GMO]] : []).map(([w, f]) => document.fonts.load(`${w} 100px ${f}`)));
   },
   render(t) {
-    const s = sceneAt(t), lt = clamp(t - s.t0, 0, s.D), sc = KS[s.id];
+    const s = sceneAt(t), lt = clamp(t - s.t0, 0, s.D), sc = KS[s.id], P = kPlan(s), c = P.card, dc = c ? c.dc : 0, at = c ? c.at : 0;
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    g.save(); g.beginPath(); g.rect(0, KT, W, KH); g.clip(); KFL = 0;
-    sc.draw(lt, s.D, kPlan(s), s);
+    g.save(); g.beginPath(); g.rect(0, KT, W, KH); g.clip(); KFL = 0; KTIME = t;
+    g.save(); if (KGX.cam) KGX.cam(t, s, lt);
+    if (c && lt >= at && lt < at + dc) {
+      /* Zwischentafel des Genres: auf dem Grund des Films oder über dem eingefrorenen Bild der Szene */
+      if (c.freeze) { sc.draw(at, s.D - dc, P, s); KFL = 0; } else kBg(lt, { top: 0.06, grid: 0.4, warm: 0.04, cool: 0.08 });
+      KGX.card(c, lt - at, dc, s);
+    } else {
+      sc.draw(lt < at ? lt : lt - dc, s.D - dc, P, s);
+      if (c && lt >= at + dc) kCutFlash(lt - at - dc, 0.4, KB ? '#bfe4ff' : '#FFFFFF');
+    }
     if (sc.flash && s.i > 0) kCutFlash(lt, sc.flash, KB ? '#bfe4ff' : '#FFFFFF');
+    g.restore();
+    if (KGX.post) KGX.post(t, s, lt);
     if (KFL > 0.02) { g.globalCompositeOperation = 'lighter'; g.fillStyle = rgba(KFLC, Math.min(0.5, KFL)); g.fillRect(0, KT, W, KH); }
     g.restore();
-    kFinish(t);
+    kFinish(t, s);
   },
 };
 
@@ -223,6 +261,8 @@ RETRO.kino = {
    Leitmotiv in d-Moll wie alle Stücke (CH in music.js). „Über mich“ (96 BPM): Orchester-Klang — Streicher-Ostinato, Taikos, Hörner.
    „LD Beyond“ (112 BPM): Hybrid — gezupfter Synth-Puls, Sub-Bass, Supersaw. Die Schnitte der Bilder (kPlan → hits) bekommen Akzente. */
 function kinoMusic(A, s, si, sc) {
+  /* Genre-Fassungen: eigenes Arrangement (kino-musik.js) */
+  if (GENRE && typeof KGM !== 'undefined' && KGM[GENRE]) return KGM[GENRE](A, s, si, sc, kPlan(s));
   const sec = KS[s.id].sec, prog = progFor(s.bars), last = si === sc.length - 1, S = B / 4, P = kPlan(s);
   const ost = (t0, c, n, g0, hi) => { for (let e = 0; e < n; e++) { const ix = [0, 2, 1, 2, 3, 2, 1, 2][e % 8], t = t0 + (e * BAR) / n, gg = g0 * (e % (n / 4) === 0 ? 1.3 : 0.9);
     if (KB) A.pluck(t, c.arp[ix] - (hi ? 0 : 12), gg * 2.1, { cut: hi ? 5600 : 3600, pan: e % 2 ? 0.35 : -0.35, dly: 0.3, dur: 0.22 });
@@ -294,5 +334,5 @@ function kinoMusic(A, s, si, sc) {
     else A.chime(s.t0, [CH.Dm.arp[1] + 12, CH.Dm.arp[2] + 12], 0.03, 0.18);
   }
   /* Akzente auf den Schnitten innerhalb der Szene */
-  (P.hits || []).forEach(([lt, v]) => { if (lt < 0.01) return; const t = s.t0 + lt; if (v >= 0.8) { A.whoosh(t, 0.14, 0.4); A.taiko(t, 33, 0.42 * v); A.noise(t, 0.5, 8000, 3500, 0.07 * v, { wet: 0.5 }); } else if (v >= 0.4) { A.taiko(t, 38, 0.3 * v + 0.1); A.noise(t, 0.3, 7000, 4000, 0.04, { wet: 0.4 }); } else A.noise(t, 0.25, 6000, 3000, 0.03 + 0.05 * v, { wet: 0.4 }); });
+  (P.hitsT || []).forEach(([lt, v]) => { if (lt < 0.01) return; const t = s.t0 + lt; if (v >= 0.8) { A.whoosh(t, 0.14, 0.4); A.taiko(t, 33, 0.42 * v); A.noise(t, 0.5, 8000, 3500, 0.07 * v, { wet: 0.5 }); } else if (v >= 0.4) { A.taiko(t, 38, 0.3 * v + 0.1); A.noise(t, 0.3, 7000, 4000, 0.04, { wet: 0.4 }); } else A.noise(t, 0.25, 6000, 3000, 0.03 + 0.05 * v, { wet: 0.4 }); });
 }

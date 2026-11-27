@@ -64,7 +64,10 @@ function autoPlan(tpl, total) {
 const QPLAN = (Q.get('plan') || '').split(',').map((x) => x.split(':')).filter(([id, n]) => id in SECT && +n > 0).map(([id, n]) => [id, Math.round(+n)]);
 /* Stimmungen mit Intro: der Auftakt bekommt mehr Gewicht und einen Takt mehr Mindestlänge */
 const TPL = TEMPLATES[LEN].map((x) => (x[0] === 'logo' && TH.intro ? ['logo', x[1] * TH.intro, x[2] + 1] : x));
-const PLAN = QPLAN.length ? QPLAN : PLANS[MOOD]?.[LEN] ?? autoPlan(TPL, Math.round((LEN * TH.bpm) / 240));
+/* Genre-Fassungen der Kino-Trailer: dieselbe Szenenfolge, die Takte des Genre-Tempos nach den Takten der Grundfassung verteilt —
+   mit einem Gewicht je Szene (Action kürzt die Stille und dehnt die Montagen, Horror und Thriller lassen dem Anfang und der Stille mehr Zeit) */
+const KGW = { action: { begin: 0.7, premise: 0.7, stop: 0.6, labs: 1.3, inside: 1.3, career: 1.1, steps: 1.1 }, thriller: { begin: 1.2, premise: 1.2, stop: 1.2 }, comedy: {}, horror: { begin: 1.3, premise: 1.3, stop: 1.3 }, epos: { stop: 1.2, title: 1.25 }, helden: { begin: 1.2, premise: 1.2, title: 1.2, end: 1.1 } };
+const PLAN = QPLAN.length ? QPLAN : GENRE ? autoPlan(PLANS[MOOD][LEN].map(([id, b]) => [id, b * (KGW[GENRE][id] ?? 1), Math.max(1, Math.ceil(({ studio: 2.2, title: 3, end: 3 }[id] ?? 1.5) / BAR - 0.01))]), Math.round((LEN * TH.bpm) / 240)) : PLANS[MOOD]?.[LEN] ?? autoPlan(TPL, Math.round((LEN * TH.bpm) / 240));
 const NB = PLAN.reduce((s, [, b]) => s + b, 0);
 const DUR = NB * BAR; // exakt 30 / 60 / 90 / 120 / 300 s
 const FN = { logo: scLogo, claim: scClaim, person: scPerson, origin: scOrigin, stack: scStack, journey: scJourney, award: scAward, labs: scLabs, site: scSite, family: scFamily, certs: scCerts, outro: scOutro, focus: scFocus, works: scWorks, labsAll: scLabsAll, hero: scHero, quote: scQuote, quote2: scQuote };
@@ -79,7 +82,7 @@ const OPT = {
   quote2: { i: 1 },
 };
 /* Kennung des Ablaufs: die Musik hängt nur davon ab (Zwischenspeicher beim Rendern) */
-const PLAN_KEY = (() => { const str = JSON.stringify([MOOD, PLAN, OPT.journey.bars, TH.retro === 'kino' ? 'kino-1' : 'musik-4']); let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); })();
+const PLAN_KEY = (() => { const str = JSON.stringify([MOOD, PLAN, OPT.journey.bars, GENRE ? `genre-${GENRE}-1` : TH.retro === 'kino' ? 'kino-1' : 'musik-4']); let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); })();
 const sceneAt = (t) => { let s = SCENES[0]; for (const x of SCENES) if (t >= x.t0) s = x; return s; };
 function drawScene(s, t) { const lt = clamp(t - s.t0, 0, s.D); CUR = s; FN[s.id](lt, s.D, OPT[s.id] ?? {}); }
 
@@ -199,7 +202,7 @@ function render(t) {
 }
 
 window.REEL = {
-  DUR, BAR, B, NB, len: LEN, mood: MOOD, lang: LANG, bpm: TH.bpm,
+  DUR, BAR, B, NB, len: LEN, mood: MOOD, lang: LANG, bpm: TH.bpm, genre: GENRE,
   scenes: SCENES.map((s) => ({ id: s.id, t0: s.t0, D: s.D, bars: s.bars, b0: s.b0 })),
   ready: (async () => {
     await loadAll();

@@ -8,6 +8,7 @@
      CHROMIUM    Pfad zum Chromium (Standard: der von Playwright)
      CRF         Qualität libx264 (Standard 22, lange Fassung 23, neue Stimmungen 24), MAXRATE (Standard 4500k, lange Fassung 2200k;
                  neue Stimmungen 3200k bzw. 2000k)
+     GENRE       Genre-Fassung der Kino-Trailer ka/kb: action, thriller, comedy, horror, epos, helden (Dateiname …-kino-…-<genre>-…)
      NUR_TON=1   nur die Tonspur einer vorhandenen Datei neu abmischen – das Bild bleibt unverändert (-c:v copy)
 
    Die Musik hängt nur von Stimmung und Ablauf ab und wird als WAV zwischengespeichert (<Ausgabe>/.musik/…),
@@ -27,8 +28,12 @@ const NAMES = { cine: 'cinematic', drive: 'treibend', calm: 'ruhig', action: 'ac
 const NEW = ['trance', 'hard', 'euro', 'rave', 'demo', 'old', 'b97', 'b2k', 'b99', 'b01', 'b03', 'b05'];
 /* Die beiden Kino-Trailer gibt es in 30, 60, 90 und 120 Sekunden */
 const KINO = ['ka', 'kb'];
+/* Genre-Fassungen der Kino-Trailer über die Umgebungsvariable GENRE (action, thriller, comedy, horror, epos, helden) */
+const GENRES = { action: 'action', thriller: 'thriller', comedy: 'komoedie', horror: 'horror', epos: 'epos', helden: 'helden' };
+const genre = process.env.GENRE ?? '';
+if (genre && (!GENRES[genre] || !KINO.includes(process.argv[3]))) { console.error('GENRE: action, thriller, comedy, horror, epos oder helden — nur für die Kino-Trailer ka und kb'); process.exit(1); }
 if (!NAMES[mood] || !(KINO.includes(mood) ? ['30', '60', '90', '120'] : ['60', '90', '120', '300'].concat(NEW.includes(mood) ? ['30'] : [])).includes(len) || !['de', 'en'].includes(lang)) { console.error('Aufruf: node render.mjs <30|60|90|120|300> <cine|drive|calm|action|trance|hard|euro|rave|demo|old|b97|b99|b2k|b01|b03|b05> <de|en> [Ausgabeordner] — 30 nicht für cine, drive, calm, action'); process.exit(2); }
-const base = `loona-trailer-${len}s-${NAMES[mood]}-${lang}`;
+const base = `loona-trailer-${len}s-${NAMES[mood]}${genre ? `-${GENRES[genre]}` : ''}-${lang}`;
 /* Die lange Fassung bekommt eine niedrigere Obergrenze, damit die Datei sicher unter 100 MB bleibt (GitHub-Grenze). Die fünf neuen
    Stimmungen haben sehr unruhige Hintergründe (Laser, Pegelsäulen, Plasma): etwas höherer CRF und engere Obergrenze halten die Dateien klein. */
 const FPS = 30, CRF = process.env.CRF ?? (NEW.includes(mood) ? '24' : len === '300' || KINO.includes(mood) ? '23' : '22'), MAXRATE = process.env.MAXRATE ?? (NEW.includes(mood) ? (len === '300' ? '2000k' : '3200k') : len === '300' ? '2200k' : KINO.includes(mood) ? '3600k' : '4500k');
@@ -45,7 +50,7 @@ const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: p
 const page = await browser.newPage({ viewport: { width: 1000, height: 600 } });
 const errs = [];
 page.on('pageerror', (e) => errs.push(String(e)));
-await page.goto(`http://127.0.0.1:${srv.address().port}/index.html?len=${len}&mood=${mood}&lang=${lang}`);
+await page.goto(`http://127.0.0.1:${srv.address().port}/index.html?len=${len}&mood=${mood}&lang=${lang}${genre ? `&g=${genre}` : ''}`);
 const info = await page.evaluate(async () => ({ ready: await REEL.ready, DUR: REEL.DUR, bpm: REEL.bpm, scenes: REEL.scenes, key: REEL.planKey }));
 if (errs.length) { console.error('Fehler in der Seite:', errs); process.exit(1); }
 const N = Math.round(info.DUR * FPS);
@@ -53,7 +58,7 @@ console.log(`${base}: ${info.DUR} s, ${N} Bilder, ${info.bpm} BPM, ${info.ready}
 
 /* ---- Musik (einmal je Stimmung + Länge) ---- */
 /* Dateiname mit der Kennung des Ablaufs: ändert sich der Ablauf, entsteht die Musik neu; lange Stücke kommen in Scheiben */
-const wav = path.join(OUT, '.musik', `musik-${NAMES[mood]}-${len}s-${info.key}.wav`);
+const wav = path.join(OUT, '.musik', `musik-${NAMES[mood]}${genre ? `-${GENRES[genre]}` : ''}-${len}s-${info.key}.wav`);
 if (!fs.existsSync(wav)) {
   const t0 = Date.now(), total = await page.evaluate(() => REEL.musicStore()), STEP = 8 * 1024 * 1024, parts = [];
   for (let a = 0; a < total; a += STEP) parts.push(Buffer.from(await page.evaluate(([x, y]) => REEL.musicSlice(x, y), [a, Math.min(total, a + STEP)]), 'base64'));

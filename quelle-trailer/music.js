@@ -25,6 +25,8 @@ const RIFF = {
 };
 /* Hall-Länge (s), Hall-Anteil und Höhenanhebung im Master (dB) je Stimmung */
 const MIX = { cine: [3.4, 0.8, 4], drive: [1.9, 0.55, 2.5], action: [1.5, 0.5, 3], calm: [3.8, 0.8, 4.5], trance: [3.0, 0.7, 3], hard: [1.8, 0.5, 2.5], euro: [1.8, 0.5, 3], rave: [1.7, 0.5, 2.5], demo: [1.2, 0.35, 2], old: [0.8, 0, 0], b97: [2.8, 0.65, 3], b2k: [1.6, 0.45, 2.5], b99: [1.6, 0.45, 3], b01: [3.0, 0.7, 3], b03: [1.8, 0.5, 2.5], b05: [3.4, 0.8, 5], mark: [2.0, 0.55, 3], ka: [3.6, 0.8, 5.5], kb: [3.0, 0.7, 5.5] };
+/* Genre-Fassungen der Kino-Trailer bringen eigene Werte mit (KGMIX in kino-musik.js) */
+const MXM = (GENRE && typeof KGMIX !== 'undefined' && KGMIX[GENRE]) || MIX[MOOD];
 /* Akkordfolge einer Szene: beginnt auf Dm, der letzte Takt führt über C zurück */
 function progFor(n) { if (n === 1) return ['Dm']; if (n === 2) return ['Dm', 'C']; if (n === 3) return ['Dm', 'Bb', 'C']; const p = Array.from({ length: n }, (_, i) => P8[i % 8]); p[n - 1] = 'C'; if (n % 4 === 1) p[n - 2] = 'Gm'; return p; }
 const SECT = { logo: 'intro', claim: 'intro2', person: 'build', origin: 'soft', stack: 'main', journey: 'main', award: 'break', labs: 'drop', site: 'drop', family: 'soft', certs: 'main', outro: 'outro', focus: 'build', works: 'main', labsAll: 'main', hero: 'drop', quote: 'break', quote2: 'break' };
@@ -41,9 +43,9 @@ async function musicWindow(W0, W1) {
   const SR = M_SR, ac = new OfflineAudioContext(2, Math.ceil((W1 - W0 + M_TAIL) * SR), SR);
   const master = ac.createGain(); master.connect(ac.destination);
   /* Hall: erzeugte Impulsantwort (Rauschen mit Abklingen, zum Ende dunkler) */
-  const vLen = MIX[MOOD][0], ir = ac.createBuffer(2, Math.floor(SR * vLen), SR);
+  const vLen = MXM[0], ir = ac.createBuffer(2, Math.floor(SR * vLen), SR);
   for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let lp = 0; for (let i = 0; i < d.length; i++) { const x = i / d.length, n = (hash(i * 1.37 + c * 9.1) * 2 - 1) * Math.pow(1 - x, 2.6) * (i < SR * 0.012 ? i / (SR * 0.012) : 1); const k = 0.5 - 0.42 * x; lp += k * (n - lp); d[i] = lp; } }
-  const verb = ac.createConvolver(); verb.buffer = ir; const verbG = ac.createGain(); verbG.gain.value = MIX[MOOD][1]; verb.connect(verbG); verbG.connect(master);
+  const verb = ac.createConvolver(); verb.buffer = ir; const verbG = ac.createGain(); verbG.gain.value = MXM[1]; verb.connect(verbG); verbG.connect(master);
   /* Echo (Ping-Pong, punktierte Achtel) */
   const dL = ac.createDelay(2), dR = ac.createDelay(2), fb = ac.createGain(), dIn = ac.createGain(), mrg = ac.createChannelMerger(2), dOut = ac.createGain();
   dL.delayTime.value = B * 0.75; dR.delayTime.value = B * 0.75; fb.gain.value = 0.36; dOut.gain.value = 0.5;
@@ -501,7 +503,7 @@ async function makeMusic() {
   const src = mc.createBufferSource(); src.buffer = mb;
   const pre = mc.createGain(); pre.gain.value = 0.5;
   const hpf = mc.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 30; hpf.Q.value = 0.7;
-  const shelf = mc.createBiquadFilter(); shelf.type = 'highshelf'; shelf.frequency.value = 3200; shelf.gain.value = MIX[MOOD][2];
+  const shelf = mc.createBiquadFilter(); shelf.type = 'highshelf'; shelf.frequency.value = 3200; shelf.gain.value = MXM[2];
   /* Demo 90: statt der Höhenanhebung der Tiefpass des Amiga-Ausgangs (rund 7 kHz) */
   if (MOOD === 'old') { shelf.type = 'lowpass'; shelf.frequency.value = 7500; shelf.Q.value = 0.7; }
   const comp = mc.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 8; comp.ratio.value = 3.5; comp.attack.value = 0.006; comp.release.value = 0.22;

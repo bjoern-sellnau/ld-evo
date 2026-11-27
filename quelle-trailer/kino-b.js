@@ -147,7 +147,7 @@ KS.stage = {
       const img = IMG[key], px = 720, pw = W - 110 - px, py = KT + 64 + (1 - eOut5(seg(t, 0, 0.6))) * 120, ph = KBO - py + 40;
       g.save(); g.globalAlpha = seg(t, 0, 0.15); g.save(); g.shadowColor = 'rgba(0,0,0,0.7)'; g.shadowBlur = 80; g.fillStyle = '#05070c'; rr(px, py, pw, ph, 22); g.fill(); g.restore();
       if (img) { const sc = pw / img.width, ih = img.height * sc, sy = Math.min(Math.max(0, ih - ph), 250 * d) * eIO(seg(t, 0.25, d)); g.save(); rr(px, py, pw, ph, 22); g.clip(); g.drawImage(img, px, py - sy, pw, ih); g.restore(); }
-      g.strokeStyle = 'rgba(148,178,220,0.3)'; g.lineWidth = 1.5; rr(px, py, pw, ph, 22); g.stroke(); g.restore();
+      kGrade(px, py, pw, ph, 22); g.strokeStyle = 'rgba(148,178,220,0.3)'; g.lineWidth = 1.5; rr(px, py, pw, ph, 22); g.stroke(); g.restore();
     }
     kbCaption(`LD Beyond · ${idx}`, name, sub, t, key === 'mob' ? { max: 640, size: 84, y: KCY + 40 } : { max: 520, size: 78, y: KCY + 40 });
     kCutFlash(t, 0.45, '#bfe4ff');
@@ -175,7 +175,7 @@ KS.steps = {
     const zz = lerp(F.z0, F.z1, t / d), x2 = F.k2 ? seg(t / d, 0.5, 0.58) : 0;
     g.save(); g.translate(bx + bw / 2 + (1 - p) * 90, KCY); g.scale(sc, sc); g.translate(-(bx + bw / 2), -KCY); browser(IMG[F.k], bx, by, bw, bh, { dark: true, alpha: seg(t, 0, 0.18), bar: 38, r: 14, url: 'LD Flow.', blur: 70, shadow: 'rgba(0,0,0,0.65)', zoom: zz, px: F.px, py: F.py });
     if (x2 > 0) browser(IMG[F.k2], bx, by, bw, bh, { dark: true, alpha: x2, bar: 38, r: 14, url: 'LD Flow.', blur: 0, shadow: 'rgba(0,0,0,0)', zoom: zz, px: F.px, py: F.py });
-    g.restore();
+    kGrade(bx, by, bw, bh, 14); g.restore();
     /* links Schritt, Titel, Text */
     const x = 130, max = 540, hs = kFit(head, max, 58, { w: 600, fam: UNB, track: -0.02 }), lines = hs < 40 ? wrapLines(head, max, 46, 600, UNB, -0.02) : [head], sz = hs < 40 ? 46 : hs, y0 = KCY - (long ? 40 : 10) - (lines.length - 1) * sz * 0.6;
     kText(String(k + 1).padStart(2, '0'), x, y0 - sz - 26, { size: 34, w: 700, fam: UNB, align: 'left', col: KL.acc, alpha: seg(t, 0, 0.1) });
