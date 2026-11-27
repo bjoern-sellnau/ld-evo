@@ -3,7 +3,6 @@
 Eigener Branch nur für die Videos — getrennt von der Website (kein Website-Code, keine CI).
 
 - [Kino-Trailer — „Über mich · 20 Jahre Erfahrung“ und „LD Beyond“ (16:9 mit Kinoformat, 30 bis 120 s, DE + EN; dazu sechs Genre-Fassungen und ein Countdown-Teaser)](#kino-trailer--über-mich--20-jahre-erfahrung-und-ld-beyond)
-- [Kino-Trailer — „Über mich · 20 Jahre Erfahrung“ und „LD Beyond“ (16:9 mit Kinoformat, 30 bis 120 s, DE + EN)](#kino-trailer--über-mich--20-jahre-erfahrung-und-ld-beyond)
 - [Trailer — „What the web can be.“ (16:9, 30 bis 300 s, sechzehn Stimmungen, DE + EN), LD Mark und Echtzeit-Demo](#trailer--what-the-web-can-be)
 - [20 Varianten — Terminal bis Pinnwand (33–56 s)](#20-varianten)
 - [Reel 3 — „Director's Cut“ (2:12 min, Negativ-Logo, SPREE|FALL)](#reel-3--directors-cut)
