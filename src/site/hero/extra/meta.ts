@@ -69,6 +69,9 @@ export const EXTRA_MODES: Record<string, ExtraModeMeta> = {
   },
   buildagents: { label: 'Live-Build: Agents', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },
   buildagentsts: { label: 'Live-Build: Agents (Timeshift)', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },
+  // Countdown-Uhr der beiden Teaser (Wunsch 28.11.2026): Grund in countdown.ts, Ziffern als Markup (../CountdownHero.tsx)
+  countdownbeyond: { label: 'Countdown: LD Beyond.', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },
+  countdownjahre: { label: 'Countdown: 20 Jahre', renderer: 'canvas2d', bg: '#000000', sample: '0.03,0.03', lum: 0.03 },
 };
 
 export const isExtraMode = (mode: string): boolean => mode in EXTRA_MODES;

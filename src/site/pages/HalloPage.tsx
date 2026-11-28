@@ -7,9 +7,12 @@ import { ProjectCard, mono } from '../cards/ProjectCard';
 import styles from '../cards/cards.module.css';
 import { useContent } from '../content/ContentProvider';
 import { EText } from '../cms/editing';
+import { CountdownHero } from '../hero/CountdownHero';
+import { countdownCfg, isCountdownMode } from '../hero/countdown';
 import { FlowHero } from '../hero/FlowHero';
 import { contrastColor, heroInk, heroMode } from '../hero/heroInk';
 import { HERO_MODES, heroFxBgOf, heroFxSampleOf } from '../hero/modes';
+import { heroCfgOf } from '../hero/palettes';
 import { useHeroShader } from '../hero/useHeroShader';
 import { useExtraHero } from '../hero/extra/useExtraHero';
 import { useSite } from '../settings/SiteProvider';
@@ -52,6 +55,21 @@ function useCareerSeconds() {
   return v;
 }
 
+/** Nur für Screenreader und Suchmaschinen sichtbar (Countdown-Hero „Nur die Uhr“: die Seitenüberschrift bleibt im Dokument). */
+const srOnly: CSSProperties = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0 0 0 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
+/** Countdown-Hero: der schwarze Grund reicht bis unter die Uhr und läuft erst ganz unten aus. */
+const CD_MASK = 'linear-gradient(180deg,#000 calc(100% - 96px),transparent)';
+
 function useScrolled() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -89,10 +107,25 @@ export function HalloPage() {
     if ((bx.orb || !hm.startsWith('build')) && !('ldsplash2' in document.body.dataset)) delete document.body.dataset.ldbuild;
   }, [hm, bx.orb]);
 
+  // Countdown-Hero (neu, Wunsch 28.11.2026): die Uhr der Countdown-Teaser als Markup über dem gezeichneten Grund —
+  // „Nur die Uhr“ (solo) ersetzt den Hero-Text, sonst steht sie daneben (schmal: darüber). Bei Design „Beyond“ bleibt
+  // der Hero LD retro (Entwurf 1:1), dort gibt es keine Uhr.
+  const cdMode = isCountdownMode(hm) && !(bx.orb && s.design === 'beyond') ? hm : null;
+  const cd = cdMode ? countdownCfg(cdMode, heroCfgOf(s.heroCfg, cdMode)) : null;
+  const cdStack = !!cd && !cd.solo && mob && !bx.orb;
+
   const padX = mob ? 18 : 32;
   // Cinematic (Matrix/Matrix v2) blendet den Hero-Text aus; mit „Hero-Text danach“ kommt er nach dem Cinematic zurück.
   const heroTxtHidden = ((hm === 'matrix' && s.mxCine) || hm === 'matrix2') && !(s.mxLater && cineDone);
-  const heroPad = s.fullHero && !mob ? '140px 0 120px' : mob && s.mobModern ? '78px 0 56px' : mob ? '124px 0 64px' : '158px 0 92px';
+  const heroPad = cdStack
+    ? '30px 0 64px'
+    : s.fullHero && !mob
+      ? '140px 0 120px'
+      : mob && s.mobModern
+        ? '78px 0 56px'
+        : mob
+          ? '124px 0 64px'
+          : '158px 0 92px';
   // Full-Hero mobil (Abweichung vom Prototyp, Wunsch 04.10.2026): Höhe der Tab-Leiste bzw. des Docks einrechnen und
   // die Zähler-Leiste (~124 px) sichtbar lassen; 100svh = kleine Viewport-Höhe (mit eingeblendeter Browserleiste).
   // „Leiste beim Scrollen ausblenden“: Die Startseite beginnt ohne Tab-Leiste — der Hero reicht bis fast nach unten.
@@ -128,11 +161,11 @@ export function HalloPage() {
           left: '50%',
           transform: 'translateX(-50%)',
           width: mob && !isMobile ? 430 : '100vw',
-          height: heroFxH,
+          height: cd ? 'calc(100% + 140px)' : heroFxH,
           overflow: 'hidden',
           pointerEvents: 'none',
-          WebkitMask: 'linear-gradient(180deg,#000 68%,transparent)',
-          mask: 'linear-gradient(180deg,#000 68%,transparent)',
+          WebkitMask: cd ? CD_MASK : 'linear-gradient(180deg,#000 68%,transparent)',
+          mask: cd ? CD_MASK : 'linear-gradient(180deg,#000 68%,transparent)',
           background: heroFxBgOf(hm, s.heroCfg),
         }}
       >
@@ -171,7 +204,29 @@ export function HalloPage() {
 
   return (
     <div data-screen-label="Hallo">
-      {bx.orb ? (
+      {cdMode && cd?.solo ? (
+        // Countdown „Nur die Uhr“: Titel, Anzeige und Einheiten groß und mittig, wie in der Uhr-Szene der Teaser
+        <div
+          id="ld-hero"
+          style={{
+            position: 'relative',
+            margin: `0 -${padX}px`,
+            padding: `${mob ? (s.mobModern ? 92 : 128) : 164}px ${padX}px ${mob ? 72 : 118}px`,
+            boxSizing: 'border-box',
+            minHeight: heroMinH,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          {fxLayer}
+          <h1 style={srOnly}>
+            {home.titleLine1} {home.titleLine2}
+          </h1>
+          <CountdownHero mode={cdMode} layout="solo" />
+          {s.fullHero && !mob && <ScrollIndicator hidden={scrolled} />}
+        </div>
+      ) : bx.orb ? (
         <div id="ld-hero" style={{ position: 'relative' }}>
           <BeyondHero
             pill={bx.neu}
@@ -179,6 +234,7 @@ export function HalloPage() {
             fx={bxRetro ? undefined : fxLayer}
             fxText={contrastColor(hm, s.theme === 'light')}
             txt={txt}
+            side={cdMode ? <CountdownHero mode={cdMode} layout="side" /> : undefined}
           />
         </div>
       ) : (
@@ -197,6 +253,24 @@ export function HalloPage() {
         >
           {fxLayer}
           {def.renderer === 'orb' && !mob && <RetroOrb mob={false} />}
+          {cdMode && !mob && (
+            // Countdown neben dem Hero-Text (breit): rechts, senkrecht mittig
+            <div
+              style={{
+                position: 'absolute',
+                top: 66,
+                bottom: 0,
+                right: padX,
+                width: `min(600px, calc(100% - ${610 + 2 * padX}px))`,
+                display: 'flex',
+                alignItems: 'center',
+                pointerEvents: 'none',
+              }}
+            >
+              <CountdownHero mode={cdMode} layout="side" />
+            </div>
+          )}
+          {cdStack && cdMode && <CountdownHero mode={cdMode} layout="side" style={{ marginTop: s.mobModern ? 88 : 124 }} />}
           <div
             aria-hidden
             data-ldb="title"

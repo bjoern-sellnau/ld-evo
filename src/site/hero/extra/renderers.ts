@@ -8,6 +8,7 @@
 
 // Zweite Welle (Wunsch vom 17.10.2026) in eigener Datei, nutzt die Helfer von hier (Zyklus nur zur Laufzeit)
 import { BUILD_2D, SPLASH_2D, WELCOME_2D } from './build';
+import { COUNTDOWN_2D } from './countdown';
 import { HORIZON_SHADERS } from './horizons';
 import { MORE_2D, MORE_SHADERS } from './renderers2';
 import { LOONA_BADGE, LOONA_ZEICHEN } from '@/components/brand/products';
@@ -975,7 +976,7 @@ const factory = (
 ): ExtraRenderer | null => {
   const shader = SHADERS[mode] ?? MORE_SHADERS[mode] ?? HORIZON_SHADERS[mode];
   if (shader) return glMode(shader)(cv, pal, ptr);
-  const m = MODES_2D[mode] ?? MORE_2D[mode] ?? BUILD_2D[mode] ?? SPLASH_2D[mode] ?? WELCOME_2D[mode];
+  const m = MODES_2D[mode] ?? MORE_2D[mode] ?? BUILD_2D[mode] ?? COUNTDOWN_2D[mode] ?? SPLASH_2D[mode] ?? WELCOME_2D[mode];
   if (!m) return null;
   const g = cv.getContext('2d');
   if (!g) return null;

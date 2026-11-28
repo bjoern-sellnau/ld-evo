@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { settingInfo } from './settingsInfo';
 import { mono } from '../cards/ProjectCard';
 import { heroMode } from '../hero/heroInk';
+import { COUNTDOWN_MODES, countdownCfg, isCountdownMode } from '../hero/countdown';
 import { EXTRA_MODES, SWARM_EVERY, SWARM_LOGOS, swarmEvery, swarmOrder } from '../hero/extra/meta';
 import { FAVICONS, faviconChoice, faviconUri } from '../settings/favicon';
 import { PALETTES, heroCfgOf, resolvePal, type HeroModeCfg, type PaletteName } from '../hero/palettes';
@@ -334,6 +335,11 @@ const EN_LABELS: Record<string, string> = {
   'Bewegtes Zeichen': 'Moving mark',
   'Loop-Logos': 'Loop logos',
   'Loop: Wechsel nach': 'Loop: switch after',
+  'Countdown: 20 Jahre': 'Countdown: 20 years',
+  'Countdown-Ziel': 'Countdown target',
+  'Countdown-Farbe': 'Countdown colour',
+  'Uhr tickt (Ton)': 'Clock ticks (sound)',
+  'Nur die Uhr': 'Clock only',
   'Nach oben': 'Move up',
   'Nach unten': 'Move down',
   'Mindestens ein Logo': 'At least one logo',
@@ -413,7 +419,7 @@ function useSl() {
 }
 
 // Welche Modi welche Konfig-Zeilen zeigen (Prototyp: showFxPal / showFxCfg / showFxAng / showFxReset).
-const NO_PAL = ['orbit', 'retro'];
+const NO_PAL = ['orbit', 'retro', ...Object.keys(COUNTDOWN_MODES)];
 const SIZE_POS = ['flow', 'blackhole', 'nova', 'orbit', 'ribbon'];
 
 /** Einstellungs-Panel (Prototyp Zeile 973–1211). Alle Werte persistieren über den SiteProvider (ld-*-Keys). */
@@ -1350,6 +1356,38 @@ export function SettingsPanel() {
               </Row>
             </>
           )}
+          {isCountdownMode(hm) &&
+            (() => {
+              // Countdown-Hero (Wunsch 28.11.2026): Ziel, Farbe, Ticken und Darstellung frei wählbar
+              const cd = countdownCfg(hm, cfg);
+              return (
+                <>
+                  <Row label="Countdown-Ziel" column>
+                    <input
+                      type="datetime-local"
+                      value={cd.local}
+                      // leeres Feld (gelöscht) → Vorgabe der Fassung
+                      onChange={(e) => setCfg(hm, 'date', e.target.value || undefined)}
+                      aria-label={sl('Countdown-Ziel')}
+                      className={styles.text}
+                      style={{ padding: '7px 10px', boxSizing: 'border-box', width: '100%', colorScheme: 'dark light' }}
+                    />
+                  </Row>
+                  <Row label="Countdown-Farbe">
+                    <input
+                      type="color"
+                      value={cd.color}
+                      onChange={(e) => setCfg(hm, 'color', e.target.value)}
+                      aria-label={sl('Countdown-Farbe')}
+                      className={styles.color}
+                      style={{ width: 44 }}
+                    />
+                  </Row>
+                  <Toggle label="Uhr tickt (Ton)" on={cd.tick} onToggle={() => setCfg(hm, 'tick', !cd.tick)} />
+                  <Toggle label="Nur die Uhr" on={cd.solo} onToggle={() => setCfg(hm, 'solo', !cd.solo)} />
+                </>
+              );
+            })()}
           {hm === 'weather' && (
             <>
               <Row label="Wetter-Vorschau" column>

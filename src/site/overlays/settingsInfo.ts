@@ -185,6 +185,22 @@ export const SETTINGS_INFO: Record<string, { de: string; en: string }> = {
     de: 'Nur bei Partikel-Logo „Loop“: nach wie vielen Sekunden die Teilchen zerstieben und das nächste Logo formen.',
     en: 'Particle logo “Loop” only: after how many seconds the particles scatter and form the next logo.',
   },
+  'Countdown-Ziel': {
+    de: 'Nur für die Countdown-Heros: Datum und Uhrzeit, bis zu denen die Uhr herunterzählt — in deutscher Zeit, für alle Besucher derselbe Augenblick. Das Datum selbst wird nicht angezeigt, nur die laufende Restzeit.',
+    en: 'Countdown heroes only: date and time the clock counts down to — in German time, the same instant for every visitor. The date itself is not shown, only the time remaining.',
+  },
+  'Countdown-Farbe': {
+    de: 'Nur für die Countdown-Heros: Farbe der Leuchtziffern und des Scheins dahinter. Vorgabe: Blau (LD Beyond.) bzw. Orange (20 Jahre).',
+    en: 'Countdown heroes only: colour of the glowing digits and the light behind them. Default: blue (LD Beyond.) or orange (20 years).',
+  },
+  'Uhr tickt (Ton)': {
+    de: 'Die Uhr tickt hörbar im Sekundentakt. Browser geben Ton erst nach dem ersten Klick oder Tastendruck frei; an der Uhr erscheint ein Knopf zum Stummschalten. Außerhalb des Bildes und im Hintergrund-Tab bleibt sie still.',
+    en: 'The clock ticks audibly once a second. Browsers only allow sound after the first click or key press; a mute button appears at the clock. It stays silent off-screen and in background tabs.',
+  },
+  'Nur die Uhr': {
+    de: 'An = die Uhr steht groß und allein im Hero, wie in den Countdown-Teasern. Aus = der Hero-Text bleibt, die Uhr steht daneben (auf schmalen Bildschirmen darüber).',
+    en: 'On = the clock stands large and alone in the hero, as in the countdown teasers. Off = the hero text stays and the clock sits next to it (above it on narrow screens).',
+  },
   'Wetter-Vorschau': {
     de: 'Nur für den Wetter-Hero: zeigt eine feste Wetterlage statt des echten Berliner Wetters — zum Testen aller Darstellungen, ohne auf Regen zu warten. „Live“ = echtes Wetter.',
     en: 'Weather hero only: shows a fixed condition instead of the real Berlin weather — to test every look without waiting for rain. “Live” = real weather.',

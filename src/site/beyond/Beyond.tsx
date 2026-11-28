@@ -88,6 +88,7 @@ export function BeyondHero({
   fx,
   fxText,
   txt,
+  side,
 }: {
   pill: boolean;
   mob: boolean;
@@ -97,6 +98,8 @@ export function BeyondHero({
   fxText?: string;
   /** Sichtbarkeit des Textes (Matrix-Cinematic blendet ihn aus). */
   txt?: CSSProperties;
+  /** Inhalt der rechten Spalte statt Mond bzw. Leerraum (Countdown-Hero: die Uhr). */
+  side?: ReactNode;
 }) {
   const { home, projects, about } = useContent();
   const { setOverlay } = useSite();
@@ -141,7 +144,7 @@ export function BeyondHero({
           </div>
         </dl>
       </div>
-      {fx ? <div aria-hidden /> : <Orb small={mob} />}
+      {side ?? (fx ? <div aria-hidden /> : <Orb small={mob} />)}
     </div>
   );
 }
