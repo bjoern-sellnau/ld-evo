@@ -1,0 +1,225 @@
+/*
+ * Countdown-Hero (neu, Wunsch 28.11.2026) — Form aus der Uhr-Szene der Countdown-Teaser (Branch `reel`,
+ * quelle-trailer/kino.js → KS.clock): Titel in Versalien, Leuchtziffern, Einheiten in Mono-Versalien.
+ * Der Grund dahinter ist immer schwarz (Hero-Canvas, extra/countdown.ts) — daher feste helle Schriftfarben.
+ * --cd = gewählte Farbe der Anzeige.
+ */
+.root {
+  --cd: #19a7ff;
+  position: relative;
+  container-type: inline-size;
+  color: #fff;
+  text-align: center;
+}
+.solo {
+  width: min(100%, 980px);
+  margin: 0 auto;
+}
+.side {
+  width: 100%;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(17px, 4.6cqw, 42px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.07em;
+  /* Sperrung hängt rechts an — links ausgleichen, damit die Zeile mittig steht */
+  padding-left: 0.07em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.beyond .title {
+  font-family: var(--bx-font-display), var(--ld-font-sans), sans-serif;
+}
+.sub {
+  margin: 0.7em 0 0;
+  padding-left: 0.42em;
+  font-family: var(--ld-font-mono), monospace;
+  font-size: clamp(9px, 1.55cqw, 15px);
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  /* aufgehellte Uhrfarbe: bleibt auch bei dunkel gewählter Farbe lesbar (≥ 4.5:1 auf Schwarz) */
+  color: color-mix(in srgb, var(--cd) 50%, #fff);
+}
+
+.clock {
+  margin-top: clamp(14px, 3.8cqw, 36px);
+}
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--cd) 75%, transparent));
+  filter: drop-shadow(0 0 1.5cqw color-mix(in srgb, var(--cd) 75%, transparent));
+}
+/* Segmente: aus = schwach sichtbar wie bei einer Leuchtanzeige */
+.seg,
+.segOn,
+.colon {
+  fill: var(--cd);
+}
+.seg {
+  fill-opacity: 0.07;
+}
+.colon {
+  fill-opacity: 0.12;
+}
+.root[data-on] .colon {
+  fill-opacity: 1;
+}
+
+.units {
+  position: relative;
+  height: 1.5em;
+  margin-top: clamp(8px, 1.9cqw, 18px);
+  font-family: var(--ld-font-mono), monospace;
+  font-size: clamp(9px, 1.35cqw, 13px);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #aeb4bf;
+}
+.unit {
+  position: absolute;
+  top: 0;
+  padding-left: 0.26em;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Ton an/aus — nur sichtbar, wenn das Ticken eingeschaltet ist */
+.sound {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: clamp(14px, 2.6cqw, 24px);
+  padding: 7px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e6ebf2;
+  font: inherit;
+  font-family: var(--ld-font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  /* die Animationsfläche des Heros fängt keine Zeiger — der Knopf schon */
+  pointer-events: auto;
+}
+.sound:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.sound:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.sound[aria-pressed='false'] {
+  color: #aeb4bf;
+}
+
+/* ---- Bewegung: Sekundenpuls, blinkende Doppelpunkte, Einschlag beim ersten Takt ---- */
+/* Zwei gleiche Abläufe im Wechsel (data-beat 0/1), damit der Puls mit jeder Sekunde neu startet */
+@keyframes cdBeatA {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.78;
+  }
+}
+@keyframes cdBeatB {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.78;
+  }
+}
+@keyframes cdColonA {
+  0%,
+  49.9% {
+    fill-opacity: 1;
+  }
+  50%,
+  100% {
+    fill-opacity: 0.12;
+  }
+}
+@keyframes cdColonB {
+  0%,
+  49.9% {
+    fill-opacity: 1;
+  }
+  50%,
+  100% {
+    fill-opacity: 0.12;
+  }
+}
+@keyframes cdSlam {
+  0% {
+    transform: scale(1.22);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.25;
+  }
+  44% {
+    opacity: 1;
+  }
+  58% {
+    opacity: 0.4;
+  }
+  72%,
+  100% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.root[data-on] .clock {
+  animation: cdSlam 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.root[data-beat='0'] .svg {
+  animation: cdBeatA 1s cubic-bezier(0.12, 0.7, 0.3, 1) both;
+}
+.root[data-beat='1'] .svg {
+  animation: cdBeatB 1s cubic-bezier(0.12, 0.7, 0.3, 1) both;
+}
+.root[data-beat='0'] .colon {
+  animation: cdColonA 1s linear both;
+}
+.root[data-beat='1'] .colon {
+  animation: cdColonB 1s linear both;
+}
+
+/* „Animationen aus“ und prefers-reduced-motion: die Uhr zählt ruhig weiter */
+@media (prefers-reduced-motion: reduce) {
+  .root .clock,
+  .root .svg,
+  .root .colon {
+    animation: none !important;
+  }
+}
+:global(body.still) .root :is(.clock, .svg, .colon) {
+  animation: none !important;
+}
