@@ -40,14 +40,14 @@ if (GENRE) (() => {
       a: { de: { begin: ['Alles hat einen Anfang.'], career: ['Zwanzig Jahre.', 'Jede Station zählt.'], labs: ['Jetzt kommt alles zusammen.'], soon: 'Die Reise geht weiter' }, en: { begin: ['Everything has a beginning.'], career: ['Twenty years.', 'Every station counts.'], labs: ['Now it all comes together.'], soon: 'The journey continues' } },
       b: { de: { turn: ['Jedes System braucht einen Anfang.'], stage: ['Eine Bühne.', 'Viele Seiten.'], steps: ['Vier Schritte.'], inside: ['Sechs Kräfte.', 'Eine Plattform.'] }, en: { turn: ['Every system needs a beginning.'], stage: ['One stage.', 'Many pages.'], steps: ['Four steps.'], inside: ['Six powers.', 'One platform.'] } },
     },
-    /* Countdown: stiller Teaser mit wenigen Tafeln; die Uhr am Schluss steht in kino.js (KS.clock) */
+    /* Countdown: dunkler Teaser mit wenigen, harten Tafeln; die Uhr am Schluss steht in kino.js (KS.clock) */
     countdown: {
-      a: { de: { career: ['Zwanzig Jahre.'], labs: ['Und es geht weiter.'] }, en: { career: ['Twenty years.'], labs: ['And it goes on.'] } },
-      b: { de: { turn: ['Die neue Website.'], kicker: 'Die neue Website' }, en: { turn: ['The new website.'], kicker: 'The new website' } },
+      a: { de: { career: ['Zwanzig Jahre.'], labs: ['Die Zeit läuft.'] }, en: { career: ['Twenty years.'], labs: ['The clock is ticking.'] } },
+      b: { de: { turn: ['Die neue Website.'], inside: ['Die Zeit läuft.'], kicker: 'Die neue Website' }, en: { turn: ['The new website.'], inside: ['The clock is ticking.'], kicker: 'The new website' } },
     },
   }[G][F][LANG];
   KGX.cards = {};
-  for (const [id, v] of Object.entries(TXT_G)) { if (id === 'soon') KA.soon = v; else if (id === 'comes') KBT.comes = v; else if (id === 'kicker') KBT.kicker = v; else KGX.cards[id] = { per: { action: 0.85, thriller: 1.6, comedy: 1.5, horror: 1.4, epos: 2.0, helden: 2.3, countdown: 2.6 }[G], ...(Array.isArray(v) ? { lines: v } : v) }; }
+  for (const [id, v] of Object.entries(TXT_G)) { if (id === 'soon') KA.soon = v; else if (id === 'comes') KBT.comes = v; else if (id === 'kicker') KBT.kicker = v; else KGX.cards[id] = { per: { action: 0.85, thriller: 1.6, comedy: 1.5, horror: 1.4, epos: 2.0, helden: 2.3, countdown: 1.7 }[G], ...(Array.isArray(v) ? { lines: v } : v) }; }
 
   /* ---------- Farben ---------- */
   const PAL = {
@@ -60,7 +60,9 @@ if (GENRE) (() => {
     countdown: { a: { bg: '#040506', ink: '#E8E6E1', soft: '#A09E99', mute: '#6C6A66', cool: BR.sky, warm: BR.apricot }, b: { soft: '#93a1b8' } },
   }[G][F];
   Object.assign(KL, { hi: BR.apricot }, PAL);
-  const LOGO = (s) => s && (s.id === 'studio' || s.id === 'end');   // Szenen mit dem Zeichen: keine Verzerrungen
+  const LOGO = (s) => s && (s.id === 'studio' || s.id === 'end');
+  /* Herzschlag der Countdown-Fassung: zwei Schläge je Takt (zwei Sekunden) — das Licht pulsiert mit der Musik */
+  const herz = (t) => { const u = ((t % BAR) + BAR) % BAR; return Math.exp(-u * 6) + (u >= 0.36 ? 0.7 * Math.exp(-(u - 0.36) * 6) : 0); };   // Szenen mit dem Zeichen: keine Verzerrungen
   const flick = (t) => { const f = Math.floor(t * 30); return 0.5 + 0.25 * Math.sin(t * 3.1) + 0.25 * Math.sin(t * 5.3 + 1) + (hash(Math.floor(t * 2.2) * 9.1) > 0.86 && hash(f * 1.7) > 0.5 ? 1.2 : 0); };
   /* Zustand des laufenden Bildes (setzt cam zurück): Störung, Abdunklung, „Pop“ */
   let GL = 0, DIP = 0, POP = 0;
@@ -91,7 +93,7 @@ if (GENRE) (() => {
     comedy(t) { g.fillStyle = BR.cream; g.fillRect(0, KT, W, KH); g.save(); g.globalAlpha = 0.5; glow(W * (0.14 + 0.03 * Math.sin(t * 0.5)), KT + 120, 620, BR.apricot, 0.5, false); glow(W * (0.88 + 0.02 * Math.cos(t * 0.4)), KBO - 80, 700, BR.ghostL, 0.9, false); g.restore(); g.fillStyle = 'rgba(23,19,16,0.05)'; for (let y = KT + 30; y < KBO; y += 46) for (let x = 30 + ((y / 46) % 2) * 23; x < W; x += 46) { g.beginPath(); g.arc(x, y, 2, 0, 7); g.fill(); } },
     horror(t) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); const gr = g.createRadialGradient(W / 2, KCY, 40, W / 2, KCY, W * 0.56); gr.addColorStop(0, '#140608'); gr.addColorStop(1, '#020101'); g.fillStyle = gr; g.fillRect(0, KT, W, KH); glow(W * 0.5, KBO + 200, 900, BR.signal, 0.07 + 0.05 * flick(t)); kDustDef(t, 0.5, '#E9E2D6'); },
     epos(t, o) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); const gr = g.createRadialGradient(W / 2, KCY, 80, W / 2, KCY, W * 0.62); gr.addColorStop(0, '#111a26'); gr.addColorStop(1, '#030507'); g.fillStyle = gr; g.fillRect(0, KT, W, KH); rings(t, o.rings ?? 1); glow(W * 0.5, KT - 260, 900, BR.sky, 0.08); kDustDef(t, 0.5, '#C9D6E6'); },
-    countdown(t, o) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); const gr = g.createRadialGradient(W / 2, KCY, 60, W / 2, KCY, W * 0.6); gr.addColorStop(0, '#0e1014'); gr.addColorStop(1, '#020203'); g.fillStyle = gr; g.fillRect(0, KT, W, KH); glow(W * 0.5, KBO + 260, 900, BR.apricot, 0.08); kDustDef(t, 0.45, '#E8E6E1'); },
+    countdown(t, o) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); const gr = g.createRadialGradient(W / 2, KCY, 60, W / 2, KCY, W * 0.6); gr.addColorStop(0, '#0d0e12'); gr.addColorStop(1, '#010101'); g.fillStyle = gr; g.fillRect(0, KT, W, KH); glow(W * 0.5, KBO + 240, 1000, BR.signal, 0.05 + 0.11 * herz(t)); glow(W * 0.5, KT - 300, 900, BR.sky, 0.05); kDustDef(t, 0.5, '#E8E6E1'); },
     helden(t, o) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); const gr = g.createLinearGradient(0, KT, 0, KBO); gr.addColorStop(0, '#0d1016'); gr.addColorStop(1, '#050608'); g.fillStyle = gr; g.fillRect(0, KT, W, KH); glow(W * 0.5, KBO + 240, 980, BR.apricot, 0.13); glow(W * 0.5, KT - 280, 900, BR.sky, 0.07); kDust(t, o.dust ?? 1); },
   };
   /* die Schwebeteilchen der Grundfassung (kDust ist bei Action und Helden ersetzt) */
@@ -105,7 +107,7 @@ if (GENRE) (() => {
     else if (G === 'horror') { g.fillStyle = 'rgba(8,0,0,0.35)'; g.fillRect(0, KT, W, KH); glow(W * 0.5, KBO + 220, 900, '#ff4d1c', 0.1 + 0.07 * flick(t)); }
     else if (G === 'epos') { g.fillStyle = 'rgba(4,6,10,0.3)'; g.fillRect(0, KT, W, KH); rings(t, o.rings ?? 0.9); }
     else if (G === 'helden') { glow(W * 0.5, KBO + 240, 980, BR.apricot, 0.1); }
-    else if (G === 'countdown') { g.fillStyle = 'rgba(3,4,8,0.28)'; g.fillRect(0, KT, W, KH); }
+    else if (G === 'countdown') { g.fillStyle = 'rgba(2,3,6,0.34)'; g.fillRect(0, KT, W, KH); glow(W * 0.5, KBO + 240, 1000, '#19a7ff', 0.05 + 0.12 * herz(t)); }
   };
 
   /* ---------- Schriftbild ---------- */
@@ -119,7 +121,7 @@ if (GENRE) (() => {
     else if (G === 'thriller') { n.w = 300; n.track = (o.track ?? 0) + 0.1; n.sz = 0.8; str = str.toUpperCase(); }
     else if (G === 'horror') { if (KB) { n.w = 300; n.track = (o.track ?? 0) + 0.05; n.sz = 0.92; } else { n.fam = SER; n.it = true; n.w = 400; n.sz = 1.12; n.track = 0; } }
     else if (G === 'epos') { n.w = 200; n.track = (o.track ?? 0) + 0.26; n.sz = 0.72; str = str.toUpperCase(); }
-    else if (G === 'countdown') { n.w = 500; n.track = (o.track ?? 0) + 0.14; n.sz = 0.78; str = str.toUpperCase(); if (!o.grad && !o.col && !o.stroke) n.grad = [[0, '#FFFFFF'], [1, '#B9BEC8']]; }
+    else if (G === 'countdown') { n.w = 800; n.track = (o.track ?? 0) + 0.07; n.sz = 0.88; str = str.toUpperCase(); if (!o.grad && !o.col && !o.stroke) n.grad = [[0, '#FFFFFF'], [1, '#B9BEC8']]; }
     else if (G === 'helden') { n.w = 700; n.track = (o.track ?? 0) + 0.05; n.sz = 0.86; str = str.toUpperCase(); if (!o.grad && !o.col && !o.stroke) n.grad = [[0, '#FFFFFF'], [0.5, '#D9DEE6'], [1, '#7C8797']]; }
     return [str, n];
   };
@@ -130,7 +132,7 @@ if (GENRE) (() => {
   if (G === 'horror' || G === 'thriller') KGX.ghost = (str, x, y, size, o) => { const d = (G === 'horror' ? 1.2 + 2.2 * Math.max(0, flick(KTIME) - 1) : 0) + GL * 9; if (!o.kg || size < 64 || d < 0.6) return; g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha *= 0.5; g.fillStyle = '#ff2a2a'; g.fillText(str, x - d, y); g.fillStyle = '#22d3ff'; g.fillText(str, x + d, y); g.restore(); };
 
   /* ---------- Schnitt, Kamera, Bildlook ---------- */
-  KGX.punch = { action: 1.9, thriller: 0.4, comedy: 1, horror: 0.8, epos: 0.3, helden: 0.6, countdown: 0.25 }[G];
+  KGX.punch = { action: 1.9, thriller: 0.4, comedy: 1, horror: 0.8, epos: 0.3, helden: 0.6, countdown: 1.4 }[G];
   /* Komödie: das Bild federt herein, statt zu stoßen */
   if (G === 'comedy') KGX.punchFn = (tl, amt, fn) => { const k = 1 + 0.06 * (1 - eBack(clamp(tl / 0.38))); g.save(); g.translate(W / 2, KCY); g.scale(k, k); g.translate(-W / 2, -KCY); fn(); g.restore(); };
   KGX.cut = (tl, a) => {
@@ -139,7 +141,7 @@ if (GENRE) (() => {
     else if (G === 'comedy') { if (tl < 0.3) POP = Math.max(POP, 1 - tl / 0.3); }
     else if (G === 'horror') { GL = Math.max(GL, Math.min(1, a * 1.6) * Math.exp(-tl * 9)); if (a >= 0.6 && tl < 0.07) DIP = Math.max(DIP, 0.55); }
     else if (G === 'epos') { const k = a * 0.7 * Math.exp(-tl * 2.6); if (k > KFL) { KFL = k; KFLC = '#CFE0F5'; } }
-    else if (G === 'countdown') { const k = a * 0.32 * Math.exp(-tl * 3.5); if (k > KFL) { KFL = k; KFLC = '#FFF1DC'; } }
+    else if (G === 'countdown') { const k = a * 0.8 * Math.exp(-tl * 5.5); if (k > KFL) { KFL = k; KFLC = '#EAF2FF'; } }
     else { const k = a * 0.55 * Math.exp(-tl * 6); if (k > KFL) { KFL = k; KFLC = '#FFF1DC'; } }
     return true;
   };
@@ -150,11 +152,14 @@ if (GENRE) (() => {
       const P = kPlan(s); let last = 0; for (const [x] of P.hitsT) if (x <= lt) last = Math.max(last, x); const k = (logo ? 0.3 : 1) * (1 + 3.2 * Math.exp(-(lt - last) * 7));
       g.translate((Math.sin(t * 13.1) + Math.sin(t * 7.3 + 1)) * 2.0 * k, (Math.cos(t * 11.7) + Math.sin(t * 5.9)) * 1.5 * k);
     } else if (G === 'horror' && !logo) { const z = 1.012 + 0.008 * Math.sin(t * 0.9); g.translate(W / 2, KCY); g.scale(z, z); g.translate(-W / 2 + Math.sin(t * 0.37) * 5, -KCY); }
-    else if (G === 'epos' || (G === 'countdown' && s.id !== 'clock')) { const z = 1 + 0.014 * (lt / s.D); g.translate(W / 2, KCY); g.scale(z, z); g.translate(-W / 2, -KCY); }
+    else if (G === 'epos') { const z = 1 + 0.014 * (lt / s.D); g.translate(W / 2, KCY); g.scale(z, z); g.translate(-W / 2, -KCY); }
+    else if (G === 'countdown' && s.id !== 'clock') { /* langsame Fahrt nach vorn, auf jedem Schnitt ein kurzer Ruck */
+      const P = kPlan(s); let last = -9; for (const [x] of P.hitsT) if (x <= lt) last = Math.max(last, x); const k = (logo ? 0 : 5) * Math.exp(-(lt - last) * 8), z = 1 + 0.022 * (lt / s.D);
+      g.translate(W / 2 + Math.sin(t * 61) * k, KCY + Math.cos(t * 53) * k * 0.7); g.scale(z, z); g.translate(-W / 2, -KCY); }
   };
   /* Bildlook auf Fotos und Bildschirmaufnahmen */
   const grade = (x, y, w, h, sat, tint, dim) => { g.save(); if (sat < 1) { g.globalCompositeOperation = 'saturation'; g.globalAlpha = 1 - sat; g.fillStyle = '#808080'; g.fillRect(x, y, w, h); } if (tint) { g.globalCompositeOperation = 'multiply'; g.globalAlpha = 1; g.fillStyle = tint; g.fillRect(x, y, w, h); } if (dim) { g.globalCompositeOperation = 'source-over'; g.globalAlpha = dim; g.fillStyle = '#000'; g.fillRect(x, y, w, h); } g.restore(); };
-  KGX.img = { action: (x, y, w, h) => grade(x, y, w, h, 1, '#FFE6D2', 0), thriller: (x, y, w, h) => grade(x, y, w, h, 0.4, '#CFE0F0', 0.06), comedy: null, horror: (x, y, w, h) => grade(x, y, w, h, 0.35, '#E3B3A8', 0.16), epos: (x, y, w, h) => grade(x, y, w, h, 0.28, '#C8D6E6', 0.06), helden: (x, y, w, h) => grade(x, y, w, h, 0.18, '#EFE6DA', 0.08), countdown: (x, y, w, h) => grade(x, y, w, h, 0.3, '#E9E4DC', 0.1) }[G];
+  KGX.img = { action: (x, y, w, h) => grade(x, y, w, h, 1, '#FFE6D2', 0), thriller: (x, y, w, h) => grade(x, y, w, h, 0.4, '#CFE0F0', 0.06), comedy: null, horror: (x, y, w, h) => grade(x, y, w, h, 0.35, '#E3B3A8', 0.16), epos: (x, y, w, h) => grade(x, y, w, h, 0.28, '#C8D6E6', 0.06), helden: (x, y, w, h) => grade(x, y, w, h, 0.18, '#EFE6DA', 0.08), countdown: (x, y, w, h) => grade(x, y, w, h, 0.2, '#DCE2EC', 0.16) }[G];
   /* Störstreifen: waagerechte Bänder des fertigen Bildes versetzt noch einmal gezeichnet */
   const slices = (t, k, n) => { const f = Math.floor(t * 30); g.save(); g.globalCompositeOperation = 'source-over'; for (let q = 0; q < n; q++) { const y = KT + Math.floor(hash(f * 3.1 + q * 7.7) * (KH - 60)), h = 8 + Math.floor(hash(f * 5.3 + q) * 54), dx = Math.round((hash(f * 1.9 + q * 3.3) - 0.5) * 150 * k); if (dx) g.drawImage(cv, 0, y, W, h, dx, y, W, h); } g.restore(); };
   KGX.post = (t, s, lt) => {
@@ -169,7 +174,7 @@ if (GENRE) (() => {
       const r = lerp(120, 1500, eOut(1 - POP)); g.save(); g.strokeStyle = rgba(KB ? BR.nova : BR.orange, 0.55 * POP); g.lineWidth = 34 * POP; g.beginPath(); g.arc(W / 2, KCY, r, 0, 7); g.stroke(); g.restore();
     }
   };
-  KGX.vig = { action: 0.72, thriller: 0.7, comedy: KB ? 0.5 : 0.1, horror: 0.82, epos: 0.66, helden: 0.66, countdown: 0.74 }[G];
+  KGX.vig = { action: 0.72, thriller: 0.7, comedy: KB ? 0.5 : 0.1, horror: 0.82, epos: 0.66, helden: 0.66, countdown: 0.84 }[G];
   KGX.grain = { action: 0.06, thriller: 0.05, comedy: 0.03, horror: 0.075, epos: 0.05, helden: 0.06, countdown: 0.05 }[G];
   /* Zeilenmuster der Horror-Fassung (wie ein altes Videoband) */
   const SCAN = (() => { const c = mkLayer(4, 4); c.fillStyle = 'rgba(0,0,0,0.5)'; c.fillRect(0, 0, 4, 2); return c.canvas; })();
@@ -215,7 +220,7 @@ if (GENRE) (() => {
       if (dz > 0) { g.save(); for (let q = 0; q < 420; q++) { const px = x0 + hash(q * 1.31) * (wMax + 80); if (px > edge) continue; const age = (edge - px) / (wMax + 80) + 0.02, py = y0 - size * 0.8 + hash(q * 2.77) * (n * lh), x = px + age * (260 + 420 * hash(q * 3.9)), y = py - age * (60 + 190 * hash(q * 5.3)) + Math.sin(age * 9 + q) * 10, al = clamp(1 - age * 1.5) * 0.85; if (al <= 0) continue; g.fillStyle = rgba(hash(q * 7.1) > 0.8 ? BR.apricot : '#D9DEE6', al); g.fillRect(x, y, 1.5 + 2.5 * hash(q * 9.7), 1.5 + 2 * hash(q * 4.1)); } g.restore(); }
     },
   };
-  /* Countdown: eine ruhige Zeile, langsam ein- und ausgeblendet */
-  CARD.countdown = (c, t, d) => { const n = c.lines.length, size = Math.min(...c.lines.map((s) => fitHead(s, 104))), lh = size * 1.3, y0 = KCY - ((n - 1) * lh) / 2 + size * 0.24, out = 1 - eIn(seg(t, d - 0.7, d)), sc = 1 + 0.035 * (t / d); g.save(); g.translate(W / 2, KCY); g.scale(sc, sc); g.translate(-W / 2, -KCY); c.lines.forEach((s, i) => kText(s, W / 2, y0 + i * lh, { size, alpha: eOut(seg(t, 0.25 + i * 0.6, 1.3 + i * 0.6)) * out })); g.restore(); };
+  /* Countdown: jede Zeile allein und groß, sie schlägt mit einem Lichtstoß ins Bild */
+  CARD.countdown = (c, t, d) => { const n = c.lines.length, per = d / n, i = Math.min(n - 1, Math.floor(t / per)), tl = t - i * per, s = c.lines[i], size = fitHead(s, 190), sc = lerp(1.22, 1, eOut5(seg(tl, 0, 0.32))) * (1 + 0.04 * (tl / per)), out = 1 - eIn(seg(tl, per - 0.18, per)); kFlare(W / 2, KCY + 8, 1150, KB ? '#19a7ff' : KL.warm, 0.7 * Math.exp(-tl * 2.6) + 0.1); g.save(); g.translate(W / 2, KCY); g.scale(sc, sc); g.translate(-W / 2, -KCY); kText(s, W / 2, KCY + size * 0.3, { size, alpha: seg(tl, 0, 0.05) * out }); g.restore(); kCutFlash(tl, 0.8); };
   KGX.card = (c, t, d, s) => CARD[G](c, t, d, s);
 })();

@@ -247,36 +247,51 @@ function kDigit(ch, x, y, w, h, col, a = 1) {
   const SG = { a: () => hz(y + t / 2), g: () => hz(ym), d: () => hz(y + h - t / 2), f: () => vt(x + t / 2, y, ym), b: () => vt(x + w - t / 2, y, ym), e: () => vt(x + t / 2, ym, y + h), c: () => vt(x + w - t / 2, ym, y + h) };
   for (const k of 'abcdefg') { const lit = on.includes(k); SG[k](); g.save(); if (lit) { g.shadowColor = rgba(col, 0.9 * a); g.shadowBlur = 26; } g.fillStyle = lit ? rgba(col, a) : rgba(col, 0.07 * a); g.fill(); g.restore(); }
 }
+/* Ablauf der Uhr-Szene: eine Sekunde Schwarz, dann schlägt die Uhr ins Bild und zählt; drei Sekunden vor Schluss reißt das Bild mit dem
+   letzten Schlag ins Schwarz ab (tc), danach steht ruhig das Lockup. Der Zieltag wird nicht gezeigt (Wunsch vom 28.11.2026) — nur die
+   laufende Zeit. */
+const kClockCut = (D) => Math.max(4, Math.round(D) - 3);
 KS.clock = {
   sec: 'clock',
-  draw(lt, D) {
+  plan(D) { const tc = kClockCut(D); return { tc, hits: [[1, 1], [tc, 1]] }; },
+  draw(lt, D, P) {
     g.fillStyle = '#000'; g.fillRect(0, KT, W, KH);
-    const col = KB ? '#19a7ff' : BR.orange, sek = Math.floor(lt + 1e-6), fr = lt - sek, rem = Math.max(0, Math.floor((KCD.target - KCD.now) / 1000) - sek), p2 = (v) => String(v).padStart(2, '0');
+    const tc = P.tc ?? kClockCut(D), col = KB ? '#19a7ff' : BR.orange;
+    if (lt >= tc) {
+      /* Abriss: ein heller Schlag, Nachglühen in der Farbe der Anzeige — dann das Zeichen mit Wortmarke, ohne Effekte */
+      const u = lt - tc;
+      if (u < 0.07) { g.fillStyle = 'rgba(255,255,255,0.92)'; g.fillRect(0, KT, W, KH); return; }
+      glow(W / 2, KCY, 1300, col, 0.5 * Math.exp(-u * 4));
+      lockup(W / 2, KCY - 6, 88, KL.ink, { pm: seg(u, 0.6, 1.7), pw: seg(u, 1.0, 2.0) });
+      return;
+    }
+    const sek = Math.floor(lt + 1e-6), fr = lt - sek, rem = Math.max(0, Math.floor((KCD.target - KCD.now) / 1000) - sek), p2 = (v) => String(v).padStart(2, '0');
     const grp = [String(Math.floor(rem / 86400)).padStart(3, '0'), p2(Math.floor(rem / 3600) % 24), p2(Math.floor(rem / 60) % 60), p2(rem % 60)];
-    const dw = 104, dh = 190, dg = 20, cw = 76, tot = grp.reduce((x, s) => x + s.length * (dw + dg) - dg, 0) + 3 * cw, y0 = KCY - dh / 2 - 12, on = lt >= 1, pulse = Math.exp(-fr * 5), aOn = on ? 0.82 + 0.18 * pulse : 0;
-    /* Schein hinter der Anzeige, pulsiert mit jedem Ticken */
-    if (on) glow(W / 2, KCY - 12, 900, col, 0.1 + 0.07 * pulse);
-    kDust(lt, 0.35, KB ? '#9cc8f2' : '#E8E6E1');
+    const dw = 112, dh = 204, dg = 22, cw = 80, tot = grp.reduce((x, s) => x + s.length * (dw + dg) - dg, 0) + 3 * cw, y0 = KCY - dh / 2 + 10, on = lt >= 1, pulse = Math.exp(-fr * 4.5);
+    /* Anspannung: je näher der Abriss, desto heller der Schein */
+    const end = seg(lt, tc - 4, tc), aOn = on ? 0.76 + 0.24 * pulse : 0;
+    if (on) { glow(W / 2, KCY + 10, 950 + 150 * pulse, col, 0.12 + 0.14 * pulse + 0.12 * end); kFlare(W / 2, KCY + 10, 1250, col, (0.42 + 0.3 * end) * Math.exp(-fr * 6)); }
+    kDust(lt, 0.45, KB ? '#9cc8f2' : '#E8E6E1');
     /* Zeile über der Uhr: wessen Countdown das ist */
     const aT = eOut(seg(lt, 0.15, 1.0));
-    kText(KCD.top[0], W / 2, y0 - 118, { size: kFit(KCD.top[0], 1400, 62, {}), alpha: aT });
-    kLabel(KCD.top[1], W / 2, y0 - 66, { size: 22, track: 0.42, col: KB ? KL.acc : BR.apricot, alpha: aT });
+    kText(KCD.top[0], W / 2, y0 - 104, { size: kFit(KCD.top[0], 1400, 62, {}), alpha: aT });
+    kLabel(KCD.top[1], W / 2, y0 - 52, { size: 22, track: 0.42, col: KB ? KL.acc : BR.apricot, alpha: aT });
     if (on) {
-      /* Gruppen (Tage, Stunden, Minuten, Sekunden) mit ihren Plätzen; die Anzeige ist leicht geneigt wie eine Leuchtanzeige */
+      /* die Anzeige schlägt herein (groß → Ruhelage), fährt dann langsam nach vorn und zuckt mit jedem Ticken leicht */
+      const u = lt - 1, z = lerp(1.32, 1, eOut5(seg(u, 0, 0.4))) * (1 + 0.11 * (u / Math.max(1, tc - 1))), jit = 3.2 * Math.exp(-fr * 16), f = Math.floor(lt * 30);
       let x = W / 2 - tot / 2; const pos = grp.map((s) => { const x0 = x; x += s.length * (dw + dg) - dg + cw; return x0; }), sk = 0.07;
+      g.save(); g.translate(W / 2 + (hash(sek * 3.1) - 0.5) * 2 * jit, KCY + 10 + (hash(sek * 5.7) - 0.5) * 2 * jit); g.scale(z, z); g.translate(-W / 2, -(KCY + 10));
       g.save(); g.transform(1, 0, -sk, 1, sk * (y0 + dh / 2), 0);
       grp.forEach((s, gi) => {
-        [...s].forEach((ch, q) => kDigit(ch, pos[gi] + q * (dw + dg), y0, dw, dh, col, aOn));
-        if (gi < 3) { /* Doppelpunkt: leuchtet die erste Hälfte jeder Sekunde */ const cx = pos[gi] + s.length * (dw + dg) - dg + cw / 2; for (const yy of [y0 + dh * 0.32, y0 + dh * 0.68]) { g.save(); if (fr < 0.5) { g.shadowColor = rgba(col, 0.9); g.shadowBlur = 22; } g.fillStyle = rgba(col, fr < 0.5 ? aOn : 0.12); g.beginPath(); g.arc(cx, yy, 9, 0, 7); g.fill(); g.restore(); } }
+        /* in den ersten Bildern flackern die Ziffern, als spränge die Anzeige an */
+        [...s].forEach((ch, q) => kDigit(ch, pos[gi] + q * (dw + dg), y0, dw, dh, col, aOn * (u < 0.36 && hash(f * 1.7 + gi * 9 + q * 3.3) < 0.4 ? 0.18 : 1)));
+        if (gi < 3) { /* Doppelpunkt: leuchtet die erste Hälfte jeder Sekunde */ const cx = pos[gi] + s.length * (dw + dg) - dg + cw / 2; for (const yy of [y0 + dh * 0.32, y0 + dh * 0.68]) { g.save(); if (fr < 0.5) { g.shadowColor = rgba(col, 0.9); g.shadowBlur = 22; } g.fillStyle = rgba(col, fr < 0.5 ? aOn : 0.12); g.beginPath(); g.arc(cx, yy, 9.5, 0, 7); g.fill(); g.restore(); } }
       });
       g.restore();
-      grp.forEach((s, gi) => kLabel(KCD.units[gi], pos[gi] + (s.length * (dw + dg) - dg) / 2 - sk * (dh / 2 + 46), y0 + dh + 46, { size: 18, track: 0.34, col: KL.soft, alpha: eOut(seg(lt, 1.6, 2.4)) }));
+      grp.forEach((s, gi) => kLabel(KCD.units[gi], pos[gi] + (s.length * (dw + dg) - dg) / 2 - sk * (dh / 2 + 48), y0 + dh + 48, { size: 18, track: 0.34, col: KL.soft, alpha: eOut(seg(lt, 1.5, 2.2)) }));
+      g.restore();
+      kCutFlash(u, 0.9, KB ? '#bfe4ff' : '#FFE9D2');
     }
-    /* Zieltag */
-    kText(KCD.date, W / 2, y0 + dh + 132, { size: 54, w: 600, fam: KL.mono, track: 0.12, col: KL.ink, alpha: eOut(seg(lt, 2.0, 3.0)), plain: true });
-    /* zum Schluss das Zeichen mit Wortmarke — ruhig, ohne Effekte */
-    const tL = Math.max(3.2, D - 4.6);
-    lockup(W / 2, KBO - 74, 46, KL.ink, { pm: seg(lt, tL, tL + 1.2), pw: seg(lt, tL + 0.5, tL + 1.5) });
   },
 };
 
